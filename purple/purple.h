@@ -302,6 +302,14 @@ void		p_node_t_buffer_insert(PNTBuffer *buffer, size_t pos, const char *text);
 void		p_node_t_buffer_delete(PNTBuffer *buffer, size_t pos, size_t length);
 void		p_node_t_buffer_append(PNTBuffer *buffer, const char *text);
 
+/* Audio-node manipulation functions. */
+typedef void	PNALayer;
+
+unsigned int	p_node_a_layer_num(PINode *node);
+PNALayer *	p_node_a_layer_nth(PINode *node, unsigned int n);
+PNALayer *	p_node_a_layer_find(PINode *node, const char *name);
+const char *	p_node_a_layer_get_name(const PNALayer *layer);
+
 /* Duplicates an input node, and returns something you can actually edit. */
 PONode *	p_output_node(PPOutput out, PINode *node);
 
