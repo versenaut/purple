@@ -15,8 +15,8 @@ CFLAGS=-g -Wall -rdynamic -I$(VERSE) -L$(VERSE)
 LDLIBS=-ldl -lverse
 
 purple:		purple.c api-init.o client.o cron.o dynarr.o dynlib.o dynstr.o graph.o \
-		filelist.o hash.o list.o log.o mem.o memchunk.o plugins.o strutil.o timeval.o \
-		xmlutil.o \
+		filelist.o hash.o list.o log.o mem.o memchunk.o plugins.o strutil.o textbuf.o \
+		timeval.o xmlutil.o \
 		$(VERSE)/libverse.a
 
 api-init.o:	api-init.c purple.h
@@ -48,6 +48,8 @@ memchunk.o:	memchunk.c memchunk.h mem.h
 plugins.o:	plugins.c plugins.h
 
 strutil.o:	strutil.c strutil.h
+
+textbuf.o:	textbuf.c textbuf.h
 
 timeval.o:	timeval.c timeval.h
 
