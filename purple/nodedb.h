@@ -70,10 +70,13 @@ extern int		nodedb_unref(Node *n);	/* Returns 1 if node was destroyed. */
 extern void		nodedb_rename(Node *node, const char *name);
 extern VNodeType	nodedb_type_get(const Node *node);
 
+#define	NODEDB_TAG_TYPE_SCALAR(t)	(((t) != VN_TAG_STRING) && ((t) != VN_TAG_REAL64_VEC3) && ((t) != VN_TAG_BLOB))
+
 extern NdbTagGroup *	nodedb_tag_group_create(Node *node, uint16 group_id, const char *name);
 extern NdbTagGroup *	nodedb_tag_group_lookup(const Node *node, const char *name);
 extern NdbTag *		nodedb_tag_lookup(NdbTagGroup *group, const char *name);
 extern void		nodedb_tag_create(NdbTagGroup *group, uint16 tag_id, const char *name, VNTagType type, const VNTag *value);
+extern void		nodedb_tag_clear(NdbTag *tag);
 extern void		nodedb_tag_set(NdbTag *tag, VNTagType type, const VNTag *value);
 extern int		nodedb_tag_values_equal(const NdbTag *t1, const NdbTag *t2);
 
