@@ -26,32 +26,29 @@ extern void *		xmlnode_get_user(const XmlNode *node);
 /* Get value of named <attribute>. */
 extern const char *	xmlnode_attrib_get_value(const XmlNode *node, const char *attribute);
 
+/* Constants used when filtering out nodesets. */
 typedef enum
 {
-	XMLNODE_AXIS_SELF = 0,
+	XMLNODE_AXIS_SELF = 0x100,
 	XMLNODE_AXIS_ANCESTOR,
 	XMLNODE_AXIS_CHILD,
 	XMLNODE_AXIS_PREDECESSOR,
-	XMLNODE_AXIS_SUCCESSOR
-} XmlNodeAxis;
-
-typedef enum
-{
+	XMLNODE_AXIS_SUCCESSOR,
 	XMLNODE_FILTER_ACCEPT = 0,
 	XMLNODE_FILTER_NAME,
 	XMLNODE_FILTER_ATTRIB,
 	XMLNODE_FILTER_ATTRIB_VALUE
 } XmlNodeFilter;
 
-#define	XMLNODE_DONE			(void *) XMLNODE_FILTER_ACCEPT
-#define	XMLNODE_NAME(n)			(void *) XMLNODE_FILTER_NAME, (n)
-#define	XMLNODE_ATTRIB(a)		(void *) XMLNODE_FILTER_ATTRIB, (a)
-#define	XMLNODE_ATTRIB_VAL(a,v)		(void *) XMLNODE_FILTER_ATTRIB_VALUE, (a), (v)
+#define	XMLNODE_DONE			XMLNODE_FILTER_ACCEPT
+#define	XMLNODE_NAME(n)			XMLNODE_FILTER_NAME, (n)
+#define	XMLNODE_ATTRIB(a)		XMLNODE_FILTER_ATTRIB, (a)
+#define	XMLNODE_ATTRIB_VAL(a,v)		XMLNODE_FILTER_ATTRIB_VALUE, (a), (v)
 
 /*
  * xmlnode_nodeset_get(root, XMLNODE_AXIS_CHILDREN, XMLNODE_NAME("plugin"), XMLNODE_DONE);
 */
-extern List *		xmlnode_nodeset_get(const XmlNode *node, XmlNodeAxis axis, ...);
+extern List *		xmlnode_nodeset_get(const XmlNode *node, ...);
 
 /*
  * xmlnode_eval_single(root, "at/node");

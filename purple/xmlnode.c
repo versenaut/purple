@@ -484,50 +484,110 @@ const char * xmlnode_attrib_get_value(const XmlNode *node, const char *name)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static int filter_node(const XmlNode *node, void **filter, size_t filter_size)
+List * filter_list(List *list, void **filter)
 {
-	size_t	i;
+	int	cmd;
 
-	for(i = 0; i < filter_size; i++)
+	while(1)
 	{
-		void	*cmd = filter[i];
+		cmd = *filter++;
+		switch(cmd)
+		{
+		case XMLNODE_DONE:
+			return list;
+		case XMLNODE_AXIS_SELF:		/* Fall-through. */
+		case XMLNODE_AXIS_ANCESTOR:
+		case XMLNODE_AXIS_CHILD:
+		case XMLNODE_AXIS_PREDECESSOR:
+		case XMLNODE_AXIS_SUCCESSOR:
+			switch((int) cmd)
+			{
+			case XMLNODE_AXIS_CHILD:
+				{
+					List	*clist = NULL;
+					XmlNode	*here;
 
-/*		printf("read command %p\n", cmd);*/
-		if(cmd == (void *) XMLNODE_FILTER_ACCEPT)
+					for(; (here = list_data(list)) != NULL; list = list_next(list))
+					{
+						const List	*iter;
+
+						for(iter = here->children; iter != NULL; iter = list_next(iter))
+							clist = list_append(clist, list_data(iter));
+					}
+					list_destroy(list);
+					list = clist;
+				}
+				break;
+			default:
+				printf("Can't filter axis %d, code missing\n", cmd);
+			}
 			break;
-		else if(cmd == (void *) XMLNODE_FILTER_NAME)
-		{
-			cmd = filter[++i];
-			if(strcmp(node->element, cmd) != 0)
-				return 0;
-		}
-		else if(cmd == (void *) XMLNODE_FILTER_ATTRIB)
-		{
-			cmd = filter[++i];
-			if(xmlnode_attrib_get_value(node, cmd) == NULL)
-				return 0;
-		}
-		else if(cmd == (void *) XMLNODE_FILTER_ATTRIB_VALUE)
-		{
-			void		*value;
-			const char	*v;
+		case XMLNODE_FILTER_NAME:
+			{
+				const char	*name = *filter++;
+				List		*iter, *next;
 
-			cmd   = filter[++i];
-			value = filter[++i];
-			if(((v = xmlnode_attrib_get_value(node, cmd)) == NULL) || (strcmp(v, value) != 0))
-				return 0;
+				for(iter = list; iter != NULL; iter = next)
+				{
+					next = list_next(iter);
+					if(strcmp(xmlnode_get_name(list_data(iter)), name) != 0)
+					{
+						list = list_unlink(list, iter);
+						list_destroy(iter);
+					}
+				}
+			}
+			break;
+		case XMLNODE_FILTER_ATTRIB:
+			{
+				const char	*an = *filter++;
+				List		*iter, *next;
+
+				for(iter = list; iter != NULL; iter = next)
+				{
+					XmlNode	*here = list_data(iter);
+					next = list_next(iter);
+
+					if(xmlnode_attrib_get_value(here, an) == NULL)
+					{
+						list = list_unlink(list, iter);
+						list_destroy(iter);
+					}
+				}
+			}
+			break;
+		case XMLNODE_FILTER_ATTRIB_VALUE:
+			{
+				const char	*an = *filter++, *av = *filter++;
+				List		*iter, *next;
+
+				for(iter = list; iter != NULL; iter = next)
+				{
+					const char	*nav;
+					XmlNode	*here = list_data(iter);
+					next = list_next(iter);
+
+					if((nav = xmlnode_attrib_get_value(here, an)) == NULL ||
+					   strcmp(nav, av) != 0)
+					{
+						list = list_unlink(list, iter);
+						list_destroy(iter);
+					}
+				}
+			}
+			break;
 		}
 	}
-	return 1;
+	return list;
 }
 
-List * xmlnode_nodeset_get(const XmlNode *node, XmlNodeAxis axis, ...)
+List * xmlnode_nodeset_get(const XmlNode *node, ...)
 {
-	void	*filter[32];
+	void	*filter[32], *fp = filter;
 	size_t	filter_size;
 	va_list	va;
 
-	va_start(va, axis);
+	va_start(va, node);
 	for(filter_size = 0; filter_size < sizeof filter / sizeof *filter; filter_size++)
 	{
 		filter[filter_size] = va_arg(va, void *);
@@ -535,32 +595,7 @@ List * xmlnode_nodeset_get(const XmlNode *node, XmlNodeAxis axis, ...)
 			break;
 	}
 	va_end(va);
-/*	printf("filter size is %u, axis is %d\n", filter_size, axis);*/
-
-	if(axis == XMLNODE_AXIS_ANCESTOR)
-	{
-		List	*list = NULL;
-
-		for(node = node->parent; node != NULL; node = node->parent)
-		{
-			if(filter_node(node, filter, filter_size))
-				list = list_prepend(list, (void *) node);
-		}
-		return list;
-	}
-	else if(axis == XMLNODE_AXIS_CHILD)
-	{
-		List	*list = NULL, *iter;
-
-/*		printf("traverse children\n");*/
-		for(iter = node->children; iter != NULL; iter = list_next(iter))
-		{
-			if(filter_node(list_data(iter), filter, filter_size))
-				list = list_append(list, list_data(iter));
-		}
-		return list;
-	}
-	return NULL;
+	return filter_list(list_append(NULL, (void *) node), filter);
 }
 
 /* Evaluate micro-minimalistic "dialect" (I use the term loosely) xpath-like expression.
@@ -569,7 +604,6 @@ List * xmlnode_nodeset_get(const XmlNode *node, XmlNodeAxis axis, ...)
 */
 const char * xmlnode_eval_single(const XmlNode *node, const char *path)
 {
-	XmlNodeAxis	axis = XMLNODE_AXIS_CHILD;
 	char		part[256], *put;			/* Static limits rule. */
 	List		*res;
 
@@ -584,7 +618,7 @@ const char * xmlnode_eval_single(const XmlNode *node, const char *path)
 			break;
 		if(part[0] == '@')
 			return xmlnode_attrib_get_value(node, part + 1);
-		res = xmlnode_nodeset_get(node, axis, XMLNODE_NAME(part), XMLNODE_DONE);
+		res = xmlnode_nodeset_get(node, XMLNODE_AXIS_CHILD, XMLNODE_NAME(part), XMLNODE_DONE);
 		if(res != NULL)
 		{
 			node = list_data(res);
