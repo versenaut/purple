@@ -35,7 +35,7 @@ typedef struct
 	uint32		id;
 	Plugin		*plugin;
 	PInstance	instance;
-	PPort		output;
+	PPort		output;		/* Result is stored here. */
 
 	uint32		start, length;	/* Region in graph XML buffer used for this module. */
 } Module;
