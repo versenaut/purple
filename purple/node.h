@@ -1,10 +1,12 @@
 
 #include <stdlib.h>
 
-#include "dynarray.h"
+#include "verse.h"
 
-typedef struct {
-	uint8		id;
+#include "idset.h"
+
+typedef struct
+{
 	char		name[VN_TAG_NAME_SIZE];
 	VNTagType	type;
 	VNTag		value;
@@ -12,14 +14,14 @@ typedef struct {
 
 typedef struct
 {
-	uint16		id;
 	char		name[VN_TAG_GROUP_SIZE];
-	DynArr *	tags;
+	IdSet		*tags;
 } TagGroup;
 
 struct Node
 {
+	VNodeID		id;
 	VNodeType	type;
 	char		name[32];
-	DynArr		*tag_groups;
+	IdSet		*tag_groups;
 };
