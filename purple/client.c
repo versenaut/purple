@@ -150,7 +150,8 @@ static void cb_node_notify_mine(Node *node, NodeNotifyEvent e)
 void client_post_connect(void)
 {
 	verse_send_o_method_group_create(client_info.avatar, ~0, METHOD_GROUP_CONTROL_NAME);
-	verse_send_node_create(~0, V_NT_TEXT, VN_OWNER_MINE);
+	if(!resume_enabled())	/* If in resume, never create a new meta node. */
+		verse_send_node_create(~0, V_NT_TEXT, VN_OWNER_MINE);
 }
 
 static void cb_connect_accept(void *user, VNodeID avatar, void *address, void *connection, uint8 *host_id)
