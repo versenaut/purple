@@ -1,0 +1,246 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<HTML
+><HEAD
+><TITLE
+>System Overview; Terminology</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.64
+"><LINK
+REL="HOME"
+HREF="purple.html"><LINK
+REL="PREVIOUS"
+HREF="purple.html"><LINK
+REL="NEXT"
+TITLE="Data Flow"
+HREF="dataflow.html"></HEAD
+><BODY
+CLASS="sect1"
+BGCOLOR="#FFFFFF"
+TEXT="#000000"
+LINK="#0000FF"
+VLINK="#840084"
+ALINK="#0000FF"
+><DIV
+CLASS="NAVHEADER"
+><TABLE
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TH
+COLSPAN="3"
+ALIGN="center"
+></TH
+></TR
+><TR
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="bottom"
+><A
+HREF="purple.html"
+>&#60;&#60;&#60; Previous</A
+></TD
+><TD
+WIDTH="80%"
+ALIGN="center"
+VALIGN="bottom"
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="bottom"
+><A
+HREF="dataflow.html"
+>Next &#62;&#62;&#62;</A
+></TD
+></TR
+></TABLE
+><HR
+ALIGN="LEFT"
+WIDTH="100%"></DIV
+><DIV
+CLASS="sect1"
+><H1
+CLASS="sect1"
+><A
+NAME="systemview"
+>System Overview; Terminology</A
+></H1
+><P
+>&#13;The Purple system is fairly complicated. This section establishes some basic properties of the system, and
+introduces and defines the terms used in the rest of this document.
+</P
+><DIV
+CLASS="sect2"
+><H2
+CLASS="sect2"
+><A
+NAME="sysview"
+>System Overview</A
+></H2
+><P
+>&#13;The following figure shows, at a rather coarse level, the Purple system's organisation:
+<DIV
+CLASS="figure"
+><A
+NAME="AEN22"
+></A
+><DIV
+CLASS="mediaobject"
+><P
+><IMG
+SRC="overview.png"
+></IMG
+></P
+></DIV
+><P
+><B
+>Figure 1. System Overview</B
+></P
+></DIV
+>
+The most important point here is that there are two actual Verse clients, talking to the same host. One of the
+clients, the execution environment (or <SPAN
+CLASS="QUOTE"
+>"engine"</SPAN
+>) is located close to the server, while the other
+one (the user interface) is run by actual end users across the Internet.
+</P
+></DIV
+><DIV
+CLASS="sect2"
+><H2
+CLASS="sect2"
+><A
+NAME="terms"
+>Terminology</A
+></H2
+><P
+>&#13;These are some of the primary terms and concepts used in this document:
+<P
+></P
+><DIV
+CLASS="variablelist"
+><DL
+><DT
+>engine</DT
+><DD
+><P
+>&#13; Technically a Verse client, but run close to the host (very likely in the same physical location, perhaps
+ in the same rack or even on the same machine). Contains a collection of plug-ins, and lets clients connect,
+ learn about available plug-ins, and work with them by creating and populating graphs.
+ </P
+></DD
+><DT
+>plug-in</DT
+><DD
+><P
+>&#13; A component, or building block. A plug-in is a program, that resides on the same machine as the Purple engine.
+ It is loaded by the engine, and made available for use. Technically, plug-ins are shared objects (the Unix
+ term for what is called <SPAN
+CLASS="QUOTE"
+>"dynamically loaded libraries"</SPAN
+> (DLLs) in Windows) that are loaded by the
+ engine and that describe themselves programmatically. Written using the special high-level Purple API, far
+ simpler than writing a stand-alone Verse client. It is possible to define more than one plug-in in a single
+ shared object/DLL, for convenience.
+ </P
+></DD
+><DT
+>graph</DT
+><DD
+><P
+>&#13; Graphs are the canvases that users of Purple work on, the container, document, or <SPAN
+CLASS="QUOTE"
+>"project"</SPAN
+> that
+ is the background for all work. All modules belong to a graph. Each user can have several graphs that she works
+ on in parallel, just like multiple documents can be open in a word processor.
+ </P
+></DD
+><DT
+>module</DT
+><DD
+><P
+>&#13; Modules are <I
+CLASS="emphasis"
+>instantiated</I
+> plug-ins. There can be any number of modules using each plug-in,
+ that all reference the same block of functionality. Modules are connected together and collected into graphs,
+ see above. The terms <I
+CLASS="emphasis"
+>node</I
+> and <I
+CLASS="emphasis"
+>vertex</I
+>, that are both commonly used to
+ refer to parts of graphs, are not being used since the risk of confusion with Verse nodes and Verse geometry
+ vertices as deemed to be too high.
+ </P
+></DD
+></DL
+></DIV
+>
+</P
+></DIV
+></DIV
+><DIV
+CLASS="NAVFOOTER"
+><HR
+ALIGN="LEFT"
+WIDTH="100%"><TABLE
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="purple.html"
+>&#60;&#60;&#60; Previous</A
+></TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="purple.html"
+>Home</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="dataflow.html"
+>Next &#62;&#62;&#62;</A
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+></TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+>&nbsp;</TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+>Data Flow</TD
+></TR
+></TABLE
+></DIV
+></BODY
+></HTML
+>

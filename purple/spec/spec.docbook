@@ -1,0 +1,1279 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+"/usr/share/sgml/docbook/xml-dtd-4.2/docbookx.dtd" [
+<!ENTITY InputMethods SYSTEM "inputmethods.snip">
+<!ENTITY Init    "<function>init()</function>">
+<!ENTITY Compute "<function>compute()</function>">
+]
+>
+
+<article lang="en" id='purple'>
+<articleinfo>
+ <title>Purple</title>
+ <subtitle>Verse Scripting System</subtitle>
+ <author>
+  <honorific>M.Sc.</honorific><firstname>Emil</firstname>
+  <surname>Brink</surname>
+ </author>
+</articleinfo>
+
+<sect1>
+<title>Introduction</title>
+<para>
+This article describes the planned Purple system. It serves as both documentation, helping people get a
+mental image of what Purple is all about, and as a guide for implementors of the Purple architecture.
+</para>
+<para>
+This is a rather technical article, that doesn't shy away from including C declarations of important
+functions, and so on. The reader is assumed to be interested in the more technical/<quote>under the hood</quote>
+aspects of the Purple system, the details that make it all work, rather than being primarily focused on
+the <quote>softer</quote> parts like how it will look, what can be done with it, and so on.
+</para>
+<para>
+The article is organized into six major sections; first a system overview with definitions of important
+terms. Then follows a section that talks a bit about the basic data flow mechanism that Purple is based
+on, and finally come one section dedicated to each of the four major architectural components that make
+up the system as designed.
+</para>
+</sect1>
+
+<sect1 id='systemview'>
+<title>System Overview; Terminology</title>
+<para>
+The Purple system is fairly complicated. This section establishes some basic properties of the system, and
+introduces and defines the terms used in the rest of this document.
+</para>
+<sect2 id='sysview'>
+<title>System Overview</title>
+<para>
+The following figure shows, at a rather coarse level, the Purple system's organisation:
+<figure>
+<title>System Overview</title>
+ <mediaobject>
+  <imageobject>
+   <imagedata fileref="overview.png" format="PNG"/>
+  </imageobject>
+ </mediaobject>
+</figure>
+The most important point here is that there are two actual Verse clients, talking to the same host. One of the
+clients, the execution environment (or <quote>engine</quote>) is located close to the server, while the other
+one (the user interface) is run by actual end users across the Internet.
+</para>
+</sect2>
+
+<sect2 id='terms'>
+<title>Terminology</title>
+<para>
+These are some of the primary terms and concepts used in this document:
+<variablelist>
+<varlistentry>
+ <term>engine</term>
+ <listitem>
+ <para>
+ Technically a Verse client, but run close to the host (very likely in the same physical location, perhaps
+ in the same rack or even on the same machine). Contains a collection of plug-ins, and lets clients connect,
+ learn about available plug-ins, and work with them by creating and populating graphs.
+ </para>
+ </listitem>
+</varlistentry>
+<varlistentry>
+ <term>plug-in</term>
+ <listitem>
+ <para>
+ A component, or building block. A plug-in is a program, that resides on the same machine as the Purple engine.
+ It is loaded by the engine, and made available for use. Technically, plug-ins are shared objects (the Unix
+ term for what is called <quote>dynamically loaded libraries</quote> (DLLs) in Windows) that are loaded by the
+ engine and that describe themselves programmatically. Written using the special high-level Purple API, far
+ simpler than writing a stand-alone Verse client. It is possible to define more than one plug-in in a single
+ shared object/DLL, for convenience.
+ </para>
+ </listitem>
+</varlistentry>
+<varlistentry>
+ <term>graph</term>
+ <listitem>
+ <para>
+ Graphs are the canvases that users of Purple work on, the container, document, or <quote>project</quote> that
+ is the background for all work. All modules belong to a graph. Each user can have several graphs that she works
+ on in parallel, just like multiple documents can be open in a word processor.
+ </para>
+ </listitem>
+</varlistentry>
+<varlistentry>
+ <term>module</term>
+ <listitem>
+ <para>
+ Modules are <emphasis>instantiated</emphasis> plug-ins. There can be any number of modules using each plug-in,
+ that all reference the same block of functionality. Modules are connected together and collected into graphs,
+ see above. The terms <emphasis>node</emphasis> and <emphasis>vertex</emphasis>, that are both commonly used to
+ refer to parts of graphs, are not being used since the risk of confusion with Verse nodes and Verse geometry
+ vertices as deemed to be too high.
+ </para>
+ </listitem>
+</varlistentry>
+</variablelist>
+</para>
+</sect2>
+</sect1>
+
+<sect1 id='dataflow'>
+<title>Data Flow</title>
+<para>
+Purple is about connecting modules so that interesting data can flow, so a few words about the actual flow
+of data are needed. To help the discussion, consider the following figure which shows a pair of modules
+communicating:
+<figure>
+<title>Data Flow Example</title>
+ <mediaobject>
+  <imageobject>
+   <imagedata fileref="sphere-bend.png" format="PNG"/>
+  </imageobject>
+ </mediaobject>
+</figure>
+Seen here is a little graph consisting of two modules; one instance of a plug-in named <quote>Sphere</quote>,
+connected to an instance of <quote>Bend</quote>.
+</para>
+<para>
+The Sphere module has two inputs, labeled <quote>radius</quote> and <quote>splits</quote>. The radius is a real
+number, while the splits is an unsigned integer. The intent is that the module emits a mesh representation of a
+sphere, with the given radius and number of splits in the longitudinal and latitudinal directions. The plug-in
+simply creates the needed geometry node, computes the required vertex positions, creates the vertices, and finally
+connects them into a polygonal mesh. This mesh then appears on the output.
+</para>
+<para>
+The Bend module has a single input labeled <quote>geometry</quote>. The plug-in will take any geometry it can
+find on its input, apply some kind of (here hardcoded, in a more realistic case it would take additional inputs
+to control the amount and direction of the bend) bending transform on the vertices of the geometry. The bent
+geometry then appears on the output.
+</para>
+<para>
+Here, the final data would not end up on the Verse host, since the output of the Bend module is not connected
+to anything. It would require explicit action from the user, probably by conneting the output to some kind of
+<quote>Verse data sink</quote> module, to make the Purple engine write it to the host. Exactly how this will
+work has not yet been decided.
+</para>
+<para>
+As the above example indicates, the data that flows on the lines between modules is not very limited in type;
+it's perfectly okay for a module to emit a single integer, or a full geometry node with (potentially) thousands
+of values in it, or even ten such nodes. The plug-in code that actually gets the value from each input does so
+with a very specific type as part of the request, however, and this is when the Purple engine looks on the incoming
+data and extracts a value of the requested type. Exactly how this is done, how for instance a geometry node is
+converted to a string, will need to be detailed elsewhere. The general idea is to <quote>pick</quote> a suitable
+value, not to do very heavy conversions. So in the geometry node-as-string case, the node name would probably be
+returned.
+</para>
+
+<sect2>
+<title>Operating on Node Data</title>
+<para>
+The example above pictures a module, Sphere, that acts as a data creation point, or source: the code in the
+corresponding plug-in actually <emphasis>creates</emphasis> new geometry data from scratch, using built-in
+hard-coded <quote>knowledge</quote> of what is to be created, and letting a couple of parameters control the
+process. While this is a useful paradigm, it is also very desirable to be able to connect Purple modules to
+<emphasis>existing</emphasis> data in order to modify what has already been created.
+</para>
+<sect3>
+<title>The Input Plug-in</title>
+<para>
+Verse data is accessed through the use of a built-in <emphasis>input plug-in</emphasis>. This plug-in is
+kind of magical, in that it is not possible to use the Purple API to implement the same functionality.
+The plug-in takes as an input a string, that names the target node. It outputs the named node, or nothing
+if no such node exists.
+</para>
+<para>
+This is, admittedly, a rather limited way of getting node data into a plug-in. We have visions for far
+grander schemes (including a <quote>filter API</quote> with which custom input plug-ins could be written)
+but chose to limit it to something small yet useful to simplify implementation of the system.
+</para>
+<figure id='input-bend'>
+<title>Node Input Example</title>
+ <mediaobject>
+  <imageobject>
+   <imagedata fileref="input-bend.png" format="PNG"/>
+  </imageobject>
+ </mediaobject>
+</figure>
+<para>
+<xref linkend='input-bend'/> shows how the input plug-in can be used. The module on the left in the figure
+is given the constant string <literal>"foo"</literal>, and will emit on its output either the node named
+<quote>foo</quote> or nothing. The Bend module that comes next is then given this node to operate upon (it
+is probably a good idea to pass the name of a geometry node to the Input module).
+</para>
+</sect3>
+<sect3>
+<title>The Output Plug-in</title>
+<para>
+As its name suggests, the Output plug-in is used to send data <quote>out</quote>, as in back to Verse. It is
+the counterpart of the Input plug-in, and is used to make the results of a Purple graph visible, by sending
+the data to a Verse server.
+</para>
+<para>
+Possibly, there needs to be two different varieties of the Output plug-in, or perhaps options to control its
+behavior. What is needed is a way to output node data in one of two distinct ways:
+<itemizedlist>
+<listitem><para>Overwrite existing nodes.</para></listitem>
+<listitem><para>Create new nodes.</para></listitem>
+</itemizedlist>
+</para>
+<para>
+In the former case, a node is simply <quote>streamed</quote> through a graph of modules, that can apply some
+kind of effect, add <quote>intelligence</quote>, or whatever. The data needs to replace the original data in
+the source node, since the desired effect is simply to modify existing data, not create new.
+</para>
+<para>
+In the latter case, a module graph is used to create new data from existing, perhaps by combining data held
+in several nodes into something new and unique. In such a case, it is not possible to replace the original
+data, which might not even be of the same format (e.g., stored in a node of the same type as the final output).
+</para>
+<para>
+Data which doesn't flow into an Output module need never be computed, since it by definition cannot be seen
+outside the graph in question.
+</para>
+</sect3>
+<sect3>
+<title>Self-Modifying Graphs</title>
+<para>
+Once we have both the Input and Output plug-ins, it becomes possible to create a loop via the Verse server:
+use an Input module to pick out a node, modify it using some general processing module, and then stream it
+back to the Verse server using an Output module (in replace-mode). The changes done then come back to the
+Purple engine, which will notice that the node in question is being monitored by an Input module, and re-run
+the graph in question, thus triggering another iteration. This loop is then infinite, and the Purple engine
+will spend all of its time doing the update, probably destroying the original data in the process of trying
+to apply an infinite amount of processing.
+</para>
+<para>
+The way we intend to handle this situation is like this: whenever a graph ends up saying that a node depends
+on itself, the node will be automatically copied behind the scenes by Purple, and the node will then be made
+to depend on the copy. So, if you say <literal>foo := scale(foo, 2.0)</literal> Purple will actually do something
+more along the lines of <literal>bar := copy(foo); foo = scale(bar, 2.0)</literal>.
+</para>
+<para>
+This copying procedure prevents the loop from forming, and thus solves the problem. It is not clear at the moment
+how it will handle more complicated cases when several nodes flow in between modules, but the theory should be
+expandable.
+</para>
+</sect3>
+</sect2>
+</sect1>
+
+<sect1 id='api'>
+<title>The Plug-In API</title>
+<para>
+The plug-in API is used to implement plug-ins, that are to be loaded and run by the engine. Plug-ins are written
+by developers, and have full freedom to manipulate Verse data. Plug-ins follow a simple template with two publicly
+visible functions, and use functions from the API to describe themselves and get things done.
+</para>
+
+<sect2>
+<title>Anatomy of a Purple Plug-in</title>
+<para>
+A plug-in using the Purple API must define a single public function, called &Init;.
+</para>
+<sect3>
+<title>The &Init; Entrypoint</title>
+<para>
+It is the responsibility of the &Init; function to register the plug-in with the engine. It does this by
+calling various functions in the <link linkend='api-init'>init group</link> of the API. Typically, the
+function will do:
+<itemizedlist>
+<listitem>
+<para>Register global meta information. Any meta information set before the creation of the first entrypoint
+will be inherited by all entrypoints.</para>
+</listitem>
+</itemizedlist>
+Then, for each entrypoint:
+<orderedlist>
+<listitem>
+<para>Create the plug-in entrypoint by naming it. Any subsequent init-calls apply to the last named
+entrypoint.
+</para>
+</listitem>
+<listitem>
+<para>Initialize the entrypoint's inputs. This is the most important activity, if a plug-in requires input
+data it must say so by registering inputs.</para>
+</listitem>
+<listitem>
+<para>Set meta information. This includes the plug-in's name, who wrote it, copyright, and various help
+and other descriptive texts. All of these are entierly optional, but to make the plug-in accessible for
+end users it's a good idea to provide as much meta information as possible.</para>
+</listitem>
+<listitem>
+<para>
+Register the &Compute; function. Each plug-in must have such a function registered, for the engine to
+call when the plug-in's output value is needed.
+</para>
+</listitem>
+</orderedlist>
+</para>
+<para>
+The &Init; does not recieve any arguments, and does return any value to the engine. All interaction is
+done by calling functions in the init group. Calling functions in other groups has no effect, since the
+plug-in has not yet been instantiated (into a module) when &Init; runs.
+</para>
+</sect3>
+
+<sect3>
+<title>The &Compute; Function</title>
+<para>
+The purpose of the &Compute; function is to compute whatever result the plug-in is supposed to generate.
+The function need not be externally visible, and thus its name is not necessarily <quote>compute</quote>,
+but it is the generic name used throughout this document to refer to a plug-in's main result-generating
+function. For a typical plug-in, the steps to take in &Compute; are:
+<orderedlist>
+<listitem>
+<para>Call <function>p_input_XXX()</function> functions to get the values for the plug-in's
+inputs. Here, XXX is a type such as <symbol>real32</symbol> that indicates what type of value
+is desired.</para>
+</listitem>
+<listitem>
+<para>Do the processing, whatever is required. Perhaps access vertices of input nodes, read pixels from
+bitmaps, or whatever. Might also <emphasis>create</emphasis> e.g. new geometry data.</para>
+</listitem>
+<listitem>
+<para>If needed, call a set of simple output functions, like <function>p_output_boolean()</function>
+et cetera. Node data can also be output, and any node data created is output by default.</para>
+</listitem>
+</orderedlist>
+Unlike the &Init; function described above, &Compute; is passed arguments that act as opaque
+<quote>handles</quote> to the inputs and outputs of the module the plug-in is running in, respectively.
+Just like the &Init; function, it does not have a return value.
+<!--
+Like the &Init; function described above, &Compute; does not receive any arguments and has no return value
+on the C level of things. All data is accessed through explicitly asking for it using
+<link linkend='api-input'>suitable functions</link>, and results are output using
+<link linkend='api-output'>other functions</link>. -->
+</para>
+</sect3>
+</sect2>
+
+<sect2 id='api-init'>
+<title>API Functions</title>
+<para>
+The API is for C, and has functions in the following categories:
+<itemizedlist>
+<listitem>
+<para>Initialization. Functions for letting the plug-in describe itself to the engine. Includes
+setting the function pointer the engine is to use as the plug-in's &Compute; entrypoint.</para>
+</listitem>
+<listitem>
+<para>Input accessing. Functions to get values for inputs.</para>
+</listitem>
+<listitem>
+<para>Verse data processing. The largest group, functions to create, destroy, and edit data according to the
+Verse data model. Also more high-level and simplified functions to make it easy to develop plug-ins quickly.
+</para>
+</listitem>
+<listitem>
+<para>Output setting. Functions to set the value of the plug-ins output.</para>
+</listitem>
+</itemizedlist>
+The next section talks further about these four groups of functions.
+</para>
+
+<sect3>
+<title>Initialization Functions</title>
+<para>
+These are functions that are only valid to use in the &Init; function of a shared object, where it registers
+one or more plug-ins with the engine. Each plug-in must be described, it is necessary to provide the engine
+at minimum with the &Compute; function, very frequently also with input descriptions and lat but not least
+with meta information about author, copyright, purpose, and so on.
+</para>
+<para>
+There is a certain sequence in which these things are done:
+<orderedlist>
+<listitem><para>Create plug-in. Since a single shared object/DLL can contain multiple plug-ins, they must
+be explicitly created.</para></listitem>
+<listitem><para>Describe inputs. Many plug-ins need inputs that supply operational parameters.</para></listitem>
+<listitem><para>Set &Compute; function. All plug-ins must have a function that is responsible for doing
+the actual work of the plug-in, and it must be registered.</para></listitem>
+<listitem><para>Set meta information. Optional but highly recommended.</para></listitem>
+</orderedlist>
+</para>
+<para>
+<programlisting>/* Create a plug-in. */
+void p_init_create(const char *name);
+</programlisting>
+This function begins a new plug-in, and registers it with the given name. All the other init-functions act
+on the last created plug-in.
+</para>
+<para>
+<programlisting>/* Register a plug-in input. */
+void p_init_input(int index, PInputType type, const char *name, ...);
+</programlisting>
+This function adds an input to the plug-in description. The parameters are:
+<variablelist>
+<varlistentry>
+<term><parameter>index</parameter></term>
+<listitem>
+<para>
+A numerical ID that identifies the input. Inputs should be numbered from zero and up, and there is a hard
+limit on the number of allowed inputs (probably 256).
+</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><parameter>type</parameter></term>
+<listitem><para>
+The type of the input. This information ends up in the plug-in description text buffer, and is used by
+user interfaces to construct suitable controls and manipulators. It does not actually control which kind
+of value the plug-in code can later request, in the &Compute; method; it serves only as a hint to user
+interfaces. A sample value might be <literal>PURPLE_INPUT_REAL32</literal>.
+</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><parameter>name</parameter></term>
+<listitem><para>
+The name of the input. This is actually optional, specifying an empty string is valid but not at all
+recommended. Also, names need not be unique although that, too, is highly recommended. It is possible
+that a Purple engine will ignore plug-ins whose inputs are not uniquely named, for instance.
+</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><parameter>...</parameter></term>
+<listitem><para>
+Additional data, such as input default values and range limits, descriptive text, and so on. Specified as
+a <quote>tag list</quote>, details elsewhere.
+</para></listitem>
+</varlistentry>
+</variablelist>
+</para>
+<para>
+The reason the numerical index is included here is to act as a helper when switching between reading the
+&Init; function and writing the corresponding input-reading calls in &Compute;. Having the index visible
+in both places should help when matching up the calls.
+</para>
+<para>
+Next, we have:
+
+<programlisting>/* Register computational callback. */
+void p_init_compute(void (*compute)(PPInput *input, PPOutput output));
+</programlisting>
+This function registers the &Compute; function used by the engine to calculate the output, or
+<emphasis>result</emphasis>, of running the plug-in. It is passed the following arguments:
+<variablelist>
+<varlistentry>
+<term>input</term>
+<listitem><para>An array of input port descriptors. These are used to read out actual input values,
+see API below.</para></listitem>
+</varlistentry>
+</variablelist>
+</para>
+
+<para>
+Finally, there is:
+<programlisting>/* Register meta information about a plug-in. */
+void p_init_meta(const char *category, const char *text);
+</programlisting>
+This function registers <quote>meta data</quote> about the plug-in, using a simple string-based approach.
+Meta data is collected into categories, and categories look like path names in a filesystem (for instance
+<quote>desc/purpose</quote> should be a short text describing the purpose of the plug-in). The parameters
+are:
+<variablelist>
+<varlistentry>
+<term><parameter>category</parameter></term>
+<listitem><para>
+The category identifier string. We will publish a recommended set of such strings once they have been
+decided upon. Category names are limited to 7-bit ASCII characters.
+</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><parameter>text</parameter></term>
+<listitem><para>
+The text to associate with the given category. Free-form text, in UTF-8 format for localization support.
+</para></listitem>
+</varlistentry>
+</variablelist>
+</para>
+</sect3>
+
+<sect3 id='api-input'>
+<title>Input Accessing</title>
+<para>
+One conceptual half of this group of functions consists of just a single output-polymorph function. Because
+the Purple API is in C, however, where such polymorphism is not supported, the implementation is as a set of
+functions:
+<programlisting>/* Retrieve input value. */
+boolean p_input_boolean(PPInput port);
+int32   p_input_int32(PPInput port);
+uint32  p_input_uint32(PPInput port);
+real32  p_input_real32(PPInput port);
+real64  p_input_real64(PPInput port);
+/* More functions... */ 
+</programlisting>
+These functions simply take PPInput <quote>port</quote> that represents an input, and return the value currently
+present there. If a module is connected to the input, it might be asked to &Compute; the value, or it
+<emphasis>might</emphasis> be cached by the Purple engine. If the input is assigned a constant value, it will simply
+be returned.
+</para>
+<para>
+The correct <varname>port</varname> is found by simply indexing into the <varname>input</varname> array
+passed to the &Compute; function, with the index from the init-call that registered the input.
+</para>
+<para>
+The above functions are very straight-forward, but there is also a need for a different input approach, for
+the case when node data is being sent between modules. Then, it becomes desirable to be able to ask for
+things like <quote>all objects from input N</quote>, which is handled by this function:
+<programlisting>/* Retrieve input nodes. */
+const PNodeList * p_input_node(PPInput port, VNodeType mask);
+</programlisting>
+This function returns a list of <type>const PNode *</type> pointers, containing the nodes of a given (set of)
+type(s) from the data connected to a given input.
+</para>
+</sect3>
+
+<sect3>
+<title>Data Processing</title>
+<para>
+This is the largest set of functions, but also the ones about which the least is known at the moment. There
+will be functions here for doing plenty of stuff.
+</para>
+</sect3>
+
+<sect3 id='api-output'>
+<title>Output Setting</title>
+<para>
+Another set of functions that could be represented as a single polymorphic one if the API was implemented in
+a slightly more expressive language than C. These set a single value in the output, as opposed to a whole
+node.
+<programlisting>/* Simple outputs. */
+void p_output_boolean(boolean value);
+void p_output_int32(int32 value);
+void p_output_uint32(uint32 value);
+void p_output_string(const char *value);
+/* And so on... */
+</programlisting>
+</para>
+<para>
+Nodes are treated somewhat differently. There are two types of nodes in the Purple API: input and output
+nodes. Input nodes, represented by <type>const PINode *</type> pointers, are read-only objects that act
+as in-memory representations of the Verse node types. Being read-only, you cannot change any of the data
+in an input node. If a plug-in needs to create or change node data, it needs to do so using an output
+node, a <type>PONode *</type> variable.
+</para>
+<para>
+Output nodes are created and sent to the plug-in's output by the same function:
+<programlisting>PONode * p_output_node(const PINode *node);</programlisting>
+This will copy the data in the given input node and return an editable representation. It will also
+send the output node, in its final state at the end of the &Compute; function, to the plug-in's output.
+</para>
+<para>
+Note that it is perfectly possible to combine all of the above output-setting functions rather freely;
+a plug-in can output both a string and a node, for instance. However, since there are no traversing
+functions for getting inputs, the simple types can only be output once. Calling e.g.
+<function>p_output_string()</function> twice will overwrite the first string with the second. For
+nodes, this does not hold true; all nodes referenced by <function>p_output_node()</function> will
+be output.
+</para>
+</sect3>
+
+</sect2>
+
+</sect1>
+
+
+<sect1 id='comms'>
+<title>Inter-Client Communications</title>
+<para>
+This section talks about the communication between the various parts of the overall Purple architecture. It lists
+the needs, and describes how each was mapped to use a suitable part of the Verse data model.
+</para>
+<sect2>
+<title>Needs and Possibilities</title>
+<para>
+There are at least three different communication requirements between the engine and front-end clients. There must be:
+<itemizedlist>
+<listitem>
+ <para>A way for the user interface to learn about which plug-ins are available in the engine, and
+to get meta-data describing each.</para>
+</listitem>
+<listitem>
+ <para>A way to ask the engine to <emphasis>create</emphasis> a new module instance, change the connections
+between existing instances, and so on. Graph editing, in short.</para>
+</listitem>
+<listitem>
+ <para>A way for the user interface to get the graph, to learn which instances have already been created, and
+how they are connected.</para>
+</listitem>
+</itemizedlist>
+Neither of these should be very high in bandwidth requirements, since we're aiming at human users in the end.
+</para>
+
+<para>
+To address the above, we have the following possible general-purpose information channels in the Verse
+architecture:
+<variablelist>
+<varlistentry><term>Tags</term>
+<listitem>
+<para>Available in all nodes. Grouped. Supports many types of values. Mainly intended to express properties of
+a node.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry><term>Method Calls</term>
+<listitem>
+<para>Available in object nodes. Grouped. Intended to express momentary actions.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry><term>Text Buffers</term>
+<listitem>
+<para>The basic data container provided by the text node. Stores free-form text, dynamically editable.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+Of these, tags are not very suitable for any of the three needs. Method calls are a very good match for the
+editing task, and text buffers can hold large descriptions that change slowly over time. So, the selected
+mapping becomes:
+<table align='center'>
+<title>Purple Communication Architecture</title>
+<tgroup cols='2'>
+<thead>
+ <row><entry>Requirement</entry><entry>Solved Through</entry></row>
+</thead>
+<tbody>
+ <row><entry><link linkend='comms-plugins'>Plug-in Descriptions</link></entry><entry>Text Buffer</entry></row>
+<row><entry><link linkend='comms-methods'>Graph Editing</link></entry><entry>Method Calls</entry></row>
+ <row><entry><link linkend='comms-graphs'>Graph Description</link></entry><entry>Text Buffer</entry></row>
+</tbody>
+</tgroup>
+</table>
+</para>
+<para>
+Method calls, as noted above, only exist in the context of an object node, which of course begs the question:
+which node is it? The answer is simple: it's the Purple engine client's avatar that exports the method interface for
+graph editing.
+</para>
+</sect2>
+
+<sect2 id='comms-plugins'>
+<title>Details: Plug-in Descriptions</title>
+<para>
+Plug-in descriptions exist to export and make visible the set of plug-ins available in a running instance of the
+Purple engine. The information is primarily intended user interface clients, that need it in order to present it
+to actual users. For instance, available plug-ins could be listed as tools in a menu, or otherwise made possible
+to pick and choose from.
+</para>
+<para>
+As stated above, this information will be made available as text, using a Verse text node buffer. The choice of
+<quote>text</quote> doesn't actually specify very much, since the space of possible textual representations for
+any given data is very large. Since the data is going to be highly structured, as dictated by the plug-in API
+that acts as the data source, the text format should be structured as well.
+</para>
+<para>
+It would be fairly easy to create a conventional grammar to express the desired information, but doing so would
+require all clients to implement parsers, and correctly deal with any unrecognized information that might appear
+in future versions of the grammar. To remove the requirement to formulate a <quote>proper</quote> classical grammar,
+and make the job of implementing a parser easier, we will go with <ulink url='http://www.w3.org/TR/REC-xml/'>XML</ulink>.
+XML makes it easy to define flexible and expandable textual representations, and enjoys great support in the form
+of freely available parsers and other tools.
+</para>
+
+<sect3>
+<title>An XML Document Type for Plug-in Descriptions</title>
+<para>
+We'll do this by example, for now. All examples are shown without any XML headers, document type information,
+and (possibly) namespace prefixes.
+</para>
+<example>
+<title>The Simplest Possible Plug-in</title>
+<para>
+Here's the simplest possible plug-in. It has no inputs, and no meta information at all:
+<programlisting>&lt;plugin name="test1">
+&lt;/plugin>
+</programlisting>
+</para>
+<para>
+<note><para>The <symbol>name</symbol> attribute is required, and no two plug-ins can have the same name.</para></note>
+Such a plug-in might seem pointless, but since there is no telling what the plug-in code <emphasis>does</emphasis>,
+that is not at all true. This plug-in might emit a three-million polygon representation of the Uni-Verse logo
+and just suffer from poor naming.
+</para>
+</example>
+
+<example id='ex-module-hello'>
+<title>A Plug-in With Meta-Data</title>
+<para>
+<programlisting>&lt;plugin name="hello">
+ &lt;meta>
+  &lt;field category="author">J. Random Hacker&lt;/field>
+  &lt;field category="help/desc">Outputs the constant string "Hello, World".&lt;/field>
+ &lt;/meta>
+&lt;/plugin>
+</programlisting>
+</para>
+<para>
+This example adds the <literal>meta</literal> element. This element contains the information provided in the plug-in by
+calling the <function>p_init_meta()</function> function, as a list of <literal>field</literal>s. There can only be a single
+<literal>meta</literal> element in a plug-in, but any number of <literal>field</literal>s is allowed.
+</para>
+<para>
+There should be a well-defined set of suggested/supported values for the <symbol>category</symbol> attribute in the
+meta fields; this has yet to be determined.
+</para>
+</example>
+
+<example>
+<title>A Plug-In With An Input</title>
+<para>
+The following example shows how to express an input:
+<programlisting>&lt;plugin name="test3">
+ &lt;inputs>
+  &lt;input type="real32"/>
+ &lt;/inputs>
+&lt;/plugin>
+</programlisting>
+</para>
+<para>
+This is the briefest possible input description, specifying only a type and nothing else. For the purpose of interconnecting,
+plug-in inputs are given numerical identifiers starting at 0 for the first and counting upwards. Because plug-in descriptions
+are estimated to change very infrequently, not a lot of effort is made on making them internally modular; perhaps adding
+an <symbol>id</symbol> attribute that explicitly assigns the ID would be helpful.
+</para>
+<para>
+Because inputs are referenced by numerical IDs, even naming them is optional. However, since having no names makes task
+of building a graphical interface to present to end users that much harder, providing a name is
+<emphasis>strongly</emphasis> recommended.
+</para>
+</example>
+
+<example id='ex-module-multiply'>
+<title>More Detailed Inputs</title>
+<para>
+The following example shows the interface for a plug-in that performs a multiplication of its two inputs, interpreted
+as real numbers:
+<programlisting>&lt;plugin name="multiply">
+ &lt;inputs>
+  &lt;input type="real32">
+   &lt;name>a&lt;/name>
+   &lt;desc>One term of the product.&lt;/desc>
+  &lt;/input>
+  &lt;input type="real32">
+   &lt;name>b&lt;/name>
+   &lt;desc>The other term of the product.&lt;/desc>
+  &lt;/input>
+ &lt;/inputs>
+ &lt;meta>
+  &lt;field category="help/desc">Outputs a * b.&lt;/field>
+ &lt;/meta>
+&lt;/plugin>
+</programlisting>
+</para>
+<para>
+<itemizedlist>
+<listitem>
+<para>
+Seen here is how the <symbol>name</symbol> element is used to name the inputs. Names are not interpreted at all by
+the Purple architecture, so they need not be unique although it is highly recommended as colliding names are quite
+to confuse end users.
+</para>
+</listitem>
+<listitem>
+<para>Also shown are input descriptions, which are meant to appear in the end user interface (perhaps as
+<quote>tool tips</quote> or similar context-sensitive labels) and provide information about the input's role.
+</para>
+</listitem>
+</itemizedlist>
+</para>
+</example>
+
+</sect3>
+<sect3>
+<title>Plug-in Descriptions: Goals and Requirements</title>
+<para>
+These are the primary goals and requirements of the plug-in description format, that are all covered by the
+planned XML solution:
+<itemizedlist>
+<listitem><para>Structured</para></listitem>
+<listitem><para>Extensible</para></listitem>
+<listitem><para>Human-Readable</para></listitem>
+<listitem><para>Easily Verified</para></listitem>
+</itemizedlist>
+Note that there are several things that are <emphasis>not</emphasis> needed, and thus are excluded from the
+planned format. There is no way to set values for inputs, since doing so for plug-ins is wrong; plug-ins have
+not yet been instantiated and thus have only <emphasis>formal</emphasis> inputs that can not have values
+associated with them. Assigning values to inputs is done in the graph description, where plug-ins are instantiated
+into <emphasis>modules</emphasis>.
+</para>
+</sect3>
+
+</sect2>
+
+<sect2 id='comms-methods'>
+<title>Details: Graph Editing Method API</title>
+<para>
+This section describes the method API used to edit graphs of instantiated plug-ins (<quote>modules</quote>). The
+methods all belong to the method group <literal>purple</literal> which is attached to the Purple engine's avatar
+object node.
+</para>
+<para>
+Verse methods are really <emphasis>procedures</emphasis>, in that they do not have return values. This is a
+design trade-off to simplify the Verse network layer. For this application, the result of e.g. instantiating a
+plug-in will be a change in the graph description text buffer, so the <quote>return value</quote> is handled there.
+</para>
+<para>
+By using method calls in the ui-to-engine direction and shared text in the other direction, we move the most
+complexcity (that of generating proper descriptions of available plug-ins and graphs) into the engine, and
+don't run the risk of having more than one Verse client trying to edit the same text node at the same time.
+</para>
+<sect3>
+<title>Creating/Destroying Graphs</title>
+<para>
+These are methods for creating and destroying graphs, i.e. named containers in which plug-ins can be instantiated.
+Graphs serve as <quote>projects</quote> when working with Purple; each graph is owned by a single user. A graph is
+self-contained; modules in a graph can not exchange information directly with modules in different graphs.
+<variablelist>
+<varlistentry>
+<term>
+<funcsynopsis>
+<funcprototype>
+ <funcdef><function>graph_create</function></funcdef>
+ <paramdef>string <parameter>name</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+</term>
+<listitem>
+<para>Create a new graph with the given name.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>
+<funcsynopsis>
+<funcprototype>
+ <funcdef><function>graph_destroy</function></funcdef>
+ <paramdef>uint32 <parameter>graph</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+</term>
+<listitem>
+<para>Destroy the indicated graph.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>
+<funcsynopsis>
+<funcprototype>
+ <funcdef><function>graph_rename</function></funcdef>
+ <paramdef>uint32 <parameter>graph</parameter></paramdef>
+ <paramdef>string <parameter>new_name</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+</term>
+<listitem>
+<para>Rename the indicated graph.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</para>
+<para>
+Once you have a graph to work with, you can create modules in it using methods from the next
+category:
+</para>
+</sect3>
+
+<sect3>
+<title>Creating/Destroying Modules</title>
+<para>
+These are methods for creating and destroying modules, i.e. instances of plug-ins:
+<variablelist>
+<varlistentry>
+<term>
+<funcsynopsis>
+<funcprototype>
+ <funcdef><function>module_create</function></funcdef>
+ <paramdef>uint32 <parameter>graph</parameter></paramdef>
+ <paramdef>uint32 <parameter>plugin</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+</term>
+<listitem>
+<para>
+Creates a new module, i.e. an instance of a plug-in. Arguments are used to specify which graph the node should
+be added to, and which plug-in the module should be an instance of. These IDs come from the textual
+representation of the Purple state, see below for details.
+</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>
+<funcsynopsis>
+<funcprototype>
+ <funcdef><function>module_destroy</function></funcdef>
+ <paramdef>uint32 <parameter>graph</parameter></paramdef>
+ <paramdef>uint32 <parameter>module</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+</term>
+<listitem>
+<para>
+Destroys a module in a graph, deleting it from the graph. Does not affect any other modules connected to the one
+being deleted, other than by severing the connection. How these modules react to that depends on their plug-in code.
+Parameters identify in which graph the module resides, and which module in the graph is meant. These values come
+from the textual representation, see below.
+</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</para>
+</sect3>
+
+<sect3>
+<title>Setting Module Inputs</title>
+<para>
+These are methods for assigning values to the inputs of modules. They are also used to create connections
+<emphasis>between</emphasis> modules. The number of input-setting functions is rather large, there is one
+method for each input type supported by the Purple API.
+
+<variablelist>
+<varlistentry>
+<term>
+ &InputMethods;
+</term>
+<listitem>
+<para>
+These methods set an input to a specific value. In the last case, <function>module_input_set_module()</function>,
+the <parameter>value</parameter> is the numerical ID of a module (in the same graph) whose output becomes
+the input to the target module. This is how modules are connected to form the actual graph.
+</para>
+<para>
+Note that the type of an input is not related to the type of the value assigned to it: any input can accept
+any value. The type only tells the Purple execution engine what kind of value the actual plug-in code expects.
+The engine will convert the available value to the requested type.
+</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+<para>
+Executing any of the above methods will, assuming the execution is actually granted by the engine, result in
+changes to the graph description (addition/removal of a module, or change of a module's input). These changes
+will be done by the engine, and replicated through the use of a shared text buffer. See below.
+</para>
+</sect3>
+
+</sect2>
+
+<sect2 id='comms-graphs'>
+<title>Details: Graph Description</title>
+<para>
+Graph descriptions exist to represent the work done by a user: the graph is built up by instantiating plug-ins 
+(forming <emphasis>modules</emphasis>) and assigning values their inputs either through literals or by connecting
+the output of one module to the input of another.
+</para>
+<para>
+The requirements on the graph representation are pretty much the same as on the plug-in descriptions, so I will
+re-use the motivation stated there and simply postulate that XML is a suitable format.
+</para>
+
+<sect3>
+<title>An XML Document Type for Graph Descriptions</title>
+<para>
+Initially, I will do this by example. To start of easily, here is the simplest legal graph:
+<example>
+<title>The Empty Graph</title>
+<programlisting>&lt;graph id="0">
+&lt;/graph>
+</programlisting>
+</example>
+</para>
+<para>
+This description establishes that there exists a graph, known by the numerical ID of zero. The graph is empty, i.e.
+it contains no modules, and was not given a name when it was created.
+</para>
+
+<para>
+<example>
+<title>Hello, World</title>
+<programlisting>&lt;graph id="55" name="hello">
+ &lt;module id="0" plug-in="hello"/>
+&lt;/graph>
+</programlisting>
+</example>
+</para>
+<para>
+This graph contains a single module, the one named <literal>hello</literal> from the example
+<link linkend='ex-module-hello'>above</link>. Both the <symbol>id</symbol> and <symbol>plug-in</symbol>
+attributes of the <symbol>module</symbol> element are required. IDs are numerical and must be unique
+within the graph. Specifying a non-existing plug-in name is legal.
+</para>
+
+<example>
+<title>Forty-Two</title>
+<para>
+This example uses the <literal>multiply</literal> plug-in from <link linkend='ex-module-multiply'>above</link>
+ to compute the number <literal>42</literal>:
+<programlisting>&lt;graph id="37" name="mult-test">
+ &lt;module id="0" plug-in="multiply">
+  &lt;set input="0" type="real32">6&lt;/assign>
+  &lt;set input="1" type="real32">7&lt;/assign>
+ &lt;/module>
+&lt;/graph>
+</programlisting>
+</para>
+<para>
+Here, it is important to note that the <symbol>real32</symbol> type given in the <symbol>set</symbol> elements
+refers <emphasis>only</emphasis> to the type of the value contained in the element; it has a very lose coupling
+to the types of the inputs that are being tageted. Purple does automatic type-conversion of values whenever possible.
+A typical end user interface will use information from the plug-in descriptions to ensure that the types will
+match in practice, but this is not a requirement of the underlying basic technology.
+</para>
+</example>
+
+<example>
+<title>Forty-Two Squared</title>
+<para>
+This example uses the <literal>multiply</literal> plug-in three times, to compute (6*7)*(6*7), i.e.
+42<superscript>2</superscript>. The point of the example is to show how module outputs are connected
+to module inputs.
+<programlisting>&lt;graph id="19" name="square-products">
+ &lt;module id="0" plug-in="multiply">
+  &lt;set input="0" type="real32">6&lt;/assign>
+  &lt;set input="1" type="real32">7&lt;/assign>
+ &lt;/module>
+ &lt;module id="1" plug-in="multiply">
+  &lt;set input="0" type="real32">6&lt;/assign>
+  &lt;set input="1" type="real32">7&lt;/assign>
+ &lt;/module>
+ &lt;module id="2" plug-in="multiply">
+  &lt;set input="0" type="module">0&lt;/assign>
+  &lt;set input="1" type="module">1&lt;/assign>
+ &lt;/module>
+&lt;/graph>
+</programlisting>
+</para>
+<para>
+As can be seen, the connection is made from the point where the result is needed, i.e. in the last two
+<symbol>set</symbol>-elements. The input type is <quote><literal>module</literal></quote> to indicate that
+the element contains the ID of a module whose output should be connected to the input being defined. It is
+an error to define a cyclic graph, and the Purple engine will never write illegal graph descriptions.
+</para>
+</example>
+
+</sect3>
+
+</sect2>
+
+</sect1>
+
+<sect1 id='engine'>
+<title>The Engine</title>
+<para>
+The Purple engine has the following responsibilities:
+<itemizedlist>
+<listitem>
+<para>
+Load plug-ins. Run their &Init; function, and update the <link linkend='comms-plugins'>plug-in descriptions</link>
+accordingly.
+</para>
+</listitem>
+<listitem>
+<para>
+Accept <link linkend='comms-graphs'>graph editing</link> method calls, and update the <link linkend='comms-graphs'>
+graph description</link> when needed. When an input changes, do the minimum number of calls to various plug-ins'
+&Compute; functions. This can change module outputs, which in turn changes othe module's inputs...
+</para>
+</listitem>
+</itemizedlist>
+That's really it. Of course, there is plenty of complexity hiding behind those words. Below are further
+details about these two areas.
+</para>
+
+<sect2>
+<title>Plug-In Loading</title>
+<para>
+Plug-ins will physically reside, in compiled form, somewhere on the same machine that runs the Purple engine. They
+will be compiled into shared objects (<quote>DLL</quote> in Windows) that can be loaded under program control by the
+engine client executable.
+</para>
+<para>
+In the simplest form, the engine inspects the disk location where plug-ins are held once, as it starts up. For each
+found file, it tries to validate it as actually being a Purple plug-in, and if it seems to be, issues a call to the
+&Init; entrypoint. A slightly more advanced approach, possible as a future enhancement, would be for the engine to
+continually monitor the plug-in location, and load/unload plug-ins as they appear/disappear. This would make the
+development of plug-ins more dynamic since the engine would not need to be restarted with each new version of one of
+its plug-ins.
+</para>
+<para>
+In the &Init; code, the plug-in uses the various init-type functions in the Purple API to register information about
+itself, like which inputs it has and general meta information about author, help text, and so on. The engine, in
+which the API is implemented, records the information. When the &Init; function is done, control returns to the
+engine proper which can then inspect the recorded information, and convert it into a plug-in description which is
+exported as XML in a Verse text node.
+</para>
+</sect2>
+
+<sect2>
+<title>Graph Editing</title>
+<para>
+The engine, being a Verse client, will have a object node associated with it on the Verse host. Verse object
+nodes can contain method groups that in turn contain methods, which are named procedure-like entrypoints that can
+accepts calls with a set of parameters. Such methods have <link linkend='comms-methods'>been chosen</link> as the
+interface to use to edit Purple module graphs.
+</para>
+<para>
+The engine will expose a method group with some standardized name, like <quote><literal>purple</literal></quote> so
+that the UI client can recognize the engine for what it is. This group will contain all Purple-specific methods,
+split into two sub-groups by the use of a simple naming convention: methods that create and destroy whole graphs
+have a <literal>graph_</literal> name prefix, while module editing calls are prefixed by <literal>module_</literal>.
+</para>
+<para>
+Typically, a call to one of these methods will result in some change to the engine's internal data structures
+that represent the set of existing graphs. This change will then be made externally visible by the engine
+changing the corresponding <link linkend='comms-graphs'>XML descriptions</link>.
+</para>
+<para>
+Setting the input of a module is a special case, since doing so updates not only the graph description, but
+also causes the module itself to be re-run, which in turn can change the inputs of any modules connected to
+it, thus triggering a cascade of re-computations.
+</para>
+</sect2>
+
+<sect2>
+<title>Data Flow Computations</title>
+<para>
+Computation in Purple is based solely on a data flow model. Modules are assumed to depend only on their inputs;
+it is not valid to write a plug-in with i.e. an internal dependency on time or some other <quote>global</quote>
+input. The root cause for re-computation of a module's output value is a change of one of its inputs, or a change
+of the output connection (a module whose output is not connected to anything need never have its value computed).
+</para>
+<para>
+Although plug-ins are written in C, a very imperative language, plug-ins as a whole do not have side-effects;
+the only externally visible result of running a module is whatever set of values appear on its output. Thus,
+plug-ins can be seen as <quote>functions</quote> in an imaginary functional language. Since functions in such
+languages cannot have side-effects, it is simple to optimize out re-computations based on knowledge of the
+in- and output connections.
+</para>
+<para>
+Probably, the Purple engine will not internally buffer any values of modules, since doing so can be very
+expensive in terms of memory (it is possible for a module's output value to be a collection of possibly
+hundreds of full Verse nodes). Rather, it will make the module &Compute; the output value whenever it is
+needed.
+</para>
+</sect2>
+
+
+</sect1>
+
+<sect1 id='ui'>
+<title>The User Interface</title>
+<para>
+The Purple user interface (or <quote>UI</quote> for short) is the second of the dedicated Verse clients
+needed in the Purple system, the other one being the <link linkend='engine'>engine</link>. It is responsible
+for letting users access the Purple system and work with it by creating modules, connecting modules to
+each other to form graphs (or <quote>construction histories</quote> as they are commonly called using a more
+user-friendly and specific terminology), assign values to the inputs of modules, and too see the results
+of course.
+</para>
+<para>
+The way the user interface client interacts with the other, back-end, half of the Purple system is like this:
+<itemizedlist>
+<listitem><para>
+After connecting to a Verse host, it looks for an object node that can be identified as being the avatar of
+a Purple engine. If found, this tells the client that the Purple system is available and it can continue. If
+not, it should probably notify the user.
+</para></listitem>
+<listitem><para>
+Follow the engine object's text node link(s), looking for a text node holding plug-in descriptions. The string
+used in the language field for such nodes needs to be documented somewhere, naturally. Probably it will be
+something like <quote>xml/purple/plug-ins</quote> or something. This looks like a
+<ulink url='http://www.iana.org/assignments/media-types/'>MIME type</ulink>, but there is no rule that says
+Verse text node language strings are MIME types.
+</para></listitem>
+<listitem><para>
+If a matching plug-in text node is found, subscribe to all its buffers, parse then content, and present the
+list of available plug-ins to the user. This could be done by populating menus, lists, or other user interface
+elements with the data.
+</para></listitem>
+<listitem><para>
+Look for text buffers that contain graph descriptions. Again, these would probably be identified by having a
+language string of <quote>xml/purple/graph</quote> or something similar, and might use tags for additional
+information such as ownership (Verse-level node ownership can't be used, since the node will likely be created
+and owned by the Purple engine client).
+</para></listitem>
+<listitem><para>
+For all found graph nodes, subscribe to all buffers and parse them. Let the user pick a graph to view and
+edit.
+</para></listitem>
+<listitem><para>
+There must also be a way to create a new graph of course, and to delete and rename existing ones. These
+operations will be access-managed by the Purple engine.
+</para></listitem>
+</itemizedlist>
+</para>
+<para>
+There are a few open questions when it comes to the security of what is outlined above.
+</para>
+
+<sect2>
+<title>What is Shown?</title>
+<para>
+The UI client needs to give the user a view of the data being worked on. This is harder than it sounds,
+since there are two aspects to the data: there is the schematic view of modules connecting to each other,
+but there will also be a need to have geometric view for most graphs, i.e. the actual Verse geometry (or
+other data, such as bitmaps) that is being worked on.
+</para>
+<para>
+This is probably best implemented by letting the user chose between two different full-screen views, either
+a passive scene display, perhaps implemented using existing Verse rendering technology, or a Purple
+module graph display.
+</para>
+<para>
+As an intitial mental model, the UI client will probably most resemble a typical (if there is such a thing)
+3D modeling/animation package. The intent is that it should have the same functionality, provided there are
+plug-ins available for the required tasks.
+</para>
+</sect2>
+
+<sect2>
+<title>Setting Inputs</title>
+<para>
+An important part of working with Purple is of course the assigning of values to module inputs. This can be
+done in two ways: by connecting the output of another module to the input, or by assigning a literal and
+direct value to the input.
+</para>
+<para>
+Connecting the output of one module to a module input is probably best done graphically, by some suitable
+direct manipulation technique such as clicking and dragging a line from the output of one module to the
+input of another. Connecting the output of one module to several module inputs is legal.
+</para>
+<para>
+Assigning literal values to inputs should be done through some kind of graphical interface built on-the-fly
+by the UI client, based on the information about plug-in inputs found in the XML description. For instance,
+a real-numbered input with a set range could by presented to the user as a slider, labeled with the input name.
+The controls could be collected on a panel that dynamically changes with selection/focus, or perhaps even
+rendered right on top of the module when it is selected. There are plenty of possibilities for creative design
+here.
+</para>
+</sect2>
+
+<sect2>
+<title>Collapsing Modules</title>
+<para>
+One desirable feature for Purple is that users should be able to select a number of interconnected modules
+(i.e. a sub-graph) and say <quote>I wish this was a plug-in</quote>. The system should then group the
+selected modules, and replace them on screen with a simplified, <emphasis>collapsed</emphasis>, representation.
+This gives end users the powerful tool of encapsulation, letting them simplify often-used constructs into
+what looks like a single entity.
+</para>
+<para>
+A collapsed set of modules must have a clearly defined output, since modules can only have one output.
+</para>
+<note>
+<para>
+It is currently not clear how, technically, collapsing should be implemented. It would be most clean to use
+method calls, but the amount of information needed might exceed the capacity of the Verse method call
+system. The obvious alternative is then to have the UI client write descriptive XML, but this is a lot less
+desirable since it can easily be problematic with multiple concurrent UI clients active.
+</para>
+</note>
+</sect2>
+
+</sect1>
+
+</article>
