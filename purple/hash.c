@@ -16,8 +16,9 @@
 typedef struct HashEl	HashEl;
 
 struct HashEl {
-	void	*data;
-	HashEl	*next;
+	const void	*key;
+	void		*data;
+	HashEl		*next;
 };
 
 static MemChunk	*the_chunk = NULL;
@@ -28,7 +29,7 @@ struct Hash
 	size_t		length;
 	size_t		size;
 	HashFunc	hfunc;
-	HashHasKey	efunc;
+	HashKeyEqFunc	kefunc;
 };
 
 /* Some prime numbers. Picked from <http://www.utm.edu/research/primes/lists/small/1000.txt>. */
@@ -83,7 +84,7 @@ static unsigned int string_hash(const void *key)
 	return hash;
 }
 
-static int string_compare(const void *key1, const void *key2)
+static int string_key_eq(const void *key1, const void *key2)
 {
 	return strcmp(key1, key2) == 0;
 }
@@ -97,11 +98,11 @@ void hash_init(void)
 
 /* ----------------------------------------------------------------------------------------- */
 
-Hash * hash_new(HashFunc hfunc, HashHasKey efunc)
+Hash * hash_new(HashFunc hfunc, HashKeyEqFunc kefunc)
 {
 	Hash	*hash;
 
-	if(hfunc == NULL || efunc == NULL)
+	if(hfunc == NULL || kefunc == NULL)
 		return NULL;
 
 	hash = mem_alloc(sizeof *hash);
@@ -109,14 +110,43 @@ Hash * hash_new(HashFunc hfunc, HashHasKey efunc)
 	hash->length = 0;
 	hash->size   = 0;
 	hash->hfunc  = hfunc;
-	hash->efunc  = efunc;
+	hash->kefunc = kefunc;
 
 	return hash;
 }
 
 Hash * hash_new_string(void)
 {
-	return hash_new(string_hash, string_compare);
+	return hash_new(string_hash, string_key_eq);
+}
+
+static void resize(Hash *hash)
+{
+	size_t	new_len, i, h;
+	HashEl	**nv, *iter, *next;
+
+	new_len = get_prime(hash->length + 1);
+	nv = mem_alloc(new_len * sizeof *nv);
+	for(i = 0; i < new_len; i++)
+		nv[i] = NULL;
+	if(nv != NULL)
+	{
+		for(i = 0; i < hash->length; i++)
+		{
+			for(iter = hash->vector[i]; iter != NULL; iter = next)
+			{
+				next = iter->next;
+				h = hash->hfunc(iter->key) % new_len;
+				iter->next = nv[h];
+				nv[h] = nv[h];
+			}
+		}
+		mem_free(hash->vector);
+		hash->vector = nv;
+		hash->length = new_len;
+	}
+	else
+		LOG_ERR(("Hash resize failed, out of memory"));
 }
 
 void hash_insert(Hash *hash, const void *key, void *data)
@@ -129,21 +159,7 @@ void hash_insert(Hash *hash, const void *key, void *data)
 
 	if(hash->size >= hash->length)
 	{
-		size_t	nl;
-		HashEl	**v;
-
-		nl = get_prime(hash->length + 1);
-		LOG_MSG((" Growing hash size=%u length=%u to new length=%u", hash->size, hash->length, nl));
-		v = mem_realloc(hash->vector, nl * sizeof *v);
-		if(v != NULL)
-		{
-			unsigned int	i;
-
-			hash->vector = v;
-			for(i = hash->length; i < nl; i++)
-				hash->vector[i] = NULL;
-			hash->length = nl;
-		}
+		resize(hash);
 	}
 
 	h = hash->hfunc(key);
@@ -151,10 +167,12 @@ void hash_insert(Hash *hash, const void *key, void *data)
 	el = memchunk_alloc(the_chunk);
 	if(el != NULL)
 	{
+		el->key  = key;
 		el->data = data;
 		el->next = hash->vector[h];
 		hash->vector[h] = el;
 		hash->size++;
+		printf(" Element %p inserted at %u, len=%u\n", key, h, hash->length);
 	}
 }
 
@@ -166,9 +184,10 @@ void * hash_lookup(const Hash *hash, const void *key)
 	if(hash == NULL || hash->size == 0)
 		return NULL;
 	h = hash->hfunc(key) % hash->length;
+	printf("hash: %p hashed to %u. len=%u\n", key, h, hash->length);
 	for(el = hash->vector[h]; el != NULL; el = el->next)
 	{
-		if(hash->efunc(key, el->data))
+		if(hash->kefunc(key, el->key))
 			return el->data;
 	}
 	return NULL;
@@ -184,7 +203,7 @@ void hash_remove(Hash *hash, const void *key)
 	h = hash->hfunc(key) % hash->length;
 	for(prev = NULL, iter = hash->vector[h]; iter != NULL; prev = iter, iter = iter->next)
 	{
-		if(hash->efunc(key, iter->data))
+		if(hash->kefunc(key, iter->key))
 		{
 			if(prev != NULL)
 				prev->next = iter->next;
