@@ -60,6 +60,7 @@ DynArr * dynarr_new_copy(const DynArr *src, void (*element_copy)(void *dst, cons
 	if(src == NULL)
 		return NULL;
 	da = dynarr_new(src->elem_size, src->page_size);
+	dynarr_set_default(da, src->def);
 	if(src->next > 0)		/* Sneakily "pre-warm" the array, to minimize allocations in loop below. */
 		dynarr_set(da, src->next - 1, NULL);
 	for(i = 0; i < src->next; i++)
