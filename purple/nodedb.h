@@ -21,7 +21,7 @@ struct Node
 	VNodeID		id;
 	VNodeType	type;
 	char		name[32];
-	VNodeID		owner;
+	VNodeOwner	owner;
 	DynArr		*tag_groups;
 
 	List		*notify;
