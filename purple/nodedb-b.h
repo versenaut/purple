@@ -16,6 +16,7 @@ typedef struct
 		uint8	*ptr;
 		size_t	mod_row;
 		size_t	mod_tile;
+		size_t	width;		/* Effective width; last column can be cropped. In bytes. */
 		size_t	height;		/* Effective height; last row can be cropped. */
 	}	out;
 } NdbBTileDesc;
