@@ -257,8 +257,56 @@ static void append_value(DynStr *d, PInputType type, const PInputValue *v)
 	case P_INPUT_REAL32:
 		dynstr_append_printf(d, "%f", v->vreal32);
 		break;
+	case P_INPUT_REAL32_VEC2:
+		dynstr_append_printf(d, "[%g %g]", v->vreal32_vec2[0], v->vreal32_vec2[1]);
+		break;
+	case P_INPUT_REAL32_VEC3:
+		dynstr_append_printf(d, "[%g %g %g]", v->vreal32_vec3[0], v->vreal32_vec3[1], v->vreal32_vec3[2]);
+		break;
+	case P_INPUT_REAL32_VEC4:
+		dynstr_append_printf(d, "[%g %g %g %g]", v->vreal32_vec4[0], v->vreal32_vec4[1], v->vreal32_vec4[2], v->vreal32_vec4[3]);
+		break;
+	case P_INPUT_REAL32_MAT16:
+		{
+			int	i, j;
+
+			dynstr_append_printf(d, "[");
+			for(i = 0; i < 4; i++)
+			{
+				dynstr_append_printf(d, "[");
+				for(j = 0; j < 4; j++)
+					dynstr_append_printf(d, "%s%u", j > 0 ? " " : "", v->vreal32_mat16[4 * i + j]);
+				dynstr_append_printf(d, "]");
+			}
+			dynstr_append_printf(d, "]");
+		}
+		break;
 	case P_INPUT_REAL64:
 		dynstr_append_printf(d, "%g", v->vreal64);
+		break;
+	case P_INPUT_REAL64_VEC2:
+		dynstr_append_printf(d, "[%g %g]", v->vreal64_vec2[0], v->vreal64_vec2[1]);
+		break;
+	case P_INPUT_REAL64_VEC3:
+		dynstr_append_printf(d, "[%g %g %g]", v->vreal64_vec3[0], v->vreal64_vec3[1], v->vreal64_vec3[2]);
+		break;
+	case P_INPUT_REAL64_VEC4:
+		dynstr_append_printf(d, "[%g %g %g %g]", v->vreal64_vec4[0], v->vreal64_vec4[1], v->vreal64_vec4[2], v->vreal64_vec4[3]);
+		break;
+	case P_INPUT_REAL64_MAT16:
+		{
+			int	i, j;
+
+			dynstr_append_printf(d, "[");
+			for(i = 0; i < 4; i++)
+			{
+				dynstr_append_printf(d, "[");
+				for(j = 0; j < 4; j++)
+					dynstr_append_printf(d, "%s%u", j > 0 ? " " : "", v->vreal64_mat16[4 * i + j]);
+				dynstr_append_printf(d, "]");
+			}
+			dynstr_append_printf(d, "]");
+		}
 		break;
 	case P_INPUT_STRING:
 		xml_dynstr_append(d, v->vstring);
