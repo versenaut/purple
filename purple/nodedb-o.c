@@ -26,14 +26,6 @@ void nodedb_o_construct(NodeObject *n)
 	n->method_groups = NULL;
 }
 
-static void cb_copy_link(void *dst, const void *src)
-{
-	NdbOLink	*dl = dst;
-	const NdbOLink	*sl = src;
-
-	memcpy(dl, sl, sizeof *dl);
-}
-
 /* A helper function that initializes a freshly allocated method from a bunch of parameters. Equally
  * useful in create()-callback and when copying an existing method.
 */
@@ -62,6 +54,7 @@ static void method_set(NdbOMethod *m, uint16 method_id, const char *name, uint8 
 	}
 }
 
+/* Copy a method. Simple, just set the fresh memory using the old one for parameters. */
 static void cb_copy_method(void *d, const void *s)
 {
 	const NdbOMethod	*src = s;
@@ -69,6 +62,7 @@ static void cb_copy_method(void *d, const void *s)
 	method_set(d, src->id, src->name, src->param_count, src->param_type, (const char **) src->param_name);
 }
 
+/* Copy a method group, including (of course) all its methods. */
 static void cb_copy_method_group(void *d, const void *s)
 {
 	const NdbOMethodGroup	*src = s;
@@ -84,7 +78,7 @@ void nodedb_o_copy(NodeObject *n, const NodeObject *src)
 	memcpy(n->xform, src->xform, sizeof *n->xform);
 	memcpy(n->light, src->light, sizeof *n->light);
 
-	n->links = dynarr_new_copy(src->links, cb_copy_link);
+	n->links = dynarr_new_copy(src->links, NULL);	/* Link data structure is monolithic. */
 	n->method_groups = dynarr_new_copy(src->method_groups, cb_copy_method_group);
 }
 
