@@ -100,7 +100,10 @@ PONode * p_output_node(PPOutput out, PINode *v)
 	Node	*n;
 
 	if((n = nodedb_new_copy((Node *) v)) != NULL)
+	{
+		printf("outputting node at %p, type %d\n", n, ((Node *) n)->type);
 		graph_port_output_set_node(out, n);
+	}
 	return n;
 }
 
@@ -121,7 +124,14 @@ PONode * p_output_node_o_link(PPOutput out, PONode *node, const char *label)
 
 PONode * p_output_node_create(PPOutput out, VNodeType type, uint32 label)
 {
-	return graph_port_output_node_create(out, type, label);
+	PONode	*n = graph_port_output_node_create(out, type, label);
+
+	if(type == V_NT_MATERIAL)
+	{
+		dynarr_clear(((NodeMaterial *) n)->fragments);
+		printf("material node at %p cleared of fragments\n", n);
+	}
+	return n;
 }
 
 PONode * p_output_node_copy(PPOutput out, PINode *node, uint32 label)
