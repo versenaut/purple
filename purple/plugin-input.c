@@ -1,6 +1,6 @@
 /*
  * This is a "magical" plug-in, that does a lookup of a named node in the node database.
-* It does not limit itself to the official Purple plug-in API, but uses core calls
+ * It does not limit itself to the official Purple plug-in API, but uses core calls
  * directly since it is part of the application. It also uses the Purple API and has a
  * similar public init() function, ín order to be registerable as an externally visible
  * plug-in. For technical reasons (public symbols), it'd probably be possible to write
@@ -41,7 +41,7 @@ static void cb_notify(Node *node, NodeNotifyEvent ev, void *user)
 /* Called when our solitary input changes. Look up the named node,
  * and set up change-notification on it, if found.
 */
-static void compute(PPInput *input, PPOutput *output, void *state_typeless)
+static void compute(PPInput *input, PPOutput output, void *state_typeless)
 {
 	const char	*name;
 	State		*state = state_typeless;
