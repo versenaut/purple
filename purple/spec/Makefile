@@ -5,7 +5,7 @@
 ALL:	spec
 
 spec:			spec.docbook inputmethods.snip
-			docbook2html $<
+			docbook2html $< -V '%use-id-as-filename%'
 
 inputmethods.snip:	inputmethods.sh
 			./$^ >$@
