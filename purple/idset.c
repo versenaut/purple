@@ -39,10 +39,10 @@ unsigned int idset_insert(IdSet *is, void *object)
 	{
 		index = (unsigned int) list_data(is->removed);
 		is->removed = list_tail(is->removed);
-		dynarr_set(is->arr, index, object);
+		dynarr_set(is->arr, index, &object);
 	}
 	else
-		index = dynarr_append(is->arr, object);
+		index = dynarr_append(is->arr, &object);
 	return index;
 }
 
