@@ -843,7 +843,7 @@ don't run the risk of having more than one Verse client trying to edit the same 
 <sect3>
 <title>Creating/Destroying Graphs</title>
 <para>
-These are methods for creating and destroying graphs, i.e. named containers in which plug-ins can be instantiated.
+These are methods for creating and destroying graphs, i.e. containers in which plug-ins can be instantiated.
 Graphs serve as <quote>projects</quote> when working with Purple; each graph is owned by a single user. A graph is
 self-contained; modules in a graph can not exchange information directly with modules in different graphs. All
 the methods for working with graphs belong to the <literal>PurpleGraph</literal> method group, which exists in the
@@ -854,16 +854,21 @@ Purple engine's avatar object node.
 <funcsynopsis>
 <funcprototype>
  <funcdef><function>create</function></funcdef>
- <paramdef>VNodeID <parameter>node</parameter></paramdef>
+ <paramdef>string <parameter>node</parameter></paramdef>
  <paramdef>uint16 <parameter>buffer</parameter></paramdef>
- <paramdef>string <parameter>name</parameter></paramdef>
 </funcprototype>
 </funcsynopsis>
 </term>
 <listitem>
-<para>Create a new graph with the given name. The name must be unique. The node and buffer parameters tell
-the Purple engine where the description of the graph will reside. This should be an text node and buffer,
-and its contents will be completely overwritten by the Purple engine.</para>
+<para>Create a new graph in the given node. The node and buffer parameters tell the Purple engine where the
+description of the graph will reside. This should be a text node and buffer, and its contents will be completely
+overwritten by the Purple engine. The node is identified by name rather than numerical ID, since this information
+must be shared across Verse sessions and numerical IDs are local. The name of the buffer should be used as the name
+of the graph.</para>
+<para>
+This will update the graph index, and assign the graph a numerical ID which <emphasis>is</emphasis> sharable across
+sessions.
+</para>
 </listitem>
 </varlistentry>
 
@@ -882,20 +887,6 @@ specified when creating it, nothing happens to the description.</para>
 </listitem>
 </varlistentry>
 
-<varlistentry>
-<term>
-<funcsynopsis>
-<funcprototype>
- <funcdef><function>rename</function></funcdef>
- <paramdef>uint32 <parameter>graph</parameter></paramdef>
- <paramdef>string <parameter>new_name</parameter></paramdef>
-</funcprototype>
-</funcsynopsis>
-</term>
-<listitem>
-<para>Rename the indicated graph.</para>
-</listitem>
-</varlistentry>
 </variablelist>
 </para>
 <para>
@@ -1036,21 +1027,20 @@ re-use the motivation stated there and simply postulate that XML is a suitable f
 Initially, I will do this by example. To start of easily, here is the simplest legal graph:
 <example>
 <title>The Empty Graph</title>
-<programlisting>&lt;graph id="0" name="foo">
+<programlisting>&lt;graph id="0">
 &lt;/graph>
 </programlisting>
 </example>
 </para>
 <para>
 This description establishes that there exists a graph, known by the numerical ID of zero. The graph is empty, i.e.
-it contains no modules, and is named <literal>foo</literal>. Graphs are always named, and names are always
-unique for the instance of the Purple engine.
+it contains no modules.
 </para>
 
 <para>
 <example>
 <title>Hello, World</title>
-<programlisting>&lt;graph id="55" name="hello">
+<programlisting>&lt;graph id="55">
  &lt;module id="0" plug-in="hello"/>
 &lt;/graph>
 </programlisting>
@@ -1068,7 +1058,7 @@ within the graph. Specifying a non-existing plug-in name is legal.
 <para>
 This example uses the <literal>multiply</literal> plug-in from <link linkend='ex-module-multiply'>above</link>
  to compute the number <literal>42</literal>:
-<programlisting>&lt;graph id="37" name="mult-test">
+<programlisting>&lt;graph id="37">
  &lt;module id="0" plug-in="multiply">
   &lt;set input="0" type="real32">6&lt;/assign>
   &lt;set input="1" type="real32">7&lt;/assign>
@@ -1091,7 +1081,7 @@ match in practice, but this is not a requirement of the underlying basic technol
 This example uses the <literal>multiply</literal> plug-in three times, to compute (6*7)*(6*7), i.e.
 42<superscript>2</superscript>. The point of the example is to show how module outputs are connected
 to module inputs.
-<programlisting>&lt;graph id="19" name="square-products">
+<programlisting>&lt;graph id="19">
  &lt;module id="0" plug-in="multiply">
   &lt;set input="0" type="real32">6&lt;/assign>
   &lt;set input="1" type="real32">7&lt;/assign>
