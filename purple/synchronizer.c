@@ -93,7 +93,7 @@ static int sync_head_tags(const Node *n, const Node *target)
 					if(tag->type != ttag->type || !nodedb_tag_values_equal(tag, ttag))
 					{
 						verse_send_tag_create(target->id, tg->id, ttag->id,
-								      ttag->name, ttag->type, &tag->value);
+								      ttag->name, tag->type, &tag->value);
 						sync = 0;
 					}
 				}
