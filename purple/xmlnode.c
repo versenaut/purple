@@ -155,7 +155,7 @@ static const char * token_get(const char *buffer, DynStr **token, TokenStatus *s
 
 /* ----------------------------------------------------------------------------------------- */
 
-/* A qsort() comparison callback for (indirect) attribute name ordering. */
+/* A qsort() comparison callback for attribute name ordering. */
 static int cmp_attr(const void *a, const void *b)
 {
 	const Attrib	*aa = a, *ab = b;
