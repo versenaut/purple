@@ -174,7 +174,9 @@ static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 	me->index_length = strlen(xml);
 	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, me->index_start, 0, xml);
 	hash_insert(graph_info.graphs_name, me->name, me);
-	verse_send_t_text_set(me->node, me->buffer, 0, ~0, NULL);
+	snprintf(xml, sizeof xml, "<graph>\n</graph>\n");
+	verse_send_t_text_set(me->node, me->buffer, 0, ~0, xml);
+	me->desc_start = strchr(xml, '/') - xml - 1;
 }
 
 static void graph_rename(uint32 id, const char *name)
@@ -222,11 +224,18 @@ static void graph_destroy(uint32 id)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static void module_build_desc(const Module *m, char *buf, size_t bufsize)
+{
+	snprintf(buf, bufsize, " <module id=\"%u\" plug-in=\"%u\">\n"
+		 		" </module>\n", m->id, plugin_id(m->plugin));
+}
+
 static void module_create(uint32 graph_id, uint32 plugin_id)
 {
 	const Plugin	*p;
 	Graph		*g;
 	Module		*m;
+	char		desc[1024];
 
 	if((p = plugin_lookup(plugin_id)) == NULL)
 	{
@@ -250,6 +259,10 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 		g->modules = idset_new(0);
 	m->id = idset_insert(g->modules, m);
 	LOG_MSG(("Instantiated plugin %u (%s) as module %u in graph %u (%s)", plugin_id, plugin_name(p), m->id, graph_id, g->name));
+	module_build_desc(m, desc, sizeof desc);
+	m->length = strlen(desc);
+	verse_send_t_text_set(g->node, g->buffer, g->desc_start, 0, desc);
+	printf("Sent %u chars of desc to %u.%u: '%s'\n", m->length, g->node, g->buffer, desc);
 }
 
 /* ----------------------------------------------------------------------------------------- */
