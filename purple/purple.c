@@ -23,6 +23,7 @@
 #include "mem.h"
 #include "memchunk.h"
 #include "plugins.h"
+#include "scheduler.h"
 #include "textbuf.h"
 #include "value.h"
 #include "xmlnode.h"
