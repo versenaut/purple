@@ -130,11 +130,11 @@ static void cb_b_layer_destroy(VNodeID node_id, VLayerID layer_id)
 	mem_free(layer->framebuffer);
 }
 
-static void cb_b_tile_set(VNodeID node_id, VLayerID layer_id, uint16 tile_x, uint16 tile_y, uint16 tile_z, VNBLayerType type, VNBTile *tile)
+static void cb_b_tile_set(VNodeID node_id, VLayerID layer_id, uint16 tile_x, uint16 tile_y, uint16 tile_z,
+			  VNBLayerType type, const VNBTile *tile)
 {
 	NodeBitmap	*node;
 	NdbBLayer	*layer;
-	unsigned char	*put;
 	size_t		ps;
 
 	if((node = (NodeBitmap *) nodedb_lookup_with_type(node_id, V_NT_BITMAP)) == NULL)
@@ -148,15 +148,46 @@ static void cb_b_tile_set(VNodeID node_id, VLayerID layer_id, uint16 tile_x, uin
 	}
 	ps = pixel_size(layer->type);
 	if(layer->framebuffer == NULL)
-		layer->framebuffer = mem_alloc(ps * node->width * node->height * node->depth);
+	{
+		if(layer->type == VN_B_LAYER_UINT8)
+			layer->framebuffer = NULL;	/* Don't alloc for uint1; store *in pointer itself*. */
+		else
+			layer->framebuffer = mem_alloc(ps * node->width * node->height * node->depth);
+	}
 	if(layer->framebuffer == NULL)
 	{
 		LOG_WARN(("No framebuffer in layer %u (%s)--out of memory?", layer->id, layer->name));
 		return;
 	}
-	put = layer->framebuffer + 4 * ps * tile_x +
+	if(type == VN_B_LAYER_UINT1)
+		layer->framebuffer = (void *) (unsigned long) tile->vuint1;		/* Should be safe. */
+	else
+	{
+		uint8	*put = layer->framebuffer + 4 * ps * tile_x +
 				4 * ps * node->width * tile_y +
-				4 * ps * node->width * node->height * tile_z;
+				4 * ps * node->width * node->height * tile_z, y;
+		for(y = 0; y < 4; y++)
+		{
+			switch(type)
+			{
+			case VN_B_LAYER_UINT8:
+				memcpy(put, tile->vuint8 + 4 * y, 4 * ps);
+				break;
+			case VN_B_LAYER_UINT16:
+				memcpy(put, tile->vuint16 + 4 * y, 4 * ps);
+				break;
+			case VN_B_LAYER_REAL32:
+				memcpy(put, tile->vreal32 + 4 * y, 4 * ps);
+				break;
+			case VN_B_LAYER_REAL64:
+				memcpy(put, tile->vreal64 + 4 * y, 4 * ps);
+				break;
+			default:
+				;
+			}
+			put += 4 * ps;
+		}
+	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
