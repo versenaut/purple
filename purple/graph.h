@@ -1,5 +1,7 @@
 /*
- * Graph editing functionality. Graphs are very opaque.
+ * Graph editing functionality. Graphs are very opaque. Most of the graph processing
+ * occurs as a response to method calls, which are received through the graph function
+ * exported below, and then processed internally by calling various other modules.
 */
 
 /* Initialize graph module. Must be called before module is used. */
