@@ -10,6 +10,7 @@
 #include "dynarr.h"
 #include "dynstr.h"
 #include "list.h"
+#include "nodeset.h"
 #include "textbuf.h"
 #include "value.h"
 
@@ -89,7 +90,11 @@ void p_output_string(PPOutput out, const char *v)
 	graph_port_output_set(out, P_VALUE_STRING, v);
 }
 
-PONode * p_output_node(PPOutput out, const PINode *v)
+PONode * p_output_node(PPOutput out, PINode *v)
 {
+	Node	*n;
+
+	if((n = nodedb_new_copy((Node *) v)) != NULL)
+		graph_port_output_set_node(out, n);
 	return NULL;
 }
