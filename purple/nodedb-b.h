@@ -8,10 +8,7 @@ typedef struct
 	char		name[16];
 	VNBLayerType	type;
 	union
-	{
 	void		*framebuffer;
-	uint16		vuint1;
-	} data;
 } NdbBLayer;
 
 typedef struct
