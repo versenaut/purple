@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
  * 
- * Node-internal calls to implement iter supprt. See purple.h and api-iter.c, too.
+ * Node-internal calls to implement iter support. See purple.h and api-iter.c, too.
 */
 
 #include <stddef.h>
