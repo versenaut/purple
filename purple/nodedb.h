@@ -63,6 +63,7 @@ extern NodeText *	nodedb_lookup_text(VNodeID node_id);
 
 extern Node *		nodedb_new(VNodeType type);
 extern Node *		nodedb_new_copy(const Node *src);
+extern Node *		nodedb_set(Node *dst, const Node *src);
 extern void		nodedb_destroy(Node *n);
 
 /* Nodes are reference counted. Users are supposed to call nodedb_new(), then immediately ref() the
