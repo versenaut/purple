@@ -144,8 +144,9 @@ PNBLayer *	p_node_b_layer_create(PONode *node, const char *name, VNBLayerType ty
 PNBLayer *	p_node_b_layer_lookup(PONode *node, const char *name);
 void *		p_node_b_layer_access_begin(PONode *node, PNBLayer *layer);
 void		p_node_b_layer_access_end(PONode *node, PNBLayer *layer, void *framebuffer);
-void *		p_node_b_layer_access_begin_rgb(PONode *node);
-void		p_node_b_layer_access_end_rgb(PONode *node, void *framebuffer);
+/* Simple write-only set-function, that should return pixel for (x,y,z). Can't read; not suitable for filtering. */
+void		p_node_b_layer_foreach_set(PONode *node, PNBLayer *layer,
+					   real64 (*pixel)(uint32 x, uint32 y, uint32 z, void *user), void *user);
 void		p_node_b_layer_destroy(PONode *node, PNBLayer *layer);
 
 
