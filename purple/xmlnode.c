@@ -270,16 +270,23 @@ static XmlNode * node_new(const char *token)
 	{
 		for(elen = 0; token[elen] && !isspace(token[elen]); elen++)
 			;
+		if(elen > 0)
+			elen++;		/* Count in the terminator. */
 	}
-	if((node = mem_alloc(sizeof *node + elen + 1)) != NULL)
+	if((node = mem_alloc(sizeof *node + elen)) != NULL)
 	{
-		char	*put = (char *) (node + 1);
-		int	i;
+		if(elen > 0)
+		{
+			char	*put = (char *) (node + 1);
+			int	i;
 
-		for(i = 0; i < elen; i++)
-			*put++ = token[i];
-		*put = '\0';
-		node->element  = (const char *) (node + 1);
+			for(i = 0; i < elen - 1; i++)
+				*put++ = token[i];
+			*put = '\0';
+			node->element  = (const char *) (node + 1);
+		}
+		else
+			node->element = NULL;
 		node->text     = NULL;
 		node->attrib_num = 0;
 		node->attrib   = attribs_build(token ? token + elen : NULL, &node->attrib_num);
@@ -455,13 +462,10 @@ static void do_print_outline(const XmlNode *root, int indent)
 
 	for(i = 0; i < indent; i++)
 		putchar(' ');
-	printf("%s", root->element);
+	if(root->element != NULL)
+		printf("%s%s", root->element, root->text != NULL ? " : " : "");
 	if(root->text != NULL)
-	{
-		if(root->element != NULL && root->element[0] != '\0')
-			printf(" : ");
 		printf("\"%s\"", root->text);
-	}
 	putchar('\n');
 	for(iter = root->children; iter != NULL; iter = list_next(iter))
 		do_print_outline(list_data(iter), indent + 1);
