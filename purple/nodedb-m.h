@@ -39,9 +39,25 @@ extern NdbMFragment *	nodedb_m_fragment_create_color(NodeMaterial *node, real64 
 extern NdbMFragment *	nodedb_m_fragment_create_light(NodeMaterial *node, VNMLightType type,
 						       real64 normal_falloff, const Node *brdf,
 						       const char *brdf_r, const char *brdf_g, const char *brdf_b);
+extern NdbMFragment *	nodedb_m_fragment_create_reflection(NodeMaterial *node, real64 normal_falloff);
+extern NdbMFragment *	nodedb_m_fragment_create_transparency(NodeMaterial *node, real64 normal_fallof, real64 refract);
+extern NdbMFragment *	nodedb_m_fragment_create_volume(NodeMaterial *node, real64 diffusion,
+							real64 col_r, real64 col_g, real64 col_b,
+							const NdbMFragment *color);
+extern NdbMFragment *	nodedb_m_fragment_create_geometry(NodeMaterial *node,
+							  const char *layer_r, const char *layer_g, const char *layer_b);
+extern NdbMFragment *	nodedb_m_fragment_create_texture(NodeMaterial *node, const char *layer_r, const char *layer_g,
+							 const char *layer_b, const NdbMFragment *mapping);
+extern NdbMFragment *	nodedb_m_fragment_create_noise(NodeMaterial *node, VNMNoiseType type, const NdbMFragment *mapping);
 extern NdbMFragment *	nodedb_m_fragment_create_blender(NodeMaterial *node, VNMBlendType type,
 						const PNMFragment *data_a, const PNMFragment *data_b, const PNMFragment *ctrl);
 extern NdbMFragment *	nodedb_m_fragment_create_matrix(NodeMaterial *node, const real64 *matrix, const PNMFragment *data);
+extern NdbMFragment *	nodedb_m_fragment_create_ramp(NodeMaterial *node, VNMRampType type, uint8 channel,
+						      const NdbMFragment *mapping, uint8 point_count,
+						      const VNMRampPoint *ramp);
+extern NdbMFragment *	nodedb_m_fragment_create_animation(NodeMaterial *node, const char *label);
+extern NdbMFragment *	nodedb_m_fragment_create_alternative(NodeMaterial *node,
+							     const NdbMFragment *alt_a, const NdbMFragment *alt_b);
 extern NdbMFragment *	nodedb_m_fragment_create_output(NodeMaterial *node, const char *label,
 							const NdbMFragment *front, const NdbMFragment *back);
 
