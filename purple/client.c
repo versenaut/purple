@@ -10,8 +10,10 @@
 #include "cron.h"
 #include "graph.h"
 #include "log.h"
+#include "mem.h"
 #include "textbuf.h"
 #include "timeval.h"
+#include "plugins.h"
 #include "strutil.h"
 #include "xmlnode.h"
 
@@ -21,33 +23,7 @@
 
 #define METHOD_GROUP_CONTROL_NAME	"PurpleControl"
 
-typedef struct {
-	uint16		buffer;
-	unsigned int	cron;
-	TextBuf		*text;		/* Remote (shared, server-side) plugins description. */
-} PluginsMeta;
-
-typedef struct {
-	uint16		buffer;
-	unsigned int	cron;
-	TextBuf		*text;
-} GraphsMeta;
-
-static struct
-{
-	int		connected;
-	int		conn_count;
-	char		*address;
-	VSession	*connection;
-
-	VNodeID		avatar;
-
-	VNodeID		meta;
-	PluginsMeta	plugins;
-	GraphsMeta	graphs;
-
-	uint16		gid_control;
-} client_info = { 0 };
+ClientInfo	client_info = { 0 };
 
 /* ----------------------------------------------------------------------------------------- */
 
@@ -234,7 +210,7 @@ int client_connect(const char *address)
 	return 1;
 }
 
-void cb_reconnect(void)
+int cb_reconnect(void *data)
 {
 	if(!client_info.connected)
 	{
@@ -245,6 +221,7 @@ void cb_reconnect(void)
 		LOG_MSG(("Connection attempt %d", client_info.conn_count++));
 		client_info.connection = verse_send_connect("purple", "purple-password", client_info.address);
 	}
+	return 0;
 }
 
 /* ----------------------------------------------------------------------------------------- */

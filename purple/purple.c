@@ -7,7 +7,6 @@
 
 #include "verse.h"
 
-#include "client.h"
 #include "cron.h"
 #include "dynarr.h"
 #include "dynlib.h"
@@ -23,6 +22,8 @@
 #include "textbuf.h"
 #include "xmlnode.h"
 #include "xmlutil.h"
+
+#include "client.h"
 
 #include "command-structs.h"
 
