@@ -120,18 +120,20 @@ void		p_node_o_link_set(PONode *node, const PONode *link, const char *label, uin
 
 /* Geometry-node manipulation functions. */
 typedef void	PNGLayer;
+typedef void	PNGBone;
 
 PNGLayer *	p_node_g_layer_lookup(PONode *node, const char *name);
+size_t		p_node_g_layer_size(const PONode *node, const PNGLayer *layer);
 PNGLayer *	p_node_g_layer_create(PONode *node, const char *name, VNGLayerType type,
 					     uint32 def_int, real32 def_real);
 void		p_node_g_layer_delete(PNGLayer *node, const char *name);
 void		p_node_g_vertex_set_xyz(PONode *node, PNGLayer *layer, uint32 id, real64 x, real64 y, real64 z);
-void		p_node_g_vertex_set_real32_xyz(PNGLayer *layer, uint32 id, real32 x, real32 y, real32 z);
-void		p_node_g_vertex_set_real64_xyz(PNGLayer *layer, uint32 id, real64 x, real64 y, real64 z);
+void		p_node_g_vertex_get_xyz(const PONode *node, const PNGLayer *layer, uint32 id, real64 *x, real64 *y, real64 *z);
 void		p_node_g_polygon_set_corner_uint32(PONode *node, PNGLayer *layer, uint32 id, uint32 v0, uint32 v1, uint32 v2, uint32 v3);
 
 void		p_node_g_crease_set_vertex(PONode *node, const char *layer, uint32 def);
 void		p_node_g_crease_set_edge(PONode *node, const char *layer, uint32 def);
+
 
 /* Bitmap-node manipulation functions. */
 void		p_node_b_dimensions_set(PONode *node, uint16 width, uint16 height, uint16 depth);
