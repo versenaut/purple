@@ -25,8 +25,8 @@ typedef enum
 	P_INPUT_REAL64_VEC3,
 	P_INPUT_REAL64_VEC4,
 	P_INPUT_REAL64_MAT16,
-	P_INPUT_MODULE,
 	P_INPUT_STRING,
+	P_INPUT_MODULE,
 } PInputType;
 
 typedef struct
@@ -48,8 +48,8 @@ typedef struct
 	real64	vreal64_vec4[4];
 	real64	vreal64_mat16[16];
 
-	uint32	vmodule;
 	char	*vstring;
+	uint32	vmodule;
 	}	v;
 } PInputValue;
 
@@ -78,10 +78,6 @@ void		p_init_meta(const char *category, const char *text);
 typedef void 		PPort;
 typedef const PPort *	PPInput;
 typedef PPort *		PPOutput;
-
-/*boolean		p_port_input_boolean(const PPort port);
-void		p_port_output_boolean(PPort port);
-*/
 
 /* Read out inputs, registered earlier. One for each type. :/ If this wasn't in C, we could use meta
  * information to just say p_input(input) and have it return a value of the proper registered type.
