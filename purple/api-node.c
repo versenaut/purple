@@ -725,6 +725,11 @@ const char * p_node_a_layer_get_name(const PNALayer *layer)
 	return NULL;
 }
 
+real64 p_node_a_layer_get_frequency(const PNALayer *layer)
+{
+	return layer != NULL ? ((NdbALayer *) layer)->frequency : 0.0;
+}
+
 PNALayer * p_node_a_layer_create(PONode *node, const char *name, VNALayerType type, real64 frequency)
 {
 	PNALayer	*l;

@@ -309,6 +309,7 @@ unsigned int	p_node_a_layer_num(PINode *node);
 PNALayer *	p_node_a_layer_nth(PINode *node, unsigned int n);
 PNALayer *	p_node_a_layer_find(PINode *node, const char *name);
 const char *	p_node_a_layer_get_name(const PNALayer *layer);
+real64		p_node_a_layer_get_frequency(const PNALayer *layer);
 unsigned int	p_node_a_layer_get_length(const PNALayer *layer);
 
 PNALayer *	p_node_a_layer_create(PONode *node, const char *name, VNALayerType type, real64 frequency);
