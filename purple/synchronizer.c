@@ -77,7 +77,7 @@ static int sync_head_tags(const Node *n, const Node *target)
 	{
 		if(g->name[0] == '\0')
 			continue;
-		if((tg = nodedb_tag_group_lookup(target, g->name)) != NULL)
+		if((tg = nodedb_tag_group_find(target, g->name)) != NULL)
 		{
 			unsigned int	j;
 			NdbTag		*tag, *ttag;
