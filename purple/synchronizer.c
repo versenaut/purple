@@ -90,25 +90,24 @@ static int sync_head_tags(const Node *n, const Node *target)
 				if(ttag != NULL)
 				{
 					/* Tag exists, see if fields match. */
-					if(tag->type != ttag->type)
+					if(tag->type != ttag->type || !nodedb_tag_values_equal(tag, ttag))
 					{
-						printf("tag type mismatch\n");
-					}
-					else if(!nodedb_tag_values_equal(tag, ttag))
-					{
-						printf("tag value mismatch\n");
+						verse_send_tag_create(target->id, tg->id, ttag->id,
+								      ttag->name, ttag->type, &tag->value);
+						sync = 0;
 					}
 				}
 				else
 				{
-					verse_send_tag_create(target->id, i, ~0, tag->name, tag->type, &tag->value);
+					verse_send_tag_create(target->id, tg->id, ~0, tag->name, tag->type, &tag->value);
 					sync = 0;
 				}
 			}
 		}
 		else
 		{
-			verse_send_tag_group_create(target->id, ~0, target->name);
+			printf("sync creating tag group %s in %u\n", g->name, target->id);
+			verse_send_tag_group_create(target->id, ~0, g->name);
 			sync = 0;
 		}
 	}
@@ -519,6 +518,7 @@ static int sync_text(NodeText *n, const NodeText *target)
 static int sync_node(Node *n)
 {
 	Node	*target;
+	int	sync = 1;
 
 	if((target = nodedb_lookup(n->id)) == NULL)
 	{
@@ -526,21 +526,25 @@ static int sync_node(Node *n)
 		return 0;
 	}
 	/* First sync node-head data, such as name and tags. */
-	sync_head(n, target);
+	sync &= sync_head(n, target);
 	switch(n->type)
 	{
 	case V_NT_OBJECT:
-		return sync_object((NodeObject *) n, (NodeObject *) target);
+		sync &= sync_object((NodeObject *) n, (NodeObject *) target);
+		break;
 	case V_NT_GEOMETRY:
-		return sync_geometry((NodeGeometry *) n, (NodeGeometry *) target);
+		sync &= sync_geometry((NodeGeometry *) n, (NodeGeometry *) target);
+		break;
 	case V_NT_BITMAP:
-		return sync_bitmap((NodeBitmap *) n, (NodeBitmap *) target);
+		sync &= sync_bitmap((NodeBitmap *) n, (NodeBitmap *) target);
+		break;
 	case V_NT_TEXT:
-		return sync_text((NodeText *) n, (NodeText *) target);
+		sync &= sync_text((NodeText *) n, (NodeText *) target);
+		break;
 	default:
 		printf("Can't sync node of type %d\n", n->type);
 	}
-	return 0;
+	return sync;
 }
 
 /* ----------------------------------------------------------------------------------------- */
