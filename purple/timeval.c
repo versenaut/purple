@@ -1,5 +1,5 @@
 /*
- * 
+ * Functions for measuring time.
 */
 
 #include <stdio.h>
@@ -26,7 +26,14 @@ void timeval_now(TimeVal *tv)
 	if(tv == NULL)
 		return;
 #if defined __win32
-#error Bitte implementen Sie! Brauchen _ftime().
+	/* Untested code, beware. */
+	{
+		struct _timeb	now;
+
+		_ftime(&now);
+		tv->sec  = now.time;
+		tv->usec = 1000 * now.millitm;
+	}
 #else
 	{
 		struct timeval	now;
@@ -51,8 +58,15 @@ void timeval_future(TimeVal *tv, double seconds)
 
 int timeval_passed(const TimeVal *sometime, const TimeVal *now)
 {
-	if(sometime == NULL || now == NULL)
+	if(sometime == NULL)
 		return 0;
+	if(now == NULL)
+	{
+		static TimeVal	n;
+
+		timeval_now(&n);
+		now = &n;
+	}
 	if(sometime->sec > now->sec)
 		return 0;
 	if(sometime->sec < now->sec)
