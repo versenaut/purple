@@ -38,6 +38,12 @@ struct Node
 
 	List		*notify;
 
+	/* Only used by locally created nodes, not nodes created externally by command from Verse. Waste, waste. */
+	struct {
+	void		*port;
+	Node		*remote;
+	}		creator;
+
 	/* Information owned by the synchronizer. Could live in there, but this is easier for now. */
 	struct {
 	TimeVal		last_send;
