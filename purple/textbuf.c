@@ -59,7 +59,7 @@ void textbuf_insert(TextBuf *tb, size_t offset, const char *text)
 	if(tb == NULL || text == NULL)
 		return;
 	if(offset > tb->length)
-		offset = tb->length ? tb->length - 1 : 0;
+		offset = tb->length;
 	len = strlen(text);
 	if(len == 0)
 		return;
