@@ -205,7 +205,9 @@ void dynstr_append_printf(DynStr *str, const char *fmt, ...)
 		return;
 	else if(need <= (int) (str->alloc - str->len - 1))
 	{
+		va_start(args, fmt);
 		vsprintf(str->str + str->len, fmt, args);
+		va_end(args);
 		str->len += need;
 		return;
 	}
@@ -216,7 +218,9 @@ void dynstr_append_printf(DynStr *str, const char *fmt, ...)
 		if((nb = mem_realloc(str->str, str->alloc + need + 1 + APPEND_MARGIN)) != NULL)
 		{
 			str->str = nb;
+			va_start(args, fmt);
 			vsprintf(str->str + str->len, fmt, args);
+			va_end(args);
 			str->len   += need;
 			str->alloc += need + 1 + APPEND_MARGIN;
 			return;
