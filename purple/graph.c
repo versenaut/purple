@@ -567,7 +567,8 @@ PONode * graph_port_output_node_copy(PPOutput port, PINode *node, uint32 label)
 		if((store = dynarr_index(m->out.nodes.node, label)) != NULL)
 		{
 			printf("Returning previously copied node with label %u\n", label);
-			/* FIXME: We need to refresh the node's contents here, to make it look like a copy again! */
+			printf(" re-setting contents, though\n");
+			nodedb_set(*store, node);
 			graph_port_output_set_node(port, *store);
 			return *store;
 		}
@@ -1131,6 +1132,7 @@ void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32
 	if((pack = verse_method_call_pack(4, type, param)) != NULL)
 		verse_send_o_method_call(client_info.avatar, client_info.gid_control,
 					 method_info[method].id, 0, pack);
+
 }
 
 void graph_method_send_call_mod_input_clear(uint32 graph_id, uint32 module_id, uint32 input)
