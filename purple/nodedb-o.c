@@ -59,7 +59,6 @@ static void cb_o_light_set(void *user, VNodeID node_id, real64 r, real64 g, real
 	}
 }
 
-
 static void cb_o_method_group_create(void *user, VNodeID node_id, uint16 group_id, const char *name)
 {
 	NodeObject	*n;
@@ -98,6 +97,11 @@ static void cb_o_method_group_destroy(void *user, VNodeID node_id, uint16 group_
 	}
 }
 
+static void cb_o_method_create(void *user, VNodeID node_id, uint16 group_id, uint8 method_id, const char *name,
+			       uint8 param_count, const VNOParamType *param_type, const char *param_name[])
+{
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 void nodedb_o_register_callbacks(void)
@@ -106,4 +110,5 @@ void nodedb_o_register_callbacks(void)
 	verse_callback_set(verse_send_o_light_set,		cb_o_light_set, NULL);
 	verse_callback_set(verse_send_o_method_group_create,	cb_o_method_group_create, NULL);
 	verse_callback_set(verse_send_o_method_group_destroy,	cb_o_method_group_destroy, NULL);
+	verse_callback_set(verse_send_o_method_create,		cb_o_method_create, NULL);
 }
