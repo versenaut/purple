@@ -282,3 +282,21 @@ const char * xmlnode_attrib_get(const XmlNode *node, const char *name)
 	}
 	return NULL;
 }
+
+
+static void do_print_outline(const XmlNode *root, int indent)
+{
+	int		i;
+	const List	*iter;
+
+	for(i = 0; i < indent; i++)
+		putchar(' ');
+	printf("%s\n", root->element);
+	for(iter = root->children; iter != NULL; iter = list_next(iter))
+		do_print_outline(list_data(iter), indent + 1);
+}
+
+void xmlnode_print_outline(const XmlNode *root)
+{
+	do_print_outline(root, 0);
+}

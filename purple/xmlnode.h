@@ -13,4 +13,6 @@ extern XmlNode	*	xmlnode_new(const char *buffer);
 
 extern const char *	xmlnode_attrib_get(const XmlNode *node, const char *attribute);
 
+extern void		xmlnode_print_outline(const XmlNode *root);
+
 extern void		xmlnode_destroy(XmlNode *root);
