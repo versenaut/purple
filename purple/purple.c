@@ -490,6 +490,14 @@ static void console_update(void)
 				if(sscanf(line, "mic %u %u %u", &g, &m, &i) == 3)
 					graph_method_send_call_mod_input_clear(g, m, i);
 			}
+			else if(strncmp(line, "ml", 2) == 0)
+			{
+				unsigned int	i;
+				Plugin		*p;
+
+				for(i = 1; (p = plugin_lookup(i)) != NULL; i++)
+					printf("%2d: %s\n", i, plugin_name(p));
+			}
 			else if(strncmp(line, "nc ", 3) == 0)
 			{
 				if(strcmp(line + 3, "text") == 0)
