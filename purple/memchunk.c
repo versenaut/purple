@@ -63,7 +63,7 @@ MemChunk * memchunk_new(const char *name, size_t chunk_size, size_t growth)
 {
 	MemChunk	*c;
 
-	if(name == NULL || chunk_size < 8 || growth < 4)
+	if(name == NULL || chunk_size < 4 || growth < 4)
 		return NULL;
 
 	c = mem_alloc(sizeof *c);
