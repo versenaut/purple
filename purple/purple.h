@@ -194,9 +194,12 @@ typedef void	PNTBuffer;
 
 const char *	p_node_t_language_get(PINode *node);
 void		p_node_t_language_set(PONode *node, const char *language);
-size_t		p_node_t_buffer_get_count(PINode *node);
-PNTBuffer *	p_node_t_buffer_get_nth(PINode *node, unsigned int n);
-PNTBuffer *	p_node_t_buffer_lookup(PINode *node);
+
+unsigned int	p_node_t_buffer_num(PINode *node);
+PNTBuffer *	p_node_t_buffer_nth(PINode *node, unsigned int n);
+PNTBuffer *	p_node_t_buffer_find(PINode *node, const char *name);
+const char *	p_node_t_buffer_get_name(const PNTBuffer *buffer);
+
 PNTBuffer *	p_node_t_buffer_create(PONode *node, const char *name);
 const char *	p_node_t_buffer_read_begin(PNTBuffer *buffer);
 void		p_node_t_buffer_read_end(PNTBuffer *buffer, const char *text);
