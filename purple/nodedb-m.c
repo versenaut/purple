@@ -34,9 +34,17 @@ void nodedb_m_copy(NodeMaterial *n, const NodeMaterial *src)
 	n->fragments = dynarr_new_copy(src->fragments, NULL, NULL);
 }
 
+void nodedb_n_set(NodeMaterial *n, const NodeMaterial *src)
+{
+	/* FIXME: This is rather costly. */
+	nodedb_m_destruct(n);
+	nodedb_m_copy(n, src);
+}
+
 void nodedb_m_destruct(NodeMaterial *n)
 {
 	dynarr_destroy(n->fragments);
+	n->fragments = NULL;
 }
 
 /* ----------------------------------------------------------------------------------------- */

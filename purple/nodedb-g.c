@@ -57,6 +57,13 @@ void nodedb_g_copy(NodeGeometry *n, const NodeGeometry *src)
 	n->crease_edge   = src->crease_edge;
 }
 
+void nodedb_g_set(NodeGeometry *n, const NodeGeometry *src)
+{
+	/* FIXME: This is very costly. */
+	nodedb_g_destruct(n);
+	nodedb_g_copy(n, src);
+}
+
 void nodedb_g_destruct(NodeGeometry *n)
 {
 	if(n->layers != NULL)
@@ -71,9 +78,13 @@ void nodedb_g_destruct(NodeGeometry *n)
 			dynarr_destroy(layer->data);
 		}
 		dynarr_destroy(n->layers);
+		n->layers = NULL;
 	}
 	if(n->bones != NULL)
+	{
 		dynarr_destroy(n->bones);	/* Bones contain no pointers. */
+		n->bones = NULL;
+	}
 }
 
 /* ----------------------------------------------------------------------------------------- */

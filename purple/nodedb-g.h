@@ -38,6 +38,7 @@ typedef struct
 
 extern void		nodedb_g_construct(NodeGeometry *n);
 extern void		nodedb_g_copy(NodeGeometry *n, const NodeGeometry *src);
+extern void		nodedb_g_set(NodeGeometry *n, const NodeGeometry *src);
 extern void		nodedb_g_destruct(NodeGeometry *n);
 
 extern unsigned int	nodedb_g_layer_num(const NodeGeometry *n);
