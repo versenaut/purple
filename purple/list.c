@@ -74,6 +74,39 @@ List * list_prepend(List *list, void *data)
 	return NULL;
 }
 
+List * list_insert_before(List *list, List *parent, void *data)
+{
+	List	*el, *prev;
+
+	if(list == NULL)
+		return NULL;
+	if(parent == NULL)
+		return list_append(list, data);
+	el = list_new(data);
+	if((prev = list_prev(parent)) != NULL)
+		prev->next = el;
+	el->prev = prev;
+	el->next = parent;
+	parent->prev = el;
+	if(list == parent)
+		return el;
+	return list;
+}
+
+List * list_insert_sorted(List *list, void *data, int (*compare)(const void *data1, const void *data2))
+{
+	List	*iter;
+
+	if(list == NULL || compare == NULL)
+		return list_new(data);
+	for(iter = list; iter != NULL; iter = list_next(iter))
+	{
+		if(compare(data, list_data(iter)) < 0)
+			return list_insert_before(list, iter, data);
+	}
+	return list_append(list, data);
+}
+
 List * list_concat(List *head, List *tail)
 {
 	if(head != NULL)
