@@ -117,6 +117,37 @@ NdbTBuffer * nodedb_t_buffer_get_named(const NodeText *node, const char *name)
 	return NULL;
 }
 
+NdbTBuffer * nodedb_t_buffer_create(NodeText *node, VLayerID buffer_id, const char *name)
+{
+	NdbTBuffer	*buffer;
+
+	if(node->buffers == NULL)
+		node->buffers = dynarr_new(sizeof *buffer, 2);
+	if(node->buffers == NULL)
+		return NULL;
+	if(buffer_id == (VLayerID) ~0)
+		buffer = dynarr_append(node->buffers, NULL, NULL);
+	else
+	{
+		if((buffer = dynarr_set(node->buffers, buffer_id, NULL)) != NULL)
+		{
+			if(buffer->name[0] != '\0')
+			{
+				if(buffer->text != NULL)
+				{
+					textbuf_destroy(buffer->text);
+					buffer->text = NULL;
+				}
+			}
+		}
+	}
+	buffer->id = buffer_id;
+	stu_strncpy(buffer->name, sizeof buffer->name, name);
+	buffer->text = NULL;
+
+	return buffer;
+}
+
 const char * nodedb_t_buffer_read_begin(NdbTBuffer *buffer)
 {
 	if(buffer != NULL)
