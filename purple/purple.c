@@ -345,15 +345,17 @@ static void console_parse_module_input_set(const char *line)
 	value.type = tarr[tpos - tsel];
 	if(value.type == P_INPUT_REAL32 || value.type == P_INPUT_REAL64)
 	{
-		if(tcode[1] == '2')
+		if(tcode[1] == '2')			/* Vector? */
 			value.type += 1;
 		else if(tcode[1] == '3')
 			value.type += 2;
 		else if(tcode[1] == '4')
 			value.type += 3;
+		else if(tcode[1] == 'm')
+			value.type += 4;		/* Matrix. */
 		else
 		{
-			printf("No vector\n");
+			printf("Illegal vector/matrix code %c\n", tcode[1]);
 			return;
 		}
 		literal++;
@@ -388,6 +390,28 @@ static void console_parse_module_input_set(const char *line)
 		got = sscanf(literal, "%g %g %g %g", &value.v.vreal32_vec4[0], &value.v.vreal32_vec4[1],
 			     &value.v.vreal32_vec4[2], &value.v.vreal32_vec4[3]) == 4;
 		break;
+	case P_INPUT_REAL32_MAT16:
+		got = sscanf(literal, "%g %g %g %g "
+			     " %g %g %g %g"
+			     " %g %g %g %g"
+			     " %g %g %g %g",
+			     &value.v.vreal32_mat16[0], &value.v.vreal32_mat16[1],
+			     &value.v.vreal32_mat16[2], &value.v.vreal32_mat16[3],
+     			     &value.v.vreal32_mat16[4], &value.v.vreal32_mat16[5],
+			     &value.v.vreal32_mat16[6], &value.v.vreal32_mat16[7],
+			     &value.v.vreal32_mat16[8], &value.v.vreal32_mat16[9],
+			     &value.v.vreal32_mat16[10], &value.v.vreal32_mat16[11],
+			     &value.v.vreal32_mat16[12], &value.v.vreal32_mat16[13],
+			     &value.v.vreal32_mat16[14], &value.v.vreal32_mat16[15]);
+		if(got > 0)	/* Duplicate supplied values into vacant matrix positions, if any. */
+		{
+			int	i, j;
+
+			for(i = got, j = 0; i < 16; i++, j = (j + 1) % got)
+				value.v.vreal32_mat16[i] = value.v.vreal32_mat16[j];
+			got = 1;
+		}
+		break;
 	case P_INPUT_REAL64:
 		got = sscanf(literal, "%lg", &value.v.vreal64) == 1;
 		break;
@@ -401,6 +425,28 @@ static void console_parse_module_input_set(const char *line)
 	case P_INPUT_REAL64_VEC4:
 		got = sscanf(literal, "%lg %lg %lg %lg", &value.v.vreal64_vec4[0], &value.v.vreal64_vec4[1],
 			     &value.v.vreal64_vec4[2], &value.v.vreal64_vec4[3]) == 4;
+		break;
+	case P_INPUT_REAL64_MAT16:
+		got = sscanf(literal, "%lg %lg %lg %lg "
+			     " %lg %lg %lg %lg"
+			     " %lg %lg %lg %lg"
+			     " %lg %lg %lg %lg",
+			     &value.v.vreal64_mat16[0], &value.v.vreal64_mat16[1],
+			     &value.v.vreal64_mat16[2], &value.v.vreal64_mat16[3],
+     			     &value.v.vreal64_mat16[4], &value.v.vreal64_mat16[5],
+			     &value.v.vreal64_mat16[6], &value.v.vreal64_mat16[7],
+			     &value.v.vreal64_mat16[8], &value.v.vreal64_mat16[9],
+			     &value.v.vreal64_mat16[10], &value.v.vreal64_mat16[11],
+			     &value.v.vreal64_mat16[12], &value.v.vreal64_mat16[13],
+			     &value.v.vreal64_mat16[14], &value.v.vreal64_mat16[15]);
+		if(got > 0)	/* Duplicate supplied values into vacant matrix positions, if any. */
+		{
+			int	i, j;
+
+			for(i = got, j = 0; i < 16; i++, j = (j + 1) % got)
+				value.v.vreal64_mat16[i] = value.v.vreal64_mat16[j];
+			got = 1;
+		}
 		break;
 	case P_INPUT_MODULE:
 		got = sscanf(literal, "%u", &value.v.vmodule) == 1;

@@ -215,6 +215,15 @@ static int set_value(PInputValue *value, PInputType new_type, va_list *taglist)
 			value->v.vreal32_vec4[3] = data[3];
 		}
 		return 1;
+	case P_INPUT_REAL32_MAT16:
+		{
+			const real32	*data = (const real32 *) va_arg(*taglist, const real32 *);
+			int		i;
+
+			for(i = 0; i < 16; i++)
+				value->v.vreal32_mat16[i] = data[i];
+		}
+		return 1;
 	case P_INPUT_REAL64:
 		value->v.vreal64 = (real64) va_arg(*taglist, double);
 		return 1;
@@ -240,6 +249,15 @@ static int set_value(PInputValue *value, PInputType new_type, va_list *taglist)
 			value->v.vreal64_vec4[1] = data[1];
 			value->v.vreal64_vec4[2] = data[2];
 			value->v.vreal64_vec4[3] = data[3];
+		}
+		return 1;
+	case P_INPUT_REAL64_MAT16:
+		{
+			const real64	*data = (const real64 *) va_arg(*taglist, const real64 *);
+			int		i;
+
+			for(i = 0; i < 16; i++)
+				value->v.vreal64_mat16[i] = data[i];
 		}
 		return 1;
 	case P_INPUT_MODULE:

@@ -62,8 +62,8 @@ enum
 {
 	CREATE, DESTROY, MOD_CREATE, MOD_DESTROY, MOD_INPUT_CLEAR,
 	MOD_INPUT_SET_BOOLEAN, MOD_INPUT_SET_INT32, MOD_INPUT_SET_UINT32,
-	MOD_INPUT_SET_REAL32, MOD_INPUT_SET_REAL32_VEC2, MOD_INPUT_SET_REAL32_VEC3, MOD_INPUT_SET_REAL32_VEC4,
-	MOD_INPUT_SET_REAL64, MOD_INPUT_SET_REAL64_VEC2, MOD_INPUT_SET_REAL64_VEC3, MOD_INPUT_SET_REAL64_VEC4,
+	MOD_INPUT_SET_REAL32, MOD_INPUT_SET_REAL32_VEC2, MOD_INPUT_SET_REAL32_VEC3, MOD_INPUT_SET_REAL32_VEC4, MOD_INPUT_SET_REAL32_MAT16,
+	MOD_INPUT_SET_REAL64, MOD_INPUT_SET_REAL64_VEC2, MOD_INPUT_SET_REAL64_VEC3, MOD_INPUT_SET_REAL64_VEC4, MOD_INPUT_SET_REAL64_MAT16,
 	MOD_INPUT_SET_MODULE,
 	MOD_INPUT_SET_STRING
 };
@@ -94,10 +94,12 @@ static MethodInfo method_info[] = {
 	MI_INPUT_VEC(r32, REAL32, 2),
 	MI_INPUT_VEC(r32, REAL32, 3),
 	MI_INPUT_VEC(r32, REAL32, 4),
+	MI_INPUT(r32_m16, REAL32_MAT16),
 	MI_INPUT(real64, REAL64),
 	MI_INPUT_VEC(r64, REAL64, 2),
 	MI_INPUT_VEC(r64, REAL64, 3),
 	MI_INPUT_VEC(r64, REAL64, 4),
+	MI_INPUT(r64_m16, REAL64_MAT16),
 	MI_INPUT(module, UINT32),
 	MI_INPUT(string, STRING)
 };
@@ -459,7 +461,7 @@ void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32
 	VNOParam	param[4];
 	VNOParamType	type[4] = { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8 };
 	void		*pack;
-	int		method = 0;
+	int		method = 0, i;
 
 	param[0].vuint32 = graph_id;
 	param[1].vuint32 = mod_id;
@@ -508,6 +510,12 @@ void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32
 		param[3].vreal32_vec[3] = value->v.vreal32_vec4[3];
 		method = MOD_INPUT_SET_REAL32_VEC4;
 		break;
+	case P_INPUT_REAL32_MAT16:
+		type[3] = VN_O_METHOD_PTYPE_REAL32_MAT16;
+		for(i = 0; i < 16; i++)
+			param[3].vreal32_mat[i] = value->v.vreal32_mat16[i];
+		method = MOD_INPUT_SET_REAL32_MAT16;
+		break;
 	case P_INPUT_REAL64:
 		type[3] = VN_O_METHOD_PTYPE_REAL64;
 		param[3].vreal64 = value->v.vreal64;
@@ -533,6 +541,12 @@ void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32
 		param[3].vreal64_vec[2] = value->v.vreal64_vec4[2];
 		param[3].vreal64_vec[3] = value->v.vreal64_vec4[3];
 		method = MOD_INPUT_SET_REAL64_VEC4;
+		break;
+	case P_INPUT_REAL64_MAT16:
+		type[3] = VN_O_METHOD_PTYPE_REAL64_MAT16;
+		for(i = 0; i < 16; i++)
+			param[3].vreal64_mat[i] = value->v.vreal64_mat16[i];
+		method = MOD_INPUT_SET_REAL64_MAT16;
 		break;
 	case P_INPUT_MODULE:
 		type[3] = VN_O_METHOD_PTYPE_UINT32;
@@ -605,6 +619,9 @@ void graph_method_receive_call(uint8 id, const void *param)
 			case MOD_INPUT_SET_REAL32_VEC4:
 				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32_VEC4, &arg[3].vreal32_vec);
 				break;
+			case MOD_INPUT_SET_REAL32_MAT16:
+				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32_MAT16, &arg[3].vreal32_mat);
+				break;
 			case MOD_INPUT_SET_REAL64:
 				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64, arg[3].vreal64);
 				break;
@@ -616,6 +633,9 @@ void graph_method_receive_call(uint8 id, const void *param)
 				break;
 			case MOD_INPUT_SET_REAL64_VEC4:
 				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64_VEC4, &arg[3].vreal64_vec);
+				break;
+			case MOD_INPUT_SET_REAL64_MAT16:
+				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64_MAT16, &arg[3].vreal64_mat);
 				break;
 			case MOD_INPUT_SET_MODULE:
 				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_MODULE, arg[3].vuint32);
