@@ -1,5 +1,5 @@
 /*
- * A hash table might come in handy. Until it does, let's just sketch the interface.
+ * A hash table might come in handy.
 */
 
 typedef struct Hash	Hash;
