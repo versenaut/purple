@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "verse.h"
+#include "purple.h"
 
 #include "cron.h"
 #include "graph.h"

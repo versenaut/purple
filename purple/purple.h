@@ -29,8 +29,10 @@ typedef enum
 	P_INPUT_NODE
 } PInputType;
 
-typedef union
+typedef struct
 {
+	PInputType	type;		/* The type of value currently stored. */
+	union {
 	boolean	vboolean;
 	int32	vint32;
 	uint32	vuint32;
@@ -47,6 +49,7 @@ typedef union
 	real64	vreal64_mat16[16];
 
 	char	*vstring;
+	}	v;
 } PInputValue;
 
 typedef enum
