@@ -135,6 +135,19 @@ List * list_unlink(List *list, List *element)
 	return list;
 }
 
+List * list_tail(List *list)
+{
+	List	*head;
+
+	if(list == NULL)
+		return NULL;
+	head = list;
+	list = list_unlink(list, head);
+	list_destroy(head);
+
+	return list;
+}
+
 void * list_data(const List *list)
 {
 	if(list != NULL)

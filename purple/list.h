@@ -14,6 +14,7 @@ extern List *	list_concat(List *head, List *tail);
 extern List *	list_reverse(List *list);
 
 extern List *	list_unlink(List *list, List *element);
+extern List *	list_tail(List *list);
 
 extern void *	list_data(const List *list);
 extern List *	list_prev(const List *list);
