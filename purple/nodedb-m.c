@@ -118,15 +118,20 @@ static int fragments_equal(const NodeMaterial *node, const NdbMFragment *a,
 	case VN_M_FT_LIGHT:
 		if(a->frag.light.type == b->frag.light.type)
 		{
-			if(a->frag.light.normal_falloff != b->frag.light.normal_falloff)
-				return 0;
-			if(strcmp(a->frag.light.brdf_r, b->frag.light.brdf_r) != 0)
-				return 0;
-			if(strcmp(a->frag.light.brdf_g, b->frag.light.brdf_g) != 0)
-				return 0;
-			if(strcmp(a->frag.light.brdf_b, b->frag.light.brdf_b) != 0)
-				return 0;
-			/* Compare the 'brdf' node reference. Here, it gets tricky. */
+			int	neq;
+
+			/* Comparing the node link requires some intelligence. It's either local
+			 * (special node field in NdbMFragment) or remote, using an ID only.
+			 * We do not currently compare actual bitmap contents, that'd be... Hard.
+			*/
+			if(a->node != NULL)
+				neq = a->node->id == b->frag.texture.bitmap;
+			else
+				neq = a->frag.texture.bitmap == b->frag.texture.bitmap;
+			return neq && a->frag.light.normal_falloff == b->frag.light.normal_falloff &&
+				strcmp(a->frag.light.brdf_r, b->frag.light.brdf_r) == 0 &&
+				strcmp(a->frag.light.brdf_g, b->frag.light.brdf_g) == 0 &&
+				strcmp(a->frag.light.brdf_b, b->frag.light.brdf_b) == 0;
 		}
 		return 0;
 	case VN_M_FT_REFLECTION:
@@ -146,7 +151,24 @@ static int fragments_equal(const NodeMaterial *node, const NdbMFragment *a,
 		       strcmp(a->frag.geometry.layer_g, b->frag.geometry.layer_g) == 0 &&
 		       strcmp(a->frag.geometry.layer_b, b->frag.geometry.layer_b) == 0;
 	case VN_M_FT_TEXTURE:
-		return 0;	/* Hard! */
+		printf("comparing textures: nodes are %x and %x\n", a->frag.texture.bitmap, b->frag.texture.bitmap);
+		if(fragment_refs_equal(node, a->frag.texture.mapping, target, b->frag.texture.mapping))
+		{
+			int	neq;
+
+			/* Comparing the node link requires some intelligence. It's either local
+			 * (special node field in NdbMFragment) or remote, using an ID only.
+			 * We do not currently compare actual bitmap contents, that'd be... Hard.
+			*/
+			if(a->node != NULL)
+				neq = a->node->id == b->frag.texture.bitmap;
+			else
+				neq = a->frag.texture.bitmap == b->frag.texture.bitmap;
+			return neq && strcmp(a->frag.texture.layer_r, b->frag.texture.layer_r) == 0 &&
+				strcmp(a->frag.texture.layer_g, b->frag.texture.layer_g) == 0 &&
+				strcmp(a->frag.texture.layer_b, b->frag.texture.layer_b) == 0;
+		}
+		return 0;
 	case VN_M_FT_NOISE:
 		return a->frag.noise.type == b->frag.noise.type &&
 			fragment_refs_equal(node, a->frag.noise.mapping, target, b->frag.noise.mapping);
@@ -265,13 +287,17 @@ NdbMFragment * nodedb_m_fragment_create(NodeMaterial *node, VNMFragmentID fragme
 		f->id   = fragment_id;
 		f->type = type;
 		f->frag = *fragment;
-		f->node = NULL;
+		f->node = NULL;		/* Always set after creation, when used (light, texture). */
 		printf("fragment %u.%u created, type=%u\n", node->node.id, fragment_id, f->type);
+		if(f->type == VN_M_FT_TEXTURE)
+		{
+			printf(" it's texture! bitmap link is %u\n", f->frag.texture.bitmap);
+		}
 	}
 	return f;
 }
 
-static void nodedb_m_node_ref_set(NdbMFragment *frag, const Node *node)
+static void node_ref_set(NdbMFragment *frag, const Node *node)
 {
 	if(frag == NULL || node == NULL)
 		return;
@@ -310,7 +336,7 @@ NdbMFragment * nodedb_m_fragment_create_light(NodeMaterial *node, VNMLightType t
 	stu_strncpy(frag.light.brdf_g, sizeof frag.light.brdf_g, brdf_g);
 	stu_strncpy(frag.light.brdf_b, sizeof frag.light.brdf_b, brdf_b);
 	f = nodedb_m_fragment_create(node, ~0, VN_M_FT_LIGHT, &frag);
-	nodedb_m_node_ref_set(f, brdf);
+	node_ref_set(f, brdf);
 	return f;
 }
 
@@ -372,12 +398,14 @@ NdbMFragment * nodedb_m_fragment_create_texture(NodeMaterial *node, const Node *
 
 	if(node == NULL)
 		return NULL;
+	if(bitmap != NULL)
+		frag.texture.bitmap = bitmap->id;
 	stu_strncpy_accept_null(frag.texture.layer_r, sizeof frag.texture.layer_r, layer_r);
 	stu_strncpy_accept_null(frag.texture.layer_g, sizeof frag.texture.layer_g, layer_g);
 	stu_strncpy_accept_null(frag.texture.layer_b, sizeof frag.texture.layer_b, layer_b);
 	link_set(&frag.texture.mapping, mapping);
 	f = nodedb_m_fragment_create(node, ~0, VN_M_FT_TEXTURE, &frag);
-	nodedb_m_node_ref_set(f, bitmap);
+	node_ref_set(f, bitmap);
 	return f;
 }
 
