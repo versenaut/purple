@@ -20,13 +20,17 @@
 /* Called when our solitary input changes. Somehow send the output to Verse. */
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state_typeless)
 {
-	PINode	*node = p_input_node(input[0]);
+	unsigned int	i;
 
 	printf("now in plugin-output\n");
-	if(node != NULL)
+	for(i = 0; i < 100; i++)		/* FIXME: Arbitrary limit, for now. */
 	{
-		printf("Output: processing node \"%s\" at %p\n", p_node_name_get(node), node);
-		sync_node_add(node);	/* Don't convert to "output" type, just do it. */
+		PINode	*node;
+
+		if((node = p_input_node_nth(input[0], i)) != NULL)
+			sync_node_add(node);
+		else
+			break;
 	}
 	return P_COMPUTE_DONE;
 }
