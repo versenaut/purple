@@ -119,8 +119,8 @@ static int sync_head(const Node *n, const Node *target)
 {
 	int	sync = 1;
 
-	/* Compare names. */
-	if(strcmp(n->name, target->name) != 0)
+	/* Compare names, if set. */
+	if(n->name[0] != '\0' && strcmp(n->name, target->name) != 0)
 	{
 		verse_send_node_name_set(target->id, n->name);
 		sync = 0;
@@ -515,6 +515,64 @@ static int sync_text(NodeText *n, const NodeText *target)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static int sync_curve_curve(const NodeCurve *n, const NdbCCurve *curve,
+			    const NodeCurve *target, const NdbCCurve *tcurve)
+{
+	unsigned int	i, sync = 1;
+	const NdbCKey	*key, *tkey;
+
+	for(i = 0; (key = dynarr_index(curve->keys, i)) != NULL; i++)
+	{
+		if(key->pos == V_REAL64_MAX)
+			continue;
+		if((tkey = nodedb_c_curve_key_find(tcurve, key->pos)) != NULL)
+		{
+			if(!nodedb_c_curve_key_equal(tcurve, key, tkey))
+			{
+				verse_send_c_key_set(target->node.id, tcurve->id, tkey->id, curve->dimensions,
+						     key->pre.value, key->pre.pos,
+						     key->value, key->pos,
+						     key->post.value, key->post.pos);
+				sync = 0;
+			}
+		}
+		else
+		{
+			printf("sync sending create of key at %g\n", key->pos);
+			verse_send_c_key_set(target->node.id, tcurve->id, ~0, curve->dimensions,
+					     key->pre.value, key->pre.pos,
+					     key->value, key->pos,
+					     key->post.value, key->post.pos);
+			sync = 0;
+		}
+	}
+	return sync;
+}
+
+/* Synchronize curve node <target> into copy of <n>. */
+static int sync_curve(NodeCurve *n, const NodeCurve *target)
+{
+	unsigned int	i, sync = 1;
+	const NdbCCurve	*curve, *tcurve;
+
+	for(i = 0; (curve = dynarr_index(n->curves, i)) != NULL; i++)
+	{
+		if(curve->name[0] == '\0')
+			continue;
+		if((tcurve = nodedb_c_curve_find(target, curve->name)) != NULL)
+			sync &= sync_curve_curve(n, curve, target, tcurve);
+		else
+		{
+			printf("sync sending create of curve '%s' in %u\n", curve->name, target->node.id);
+			verse_send_c_curve_create(target->node.id, ~0, curve->name, curve->dimensions);
+			sync = 0;
+		}
+	}
+	return sync;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 static int sync_node(Node *n)
 {
 	Node	*target;
@@ -540,6 +598,9 @@ static int sync_node(Node *n)
 		break;
 	case V_NT_TEXT:
 		sync &= sync_text((NodeText *) n, (NodeText *) target);
+		break;
+	case V_NT_CURVE:
+		sync &= sync_curve((NodeCurve *) n, (NodeCurve *) target);
 		break;
 	default:
 		printf("Can't sync node of type %d\n", n->type);
