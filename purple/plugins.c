@@ -617,9 +617,17 @@ void plugin_inputset_set_va(PInputSet *is, unsigned int index, PInputType type, 
 
 void plugin_inputset_clear(PInputSet *is, unsigned int index)
 {
+	uint32	pos, mask;
 	if(is == NULL || index >= is->size)
 		return;
-	is->use[index / 32] &= ~(1 << (index % 32));
+	pos  = index / 32;
+	mask = 1 << (index % 32);
+	if(is->use[pos] & mask)
+	{
+		if(is->value[index].type == P_INPUT_STRING)
+			mem_free(is->value[index].v.vstring);
+		is->use[pos] &= ~mask;
+	}
 }
 
 boolean plugin_inputset_is_set(const PInputSet *is, unsigned int index)
