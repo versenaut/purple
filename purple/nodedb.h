@@ -25,8 +25,6 @@ struct Node
 	DynArr		*tag_groups;
 
 	List		*notify;
-
-	Node *		(*copy)(const Node *n);
 };
 
 #include "nodedb-o.h"
