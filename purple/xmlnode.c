@@ -394,6 +394,7 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer, int *complete)
 			}
 			else if(st == TEXT)
 			{
+				dynstr_trim(token);
 				if(parent != NULL)
 					node_text_add(parent, token);
 				else
