@@ -25,6 +25,9 @@ extern void		textbuf_insert(TextBuf *tb, size_t offset, const char *text);
 */
 extern void		textbuf_delete(TextBuf *tb, size_t offset, size_t length);
 
+/* Truncate to <length> characters, if possible. Does not free storage. */
+extern void		textbuf_truncate(TextBuf *tb, size_t length);
+
 /* Return the text, as an ordinary C string with NUL termination and everything.
  * Depending on the underlying implementation, this is potentially expensive.
 */

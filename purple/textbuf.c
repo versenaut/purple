@@ -123,6 +123,16 @@ void textbuf_delete(TextBuf *tb, size_t offset, size_t length)
 	}
 }
 
+void textbuf_truncate(TextBuf *tb, size_t length)
+{
+	if(tb == NULL)
+		return;
+	if(length > tb->length)
+		return;
+	tb->length = length;
+	tb->buf[tb->length] = '\0';
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 const char * textbuf_text(TextBuf *tb)
