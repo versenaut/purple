@@ -110,7 +110,7 @@ static void cb_b_layer_create(VNodeID node_id, VLayerID layer_id, const char *na
 	if((layer = dynarr_set(node->layers, layer_id, NULL)) != NULL)
 	{
 		layer->id   = layer_id;
-		strncpy(layer->name, sizeof layer->name, name);
+		stu_strncpy(layer->name, sizeof layer->name, name);
 		layer->type = type;
 		layer->framebuffer = NULL;
 	}
@@ -134,6 +134,8 @@ static void cb_b_tile_set(VNodeID node_id, VLayerID layer_id, uint16 tile_x, uin
 {
 	NodeBitmap	*node;
 	NdbBLayer	*layer;
+	unsigned char	*put;
+	size_t		ps;
 
 	if((node = (NodeBitmap *) nodedb_lookup_with_type(node_id, V_NT_BITMAP)) == NULL)
 		return;
@@ -144,6 +146,17 @@ static void cb_b_tile_set(VNodeID node_id, VLayerID layer_id, uint16 tile_x, uin
 		LOG_WARN(("Received type %d data for type %d layer--ignoring", type, layer->type));
 		return;
 	}
+	ps = pixel_size(layer->type);
+	if(layer->framebuffer == NULL)
+		layer->framebuffer = mem_alloc(ps * node->width * node->height * node->depth);
+	if(layer->framebuffer == NULL)
+	{
+		LOG_WARN(("No framebuffer in layer %u (%s)--out of memory?", layer->id, layer->name));
+		return;
+	}
+	put = layer->framebuffer + 4 * ps * tile_x +
+				4 * ps * node->width * tile_y +
+				4 * ps * node->width * node->height * tile_z;
 }
 
 /* ----------------------------------------------------------------------------------------- */
