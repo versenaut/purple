@@ -42,12 +42,12 @@ static unsigned int validate_dynarr_index(PIter *iter, unsigned int index)
 		{
 			if(el[iter->offset] != '\0')
 				break;
-			printf("string-skipping %u\n", index);
 		}
 	}
 	return index;
 }
 
+/* Initialize iterator over dynamic array (dynarr.h). Rather pointless, included for completeness. */
 void iter_init_dynarr(PIter *iter, DynArr *arr)
 {
 	iter->flags = ITER_DYNARR;
@@ -71,6 +71,7 @@ void iter_init_dynarr_string(PIter *iter, DynArr *arr, size_t offset)
 	iter->data.dynarr.index = validate_dynarr_index(iter, 0);
 }
 
+/* Initialize iterator over standard linked list. Should be fairly cheap wrapping. */
 void iter_init_list(PIter *iter, List *list)
 {
 	iter->flags = ITER_LIST;
@@ -87,7 +88,7 @@ unsigned int p_iter_index(const PIter *iter)
 	return 0;
 }
 
-void * p_iter_get(PIter *iter)
+void * p_iter_data(PIter *iter)
 {
 	if(iter == NULL)
 		return NULL;
