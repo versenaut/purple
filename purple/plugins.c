@@ -507,8 +507,8 @@ void plugin_describe_append(const Plugin *p, DynStr *d)
 		dynstr_append(d, " <inputs>\n");
 		for(i = 0; i < num; i++)
 		{
-			dynstr_append_printf(d, "  <input type=\"real32\">\n");
 			in = dynarr_index(p->input, i);
+			dynstr_append_printf(d, "  <input type=\"%s\">\n", plugin_input_type_to_name(in->type));
 			if(in->name[0] != '\0')
 				dynstr_append_printf(d, "   <name>%s</name>\n", in->name);
 			if(in->spec.req)
