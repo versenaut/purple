@@ -162,6 +162,7 @@ uint8		p_node_c_curve_dimensions_get(const PNCCurve *curve);
 size_t		p_node_c_curve_key_get_count(const PNCCurve *curve);
 PNCKey *	p_node_c_curve_key_get_nth(const PNCCurve *curve, unsigned int n);
 
+
 /* Text-node manipulation functions. */
 typedef void	PNTBuffer;
 
@@ -169,7 +170,10 @@ const char *	p_node_t_language_get(PINode *node);
 size_t		p_node_t_buffer_get_count(PINode *node);
 PNTBuffer *	p_node_t_buffer_get_nth(PINode *node, unsigned int n);
 PNTBuffer *	p_node_t_buffer_lookup(PINode *node);
-
+const char *	p_node_t_buffer_read_begin(PNTBuffer *buffer);
+void		p_node_t_buffer_read_end(PNTBuffer *buffer, const char *buffer);
+void		p_node_t_buffer_insert(PNTBuffer *buffer, size_t pos, const char *text);
+void		p_node_t_buffer_delete(PNTBuffer *buffer, size_t pos, size_t len);
 
 /* Duplicates an input node, and returns something you can actually edit. */
 PONode *	p_output_node(PPOutput out, PINode *node);
