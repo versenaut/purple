@@ -15,17 +15,19 @@ CFLAGS=-g -Wall -rdynamic -I$(VERSE) -L$(VERSE)
 LDLIBS=-ldl -lverse -lm
 
 purple:		purple.c \
-		api-init.o api-input.o api-output.o \
+		api-init.o api-input.o api-node.o api-output.o \
 		client.o cron.o dynarr.o dynlib.o dynstr.o graph.o \
 		filelist.o hash.o idlist.o idset.o list.o log.o mem.o memchunk.o \
 		nodedb.o nodedb-o.o nodedb-t.o \
-		plugins.o plugin-input.o \
+		nodeset.o plugins.o plugin-input.o \
 		port.o scheduler.o strutil.o textbuf.o timeval.o value.o vecutil.o xmlnode.o xmlutil.o \
 		$(VERSE)/libverse.a
 
 api-init.o:	api-init.c purple.h
 
 api-input.o:	api-input.c purple.h
+
+api-node.o:	api-node.c purple.h
 
 api-output.o:	api-output.c purple.h
 
@@ -62,6 +64,8 @@ nodedb.o:	nodedb.c nodedb.h nodedb-internal.h
 nodedb-o.o:	nodedb-o.c nodedb-o.h nodedb.h nodedb-internal.h
 
 nodedb-t.o:	nodedb-t.c nodedb-t.h nodedb.h nodedb-internal.h
+
+nodeset.o:	nodeset.c nodeset.h
 
 plugins.o:	plugins.c plugins.h
 
