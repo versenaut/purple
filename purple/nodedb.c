@@ -122,10 +122,10 @@ Node * nodedb_new(VNodeType type)
 	{
 		Node	*n = (Node *) memchunk_alloc(ch);
 
-		n->id = 0U;
-		n->type = type;
-		n->name[0] = '\0';
-		n->owner = 0U;
+		n->id         = 0U;
+		n->type       = type;
+		n->name[0]    = '\0';
+		n->owner      = 0U;
 		n->tag_groups = NULL;
 
 		switch(n->type)
@@ -160,6 +160,9 @@ Node * nodedb_new_copy(const Node *src)
 		/* FIXME: Copy tag groups, here. */
 		switch(n->type)
 		{
+		case V_NT_OBJECT:
+			nodedb_o_copy((NodeObject *) n, (const NodeObject *) src);
+			break;
 		case V_NT_TEXT:
 			nodedb_t_copy((NodeText *) n, (const NodeText *) src);
 			break;
@@ -179,6 +182,8 @@ void nodedb_destroy(Node *n)
 
 	if((ch = nodedb_info.chunk_node[n->type]) != NULL)
 	{
+		unsigned int	i, num;
+
 		switch(n->type)
 		{
 		case V_NT_OBJECT:
@@ -190,6 +195,15 @@ void nodedb_destroy(Node *n)
 		default:
 			LOG_WARN(("Node destruction not implemented for type %d\n", n->type));
 		}
+		num = dynarr_size(n->tag_groups);
+		for(i = 0; i < num; i++)
+		{
+			TagGroup	*tg;
+
+			if((tg = dynarr_index(n->tag_groups, i)) != NULL && tg->name[0] != '\0')
+				dynarr_destroy(tg->tags);
+		}
+		dynarr_destroy(n->tag_groups);
 		memchunk_free(ch, n);
 	}
 }
