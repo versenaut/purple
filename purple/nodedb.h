@@ -6,6 +6,8 @@
  * 
 */
 
+#include "dynarr.h"
+#include "list.h"
 #include "timeval.h"
 
 typedef struct
