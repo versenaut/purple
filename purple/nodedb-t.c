@@ -154,14 +154,16 @@ char * nodedb_t_buffer_read_line(NdbTBuffer *buffer, unsigned int line, char *pu
 		{
 			char	*p = put;
 
+			printf("line begins: '%s'\n", text);
 			putmax--;
 			while(*text != '\0' && *text != '\n' && *text != '\r' && putmax > 0)
 				*p++ = *text++;
 			*p = '\0';
 		}
+		else
+			put = NULL;
 		nodedb_t_buffer_read_end(buffer);
-		if(line == 0)
-			return put;
+		return put;
 	}
 	return NULL;
 }
@@ -243,6 +245,18 @@ static void cb_t_text_set(void *user, VNodeID node_id, uint16 buffer_id, uint32 
 			textbuf_delete(tb->text, pos, len);
 			textbuf_insert(tb->text, pos, text);
 			NOTIFY(n, DATA);
+
+			{
+				char	line[1024];
+				int	i;
+
+				printf("First 8 lines:\n");
+				for(i = 0; i < 8; i++)
+				{
+					if(nodedb_t_buffer_read_line(tb, i, line, sizeof line) != NULL)
+						printf("%d: '%s'\n", i, line);
+				}
+			}
 		}
 	}
 }
