@@ -82,6 +82,10 @@ PValueType value_type_from_name(const char *name)
 
 		if(!sorted)	/* I think we can afford this. */
 		{
+			size_t	i;
+
+			for(i = 0; i < sizeof type_map_by_name / sizeof *type_map_by_name; i++)
+				type_map_by_name[i] = type_map_by_value[i];
 			qsort(type_map_by_name,
 			      sizeof type_map_by_name / sizeof *type_map_by_name,
 			      sizeof *type_map_by_name, cmp_type_name);
@@ -89,7 +93,7 @@ PValueType value_type_from_name(const char *name)
 		}
 		if((tna = bsearch(name, type_map_by_name,
 				  sizeof type_map_by_name / sizeof *type_map_by_name,
-				  sizeof type_map_by_name, srch_type_name)) != NULL)
+				  sizeof *type_map_by_name, srch_type_name)) != NULL)
 			return tna->type;
 	}
 	return P_VALUE_NONE;
