@@ -23,26 +23,20 @@ void nodedb_t_construct(NodeText *n)
 	n->buffers = dynarr_new(sizeof (NdbTBuffer), 2);
 }
 
+static void cb_copy_buffer(void *d, const void *s)
+{
+	const NdbTBuffer	*src = s;
+	NdbTBuffer		*dst = d;
+
+	dst->id = src->id;
+	strcpy(dst->name, src->name);
+	dst->text = textbuf_new(textbuf_length(src->text));
+	textbuf_insert(dst->text, 0, textbuf_text(src->text));
+}
+
 void nodedb_t_copy(NodeText *n, const NodeText *src)
 {
-	unsigned int	i, num;
-
-	nodedb_t_construct(n);
-	num = dynarr_size(src->buffers);
-	for(i = 0; i < num; i++)
-	{
-		NdbTBuffer	*sb, *nb;
-
-		if((sb = dynarr_index(src->buffers, i)) != NULL && sb->name[0] != '\0')
-		{
-			printf("copying buffer %u in copy of '%s'\n", i, n->node.name);
-			nb = dynarr_set(n->buffers, i, NULL);
-			nb->id = i;
-			strcpy(nb->name, sb->name);
-			nb->text = textbuf_new(textbuf_length(sb->text));
-			textbuf_insert(nb->text, 0, textbuf_text(sb->text));
-		}
-	}
+	n->buffers = dynarr_new_copy(src->buffers, cb_copy_buffer);
 }
 
 void nodedb_t_destruct(NodeText *n)
