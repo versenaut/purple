@@ -72,8 +72,9 @@ static void cb_o_method_group_create(void *user, VNodeID node_id, uint16 group_i
 		if((g = dynarr_set(n->method_groups, group_id, NULL)) != NULL)
 		{
 			g->id = group_id;
-			stu_strncpy(g->name, sizeof name, name);
+			stu_strncpy(g->name, sizeof g->name, name);
 			g->methods = NULL;
+			verse_send_o_method_group_subscribe(node_id, group_id);
 			NOTIFY(n, STRUCTURE);
 		}
 	}
@@ -114,6 +115,7 @@ static void cb_o_method_create(void *user, VNodeID node_id, uint16 group_id, uin
 				g->methods = dynarr_new(sizeof (NdbOMethod), 4);
 			if((m = dynarr_index(g->methods, method_id)) != NULL)
 			{
+				printf("here, things don't quite happen\n");
 				NOTIFY(n, STRUCTURE);
 			}
 		}
