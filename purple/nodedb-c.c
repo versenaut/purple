@@ -72,6 +72,7 @@ void nodedb_c_destruct(NodeCurve *n)
 		{
 			printf("destroying curve %u\n", i);
 			dynarr_destroy(c->keys);
+			list_destroy(c->curve);
 		}
 	}
 	dynarr_destroy(n->curves);
