@@ -36,17 +36,19 @@ int test_package_end(void)
 void test_begin(const char *what)
 {
 	snprintf(test_info.test_label, sizeof test_info.test_label, "%s", what);
-	test_info.test_status = 0;
+	test_info.test_status = -1;
 	test_info.test_count++;
 }
 
 void test_result(int passed)
 {
-	test_info.test_status = passed;
+	test_info.test_status = passed > 0;
 }
 
 int test_end(void)
 {
+	if(test_info.test_status < 0)
+		printf("<test lacks test_result() call>");
 	printf(" %-40s [%s]\n", test_info.test_label, test_info.test_status == 0 ? "FAILED" : "  OK  ");
 	test_info.pass_count += test_info.test_status != 0;
 	test_info.test_label[0] = '\0';
