@@ -23,5 +23,5 @@ void init(void)
 	p_init_input(1, P_INPUT_STRING, "text", P_INPUT_DEFAULT_STR("monster"), P_INPUT_DONE);
 	p_init_meta("desc/purpose", "Say hello to the world");
 	p_init_meta("author", "Emil Brink");
-	p_init_compute(compute, NULL);
+	p_init_compute(compute);
 }
