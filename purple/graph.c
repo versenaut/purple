@@ -345,6 +345,7 @@ static void module_input_clear(uint32 graph_id, uint32 module_id, uint8 input_in
 	plugin_inputset_clear(m->inputs, input_index);
 	desc = module_build_desc(m);
 	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, dynstr_string(desc));
+	m->length = dynstr_length(desc);
 	dynstr_destroy(desc, 1);
 	modules_desc_start_update(g);
 }
