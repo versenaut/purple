@@ -2,4 +2,4 @@
  * 
 */
 
-void init(void);
+extern void	init(void);
