@@ -156,7 +156,7 @@ void		p_node_b_layer_destroy(PONode *node, PNBLayer *layer);
 /* Curve-node manipulation functions. */
 typedef void	PNCCurve;
 
-PNCCurve *	p_node_c_curve_create(PONode *node, uint8 dimensions, const char *name);
+PNCCurve *	p_node_c_curve_create(PONode *node, const char *name, uint8 dimensions);
 PNCCurve *	p_node_c_curve_lookup(PINode *node, const char *name);
 uint8		p_node_c_curve_dimensions_get(const PNCCurve *curve);
 
