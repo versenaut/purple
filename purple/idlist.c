@@ -47,7 +47,7 @@ void idlist_insert(IdList *il, unsigned int id)
 {
 	if(il == NULL)
 		return;
-	if(id < QUICK_MAX)
+	if(id < IDLIST_QUICK_MAX)
 		il->quick[id / 32] |= 1 << (id % 32);
 	else if(list_find_sorted(il->slow, (void *) id, cmp_id) == NULL)	/* No dupes. */
 		il->slow = list_insert_sorted(il->slow, (void *) id, cmp_id);
@@ -57,7 +57,7 @@ void idlist_remove(IdList *il, unsigned int id)
 {
 	if(il == NULL)
 		return;
-	if(id < QUICK_MAX)
+	if(id < IDLIST_QUICK_MAX)
 		il->quick[id / 32] &= ~(1 << (id % 32));
 	else
 		il->slow = list_remove(il->slow, (void *) id);
@@ -84,6 +84,51 @@ void idlist_foreach(const IdList *il, int (*callback)(unsigned int id, void *dat
 	for(iter = il->slow; iter != NULL; iter = list_next(iter))
 		if(!callback((unsigned int) list_data(iter), data))
 			return;
+}
+
+void idlist_foreach_init(const IdList *il, IdListIter *iter)
+{
+	if(il == NULL || iter == NULL)
+		return;
+	iter->quick = -1;
+	iter->slow = NULL;
+}
+
+boolean idlist_foreach_step(const IdList *il, IdListIter *iter)
+{
+	if(il == NULL || iter == NULL)
+		return FALSE;
+	if(iter->quick < IDLIST_QUICK_MAX)	/* Doing quick iteration? */
+	{
+		int	i;	/* Precision lossage. Should be safe for a while. */
+
+		for(i = iter->quick + 1; i < IDLIST_QUICK_MAX; i++)
+		{
+			if(il->quick[i / 32] & (1 << (i % 32)))
+			{
+				iter->quick = i;
+				iter->id = i;
+				return TRUE;
+			}
+		}
+		iter->quick = IDLIST_QUICK_MAX;
+		iter->slow  = il->slow;
+		if(iter->slow != NULL)	/* No fall-through, don't step list. */
+		{
+			iter->id = (unsigned int) list_data(iter->slow);
+			return TRUE;
+		}
+	}
+	if(iter->slow != NULL)
+	{
+		iter->slow = list_next(iter->slow);
+		if(iter->slow != NULL)
+		{
+			iter->id = (unsigned int) list_data(iter->slow);
+			return TRUE;
+		}
+	}
+	return FALSE;
 }
 
 void idlist_destruct(IdList *il)
