@@ -46,8 +46,9 @@ extern NdbMFragment *	nodedb_m_fragment_create_volume(NodeMaterial *node, real64
 							const NdbMFragment *color);
 extern NdbMFragment *	nodedb_m_fragment_create_geometry(NodeMaterial *node,
 							  const char *layer_r, const char *layer_g, const char *layer_b);
-extern NdbMFragment *	nodedb_m_fragment_create_texture(NodeMaterial *node, const char *layer_r, const char *layer_g,
-							 const char *layer_b, const NdbMFragment *mapping);
+extern NdbMFragment *	nodedb_m_fragment_create_texture(NodeMaterial *node, const Node *bitmap,
+							 const char *layer_r, const char *layer_g, const char *layer_b,
+							 const NdbMFragment *mapping);
 extern NdbMFragment *	nodedb_m_fragment_create_noise(NodeMaterial *node, VNMNoiseType type, const NdbMFragment *mapping);
 extern NdbMFragment *	nodedb_m_fragment_create_blender(NodeMaterial *node, VNMBlendType type,
 						const PNMFragment *data_a, const PNMFragment *data_b, const PNMFragment *ctrl);
