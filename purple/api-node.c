@@ -274,6 +274,16 @@ void p_node_g_polygon_get_corner_real32(const PNGLayer *layer, uint32 id, real32
 	nodedb_g_polygon_get_corner_real32(layer, id, v0, v1, v2, v3);
 }
 
+void p_node_g_polygon_set_corner_real64(PNGLayer *layer, uint32 id, real64 v0, real64 v1, real64 v2, real64 v3)
+{
+	nodedb_g_polygon_set_corner_real64(layer, id, v0, v1, v2, v3);
+}
+
+void p_node_g_polygon_get_corner_real64(const PNGLayer *layer, uint32 id, real64 *v0, real64 *v1, real64 *v2, real64 *v3)
+{
+	nodedb_g_polygon_get_corner_real64(layer, id, v0, v1, v2, v3);
+}
+
 void p_node_g_crease_set_vertex(PONode *node, const char *layer, uint32 def)
 {
 	if(node == NULL || layer == NULL)
