@@ -23,7 +23,7 @@ void port_clear(PPort *port)
 {
 	value_clear(&port->value);
 	value_clear(&port->cache);
-	/* FIXME: Can't clear node set. */
+	nodeset_clear(port->nodes);
 }
 
 boolean port_is_unset(const PPort *port)
