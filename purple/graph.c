@@ -58,7 +58,7 @@ typedef struct
 	uint8		   id;			/* Filled-in once created. */ 
 } MethodInfo;
 
-enum { CREATE, DESTROY, MOD_CREATE, MOD_INPUT_CLEAR, MOD_INPUT_SET_REAL32 };
+enum { CREATE, DESTROY, MOD_CREATE, MOD_INPUT_CLEAR, MOD_INPUT_SET_BOOLEAN, MOD_INPUT_SET_REAL32 };
 
 #define	MI_INPUT(lct, uct)	\
 	{ "m_i_set_" #lct, 4, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8, \
@@ -73,6 +73,7 @@ static MethodInfo method_info[] = {
 	{ "mod_create",  2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "plugin_id" } },
 	{ "mod_input_clear", 3, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8 },
 			{ "graph_id", "plugin_id", "input" } },
+	MI_INPUT(boolean, UINT8),
 	MI_INPUT(real32, REAL32),
 /*	{ 0, "mod_destroy", 2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "module_id" } }
 */};
@@ -373,7 +374,7 @@ void graph_method_send_call_create(VNodeID node, VLayerID buffer, const char *na
 
 	param[0].vnode   = node;
 	param[1].vlayer  = buffer;
-	param[2].vstring = name;
+	param[2].vstring = (char *) name;
 	send_method_call(CREATE, param);
 }
 
