@@ -572,11 +572,8 @@ uint32 value_get_module(const PValue *v, PValue *cache)
 		return 0;
 	IF_SET(v, MODULE)
 		return v->v.vmodule;
-	else if(cache != NULL)
-	{
-		/* FIXME: Cache management code missing here. */
-		GET_FAIL(v, "module", 0);
-	}
+	/* No caching takes place here, it does not make sense for module links. */
+	GET_FAIL(v, "module", 0);
 	return 0;
 }
 
