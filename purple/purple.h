@@ -25,8 +25,8 @@ typedef enum
 	P_INPUT_REAL64_VEC3,
 	P_INPUT_REAL64_VEC4,
 	P_INPUT_REAL64_MAT16,
+	P_INPUT_MODULE,
 	P_INPUT_STRING,
-	P_INPUT_NODE
 } PInputType;
 
 typedef struct
@@ -48,6 +48,7 @@ typedef struct
 	real64	vreal64_vec4[4];
 	real64	vreal64_mat16[16];
 
+	uint32	vmodule;
 	char	*vstring;
 	}	v;
 } PInputValue;
