@@ -49,7 +49,7 @@ static int cb_graphs_refresh(void *data)
 
 static void notify_mine_create(Node *node)
 {
-	if(node->type == V_NT_TEXT && client_info.meta == ~0)
+	if(node->type == V_NT_TEXT && client_info.meta == (VNodeID) ~0)
 	{
 		printf("It's the meta text node!\n");
 		client_info.meta = node->id;
