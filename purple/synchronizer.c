@@ -210,7 +210,7 @@ static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 			switch(tlayer->type)
 			{
 			case VN_G_LAYER_VERTEX_XYZ:
-				verse_send_g_vertex_set_real64_xyz(target->node.id, tlayer->id, i,
+				verse_send_g_vertex_set_xyz_real64(target->node.id, tlayer->id, i,
 							      ((const real64 *) data)[0],
 							      ((const real64 *) data)[1], 
 							      ((const real64 *) data)[2]);

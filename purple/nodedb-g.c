@@ -278,7 +278,7 @@ void nodedb_g_vertex_get_xyz(const NdbGLayer *layer, uint32 vertex_id, real64 *x
 
 /* Macro to define a vertex XYZ handler function. */
 #define	VERTEX_XYZ(t)	\
-	static void cb_g_vertex_set_##t ##_xyz(void *user, VNodeID node_id, VLayerID layer_id, uint32 vertex_id,\
+	static void cb_g_vertex_set_xyz_ ##t(void *user, VNodeID node_id, VLayerID layer_id, uint32 vertex_id,\
 						       t x, t y, t z)\
 	{\
 		NodeGeometry	*node;\
@@ -516,8 +516,8 @@ void nodedb_g_register_callbacks(void)
 	verse_callback_set(verse_send_g_layer_create,			cb_g_layer_create,	NULL);
 	verse_callback_set(verse_send_g_layer_destroy,			cb_g_layer_destroy,	NULL);
 
-	verse_callback_set(verse_send_g_vertex_set_real32_xyz,		cb_g_vertex_set_real32_xyz,	NULL);
-	verse_callback_set(verse_send_g_vertex_set_real64_xyz,		cb_g_vertex_set_real64_xyz,	NULL);
+	verse_callback_set(verse_send_g_vertex_set_xyz_real32,		cb_g_vertex_set_xyz_real32,	NULL);
+	verse_callback_set(verse_send_g_vertex_set_xyz_real64,		cb_g_vertex_set_xyz_real64,	NULL);
 	verse_callback_set(verse_send_g_vertex_set_uint32,		cb_g_vertex_set_uint32,		NULL);
 	verse_callback_set(verse_send_g_vertex_set_real32,		cb_g_vertex_set_real32,		NULL);
 	verse_callback_set(verse_send_g_vertex_set_real64,		cb_g_vertex_set_real64,		NULL);
