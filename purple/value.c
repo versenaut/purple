@@ -304,6 +304,63 @@ int value_set_defminmax_va(PValue *v, PValueType type, va_list arg)
 	return 0;
 }
 
+
+int value_set_from_string(PValue *v, PValueType type, const char *value)
+{
+	if(v == NULL || value == NULL)
+		return 0;
+	switch(type)
+	{
+	case P_VALUE_BOOLEAN:
+		if(strcmp(value, "true") == 0)
+			return value_set(v, type, 1);
+		else if(strcmp(value, "false"))
+			return value_set(v, type, 0);
+		else
+			LOG_WARN(("Couldn't parse '%s' as boolean value", value));
+		break;
+	case P_VALUE_INT32:
+		{
+			int32	t;
+			if(sscanf(value, "%d", &t) == 1)
+				return value_set(v, type, t);
+			else
+				LOG_WARN(("Couldn't parse '%s' as int32 value", value));
+		}
+		break;
+	case P_VALUE_UINT32:
+		{
+			uint32	t;
+			if(sscanf(value, "%u", &t) == 1)
+				return value_set(v, type, t);
+			else
+				LOG_WARN(("Couldn't parse '%s' as uint32 value", value));
+		}
+		break;
+	case P_VALUE_REAL32:
+		{
+			real32	t;
+			if(sscanf(value, "%g", &t) == 1)
+				return value_set(v, type, t);
+			else
+				LOG_WARN(("Couldn't parse '%s' as real32 value", value));
+		}
+		break;
+	case P_VALUE_REAL64:
+		{
+			real64	t;
+			if(sscanf(value, "%lg", &t) == 1)
+				return value_set(v, type, t);
+			else
+				LOG_WARN(("Couldn't parse '%s' as real64 value", value));
+		}
+		break;
+	default:
+		LOG_WARN(("No code for setting value type %s from string--failing", type_map_by_value[type].name));
+	}
+	return 0;
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 #define	DO_SET(v,t)	VALUE_SET(v, P_VALUE_ ##t)
