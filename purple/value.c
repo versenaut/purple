@@ -133,26 +133,6 @@ const char * value_type_name(const PValue *v)
 	return NULL;
 }
 
-#if 0
-/* Append string representation of <v> to <d>. Only works if there is just a single type of value
- * actually present in <v>. Only intended to be used for inputs, so that is not a problem.
-*/
-void value_append(const PValue *v, DynStr *d)
-{
-	PValueType	i;
-	uint16		mask;
-
-	for(i = P_VALUE_BOOLEAN, mask = 1; i <= P_VALUE_MODULE; i++, mask <<= 1)
-	{
-		if(v->set & mask)
-		{
-			dynstr_append(d, "some value");
-			return;
-		}
-	}
-}
-#endif
-
 /* ----------------------------------------------------------------------------------------- */
 
 static int do_set(PValue *v, PValueType type, va_list arg)
@@ -462,8 +442,9 @@ const char * value_get_string(const PValue *v, PValue *cache)
 		return v->v.vstring;
 	else if(cache != NULL)
 	{
-		char	buf[1024], *p;	/* Used for temporary formatting, then copied dynamically. Not free. */
-		size_t	used;
+		char		buf[1024];	/* Used for temporary formatting, then copied dynamically. Not free. */
+		const char	*p;
+		size_t		used;
 
 		IF_SET(cache, STRING)
 			return cache->v.vstring;
@@ -477,6 +458,22 @@ const char * value_get_string(const PValue *v, PValue *cache)
 		GET_FAIL(v, "string", "");
 	}
 	return NULL;
+}
+
+uint32 value_get_module(const PValue *v, PValue *cache)
+{
+	if(v == NULL)
+		return 0;
+	if(v->set == 0)
+		return 0;
+	IF_SET(v, MODULE)
+		return v->v.vmodule;
+	else if(cache != NULL)
+	{
+		/* FIXME: Cache management code missing here. */
+		GET_FAIL(v, "module", 0);
+	}
+	return 0;
 }
 
 const char * value_as_string(const PValue *v, char *buf, size_t buf_max, size_t *used)

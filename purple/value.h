@@ -66,6 +66,7 @@ extern const real64 *	value_get_real64_vec3(const PValue *v, PValue *cache);
 extern const real64 *	value_get_real64_vec4(const PValue *v, PValue *cache);
 extern const real64 *	value_get_real64_mat16(const PValue *v, PValue *cache);
 extern const char *	value_get_string(const PValue *v, PValue *cache);
+extern uint32		value_get_module(const PValue *v, PValue *cache);
 
 /* Create string representation of <v>, which is assumed to contain a value of a
  * single type only. Useful in creating external representations, and also inten-
