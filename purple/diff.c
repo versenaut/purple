@@ -308,5 +308,5 @@ int diff_compare(const void *a, int aoff, int n,
 
 int diff_compare_simple(const void *a, size_t n, const void *b, size_t m, DynArr *edits)
 {
-	return diff_compare(a, 0, n,  b, 0, m,  -1, edits, NULL);
+	return diff_compare(a, 0, n,  b, 0, m,  0, edits, NULL);
 }
