@@ -40,11 +40,46 @@ void nodedb_m_destruct(NodeMaterial *n)
 
 /* ----------------------------------------------------------------------------------------- */
 
+unsigned int nodedb_m_fragment_num(const NodeMaterial *node)
+{
+	unsigned int	i, num;
+	NdbMFragment	*frag;
+
+	if(node == NULL)
+		return 0;
+	for(i = num = 0; (frag = dynarr_index(node->fragments, i)) != NULL; i++)
+	{
+		if(frag->type < 0)
+			continue;
+		num++;
+	}
+	return num;
+}
+
+NdbMFragment * nodedb_m_fragment_nth(const NodeMaterial *node, unsigned int n)
+{
+	unsigned int	i;
+	NdbMFragment	*frag;
+
+	if(node == NULL)
+		return NULL;
+	for(i = 0; (frag = dynarr_index(node->fragments, i)) != NULL; i++)
+	{
+		if(frag->type < 0)
+			continue;
+		if(n == 0)
+			return frag;
+		n--;
+	}
+	return NULL;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 static void cb_fragment_default(unsigned int indec, void *element, void *user)
 {
 	NdbMFragment	*frag = element;
 
-	frag->id   = ~0;
 	frag->type = -1;
 }
 
