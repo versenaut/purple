@@ -12,6 +12,9 @@ typedef struct DynStr	DynStr;
 /* Create a new, empty string. */
 extern DynStr *	dynstr_new(const char *text);
 
+/* Create a new, empty string, ready to hold <size> characters. */
+extern DynStr *	dynstr_new_sized(size_t size);
+
 /* Set the string <str> to <text>. */
 extern void	dynstr_assign(DynStr *str, const char *text);
 

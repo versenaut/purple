@@ -40,8 +40,25 @@ DynStr * dynstr_new(const char *text)
 		}
 		else if((ds->str = stu_strdup(text)) != NULL)
 		{
-			ds->len = strlen(ds->str);
+			ds->len   = strlen(ds->str);
 			ds->alloc = ds->len;
+			return ds;
+		}
+		mem_free(ds);
+	}
+	return NULL;
+}
+
+DynStr * dynstr_new_sized(size_t size)
+{
+	DynStr	*ds;
+
+	if((ds = mem_alloc(sizeof *ds)) != NULL)
+	{
+		if((ds->str = mem_alloc(size)) != NULL)
+		{
+			ds->len   = 0;
+			ds->alloc = size;
 			return ds;
 		}
 		mem_free(ds);
