@@ -56,6 +56,12 @@ static void cb_notify(Node *node, NodeNotifyEvent ev)
 			list_destroy(iter);
 			n->id = node->id;	/* To-sync copy now has known ID. Excellent. */
 			sync_info.queue_sync = list_prepend(sync_info.queue_sync, n);	/* Re-add to other queue. */
+			if(n->creator.port != NULL)
+			{
+				LOG_MSG((" It has creator port set to %p", n->creator.port));
+				n->creator.remote = node;	/* Fill in the remote version field. */
+				graph_port_output_create_notify(n, node);
+			}
 			break;
 		}
 	}
