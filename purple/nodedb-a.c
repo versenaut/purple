@@ -344,7 +344,6 @@ void nodedb_a_layer_write_samples(NdbALayer *layer, unsigned int start, const re
 /*		printf("Setting audio data from position %u -> block %u, offset %u, chunk %u\n", pos, index, offset, chunk);*/
 		if((blk = bintree_lookup(layer->blocks, (void *) index)) == NULL)
 		{
-			printf("no block %u found, creating\n", index);
 			blk = block_new(layer);
 			bintree_insert(layer->blocks, (void *) index, blk);
 		}
