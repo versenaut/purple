@@ -95,10 +95,30 @@ static void cb_b_dimensions_set(VNodeID node_id, uint16 width, uint16 height, ui
 
 static void cb_b_layer_create(VNodeID node_id, VLayerID layer_id, const char *name, VNBLayerType type)
 {
+	NodeBitmap	*node;
+	NdbBLayer	*layer;
+
+	if((node = (NodeBitmap *) nodedb_lookup_with_type(node_id, V_NT_BITMAP)) == NULL)
+		return;
+	if((layer = dynarr_index(node->layers, layer_id)) != NULL && strcmp(layer->name, name) != 0)
+	{
+		LOG_WARN(("Layer already exists--unhandled case"));
+		return;
+	}
 }
 
 static void cb_b_layer_destroy(VNodeID node_id, VLayerID layer_id)
 {
+	NodeBitmap	*node;
+	NdbBLayer	*layer;
+
+	if((node = (NodeBitmap *) nodedb_lookup_with_type(node_id, V_NT_BITMAP)) == NULL)
+		return;
+	if((layer = dynarr_index(node->layers, layer_id)) == NULL || layer->name[0] == '\0')
+		return;
+	layer->type = -1;
+	layer->name[0] = '\0';
+	mem_free(layer->framebuffer);
 }
 
 static void cb_b_tile_set(VNodeID node_id, VLayerID layer_id, uint16 tile_x, uint16 tile_y, uint16 tile_z, VNBLayerType type, VNBTile *tile)
