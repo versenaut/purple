@@ -343,14 +343,14 @@ uint8 p_node_c_curve_dimensions_get(const PNCCurve *curve)
 	return nodedb_c_curve_dimensions_get(curve);
 }
 
-size_t p_node_c_curve_key_get_count(const PNCCurve *curve)
+size_t p_node_c_curve_key_num(const PNCCurve *curve)
 {
-	return nodedb_c_curve_key_get_count(curve);
+	return nodedb_c_curve_key_num(curve);
 }
 
-PNCKey * p_node_c_curve_key_get_nth(const PNCCurve *curve, unsigned int n)
+PNCKey * p_node_c_curve_key_nth(const PNCCurve *curve, unsigned int n)
 {
-	return nodedb_c_curve_key_get_nth(curve, n);
+	return nodedb_c_curve_key_nth(curve, n);
 }
 
 /* ----------------------------------------------------------------------------------------- */

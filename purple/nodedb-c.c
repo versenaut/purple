@@ -178,14 +178,14 @@ uint8 nodedb_c_curve_dimensions_get(const NdbCCurve *curve)
 
 /* ----------------------------------------------------------------------------------------- */
 
-size_t nodedb_c_curve_key_get_count(const NdbCCurve *curve)
+unsigned int nodedb_c_curve_key_num(const NdbCCurve *curve)
 {
 	if(curve == NULL)
 		return 0;
 	return list_length(curve->curve);
 }
 
-NdbCKey * nodedb_c_curve_key_get_nth(const NdbCCurve *curve, unsigned int n)
+NdbCKey * nodedb_c_curve_key_nth(const NdbCCurve *curve, unsigned int n)
 {
 	List	*iter;
 
