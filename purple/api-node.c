@@ -22,19 +22,19 @@
 
 /* ----------------------------------------------------------------------------------------- */
 
-const char * p_node_name_get(const Node *node)
+VNodeType p_node_get_type(PINode *node)
+{
+	return nodedb_type_get(node);
+}
+
+const char * p_node_get_name(const Node *node)
 {
 	return node != NULL ? node->name : NULL;
 }
 
-void p_node_name_set(PONode *node, const char *name)
+void p_node_set_name(PONode *node, const char *name)
 {
 	nodedb_rename(node, name);
-}
-
-VNodeType p_node_type_get(PINode *node)
-{
-	return nodedb_type_get(node);
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -357,6 +357,21 @@ PNMFragment * p_node_fragment_nth(PINode *node, unsigned int n)
 void p_node_m_fragment_iter(PINode *node, PIter *iter)
 {
 	iter_init_dynarr_enum_negative(iter, ((NodeMaterial *) node)->fragments, offsetof(NdbMFragment, type));
+}
+
+VNMFragmentType p_node_m_fragment_get_type(const PNMFragment *fragment)
+{
+	return fragment != NULL ? ((NdbMFragment *) fragment)->type : -1;
+}
+
+PNMFragment * p_node_m_fragment_create_color(PONode *node, real64 red, real64 green, real64 blue)
+{
+	return nodedb_m_fragment_create_color(node, red, green, blue);
+}
+
+PNMFragment * p_node_m_fragment_create_output(PONode *node, const char *label, const PNMFragment *front, const PNMFragment *back)
+{
+	return nodedb_m_fragment_create_output((NodeMaterial *) node, label, front, back);
 }
 
 /* ----------------------------------------------------------------------------------------- */
