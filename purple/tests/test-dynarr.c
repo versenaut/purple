@@ -111,6 +111,24 @@ int main(void)
 		test_result(ok == 8);
 	}
 	test_end();
+
+	test_begin("new_copy() without callback");
+	{
+		DynArr	*a, *b;
+		int	*test, ok, i;
+
+		a = dynarr_new(sizeof i, 4);
+		for(i = 0; i < 10; i++)
+			dynarr_set(a, i, &i);
+		b = dynarr_new_copy(a, NULL);
+		for(ok = 0, i = 0; i < 10; i++)
+		{
+			if((test = dynarr_index(b, i)) != NULL)
+				ok += *test == i;
+		}
+		test_result(ok == 10);
+	}
+	test_end();
 	
 	return test_package_end();
 }
