@@ -3,7 +3,8 @@
  * 
  * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
  * 
- * 
+ * Header file for the "Purple API", i.e. the API to use when writing
+ * plug-ins for the Purple system.
 */
 
 #if !defined PURPLE_H
@@ -14,11 +15,6 @@
 typedef struct Node	Node;
 typedef const Node	PINode;
 typedef Node		PONode;
-
-#if 0
-typedef struct PINode PINode;	/* Input node, read-only. */
-typedef struct PONode PONode;	/* Output node, read-write. */
-#endif
 
 typedef enum
 {
@@ -116,7 +112,7 @@ void		p_node_name_set(PONode *node, const char *name);
 typedef void	PNTagGroup;
 
 PNTagGroup *	p_node_tag_group_create(PONode *node, const char *name);
-PNTagGroup *	p_node_tag_group_find(const PONode *node, const char *name);
+PNTagGroup *	p_node_tag_group_lookup(const PONode *node, const char *name);
 void		p_node_tag_create(PNTagGroup *group, const char *name, VNTagType type, const VNTag *value);
 /* Set from a "group/tag"-style path, with vararg for scalar values. */
 void		p_node_tag_create_path(PONode *node, const char *path, VNTagType type, ...);
