@@ -36,6 +36,9 @@ extern const char * dynstr_string(const DynStr *str);
 /* Return the length of <str>. O(1). */
 extern size_t	dynstr_length(const DynStr *str);
 
+/* Trim off leading and trailing whitespace, if any. */
+extern void	dynstr_trim(DynStr *str);
+
 /* Truncate to a given size. */
 extern void	dynstr_truncate(DynStr *str, size_t size);
 

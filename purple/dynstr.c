@@ -2,6 +2,7 @@
  * Dynamic string. This is not at all UTF8-secure. :/
 */
 
+#include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -234,6 +235,29 @@ size_t dynstr_length(const DynStr *str)
 	if(str == NULL)
 		return 0;
 	return str->len;
+}
+
+void dynstr_trim(DynStr *str)
+{
+	int	i, trim;
+
+	if(str == NULL)
+		return;
+	for(i = trim = 0; i < str->len && isspace(str->str[i]); i++)
+		trim++;
+	if(trim > 0)
+	{
+		memmove(str->str, str->str + trim, str->len - trim);
+		str->len -= trim;
+		str->str[str->len] = '\0';
+	}
+	for(i = str->len, trim = 0; i > 0 && isspace(str->str[i - 1]); i--)
+		trim++;
+	if(trim > 0)
+	{
+		str->len -= trim;
+		str->str[str->len] = '\0';
+	}
 }
 
 void dynstr_truncate(DynStr *str, size_t size)
