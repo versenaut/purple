@@ -50,7 +50,8 @@ void sched_add(PInstance *inst)
 		return;
 	if(sched_info.chunk_task == NULL)
 		sched_info.chunk_task = memchunk_new("Task", sizeof (Task), 16);
-	t = memchunk_alloc(sched_info.chunk_task);
+	if((t = memchunk_alloc(sched_info.chunk_task)) == NULL)
+		return;
 	t->inst  = inst;
 	t->count = 0;
 	sched_info.ready = list_append(sched_info.ready, t);
@@ -78,7 +79,7 @@ void sched_update(void)
 			break;
 		next = list_next(iter);
 		task = list_data(iter);
-		if(task->count == 0)
+		if(task->count == 0)			/* First time we run it, make it prepare. */
 			graph_port_output_begin(task->inst->output);
 		task->count++;
 		res = plugin_instance_compute(task->inst);
@@ -88,7 +89,7 @@ void sched_update(void)
 			sched_info.ready = list_unlink(sched_info.ready, iter);
 			memchunk_free(sched_info.chunk_task, task);
 			list_destroy(iter);
-			graph_port_output_end(out);
+			graph_port_output_end(out);		/* Don't notify dependants until done. */
 /*			LOG_MSG(("Task removed, there are now %u ready tasks", list_length(sched_info.ready)));*/
 		}
 		iter = next;
