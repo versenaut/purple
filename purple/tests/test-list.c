@@ -1,5 +1,5 @@
 /*
- * 
+ * Tests of the doubly-linked list module.
 */
 
 #include <string.h>
