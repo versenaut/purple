@@ -1,5 +1,5 @@
 /*
- * The Verse magic happens mainly in here.
+ * The Vrse magic happens mainly in here.
 */
 
 #include <stdio.h>
@@ -13,6 +13,7 @@
 #include "textbuf.h"
 #include "timeval.h"
 #include "strutil.h"
+#include "xmlnode.h"
 
 #include "client.h"
 
@@ -21,11 +22,16 @@
 #define METHOD_GROUP_CONTROL_NAME	"PurpleControl"
 
 typedef struct {
-	VNodeID		node;
 	uint16		buffer;
 	unsigned int	cron;
 	TextBuf		*text;		/* Remote (shared, server-side) plugins description. */
-} PluginsDesc;
+} PluginsMeta;
+
+typedef struct {
+	uint16		buffer;
+	unsigned int	cron;
+	TextBuf		*text;
+} GraphsMeta;
 
 static struct
 {
@@ -36,7 +42,9 @@ static struct
 
 	VNodeID		avatar;
 
-	PluginsDesc	plugins;
+	VNodeID		meta;
+	PluginsMeta	plugins;
+	GraphsMeta	graphs;
 
 	uint16		gid_control;
 } client_info = { 0 };
@@ -66,13 +74,15 @@ static void cb_connect_accept(void *user, uint32 avatar, void *address, void *co
 static void cb_node_create(void *user, VNodeID node_id, uint8 type, VNodeID owner_id)
 {
 	LOG_MSG(("There is a node of type %d called %u", type, node_id));
-	if(owner_id == client_info.avatar && type == V_NT_TEXT && client_info.plugins.node == 0)
+	if(owner_id == client_info.avatar && type == V_NT_TEXT && client_info.meta == 0)
 	{
-		printf("It's the plugins text node!\n");
-		client_info.plugins.node = node_id;
-		verse_send_t_set_language(client_info.plugins.node, "xml/purple/plugins");
-		verse_send_t_buffer_create(client_info.plugins.node, 0, 0, "plugins");
-		verse_send_node_subscribe(client_info.plugins.node);
+		printf("It's the meta text node!\n");
+		client_info.meta = node_id;
+		verse_send_t_set_language(client_info.meta, "xml/purple/meta");
+		verse_send_t_buffer_create(client_info.meta, ~0, 0, "plugins");
+		verse_send_t_buffer_create(client_info.meta, ~1, 0, "graphs");
+		verse_send_node_subscribe(client_info.meta);
+		verse_send_o_link_set(client_info.meta, ~0, client_info.meta, "meta", 0);
 	}
 }
 
@@ -114,19 +124,71 @@ static void cb_o_method_call(void *user, VNodeID node_id, uint8 group_id, uint8 
 static int cb_plugins_refresh(void *data)
 {
 	printf("Verse plugins: '%s'\n", textbuf_text(client_info.plugins.text));
-	return 1;
+	client_info.plugins.cron = 0;
+	
+	{
+		XmlNode	*root;
+
+		if((root = xmlnode_new(textbuf_text(client_info.plugins.text))) != NULL)
+		{
+			printf("it parsed:\n");
+			xmlnode_print_outline(root);
+			xmlnode_destroy(root);
+		}
+	}
+	return 0;
+}
+
+static int cb_graphs_refresh(void *data)
+{
+	printf("Verse graphs: '%s'\n", textbuf_text(client_info.graphs.text));
+	client_info.graphs.cron = 0;
+
+	return 0;
 }
 
 static void cb_t_buffer_create(void *user, VNodeID node_id, VNMBufferID buffer_id, uint16 index, const char *name)
 {
 	printf("Text node %u has buffer named \"%s\", id=%u\n", node_id, name, buffer_id);
-	if(node_id == client_info.plugins.node && strcmp(name, "plugins") == 0)
+	if(node_id == client_info.meta && strcmp(name, "plugins") == 0 && client_info.plugins.buffer == 0)
 	{
+		char	*text;
+
+		printf(" It's the plugins buffer\n");
+		client_info.plugins.buffer = buffer_id;
 		verse_send_t_buffer_subscribe(node_id, buffer_id);
-		verse_send_t_text_set(node_id, buffer_id, 0, 100, "<?xml version=\"1.0\" standalone=\"yes\"?>\n");
 		if(client_info.plugins.cron == 0)
 			client_info.plugins.cron = cron_add(CRON_PERIODIC, 1.0E9, cb_plugins_refresh, NULL);
+
+		/* Send initial XML. */
+		if((text = plugins_build_xml()) != NULL)
+		{
+			char	buf[512];
+			size_t	len = strlen(text), pos, chunk;
+
+			for(pos = 0; pos < len; pos += chunk)
+			{
+				chunk = (len - pos) > sizeof buf - 1 ? sizeof buf - 1 : len - pos;
+				memcpy(buf, text + pos, chunk);
+				buf[chunk] = '\0';
+				verse_send_t_text_set(client_info.meta, client_info.plugins.buffer, pos, chunk, buf);
+			}
+			mem_free(text);
+		}
 		client_info.plugins.text = textbuf_new(2048);
+	}
+	else if(node_id == client_info.meta && strcmp(name, "graphs") == 0)
+	{
+		printf(" It's the graphs index buffer\n");
+		client_info.graphs.buffer = buffer_id;
+		verse_send_t_buffer_subscribe(client_info.meta, client_info.graphs.buffer);
+		if(client_info.graphs.cron == 0)
+			client_info.graphs.cron = cron_add(CRON_PERIODIC, 1.0E9, cb_graphs_refresh, NULL);
+		client_info.graphs.text = textbuf_new(2048);
+		verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, 0, 0,
+				      "<?xml version=\"1.0\" standalone=\"yes\"?>\n\n"
+				      "<purple-graphs>\n"
+				      "</purple-graphs>\n");
 	}
 	else
 		printf(" Unknown, ignoring\n");
@@ -134,14 +196,22 @@ static void cb_t_buffer_create(void *user, VNodeID node_id, VNMBufferID buffer_i
 
 static void cb_t_text_set(void *user, VNodeID node_id, VNMBufferID buffer_id, uint32 pos, uint32 len, const char *text)
 {
-	if(node_id != client_info.plugins.node || buffer_id != client_info.plugins.buffer)
+	if(node_id != client_info.meta)
 		return;
-	if(client_info.plugins.text != NULL)
+
+	if(buffer_id == client_info.plugins.buffer && client_info.plugins.text != NULL)
 	{
 		textbuf_delete(client_info.plugins.text, pos, len);
 		textbuf_insert(client_info.plugins.text, pos, text);
 		if(client_info.plugins.cron != 0)
 			cron_set(client_info.plugins.cron, 1.0, cb_plugins_refresh, NULL);
+	}
+	else if(buffer_id == client_info.graphs.buffer && client_info.graphs.text != NULL)
+	{
+		textbuf_delete(client_info.graphs.text, pos, len);
+		textbuf_insert(client_info.graphs.text, pos, text);
+		if(client_info.graphs.cron != 0)
+			cron_set(client_info.graphs.cron, 1.0, cb_graphs_refresh, NULL);
 	}
 }
 
