@@ -376,6 +376,13 @@ static void console_update(void)
 				if(sscanf(line, "mis %u %u %u %g", &g, &m, &i, &v) == 4)
 					graph_method_send_call_mod_input_set(g, m, i, P_INPUT_REAL32, v);
 			}
+			else if(strncmp(line, "mic ", 4) == 0)
+			{
+				uint32	g, m, i;
+
+				if(sscanf(line, "mic %u %u %u", &g, &m, &i) == 3)
+					graph_method_send_call_mod_input_clear(g, m, i);
+			}
 			else if(strncmp(line, "nc ", 3) == 0)
 			{
 				if(strcmp(line + 3, "text") == 0)
