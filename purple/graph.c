@@ -66,7 +66,7 @@ enum { CREATE, DESTROY, MOD_CREATE, MOD_INPUT_CLEAR, MOD_INPUT_SET_REAL32 };
 	}
 
 static MethodInfo method_info[] = {
-	{ "create",  3, { VN_O_METHOD_PTYPE_NODE, VN_O_METHOD_PTYPE_LAYER },
+	{ "create",  3, { VN_O_METHOD_PTYPE_NODE, VN_O_METHOD_PTYPE_LAYER, VN_O_METHOD_PTYPE_STRING },
 			{ "node_id", "buffer_id", "name" } },
 	{ "destroy",	1, { VN_O_METHOD_PTYPE_UINT32 }, { "graph_id" } },
 	
@@ -146,12 +146,19 @@ void graph_method_receive_create(NodeObject *obj)
 /* Build the XML description of a graph, for the index. */
 static void graph_index_build(uint32 id, const Graph *g, char *buf, size_t bufsize)
 {
+	const Node	*node;
+
+	if((node = nodedb_lookup(g->node)) == NULL)
+	{
+		snprintf(buf, bufsize, " <graph id=\"%u\" name=\"%s\"/>\n", id, g->name);
+		return;
+	}
 	snprintf(buf, bufsize,	" <graph id=\"%u\" name=\"%s\">\n"
 				"  <at>\n"
-				"   <node>%u</node>\n"
+				"   <node>%s</node>\n"
 				"   <buffer>%u</buffer>\n"
 				"  </at>\n"
-				" </graph>\n", id, g->name, g->node, g->buffer);
+				" </graph>\n", id, g->name, node->name, g->buffer);
 }
 
 /* Go through all graphs, and recompute XML starting points. Handy when a graph has been
@@ -173,6 +180,7 @@ static void graph_index_renumber(void)
 static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 {
 	unsigned int	id, i, pos;
+	Node		*node;
 	Graph		*g, *me;
 	char		xml[256];
 
@@ -408,7 +416,6 @@ void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32
 		break;
 	}
 	va_end(arg);
-	printf("sending input-set, method %u\n", method_info[MOD_INPUT_SET_REAL32].id);
 	if((pack = verse_method_call_pack(4, type, param)) != NULL)
 		verse_send_o_method_call(client_info.avatar, client_info.gid_control,
 					 method_info[MOD_INPUT_SET_REAL32].id, 0, pack);
