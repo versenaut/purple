@@ -55,8 +55,8 @@ static void notify_mine_create(Node *node)
 		client_info.meta = node->id;
 		verse_send_node_name_set(node->id, "PurpleMeta");
 		verse_send_t_set_language(node->id, "xml/purple/meta");
-		verse_send_t_buffer_create(node->id, ~0, 0, "plugins");
-		verse_send_t_buffer_create(node->id, ~0, 0, "graphs");
+		verse_send_t_buffer_create(node->id, ~0, "plugins");
+		verse_send_t_buffer_create(node->id, ~0, "graphs");
 		verse_send_node_subscribe(node->id);
 		verse_send_o_link_set(client_info.avatar, ~0, node->id, "meta", 0);
 	}
@@ -158,7 +158,8 @@ static void cb_connect_accept(void *user, VNodeID avatar, void *address, void *c
 		nodedb_register_callbacks(avatar,
 					  (1 << V_NT_OBJECT) | (1 << V_NT_TEXT) |
 					  (1 << V_NT_BITMAP) | (1 << V_NT_GEOMETRY) |
-					  (1 << V_NT_CURVE)  | (1 << V_NT_MATERIAL));
+					  (1 << V_NT_CURVE)  | (1 << V_NT_MATERIAL) |
+					  (1 << V_NT_AUDIO));
 		verse_send_node_subscribe(avatar);
 		verse_send_node_name_set(avatar, "PurpleEngine");
 		verse_send_o_method_group_create(avatar, ~0, METHOD_GROUP_CONTROL_NAME);
