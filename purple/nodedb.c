@@ -7,6 +7,7 @@
 #include "verse.h"
 
 #include "hash.h"
+#include "list.h"
 #include "log.h"
 #include "memchunk.h"
 #include "strutil.h"
@@ -21,7 +22,10 @@ static struct
 	VNodeID		avatar;
 	MemChunk	*chunk_node[V_NT_NUM_TYPES];
 	Hash		*nodes;				/* Probably not efficient enough, but a start. */
-} nodedb_info;
+	Hash		*nodes_mine;			/* Duplicate links to nodes owned by this client. */
+
+	List		*notify_mine;
+} nodedb_info = { 0 };
 
 /* ----------------------------------------------------------------------------------------- */
 
@@ -33,6 +37,19 @@ void nodedb_register(Node *n)
 Node * nodedb_lookup(VNodeID node_id)
 {
 	return hash_lookup(nodedb_info.nodes, (const void *) node_id);
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
+static void notify_mine_check(Node *n)
+{
+	if(nodedb_info.notify_mine != NULL && n->owner == nodedb_info.avatar)
+	{
+		const List	*iter;
+
+		for(iter = nodedb_info.notify_mine; iter != NULL; iter = list_next(iter))
+			((void (*)(Node *node)) list_data(iter))(n);
+	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -52,6 +69,11 @@ static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeID 
 		n->tag_groups = NULL;
 		hash_insert(nodedb_info.nodes, (const void *) n->id, n);
 		LOG_MSG(("Stored node %u, type %d", node_id, type));
+		if(n->owner == nodedb_info.avatar)
+		{
+			hash_insert(nodedb_info.nodes_mine, (const void *) n->id, n);
+			notify_mine_check(n);
+		}
 	}
 	else
 		LOG_WARN(("Can't handle creation of node type %d--not implemented", type));
@@ -65,6 +87,7 @@ static void cb_node_name_set(void *user, VNodeID node_id, const char *name)
 	{
 		stu_strncpy(n->name, sizeof n->name, name);
 		LOG_MSG(("Name of %u set to \"%s\"", n->id, n->name));
+		notify_mine_check(n);
 	}
 	else
 		LOG_WARN(("Couldn't set name of node %u, not found in database", node_id));
@@ -93,11 +116,22 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 	nodedb_info.chunk_node[V_NT_TEXT] = memchunk_new("chunk-node-text", sizeof (NodeText), 16);
 	printf("chunk for type %d is %p\n", V_NT_TEXT, nodedb_info.chunk_node[V_NT_TEXT]);
 
-	nodedb_info.nodes = hash_new(node_hash, node_has_key);
+	nodedb_info.nodes      = hash_new(node_hash, node_has_key);
+	nodedb_info.nodes_mine = hash_new(node_hash, node_has_key);
 
 	verse_callback_set(verse_send_node_create,	cb_node_create,	NULL);
 	verse_callback_set(verse_send_node_name_set,	cb_node_name_set, NULL);
 
  	verse_send_node_list(0);
  	verse_send_node_list(mask);
+}
+
+void nodedb_notify_add(NodeOwnership whose, void (*notify)(Node *node))
+{
+	if(whose == NODEDB_OWNERSHIP_MINE)
+	{
+		nodedb_info.notify_mine = list_append(nodedb_info.notify_mine, notify);
+	}
+	else
+		LOG_ERR(("Notification for non-MINE ownership not implemented"));
 }
