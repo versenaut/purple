@@ -7,7 +7,7 @@ typedef struct
 	uint16		id;
 	char		name[16];
 	VNGLayerType	type;
-	void		*data;
+	DynArr		*data;
 	uint32		def_uint;
 	real64		def_real;
 } NdbGLayer;
