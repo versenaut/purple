@@ -260,6 +260,48 @@ Node * nodedb_new_copy(const Node *src)
 	return n;
 }
 
+/* Set node <dst>'s contents to be the same as <src>'s, or just return a copy if <dst> is NULL. */
+Node * nodedb_set(Node *dst, const Node *src)
+{
+	if(src == NULL)
+		return NULL;
+	if(dst == NULL)
+		return nodedb_new_copy(src);
+	if(dst->type != src->type)
+	{
+		LOG_WARN(("Type mismatch in nodedb_set() (%d vs %d), can't set()", dst->type, src->type));
+		return NULL;
+	}
+	switch(src->type)
+	{
+	case V_NT_AUDIO:
+		nodedb_a_set((NodeAudio *) dst, (NodeAudio *) src);
+		break;
+	case V_NT_BITMAP:
+		nodedb_b_set((NodeBitmap *) dst, (NodeBitmap *) src);
+		break;
+	case V_NT_CURVE:
+		nodedb_c_set((NodeCurve *) dst, (NodeCurve *) src);
+		break;
+	case V_NT_GEOMETRY:
+		nodedb_g_set((NodeGeometry *) dst, (NodeGeometry *) src);
+		break;
+	case V_NT_MATERIAL:
+		nodedb_m_set((NodeMaterial *) dst, (NodeMaterial *) src);
+		break;
+	case V_NT_OBJECT:
+		nodedb_o_set((NodeObject *) dst, (NodeObject *) src);
+		break;
+	case V_NT_TEXT:
+		nodedb_t_set((NodeText *) dst, (NodeText *) src);
+		break;
+	default:
+		LOG_ERR(("Can't set() node of type %d", src->type));
+		return NULL;
+	}
+	return dst;
+}
+
 void nodedb_destroy(Node *n)
 {
 	MemChunk	*ch;
