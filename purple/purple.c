@@ -576,6 +576,8 @@ static void console_update(void)
 
 int main(int argc, char *argv[])
 {
+	int	i;
+
 	bintree_init();
 	cron_init();
 	dynarr_init();
@@ -586,10 +588,14 @@ int main(int argc, char *argv[])
 	graph_init();
 	
 	plugins_libraries_load();
-
 	plugins_libraries_init();
-
 	plugins_build_xml();
+
+	for(i = 1; argv[i] != NULL; i++)
+	{
+		if(strcmp(argv[i], "-resume") == 0 || strncmp(argv[i], "-resume=", 9) == 0)
+			resume_init(argv[i][7] == '=' ? argv[i] + 8 : NULL);
+	}
 
 	client_init();
 	sync_init();
