@@ -360,6 +360,8 @@ void nodedb_a_layer_write_samples(NdbALayer *layer, unsigned int start, const re
 			WRITEREAL(32);
 		case VN_A_LAYER_REAL64:
 			WRITEREAL(64);
+		default:	/* FIXME: Code missing here. */
+			LOG_ERR(("Unhandled layer type %d in write_samples()", layer->type));
 		}
 	}
 }
