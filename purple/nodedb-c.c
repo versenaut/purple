@@ -186,8 +186,6 @@ uint8 nodedb_c_curve_dimensions_get(const NdbCCurve *curve)
 	return curve->dimensions;
 }
 
-/* ----------------------------------------------------------------------------------------- */
-
 unsigned int nodedb_c_curve_key_num(const NdbCCurve *curve)
 {
 	if(curve == NULL)
@@ -319,6 +317,24 @@ NdbCKey * nodedb_c_key_create(NdbCCurve *curve, uint32 key_id,
 	return key;
 }
 
+void nodedb_c_key_destroy(NdbCCurve *curve, NdbCKey *key)
+{
+	if(curve == NULL || key == NULL)
+		return;
+	curve->curve = list_remove(curve->curve, key);
+	key->pos = V_REAL64_MAX;
+}
+
+void nodedb_c_curve_destroy(NodeCurve *node, NdbCCurve *curve)
+{
+	if(node == NULL || curve == NULL)
+		return;
+	list_destroy(curve->curve);
+	dynarr_destroy(curve->keys);
+	curve->name[0] = '\0';
+	curve->id = -1;
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 static void cb_c_curve_create(void *user, VNodeID node_id, VLayerID curve_id, const char *name, uint8 dimensions)
@@ -354,10 +370,7 @@ static void cb_c_curve_destroy(void *user, VNodeID node_id, VLayerID curve_id)
 
 		if((c = dynarr_index(n->curves, curve_id)) != NULL)
 		{
-			c->id = 0;
-			c->name[0] = '\0';
-			dynarr_destroy(c->keys);
-			c->keys = NULL;
+			nodedb_c_curve_destroy(n, c);
 			NOTIFY(n, STRUCTURE);
 		}
 	}
@@ -401,8 +414,7 @@ static void cb_c_key_destroy(void *user, VNodeID node_id, VLayerID curve_id, uin
 
 			if((k = dynarr_index(c->keys, key_id)) != NULL)
 			{
-				k->id = ~0;
-				c->curve = list_remove(c->curve, k);
+				nodedb_c_key_destroy(c, k);
 				NOTIFY(n, STRUCTURE);
 			}
 		}
