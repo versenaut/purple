@@ -65,6 +65,11 @@ int port_set_va(PPort *port, PValueType type, va_list arg)
 	return value_set_va(&port->value, type, arg);
 }
 
+int port_set_from_string(PPort *port, PValueType type, const char *string)
+{
+	return value_set_from_string(&port->value, type, string);
+}
+
 int port_set_node(PPort *port, PONode *node)
 {
 	port->nodes = nodeset_add(port->nodes, node);
