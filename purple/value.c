@@ -137,6 +137,8 @@ const char * value_type_name(const PValue *v)
 
 static int do_set(PValue *v, PValueType type, va_list arg)
 {
+	uint16	old_set = v->set;
+
 	v->set |= (1 << type);
 	switch(type)
 	{
@@ -225,7 +227,7 @@ static int do_set(PValue *v, PValueType type, va_list arg)
 		v->v.vmodule = (uint32) va_arg(arg, uint32);
 		return 1;
 	case P_VALUE_STRING:
-		if(VALUE_SETS(v, P_VALUE_STRING))
+		if(old_set & (1 << P_VALUE_STRING))
 		{
 			size_t		ol, nl;
 			const char	*ns = (const char *) va_arg(arg, const char *);
