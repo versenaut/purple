@@ -82,6 +82,11 @@ DynArr * dynarr_new_copy(const DynArr *src, void (*element_copy)(void *dst, cons
 	return da;
 }
 
+size_t dynarr_get_elem_size(const DynArr *da)
+{
+	return da != NULL ? da->elem_size : 0;
+}
+
 void dynarr_set_default(DynArr *da, const void *def)
 {
 	if(da != NULL)

@@ -24,6 +24,9 @@ extern DynArr *	dynarr_new(size_t elem_size, size_t page_size);
 */
 extern DynArr *	dynarr_new_copy(const DynArr *src, void (*element_copy)(void *dst, const void *src, void *user), void *user);
 
+/* Return elem_size from creation. Handy for external indexing. */
+extern size_t	dynarr_get_elem_size(const DynArr *da);
+
 /* Set a default element value, which will be copied into newly allocated elements. Set
  * to NULL (the default) to not have a default element. The pointer to the element is
  * retained, the default element itself is not copied at this point.
