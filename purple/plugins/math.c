@@ -16,6 +16,31 @@ static PComputeStatus compute_power_of_two(PPInput *input, PPOutput output, void
 	return P_COMPUTE_DONE;
 }
 
+static void fact_ctor(void *state)
+{
+	int	*s = state;
+
+	s[0] = 1;	/* Accumulated result. */
+	s[1] = 0;	/* Counter, counts down from n to 0. */
+}
+
+static PComputeStatus compute_fact(PPInput *input, PPOutput output, void *state)
+{
+	int	*s = state;
+
+	if(s[1] == 0)	/* First run? */
+	{
+		s[1] = p_input_int32(input[0]);
+	}
+	if(s[1] <= 1)
+	{
+		p_output_uint32(output, s[0]);
+		return P_COMPUTE_DONE;
+	}
+	s[0] *= s[1]--;
+	return P_COMPUTE_AGAIN;
+}
+
 static PComputeStatus compute_add_real32(PPInput *input, PPOutput output, void *state)
 {
 	real32	a, b;
@@ -53,6 +78,10 @@ void init(void)
 	p_init_create("power_of_two");
 	p_init_input(0, P_VALUE_UINT32, "x", P_INPUT_DONE);
 	p_init_compute(compute_power_of_two);
+
+	p_init_create("fact");
+	p_init_state(2 * sizeof (int), NULL, NULL);
+	p_init_compute(compute_fact);
 
 	p_init_create("add_r32");
 	p_init_input(0, P_VALUE_REAL32, "a", P_INPUT_REQUIRED, P_INPUT_DONE);
