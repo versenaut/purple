@@ -5,18 +5,20 @@
 CFLAGS=-g -Wall -I..
 
 # List individual module testers here.
-ALL=test-list
+ALL=test-list test-strutil
 
 ALL:		$(ALL)
 
 test-list:	test-list.c libtest.a
+
+test-strutil:	test-strutil.c libtest.a
 
 
 # Framework for testing. Ultra-simple.
 test.o:		test.c test.h
 
 # Code to test, more or less the "utility" parts of the Purple codebase, as needed.
-libtest.a:	../list.o ../memchunk.o ../mem.o ../log.o ../strutil.o test.o
+libtest.a:	../list.o ../log.o ../memchunk.o ../mem.o ../strutil.o test.o
 		ar cr $@ $^
 
 # -------------------------------------------------------------
