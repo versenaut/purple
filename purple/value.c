@@ -555,7 +555,7 @@ const char * value_get_string(const PValue *v, PValue *cache)
 		else if((p = value_as_string(v, buf, sizeof buf, &used)) != NULL)	/* Never returns v->v.vstring. */
 		{
 			cache->v.vstring = mem_alloc(used);
-			memcpy(cache->v.vstring, buf, used);
+			memcpy(cache->v.vstring, p, used);
 			DO_SET(cache, STRING);
 			return cache->v.vstring;
 		}
