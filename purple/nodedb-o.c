@@ -26,6 +26,32 @@ void nodedb_o_construct(NodeObject *n)
 	n->method_groups = NULL;
 }
 
+void nodedb_o_destruct(NodeObject *n)
+{
+	unsigned int	i;
+	NdbOMethodGroup	*g;
+
+	dynarr_destroy(n->links);
+	for(i = 0; i < dynarr_size(n->method_groups); i++)
+	{
+		if((g = dynarr_index(n->method_groups, i)) && g->name[0] != '\0')
+		{
+			unsigned int	j;
+			NdbOMethod	*m;
+
+			for(j = 0; j < dynarr_size(g->methods); j++)
+			{
+				if((m = dynarr_index(g->methods, j)) && m->name[0] != '\0')
+				{
+					mem_free(m->param_type);
+				}
+			}
+			dynarr_destroy(g->methods);
+		}
+	}
+	dynarr_destroy(n->method_groups);
+}
+
 NdbOMethodGroup * nodedb_o_method_group_lookup(NodeObject *node, const char *name)
 {
 	unsigned int	i;
