@@ -309,7 +309,7 @@ static int sync_bitmap_layer(const NodeBitmap *n, const NdbBLayer *layer,
 					    line < tile.out.height;
 					    line++, p1 += tile.out.mod_row, p2 += ttile.out.mod_row)
 					{
-						if(memcmp(p1, p2, tile.out.mod_tile) != 0)
+						if(memcmp(p1, p2, tile.out.width) != 0)
 						{
 							send = 1;
 							break;
@@ -324,7 +324,7 @@ static int sync_bitmap_layer(const NodeBitmap *n, const NdbBLayer *layer,
 					for(line = 0;
 					    line < tile.out.height;
 					    line++, put += tile.out.mod_tile, tile.out.ptr += tile.out.mod_row)
-						memcpy(put, tile.out.ptr, tile.out.mod_tile);
+						memcpy(put, tile.out.ptr, tile.out.width);
 					verse_send_b_tile_set(target->node.id, tlayer->id, x, y, z, tlayer->type, &out);
 					sync = 0;
 				}
@@ -336,7 +336,7 @@ static int sync_bitmap_layer(const NodeBitmap *n, const NdbBLayer *layer,
 
 static int sync_bitmap(NodeBitmap *n, const NodeBitmap *target)
 {
-	unsigned int	i, sync = 0;
+	unsigned int	i, sync = 1;
 	const NdbBLayer	*layer, *tlayer;
 
 	if(!sync_bitmap_dimensions(n, target))
