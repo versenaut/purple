@@ -30,7 +30,7 @@ struct FileList
 
 /* ----------------------------------------------------------------------------------------- */
 
-/* A comparison callback. */
+/* A filename  comparison callback. */
 static int cb_compare(const void *a, const void *b)
 {
 	char	*sa = *(char **) a, *sb = *(char **) b;
@@ -156,6 +156,6 @@ void filelist_destroy(FileList *fl)
 		for(i = 0; i < dynarr_size(fl->files); i++)
 			mem_free(*(char **) dynarr_index(fl->files, i));
 		dynarr_destroy(fl->files);
-	    }
+	}
 	mem_free(fl);
 }
