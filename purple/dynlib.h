@@ -14,11 +14,6 @@ typedef void *	DynLib;
 typedef HMODULE	DynLib;
 #endif
 
-/* Set a set of directory paths that will be searched for libraries. Separate entries
- * in set with vertical bar ("pipe") characters, e.g. "/lib/|/usr/lib".
-*/
-void	dynlib_path_set(const char *path);
-
 /* Attempt to load the named dynamic library. Test return value with DYNLIB_VALID(). */
 DynLib	dynlib_load(const char *name);
 
