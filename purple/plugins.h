@@ -43,3 +43,5 @@ extern void		plugin_inputset_clear(PInputSet *is, unsigned int index);
 extern boolean		plugin_inputset_is_set(const PInputSet *is, unsigned int index);
 extern void		plugin_inputset_describe(const PInputSet *is, DynStr *d);
 extern void		plugin_inputset_destroy(PInputSet *is);
+
+extern void		plugin_run_compute(Plugin *p, PInputSet *is);

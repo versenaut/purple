@@ -50,7 +50,7 @@ typedef struct
 
 typedef struct
 {
-	unsigned int	req : 1;
+unsigned int	req : 1;
 	unsigned int	def : 1;
 	unsigned int	min : 1;
 	unsigned int	max : 1;
@@ -666,6 +666,13 @@ void plugin_inputset_destroy(PInputSet *is)
 	for(i = 0; i < is->size; i++)
 		plugin_inputset_clear(is, i);	/* A bit costly, but destroy is rather infrequent, so... */
 	mem_free(is);
+}
+
+void plugin_run_compute(Plugin *p, PInputSet *is)
+{
+	if(p == NULL || is == NULL)
+		return;
+	p->compute(plugin_inputset_ports(is), NULL, p->compute_user);
 }
 
 /* ----------------------------------------------------------------------------------------- */
