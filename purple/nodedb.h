@@ -6,6 +6,8 @@
  * 
 */
 
+#include "timeval.h"
+
 typedef struct
 {
 	uint16		id;
@@ -33,6 +35,11 @@ struct Node
 	DynArr		*tag_groups;
 
 	List		*notify;
+
+	/* Information owned by the synchronizer. Could live in there, but this is easier for now. */
+	struct {
+	TimeVal		last_send;
+	}		sync;
 };
 
 #include "nodedb-a.h"
