@@ -54,7 +54,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 			continue;
 		if((ingeo = p_node_o_link_get(in, "geometry", 0)) == NULL)
 			continue;
-		if(p_node_type_get(ingeo) != V_NT_GEOMETRY)
+		if(p_node_get_type(ingeo) != V_NT_GEOMETRY)
 			continue;
 		obj = p_output_node_copy(output, in, 0);
 		geo = p_output_node_copy(output, ingeo, 1);

@@ -16,7 +16,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	{
 		const PNGLayer *layer;
 
-		if(p_node_type_get(in) != V_NT_GEOMETRY)
+		if(p_node_get_type(in) != V_NT_GEOMETRY)
 			continue;
 		layer = p_node_g_layer_find(in, "vertex");
 		size = p_node_g_layer_get_size(layer);		/* Safely handles NULL layer. */

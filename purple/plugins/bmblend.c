@@ -17,7 +17,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 
 	in1 = p_input_node(input[0]);
 	in2 = p_input_node(input[1]);
-	if(p_node_type_get(in1) != V_NT_BITMAP || p_node_type_get(in2) != V_NT_BITMAP)
+	if(p_node_get_type(in1) != V_NT_BITMAP || p_node_get_type(in2) != V_NT_BITMAP)
 		return P_COMPUTE_DONE;
 	alpha = p_input_real32(input[2]);
 	if(alpha < 0.0 || alpha > 1.0)
@@ -25,15 +25,15 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	alphainv = 1.0 - alpha;
 
 	/* Compute output size; only operate on common pixels of inputs. No scaling. */
-	p_node_b_dimensions_get(in1, dim1, dim1 + 1, dim1 + 2);
-	p_node_b_dimensions_get(in2, dim2, dim2 + 1, dim2 + 2);
+	p_node_b_get_dimensions(in1, dim1, dim1 + 1, dim1 + 2);
+	p_node_b_get_dimensions(in2, dim2, dim2 + 1, dim2 + 2);
 	width  = MIN(dim1[0], dim2[0]);
 	height = MIN(dim1[1], dim2[1]);
 	depth  = MIN(dim1[2], dim2[2]);
 
 	/* Create output node. */
 	out = p_output_node_create(output, V_NT_BITMAP, 0);
-	p_node_b_dimensions_set(out, width, height, depth);
+	p_node_b_set_dimensions(out, width, height, depth);
 	p_node_b_layer_create(out, "col_r", VN_B_LAYER_UINT8);
 	p_node_b_layer_create(out, "col_g", VN_B_LAYER_UINT8);
 	p_node_b_layer_create(out, "col_b", VN_B_LAYER_UINT8);
