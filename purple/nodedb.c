@@ -140,6 +140,9 @@ Node * nodedb_new(VNodeType type)
 
 		switch(n->type)
 		{
+		case V_NT_BITMAP:
+			nodedb_b_construct((NodeBitmap *) n);
+			break;
 		case V_NT_OBJECT:
 			nodedb_o_construct((NodeObject *) n);
 			break;
@@ -179,6 +182,9 @@ Node * nodedb_new_copy(const Node *src)
 		n->tag_groups = dynarr_new_copy(src->tag_groups, cb_copy_tag_group);
 		switch(n->type)
 		{
+		case V_NT_BITMAP:
+			nodedb_b_copy((NodeBitmap *) n, (const NodeBitmap *) src);
+			break;
 		case V_NT_OBJECT:
 			nodedb_o_copy((NodeObject *) n, (const NodeObject *) src);
 			break;
@@ -205,6 +211,9 @@ void nodedb_destroy(Node *n)
 
 		switch(n->type)
 		{
+		case V_NT_BITMAP:
+			nodedb_b_destruct((NodeBitmap *) n);
+			break;
 		case V_NT_OBJECT:
 			nodedb_o_destruct((NodeObject *) n);
 			break;
