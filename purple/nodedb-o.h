@@ -26,6 +26,15 @@ typedef struct
 	DynArr	*methods;
 } NdbOMethodGroup;
 
+typedef struct
+{
+	uint8		id;
+	char		name[16];
+	size_t		param_count;
+	VNOParamType	param_type;
+	char		*param_name[];
+} NdbOMethod;
+
 extern void		nodedb_o_init(NodeObject *n);
 
 extern void		nodedb_o_register_callbacks(void);
