@@ -76,7 +76,7 @@ int port_set_node(PPort *port, PONode *node)
 		return tmp;\
 	if(nodeset_get_ ## n(port->nodes, &port->cache))\
 		return port->cache.v.v ## n;\
-	return tmp;	/* FIXME: This should be the default value, not uninitialized junk. :) */ \
+	return value_get_default_ ##n();\
 }
 
 ACCESSOR(boolean, boolean)
