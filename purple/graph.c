@@ -132,7 +132,6 @@ void graph_method_receive_create(NodeObject *obj)
 		if(method_info[i].id == (uint8) ~0 && (m = nodedb_o_method_lookup(g, method_info[i].name)) != NULL)
 		{
 			method_info[i].id = m->id;
-			printf("**registered that method %u is at %p, id %u\n", i, m, m->id);
 			graph_info.to_register--;
 			if(graph_info.to_register == 0)
 				LOG_MSG(("Caught all %u methods, ready to send calls", sizeof method_info / sizeof *method_info));
