@@ -171,13 +171,38 @@ Node * nodedb_new(VNodeType type)
 	return NULL;
 }
 
+static void cb_copy_tag(void *d, const void *s, void *user)
+{
+	const NdbTag	*src = s;
+	NdbTag		*dst = d;
+
+	dst->id = src->id;
+	strcpy(dst->name, src->name);
+	dst->type = src->type;
+	if(NODEDB_TAG_TYPE_SCALAR(dst->type))
+		dst->value = src->value;
+	else
+	{
+		if(dst->type == VN_TAG_STRING)
+			dst->value.vstring = stu_strdup(src->value.vstring);
+		else if(dst->type == VN_TAG_BLOB)
+		{
+			dst->value.vblob.size = src->value.vblob.size;
+			if((dst->value.vblob.blob = mem_alloc(dst->value.vblob.size)) != NULL)
+				memcpy(dst->value.vblob.blob, src->value.vblob.blob, dst->value.vblob.size);
+		}
+		else
+			LOG_WARN(("Missing copying code for non-scalar tag type %d", dst->type));
+	}
+}
+
 static void cb_copy_tag_group(void *d, const void *s, void *user)
 {
 	const NdbTagGroup	*src = s;
 	NdbTagGroup		*dst = d;
 
 	strcpy(dst->name, src->name);
-	dst->tags = dynarr_new_copy(src->tags, NULL, NULL);	/* Tags are memcpy():able, let dynarr do it. */
+	dst->tags = dynarr_new_copy(src->tags, cb_copy_tag, NULL);
 }
 
 Node * nodedb_new_copy(const Node *src)
