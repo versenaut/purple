@@ -412,6 +412,7 @@ void plugin_portset_set_va(PPortSet *ps, unsigned int index, PValueType type, va
 {
 	if(ps == NULL || index >= ps->size)
 		return;
+	port_clear(ps->input + index);
 	if(port_set_va(ps->input + index, type, arg) == 0)
 		LOG_WARN(("Input setting failed"));
 	else
@@ -550,10 +551,7 @@ PluginStatus plugin_instance_compute(PInstance *inst)
 			uint32	module;
 
 			if(in->spec.req && port_is_unset(ps->input +i))
-			{
-				LOG_MSG(("Can't run compute() in %s, missing required input %u", p->name, i));
-				return PLUGIN_RETRY_INPUT_MISSING;
-			}
+				return PLUGIN_STOP_INPUT_MISSING;
 			if(plugin_portset_get_module(ps, i, &module))
 			{
 				PPOutput	o;
