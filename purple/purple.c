@@ -41,6 +41,7 @@
 #include "nodedb.h"
 #include "client.h"
 #include "graph.h"
+#include "plugin-input.h"
 
 /*#include "command-structs.h"*/
 
