@@ -17,14 +17,14 @@ typedef struct
 	uint16	id;
 	VNodeID	link;
 	char	label[16];
-	uint32	target;
+	uint32	target_id;
 } NdbOLink;
 
 /* Used for local links, before syncing. */
 typedef struct {
 	const Node	*link;
 	char		label[16];
-	uint32		target;
+	uint32		target_id;
 } NdbOLinkLocal;
 
 typedef struct

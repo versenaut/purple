@@ -68,7 +68,7 @@ static int object_link_exists(const NodeObject *n, VNodeID link, const char *lab
 
 	for(i = 0; (l = dynarr_index(n->links, i)) != NULL; i++)
 	{
-		if(l->link == link && l->target == target_id && strcmp(l->label, label) == 0)
+		if(l->link == link && l->target_id == target_id && strcmp(l->label, label) == 0)
 			return 1;
 	}
 	return 0;
@@ -99,8 +99,10 @@ static int sync_object(NodeObject *n, const NodeObject *target)
 		else
 		{
 			printf("can sync link '%s', target is %u\n", link->label, link->link->id);
-			if(!object_link_exists(n, link->link->id, link->label, link->target))
-				verse_send_o_link_set(target->node.id, ~0, link->link->id, link->label, link->target);
+			if(!object_link_exists(target, link->link->id, link->label, link->target_id))
+				verse_send_o_link_set(target->node.id, ~0, link->link->id, link->label, link->target_id);
+			else
+				printf("link exists, doing nothing\n");
 			n->links_local = list_unlink(n->links_local, iter);
 			mem_free(link);
 			list_destroy(iter);
