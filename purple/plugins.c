@@ -197,10 +197,11 @@ static int set_value(PInputValue *value, PInputType new_type, va_list *taglist)
 	case P_INPUT_STRING:
 		value->v.vstring = stu_strdup((const char *) va_arg(*taglist, const char *));
 		return 1;
+	default:
+		LOG_WARN(("Unhandled type %d", new_type));
 	}
 	value->type = P_INPUT_BOOLEAN;
 	value->v.vboolean = 0;
-	LOG_WARN(("Unhandled type %d", new_type));
 	return 0;
 }
 
@@ -371,6 +372,9 @@ static void append_value(DynStr *d, const PInputValue *v)
 		break;
 	case P_INPUT_STRING:
 		xml_dynstr_append(d, v->v.vstring);
+		break;
+	case P_INPUT_NODE:
+		LOG_WARN(("Not implemented (node input)"));
 		break;
 	}
 }
