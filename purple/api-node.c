@@ -467,6 +467,10 @@ uint8 p_node_c_curve_get_dimensions(const PNCCurve *curve)
 
 PNCCurve * p_node_c_curve_create(PONode *node, const char *name, uint8 dimensions)
 {
+	PNCCurve	*c;
+
+	if((c = nodedb_c_curve_find((NodeCurve *) node, name)) != NULL)
+		return c;
 	return nodedb_c_curve_create((NodeCurve *) node, ~0, name, dimensions);
 }
 
@@ -478,6 +482,14 @@ size_t p_node_c_curve_key_num(const PNCCurve *curve)
 PNCKey * p_node_c_curve_key_nth(const PNCCurve *curve, unsigned int n)
 {
 	return nodedb_c_curve_key_nth(curve, n);
+}
+
+PNCKey * p_node_c_curve_key_create(PNCCurve *curve,
+				   real64 pos, const real64 *value,
+				   const uint32 *pre_pos, const real64 *pre_value,
+				   const uint32 *post_pos, const real64 *post_value)
+{
+	return (PNCKey *) nodedb_c_key_create(curve, ~0, pos, value, pre_pos, pre_value, post_pos, post_value);
 }
 
 /* ----------------------------------------------------------------------------------------- */
