@@ -1,4 +1,8 @@
 /*
+ * purple.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A little something we call Purple.
 */
 
@@ -130,6 +134,7 @@ static void test_textbuf(void)
 	textbuf_destroy(tb);
 }
 
+#if 0
 static void test_xmlnode(void)
 {
 	XmlNode	*node;
@@ -149,6 +154,42 @@ static void test_xmlnode(void)
 /*		xmlnode_nodeset_get(node, XMLNODE_AXIS_CHILD, TEST_NAME("dork"), TEST_ATTRIB_VALUE("size", "30"));*/
 	}
 }
+
+static void test_xmlnode(void)
+{
+	const char	*graph =
+		"<graph>\n"
+		" <module id=\"0\" plug-in=\"4\">\n"
+		"  <set input=\"0\" type=\"real32\">2</set>\n"
+		" </module>\n"
+		" <module id=\"1\" plug-in=\"3\">\n"
+		"  <set input=\"0\" type=\"module\">0</set>\n"
+		" </module>\n"
+		" <module id=\"2\" plug-in=\"16\">\n"
+		"  <set input=\"0\" type=\"module\">0</set>\n"
+		"  <set input=\"1\" type=\"module\">1</set>\n"
+		"  <set input=\"2\" type=\"real32\">0</set>\n"
+		" </module>\n"
+		" <module id=\"3\" plug-in=\"2\">\n"
+		"  <set input=\"0\" type=\"module\">2</set>\n"
+		" </module>\n"
+		"</graph>\n";
+	XmlNode	*root;
+
+	if((root = xmlnode_new(graph)) != NULL)
+	{
+		printf("got it\n");
+		List	*modules = xmlnode_nodeset_get(root,
+						       XMLNODE_AXIS_CHILDREN,
+						       XMLNODE_NAME("module"),
+						       XMLNODE_ATTRIB_VAL("plug-in", "16"),
+						       XMLNODE_DONE);
+		printf(" filtered out %u nodes\n", list_length(modules));
+		list_destroy(modules);
+		xmlnode_destroy(root);
+	}
+}
+#endif
 
 static void test_idset(void)
 {
@@ -343,7 +384,13 @@ static int console_script(char *line, size_t line_size)
 	"nc text\n"
 	"tbc 2 klax\n"
 	"gc 2 0 busta\n"
-	"mc 1 4\n"
+	"mc 1 7\n"
+	"mc 1 3\n"
+	"mc 1 2\n"
+	"mism 1 2 0 : 1\n"
+	"mism 1 1 0 : 0\n"
+	"misu 1 0 0 : 8\n"
+/*	"mc 1 4\n"
 	"mc 1 3\n"
 	"mc 1 16\n"
 	"mc 1 2\n"
@@ -352,7 +399,7 @@ static int console_script(char *line, size_t line_size)
 	"mism 1 2 1 : 1\n"
 	"misr 1 2 2 : 0\n"
 	"mism 1 3 0 : 2\n"
-	"misr 1 0 0 : 2\n";
+	"misr 1 0 0 : 2\n"*/;
 	static int	next_line = 0;
 
 	if(strcmp(line, ".") == 0)
@@ -508,13 +555,16 @@ int main(void)
 	plugins_init("/home/emil/data/projects/purple/plugins/");
 
 	graph_init();
-
+	
+/*	test_xmlnode();
+	return EXIT_SUCCESS;
+*/
 /*	test_chunk();
 	test_filelist();
 	test_textbuf();
 	test_xmlnode();
 	test_idset();
-	return 0;
+	return EXIT_SUCCESS;
 */
 	plugins_libraries_load();
 
@@ -535,7 +585,7 @@ int main(void)
 		for(;;)
 		{
 /*			printf("Buffer: %u\n", verse_session_get_size());*/
-			verse_callback_update(100);
+			verse_callback_update(100000);
 			cron_update();
 			console_update();
 			sched_update();
