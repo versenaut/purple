@@ -7,6 +7,8 @@
 #include "purple.h"
 #include "purple-plugin.h"
 
+#define	DEG2RAD(a)	(((a) * M_PI) / 180.0)
+
 static void rot_matrix_build_y(real64 *mtx, real64 angle)
 {
 	mtx[0] = cos(angle);
@@ -42,7 +44,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 
 	max   = p_input_real64_vec3(input[1]);
 	min   = p_input_real64_vec4(input[1]);
-	twist = p_input_real64(input[2]);
+	twist = DEG2RAD(p_input_real64(input[2]));
 	ytot  = max[1] - min[1];
 	printf("warp: max=(%g,%g,%g), min=(%g,%g,%g), twist=%g\n", max[0], max[1], max[2], min[0], min[1], min[2], twist);
 
@@ -52,8 +54,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 
 		if(p_node_get_type(in) != V_NT_OBJECT)
 			continue;
-		if((ingeo = p_node_o_link_get(in, "geometry", 0)) == NULL)
-			continue;
+		ingeo = p_node_o_link_get(in, "geometry", 0);
 		if(p_node_get_type(ingeo) != V_NT_GEOMETRY)
 			continue;
 		obj = p_output_node_copy(output, in, 0);
@@ -61,7 +62,6 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		p_node_o_link_set(obj, geo, "geometry", 0);
 
 		inlayer  = p_node_g_layer_find(ingeo, "vertex");
-		printf(" input layer at %p\n", inlayer);
 		outlayer = p_node_g_layer_find(geo, "vertex");
 		size  = p_node_g_layer_get_size(inlayer);		/* Safely handles NULL layer. */
 		for(j = 0, yrelprev = -1E20; j < size; j++, yrelprev = yrel)
@@ -70,9 +70,9 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 			yrel = (point[1] - min[1]) / ytot;
 			if(yrel != yrelprev)
 				rot_matrix_build_y(matrix, yrel * twist);
-			printf(" point (%g,%g,%g) gets yrel=%g -> ", point[0], point[1], point[2], yrel);
+/*			printf(" point (%g,%g,%g) gets yrel=%g -> ", point[0], point[1], point[2], yrel);*/
 			point_rotate(point, matrix);
-			printf("warped into (%g,%g,%g)\n", point[0], point[1], point[2]);
+/*			printf("warped into (%g,%g,%g)\n", point[0], point[1], point[2]);*/
 			p_node_g_vertex_set_xyz(outlayer, j, point[0], point[1], point[2]);								    
 		}
 		break;
@@ -85,6 +85,6 @@ void init(void)
 	p_init_create("warp");
 	p_init_input(0, P_VALUE_MODULE, "data",  P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_input(1, P_VALUE_MODULE, "bbox",  P_INPUT_REQUIRED, P_INPUT_DONE);
-	p_init_input(2, P_VALUE_REAL64, "twist", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(2, P_VALUE_REAL32, "twist", P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_compute(compute);
 }
