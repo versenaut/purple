@@ -42,7 +42,6 @@
  * 
 */
 
-#include <errno.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -160,8 +159,6 @@ static int find_middle_snake(const void *a, int aoff, int n,
 			}
 		}
 	}
-	errno = EFAULT;
-
 	return -1;
 }
 
