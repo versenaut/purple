@@ -113,11 +113,13 @@ const char *	p_node_name_get(const Node *node);
 void		p_node_name_set(PONode *node, const char *name);
 
 /* Tag functions. */
-typedef struct PNTagGroup	PNTagGroup;
+typedef void	PNTagGroup;
 
 PNTagGroup *	p_node_tag_group_create(PONode *node, const char *name);
 PNTagGroup *	p_node_tag_group_find(const PONode *node, const char *name);
-void		p_node_tag_set(PNTagGroup *group, const char *name, VNTagType type, const VNTag *value);
+void		p_node_tag_create(PNTagGroup *group, const char *name, VNTagType type, const VNTag *value);
+/* Set from a "group/tag"-style path, with vararg for scalar values. */
+void		p_node_tag_create_path(PONode *node, const char *path, VNTagType type, ...);
 void		p_node_tag_destroy(PNTagGroup *group, const char *name);
 
 void		p_node_o_link_set(PONode *node, const PONode *link, const char *label, uint32 target_id);
