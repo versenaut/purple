@@ -57,12 +57,12 @@ void sync_init(void)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer, size_t size,
+static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer, size_t size,
 				const NodeGeometry *target, const NdbGLayer *tlayer, size_t tsize)
 {
 	const unsigned char	*data, *tdata;
 	size_t		i, esize;
-	int		send;
+	int		send = 0;
 
 	esize = tlayer->type == VN_G_LAYER_VERTEX_XYZ ? (3 * sizeof (real64)) : (4 * sizeof (uint32));
 
@@ -101,6 +101,7 @@ static void sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer
 
 	if(size < tsize)	/* We have less data than the target, so delete remainder. */
 	{
+		send = 1;
 		printf(" target is too large, deleting\n");
 		if(layer->type >= VN_G_LAYER_VERTEX_XYZ && layer->type < VN_G_LAYER_POLYGON_CORNER_UINT32)
 		{
@@ -113,11 +114,12 @@ static void sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer
 				verse_send_g_polygon_delete(target->node.id, i);
 		}
 	}
+	return send;
 }
 
-static void sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
+static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 {
-	unsigned int	i;
+	unsigned int	i, sync = 1;
 	const NdbGLayer	*layer, *tlayer;
 
 	/* Step one: see if desired layers exist in target, else create them. */
@@ -142,28 +144,31 @@ static void sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 				/* Vertex data must be identical for this to pass; order is significant. */
 				len  = dynarr_size(layer->data);
 				tlen = dynarr_size(tlayer->data);
-				sync_geometry_layer(n, layer, len, target, tlayer, tlen);
+				sync &= !sync_geometry_layer(n, layer, len, target, tlayer, tlen);
 			}
 		}
 		else
 		{
 			verse_send_g_layer_create(target->node.id, ~0, layer->name, layer->type, layer->def_uint, layer->def_real);
 			printf(" no, we need to create it\n");
+			sync = 0;
 		}
 	}
+	return sync;
 }
 
-static void sync_node(Node *n)
+static int sync_node(Node *n)
 {
 	Node	*target;
 
 	if((target = nodedb_lookup(n->id)) == NULL)
 	{
 		LOG_WARN(("Couldn't look up existing (target) node for %u--aborting sync", n->id));
-		return;
+		return 0;
 	}
 	if(n->type == V_NT_GEOMETRY)
-		sync_geometry((NodeGeometry *) n, (NodeGeometry *) target);
+		return sync_geometry((NodeGeometry *) n, (NodeGeometry *) target);
+	return 0;
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -193,15 +198,22 @@ void sync_update(double slice)
 		/* Move node from "to create" to "pending" list; no change in refcount. */
 		sync_info.queue_create = list_unlink(sync_info.queue_create, iter);
 		list_destroy(iter);
-		printf(" creating node of type %d\n", n->type);
 		sync_info.queue_create_pend = list_prepend(sync_info.queue_create_pend, n);
 	}
 
 	/* Synchronize existing nodes. */
-	for(iter = sync_info.queue_sync; iter != NULL; iter = list_next(iter))
+	for(iter = sync_info.queue_sync; iter != NULL; iter = next)
 	{
 		Node	*n = list_data(iter);
 
-		sync_node(n);
+		next = list_next(iter);
+
+		if(sync_node(n))
+		{
+			sync_info.queue_sync = list_unlink(sync_info.queue_sync, iter);
+			printf("removing node %u from sync queue, it's in sync\n", n->id);
+			nodedb_unref(n);
+			list_destroy(iter);
+		}
 	}
 }
