@@ -22,4 +22,4 @@ extern int	diff_compare_simple(const void *a, size_t n, const void *b, size_t m,
 
 /* Expose all bells and whistles of the diffing algorithm. */
 extern int	diff_compare(const void *a, int aoff, int n, const void *b, int boff, int m,
-				int dmax, DynArr *ses, int *sn, DynArr *buf);
+				int dmax, DynArr *edits, int *sn, DynArr *buf);
