@@ -97,6 +97,7 @@ unsigned int cron_add(CronTimeType type, double seconds, int (*handler)(void *da
 	return j->id;
 }
 
+/* Find a job, given its ID number. Sets <head> to the list containing it. */
 static List * job_find(unsigned int id, List ***head)
 {
 	List	**list, *iter;
