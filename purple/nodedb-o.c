@@ -100,6 +100,24 @@ static void cb_o_method_group_destroy(void *user, VNodeID node_id, uint16 group_
 static void cb_o_method_create(void *user, VNodeID node_id, uint16 group_id, uint8 method_id, const char *name,
 			       uint8 param_count, const VNOParamType *param_type, const char *param_name[])
 {
+	NodeObject	*n;
+
+	if((n = nodedb_lookup_object(node_id)) != NULL)
+	{
+		NdbOMethodGroup	*g;
+
+		if((g = dynarr_index(n->method_groups, group_id)) != NULL)
+		{
+			NdbOMethod	*m;
+
+			if(g->methods == NULL)
+				g->methods = dynarr_new(sizeof (NdbOMethod), 4);
+			if((m = dynarr_index(g->methods, method_id)) != NULL)
+			{
+				NOTIFY(n, STRUCTURE);
+			}
+		}
+	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
