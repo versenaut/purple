@@ -328,15 +328,102 @@ boolean value_get_boolean(const PValue *v, PValue *cache)
 	return get_as_boolean(v);
 }
 
+static int32 get_as_int32(const PValue *v)
+{
+	if(v == NULL)
+		return 0;
+	if(v->set == 0)
+		return 0;
+	else IF_SET(v, INT32)
+		return v->v.vint32;
+	else IF_SET(v, REAL32)
+		return v->v.vreal32;
+	else IF_SET(v, REAL64)
+		return v->v.vreal64;
+	else IF_SET(v, REAL32_VEC2)
+		return vec_real32_vec2_magnitude(v->v.vreal32_vec2);
+	else IF_SET(v, REAL32_VEC3)
+		return vec_real32_vec3_magnitude(v->v.vreal32_vec3);
+	else IF_SET(v, REAL32_VEC4)
+		return vec_real32_vec4_magnitude(v->v.vreal32_vec4);
+	else IF_SET(v, REAL64_VEC2)
+		return vec_real64_vec2_magnitude(v->v.vreal64_vec2);
+	else IF_SET(v, REAL64_VEC3)
+		return vec_real64_vec3_magnitude(v->v.vreal64_vec3);
+	else IF_SET(v, REAL64_VEC4)
+		return vec_real64_vec4_magnitude(v->v.vreal64_vec4);
+	else IF_SET(v, STRING)
+		return strtol(v->v.vstring, NULL, 0);
+	else IF_SET(v, UINT32)
+		return v->v.vuint32;
+	else IF_SET(v, BOOLEAN)
+		return v->v.vboolean;
+	GET_FAIL(v, "int32", 0);
+}
 
 int32 value_get_int32(const PValue *v, PValue *cache)
 {
-	return 0;	/* FIXME: Not implemented. */
+	if(v == NULL)
+		return FALSE;
+	IF_SET(v, INT32)
+		return v->v.vint32;
+	else if(cache != NULL)
+	{
+		IF_SET(cache, INT32)
+			return cache->v.vint32;
+		DO_SET(cache, INT32);
+		return cache->v.vint32 = get_as_int32(v);
+	}
+	return get_as_int32(v);
+}
+
+static uint32 get_as_uint32(const PValue *v)
+{
+	if(v == NULL)
+		return 0;
+	if(v->set == 0)
+		return 0;
+	else IF_SET(v, UINT32)
+		return v->v.vuint32;
+	else IF_SET(v, INT32)
+		return v->v.vint32;
+	else IF_SET(v, REAL32)
+		return v->v.vreal32;
+	else IF_SET(v, REAL64)
+		return v->v.vreal64;
+	else IF_SET(v, REAL32_VEC2)
+		return vec_real32_vec2_magnitude(v->v.vreal32_vec2);
+	else IF_SET(v, REAL32_VEC3)
+		return vec_real32_vec3_magnitude(v->v.vreal32_vec3);
+	else IF_SET(v, REAL32_VEC4)
+		return vec_real32_vec4_magnitude(v->v.vreal32_vec4);
+	else IF_SET(v, REAL64_VEC2)
+		return vec_real64_vec2_magnitude(v->v.vreal64_vec2);
+	else IF_SET(v, REAL64_VEC3)
+		return vec_real64_vec3_magnitude(v->v.vreal64_vec3);
+	else IF_SET(v, REAL64_VEC4)
+		return vec_real64_vec4_magnitude(v->v.vreal64_vec4);
+	else IF_SET(v, STRING)
+		return strtol(v->v.vstring, NULL, 0);
+	else IF_SET(v, BOOLEAN)
+		return v->v.vboolean;
+	GET_FAIL(v, "uint32", 0u);
 }
 
 uint32 value_get_uint32(const PValue *v, PValue *cache)
 {
-	return 0u;	/* FIXME: Not implemented. */
+	if(v == NULL)
+		return FALSE;
+	IF_SET(v, UINT32)
+		return v->v.vuint32;
+	else if(cache != NULL)
+	{
+		IF_SET(cache, UINT32)
+			return cache->v.vuint32;
+		DO_SET(cache, UINT32);
+		return cache->v.vuint32 = get_as_uint32(v);
+	}
+	return get_as_uint32(v);
 }
 
 /* Get a value as the largest scalar type, real64. This is then used to implement
