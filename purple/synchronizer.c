@@ -49,6 +49,7 @@ static void cb_notify(Node *node, NodeNotifyEvent ev)
 			list_destroy(iter);
 			n->id = node->id;	/* To-sync copy now has known ID. Excellent. */
 			sync_info.queue_sync = list_prepend(sync_info.queue_sync, n);	/* Re-add to other queue. */
+			printf("node at %p has host-side ID %u\n", n, n->id);
 			break;
 		}
 	}
@@ -86,6 +87,7 @@ static int sync_object(NodeObject *n, const NodeObject *target)
 		sync = 0;
 	}
 	/* Look through local (non-synced) links. */
+/*	printf("syncing %u links in object %u\n", list_length(n->links_local), n->node.id);*/
 	for(iter = n->links_local; iter != NULL; iter = next)
 	{
 		NdbOLinkLocal	*link = list_data(iter);
@@ -93,17 +95,17 @@ static int sync_object(NodeObject *n, const NodeObject *target)
 		next = list_next(iter);
 		if(link->link->id == ~0)
 		{
-			printf("can't sync link '%s', target not known yet\n", link->label);
+/*			printf("can't sync link '%s', target not known yet\n", link->label);*/
 			sync = 0;
 		}
 		else
 		{
-			printf("can sync link '%s', target is %u\n", link->label, link->link->id);
+/*			printf("can sync link '%s', target is %u\n", link->label, link->link->id);*/
 			if(!object_link_exists(target, link->link->id, link->label, link->target_id))
 				verse_send_o_link_set(target->node.id, ~0, link->link->id, link->label, link->target_id);
-			else
+/*			else
 				printf("link exists, doing nothing\n");
-			n->links_local = list_unlink(n->links_local, iter);
+*/			n->links_local = list_unlink(n->links_local, iter);
 			mem_free(link);
 			list_destroy(iter);
 		}
@@ -132,7 +134,9 @@ static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 			send = TRUE;
 		else
 			send = memcmp(data, tdata, esize) != 0;	/* If it fits, compare to see if send needed. */
-		if(send)
+/*		if(send)
+			printf(" send %s %u in %u is %d\n", layer->name, i, node->node.id, send);
+*/		if(send)
 		{
 			switch(tlayer->type)
 			{
@@ -247,7 +251,7 @@ static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 		else
 		{
 			verse_send_g_layer_create(target->node.id, ~0, layer->name, layer->type, layer->def_uint, layer->def_real);
-			printf(" no, we need to create it\n");
+			printf(" geometry layer %s created in %u\n", layer->name, target->node.id);
 			sync = 0;
 		}
 	}
@@ -284,6 +288,7 @@ void sync_node_add(Node *node)
 	else
 		sync_info.queue_sync = list_prepend(sync_info.queue_sync, (void *) node);
 	nodedb_ref(node);	/* We've added a reference to the node. */
+	printf("node at %p (%u) added to synchronizing system (ref=%d)\n", node, node->id, node->ref);
 }
 
 void sync_update(double slice)
