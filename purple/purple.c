@@ -507,6 +507,7 @@ int main(void)
 	if(client_connect("localhost"))
 	{
 		LOG_MSG(("------------------------------------------------------------------------"));
+		LOG_MSG(("Purple running on Verse r%up%u%s", V_RELEASE_NUMBER, V_RELEASE_PATCH, V_RELEASE_LABEL));
 		LOG_MSG(("Entering main loop"));
 		for(;;)
 		{
