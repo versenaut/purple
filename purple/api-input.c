@@ -264,6 +264,11 @@ const char * p_input_string(PPInput input, char *buffer, size_t buf_max)
 
 #endif
 
+uint32 p_input_uint32(PPInput input)
+{
+	return port_input_uint32(input);
+}
+
 real32 p_input_real32(PPInput input)
 {
 	return port_input_real32(input);
