@@ -329,6 +329,7 @@ static void module_dep_destroy_warning(Module *m)
 	}
 }
 
+/* Mildly hackish perhaps, but simplifies interfaces. We know the port is part of a Module, so use that fact. */
 #define	MODULE_FROM_PORT(p)	(Module *) ((char *) (p) - offsetof(Module, out.port))
 
 void graph_port_output_begin(PPOutput port)
@@ -341,8 +342,7 @@ void graph_port_output_begin(PPOutput port)
 
 void graph_port_output_set(PPOutput port, PValueType type, ...)
 {
-	Module		*m = MODULE_FROM_PORT(port), *dep;
-	IdListIter	iter;
+	Module		*m = MODULE_FROM_PORT(port);
 	va_list		arg;
 
 	va_start(arg, type);
@@ -353,8 +353,7 @@ void graph_port_output_set(PPOutput port, PValueType type, ...)
 
 void graph_port_output_set_node(PPOutput port, PONode *node)
 {
-	Module		*m = MODULE_FROM_PORT(port), *dep;
-	IdListIter	iter;
+	Module		*m = MODULE_FROM_PORT(port);
 
 	port_set_node(port, node);
 	m->out.changed = TRUE;
