@@ -352,11 +352,6 @@ PNCCurve * p_node_c_curve_create(PONode *node, const char *name, uint8 dimension
 	return nodedb_c_curve_create((NodeCurve *) node, ~0, name, dimensions);
 }
 
-uint8 p_node_c_curve_dimensions_get(const PNCCurve *curve)
-{
-	return nodedb_c_curve_dimensions_get(curve);
-}
-
 size_t p_node_c_curve_key_num(const PNCCurve *curve)
 {
 	return nodedb_c_curve_key_num(curve);
