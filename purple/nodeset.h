@@ -12,6 +12,7 @@ extern NodeSet *	nodeset_add(NodeSet *ns, PONode *node);
 extern void		nodeset_clear(NodeSet *ns);
 
 extern PINode *		nodeset_retrieve(const NodeSet *ns);
+extern PINode *		nodeset_retrieve_nth(const NodeSet *ns, unsigned int index);
 
 /* Interpret a NodeSet as one of the basic types. This is used in input-accessing. Store
  * the interpretation in the provided PValue, so the nodeset itself need not take on

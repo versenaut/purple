@@ -96,5 +96,10 @@ ACCESSOR(const char *, string)
 
 PINode * port_input_node(PPort *port)
 {
-	return port != NULL ? nodeset_retrieve(port->nodes) : NULL;
+	return port_input_node_nth(port, 0);
+}
+
+PINode * port_input_node_nth(PPort *port, unsigned int index)
+{
+	return port != NULL ? nodeset_retreive_nth(port->nodes, index) : NULL;
 }

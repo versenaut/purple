@@ -339,3 +339,8 @@ PINode * p_input_node(PPInput input)
 {
 	return port_input_node(input);
 }
+
+PINode * p_input_node_nth(PPInput input, int index)
+{
+	return port_input_node_nth(input, index);
+}

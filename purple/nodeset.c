@@ -74,6 +74,19 @@ PINode * nodeset_retrieve(const NodeSet *ns)
 	return list_data(ns->nodes);
 }
 
+PINode * nodeset_retreive_nth(const NodeSet *ns, unsigned int index)
+{
+	const List	*iter;
+
+	if(ns == NULL)
+		return NULL;
+	for(iter = ns->nodes; iter != NULL && index != 0; iter = list_next(iter), index--)
+		;
+	if(iter != NULL)
+		return list_data(iter);
+	return NULL;
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 boolean nodeset_get_boolean(const NodeSet *ns, PValue *dest)
