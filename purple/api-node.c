@@ -37,6 +37,18 @@ void p_node_o_link_set(PONode *node, const PONode *link, const char *label, uint
 		nodedb_o_link_set_local((NodeObject *) node, link, label, target_id);
 }
 
+PINode * p_node_o_link_get(const PONode *node, const char *label, uint32 target_id)
+{
+	if(node != NULL && label != NULL)
+	{
+		PINode	*n = nodedb_o_link_get((NodeObject *) node, label, target_id);
+
+		if(n == NULL)
+			return (PINode *) nodedb_o_link_get_local((NodeObject *) node, label, target_id);
+	}
+	return NULL;
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 PNGLayer * p_node_g_layer_lookup(PINode *node, const char *name)
