@@ -518,21 +518,37 @@ real64 value_get_real64(const PValue *v, PValue *cache)
 
 const real64 * value_get_real64_vec2(const PValue *v, PValue *cache)
 {
+	if(v == NULL)
+		return NULL;
+	IF_SET(v, REAL64_VEC2)
+		return v->v.vreal64_vec2;
 	return NULL;	/* FIXME: Implement heuristics. */
 }
 
 const real64 * value_get_real64_vec3(const PValue *v, PValue *cache)
 {
+	if(v == NULL)
+		return NULL;
+	IF_SET(v, REAL64_VEC3)
+		return v->v.vreal64_vec3;
 	return NULL;	/* FIXME: Implement heuristics. */
 }
 
 const real64 * value_get_real64_vec4(const PValue *v, PValue *cache)
 {
+	if(v == NULL)
+		return NULL;
+	IF_SET(v, REAL64_VEC4)
+		return v->v.vreal64_vec4;
 	return NULL;	/* FIXME: Implement heuristics. */
 }
 
 const real64 * value_get_real64_mat16(const PValue *v, PValue *cache)
 {
+	if(v == NULL)
+		return NULL;
+	IF_SET(v, REAL64_MAT16)
+		return v->v.vreal64_mat16;
 	return NULL;	/* FIXME: Implement heuristics. */
 }
 
