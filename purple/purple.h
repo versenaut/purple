@@ -70,6 +70,8 @@ typedef enum
 #define	P_INPUT_DEFAULT_STR(v)	P_INPUT_TAG_DEFAULT, (const char *) v
 #define	P_INPUT_REQUIRED	P_INPUT_TAG_REQUIRED
 
+void		p_init_create(const char *name);
+
 void		p_init_input(int index, PInputType type, const char *name, ...);
 
 void		p_init_meta(const char *category, const char *text);
@@ -81,6 +83,8 @@ void		p_init_state(size_t size);
 typedef void 		PPort;
 typedef const PPort *	PPInput;
 typedef PPort *		PPOutput;
+
+void		p_init_compute(void (*compute)(PPInput *input, PPOutput output, void *state));
 
 /* Read out inputs, registered earlier. One for each type. :/ If this wasn't in C, we could use meta
  * information to just say p_input(input) and have it return a value of the proper registered type.
