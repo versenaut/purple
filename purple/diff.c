@@ -57,9 +57,6 @@
 
 typedef struct
 {
-	idx_fn	idx;
-	cmp_fn	cmp;
-	void	*context;
 	DynArr	*buf, *ses;
 	int	si;
 	int	dmax;
@@ -116,16 +113,6 @@ static int find_middle_snake(const void *a, int aoff, int n,
 
 			ms->x = x;
 			ms->y = y;
-			if(ctx->cmp)
-			{
-				while(x < n && y < m && ctx->cmp(ctx->idx(a, aoff + x, ctx->context),
-							ctx->idx(b, boff + y, ctx->context), ctx->context) == 0)
-				{
-					x++;
-					y++;
-				}
-			}
-			else
 			{
 				const unsigned char *a0 = a + aoff;
 				const unsigned char *b0 = b + boff;
@@ -155,15 +142,6 @@ static int find_middle_snake(const void *a, int aoff, int n,
 
 			ms->u = x;
 			ms->v = y;
-			if(ctx->cmp)
-			{
-				while(x > 0 && y > 0 && ctx->cmp(ctx->idx(a, aoff + (x - 1), ctx->context),
-							ctx->idx(b, boff + (y - 1), ctx->context), ctx->context) == 0)
-				{
-					x--; y--;
-				}
-			}
-			else
 			{
 				const unsigned char *a0 = a + aoff;
 				const unsigned char *b0 = b + boff;
@@ -284,24 +262,13 @@ static int ses_compute(const void *a, int aoff, int n, const void *b, int boff, 
 
 int diff_compare(const void *a, int aoff, int n,
 	 const void *b, int boff, int m,
-	 idx_fn idx, cmp_fn cmp, void *context, int dmax,
-	 DynArr *ses, int *sn,
-	 DynArr *buf)
+	 int dmax, DynArr *ses, int *sn, DynArr *buf)
 {
 	Context	ctx;
 	int	d = 0, x, y;
 	DiffEdit *e = NULL;
 	DynArr	*tmp;
 
-	if(!idx != !cmp)	/* Ensure both NULL or both non-NULL. */
-	{
-		errno = EINVAL;
-		return -1;
-	}
-
-	ctx.idx = idx;
-	ctx.cmp = cmp;
-	ctx.context = context;
 	if(buf != NULL)
 		ctx.buf = buf;
 	else
@@ -330,12 +297,6 @@ int diff_compare(const void *a, int aoff, int n,
           * that match entirely.
           */
 	x = y = 0;
-	if(cmp != NULL)
-	{
-		while(x < n && y < m && cmp(idx(a, aoff + x, context), idx(b, boff + y, context), context) == 0)
-			x++; y++;
-	}
-	else
 	{
 		const unsigned char *a0 = a + aoff;
 		const unsigned char *b0 = b + boff;

@@ -8,9 +8,6 @@
  * now I think.
 */
 
-typedef int		(*cmp_fn)(const void *object1, const void *object2, void *context);
-typedef const void *	(*idx_fn)(const void *s, int idx, void *context);
-
 typedef enum { DIFF_MATCH = 1, DIFF_DELETE, DIFF_INSERT } DiffOp;
 
 typedef struct
@@ -22,6 +19,4 @@ typedef struct
 
 /* consider alternate behavior for each NULL parameter  */
 extern int diff_compare(const void *a, int aoff, int n, const void *b, int boff, int m,
-		idx_fn idx, cmp_fn cmp, void *context, int dmax,
-		DynArr *ses, int *sn,
-		DynArr *buf);
+		int dmax, DynArr *ses, int *sn, DynArr *buf);
