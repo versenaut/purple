@@ -118,16 +118,23 @@ typedef struct PNGLayer	PNGLayer;
 
 PNGLayer *	p_node_g_layer_create(PONode *node, const char *name, VNGLayerType type,
 					     uint32 def_int, real32 def_real);
-void		p_node_g_layer_vertex_set_real32_xyz(PNGLayer *layer, uint32 id, real32 x, real32 y, real32 z);
-void		p_node_g_layer_vertex_set_real64_xyz(PNGLayer *layer, uint32 id, real64 x, real64 y, real64 z);
 void		p_node_g_layer_delete(PONode *node, const char *name);
+void		p_node_g_vertex_set_real32_xyz(PNGLayer *layer, uint32 id, real32 x, real32 y, real32 z);
+void		p_node_g_vertex_set_real64_xyz(PNGLayer *layer, uint32 id, real64 x, real64 y, real64 z);
+
+/* Bitmap-node manipulation functions. */
+void		p_node_b_set_init_dimensions(PONode *node, uint16 width, uint16 height, uint16 depth);
+uint16		p_node_b_layer_create(PONode *node, const char *name, VNBLayerType type);
+void		p_node_b_layer_set_tile(PONode *node, uint16 layer_id, uint16 tile_x,
+					uint16 tile_y, uint16 tile_z, const VNBTile *tile);
+void		p_node_b_layer_destroy(PONode *node, uint16 layer_id);
 
 
 /* Duplicates an input node, and returns something you can actually edit. */
 PONode *	p_output_node(PPOutput out, PINode *node);
 
 /* Creates a new empty output node for editing/data creation. */
-PONode * 	p_output_node_create(VNodeType type, const char *name);
+PONode * 	p_output_node_create(PPOutput out, VNodeType type, const char *name);
 
 /* Fills in the various single-value slots in the output. */
 void		p_output_int32(PPOutput out,  int32 value);
