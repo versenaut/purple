@@ -33,6 +33,7 @@
 #include "textbuf.h"
 #include "port.h"
 #include "xmlnode.h"
+#include "xmlutil.h"
 
 #include "nodedb.h"
 
@@ -41,6 +42,16 @@
 #include "graph.h"
 
 /* ----------------------------------------------------------------------------------------- */
+
+/* Instances of this are used to temporarily hold resume information, extracted from XML
+ * and then stored here until needed (which is when synchronizer wants to write to the
+ * node). Not exactly clinically clean, I guess.
+*/
+typedef struct
+{
+	uint32	label;
+	char	name[16];
+} OResume;
 
 typedef struct
 {
@@ -54,6 +65,7 @@ typedef struct
 	IdList	dependants;	/* Tracks dependants, to notify when output changes. */
 	boolean	changed;	/* Output changed recently? Don't notify all the time... */
 	ONodes	nodes;		/* Output nodes. Caches between invocations, using 'label' on create(). */
+	List	*resume;	/* Information about output nodes, from resume parse of old XML. */
 } Output;
 
 typedef struct
@@ -157,6 +169,7 @@ static struct
 static void	module_create(unsigned int module_id, uint32 graph_id, uint32 plugin_id);
 static void	module_input_set_from_string(Graph *g, uint32 module_id, uint8 input_index, PValueType type, ...);
 static void	module_input_clear_links_to(Graph *g, uint32 module_id, uint32 rm);
+static void	module_describe(Module *m);
 
 /* ----------------------------------------------------------------------------------------- */
 
@@ -178,7 +191,7 @@ void graph_method_send_creates(uint32 avatar, uint8 group_id)
 
 	for(i = 0; i < sizeof method_info / sizeof *method_info; i++)
 	{
-		verse_send_o_method_create(avatar, group_id, ~0u, method_info[i].name,
+		verse_send_o_method_create(avatar, group_id, (uint8) ~0u, method_info[i].name,
 					   method_info[i].param_count,
 					   (VNOParamType *) method_info[i].param_type,
 					   (const char **) method_info[i].param_name);
@@ -387,9 +400,10 @@ Graph * graph_create_resume(const XmlNode *gdesc, const unsigned int *pmap)
 		const XmlNode	*here = list_data(iter);
 		const char	*tmp;
 		char		*eptr;
-		List		*sets;
+		List		*sets, *outs;
 		const List	*siter;
 		unsigned long	id, index;
+		Module		*m;
 
 		tmp = xmlnode_eval_single(here, "@id");
 		id = strtoul(tmp, &eptr, 10);
@@ -408,10 +422,45 @@ Graph * graph_create_resume(const XmlNode *gdesc, const unsigned int *pmap)
 			tname = xmlnode_eval_single(set, "@type");
 			type  = value_type_from_name(tname);
 			value = xmlnode_eval_single(set, "");
-			printf("  set input %u.%s to %s, type %d\n", id, xmlnode_eval_single(set, "@input"), xmlnode_eval_single(set, ""), type);
+			printf("  set input %lu.%s to %s, type %d\n", id, xmlnode_eval_single(set, "@input"), xmlnode_eval_single(set, ""), type);
 			module_input_set_from_string(g, id, index, type, value);
 		}
 		list_destroy(sets);
+
+		if((m = idset_lookup(g->modules, id)) == NULL)
+		{
+			LOG_WARN(("Couldn't look up module %u", id));
+			continue;
+		}
+		outs = xmlnode_nodeset_get(here, XMLNODE_AXIS_CHILD, XMLNODE_NAME("out"), XMLNODE_DONE);
+		for(siter = outs; siter != NULL; siter = list_next(siter))
+		{
+			const XmlNode	*out = list_data(siter);
+			uint32		label;
+
+			if((tmp = xmlnode_eval_single(out, "@label")) != NULL)
+			{
+				label = strtoul(tmp, &eptr, 10);
+				if(eptr == tmp)
+				{
+					LOG_ERR(("Couldn't parse numerical label from '%s'", tmp));
+					continue;
+				}
+				if((tmp = xmlnode_eval_single(out, "@name")) != NULL)
+				{
+					OResume	*r;
+
+					r = mem_alloc(sizeof *r);
+					r->label = label;
+					stu_strncpy(r->name, sizeof r->name, tmp);
+					
+					m->out.resume = list_prepend(m->out.resume, r);
+				}
+			}
+			else
+				LOG_WARN(("Couldn't find label attribute in out element"));
+		}
+		list_destroy(outs);
 	}
 	list_destroy(mods);
 	xmlnode_destroy(graph);
@@ -508,6 +557,37 @@ void graph_port_output_set_node(PPOutput port, PONode *node)
 	m->out.changed = TRUE;
 }
 
+/* A <node> was just created by <m>, check if there is resume-information for it. */
+static int node_create_check_resume(Module *m, Node *node, VNodeType type, uint32 label)
+{
+	List	*iter;
+
+	for(iter = m->out.resume; iter != NULL; iter = list_next(iter))
+	{
+		OResume	*res = list_data(iter);
+
+		if(res->label == label)
+		{
+			Node	*n;
+
+			if((n = nodedb_lookup_by_name(res->name)) != NULL)
+			{
+				if(n->type == type)
+				{
+					node->creator.remote = n;
+					node->id = n->id;
+					m->out.resume = list_unlink(m->out.resume, iter);
+					mem_free(res);
+					list_destroy(iter);
+					LOG_MSG(("Node resumed to %u", node->id));
+					return 1;
+				}
+			}
+		}
+	}
+	return 0;
+}
+
 PONode * graph_port_output_node_create(PPOutput port, VNodeType type, uint32 label)
 {
 	Module	*m = MODULE_FROM_PORT(port);
@@ -536,13 +616,15 @@ PONode * graph_port_output_node_create(PPOutput port, VNodeType type, uint32 lab
 			{
 				if((*node = nodedb_new(type)) != NULL)
 				{
+					(*node)->creator.port  = port;
 					if(type == V_NT_GEOMETRY)
 					{
-						nodedb_g_layer_create((NodeGeometry *) *node, ~0u, "vertex", VN_G_LAYER_VERTEX_XYZ);
-						nodedb_g_layer_create((NodeGeometry *) *node, ~0u, "polygon", VN_G_LAYER_POLYGON_CORNER_UINT32);
+						nodedb_g_layer_create((NodeGeometry *) *node, (VLayerID) ~0u, "vertex", VN_G_LAYER_VERTEX_XYZ);
+						nodedb_g_layer_create((NodeGeometry *) *node, (VLayerID) ~0u, "polygon", VN_G_LAYER_POLYGON_CORNER_UINT32);
 					}
 					m->out.nodes.next++;
 					nodedb_ref(*node);
+					node_create_check_resume(m, *node, type, label);
 				}
 			}
 		}
@@ -585,6 +667,7 @@ PONode * graph_port_output_node_copy(PPOutput port, PINode *node, uint32 label)
 			{
 				if((*store = nodedb_new_copy(node)) != NULL)
 				{
+					(*store)->creator.port  = port;
 					m->out.nodes.next++;
 					nodedb_ref(*store);
 				}
@@ -613,6 +696,21 @@ void graph_port_output_end(PPOutput port)
 				printf("Couldn't find module %u in graph %s, a dependant of module %u\n", iter.id, m->graph->name, m->id);
 		}
 	}
+}
+
+static void cb_node_output_notify(Node *node, NodeNotifyEvent e, void *user)
+{
+	Module	*m = MODULE_FROM_PORT(((Node *) user)->creator.port);
+
+	printf("name of watched node owned by %s instance: '%s'\n", plugin_name(m->plugin), node->name);
+	printf("  now would be a good time to rebuild XML\n");
+	module_describe(m);
+}
+
+void graph_port_output_create_notify(const Node *local)
+{
+	printf("Node resulting from port %p is %u\n", local->creator.port, local->creator.remote->id);
+	nodedb_notify_node_add(local->creator.remote, cb_node_output_notify, (void *) local);
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -687,10 +785,22 @@ static boolean graph_cyclic_after(uint32 graph_id, uint32 module_id, uint8 input
 static DynStr * module_build_desc(const Module *m)
 {
 	DynStr	*d;
+	uint32	i;
 
 	d = dynstr_new_sized(256);
 	dynstr_append_printf(d, " <module id=\"%u\" plug-in=\"%u\">\n", m->id, plugin_id(m->plugin));
 	plugin_portset_describe(m->instance.inputs, d);
+	for(i = 0; i < m->out.nodes.next; i++)
+	{
+		const Node	**n = dynarr_index(m->out.nodes.node, i);
+
+		if(n != NULL && (*n)->creator.remote != NULL)
+		{
+			dynstr_append_printf(d, "  <out label=\"%u\" name=\"", i);
+			xml_dynstr_append(d, (*n)->creator.remote->name);
+			dynstr_append(d, "\"/>\n");
+		}
+	}
 	dynstr_append(d, " </module>\n");
 
 	return d;
@@ -711,6 +821,19 @@ static void graph_modules_desc_start_update(Graph *g)
 		pos += m->length;
 	}
 }
+
+/* Update description of module <m>. */
+static void module_describe(Module *m)
+{
+	DynStr	*desc;
+
+	desc = module_build_desc(m);
+	verse_send_t_text_set(m->graph->node, m->graph->buffer, m->start, m->length, dynstr_string(desc));
+	m->length = dynstr_length(desc);
+	dynstr_destroy(desc, 1);
+	graph_modules_desc_start_update(m->graph);
+}
+
 
 static PPOutput cb_module_lookup(uint32 module_id, void *data)
 {
@@ -742,6 +865,7 @@ static void module_create(unsigned int module_id, uint32 graph_id, uint32 plugin
 		return;
 	}
 	m = memchunk_alloc(graph_info.chunk_module);
+	printf("Module with ID %u created at %p\n", module_id, m);
 	if(m == NULL)
 	{
 		LOG_WARN(("Module allocation failed in graph %u, plug-in %u", graph_id, plugin_id));
@@ -756,11 +880,27 @@ static void module_create(unsigned int module_id, uint32 graph_id, uint32 plugin
 	idlist_construct(&m->out.dependants);
 	m->out.nodes.node = NULL;
 	m->out.nodes.next = 0;
+	m->out.resume = NULL;
 	m->start = m->length = 0;
 	if(g->modules == NULL)
 		g->modules = idset_new(0);
-	m->id = idset_insert(g->modules, m);
-	LOG_MSG(("Module %u.%u is plugin %u (%s)", graph_id, m->id, plugin_id, plugin_name(p)));
+	if(module_id == ~0u)
+		m->id = idset_insert(g->modules, m);
+	else
+	{
+		m->id = idset_insert_with_id(g->modules, module_id, m);
+	}
+	LOG_MSG(("Module %u.%u is plugin %u (%s) in graph at %p", graph_id, m->id, plugin_id, plugin_name(p), g));
+	{
+		Module	*m2;
+
+		m2 = idset_lookup(g->modules, m->id);
+		if(m != m2)
+		{
+			LOG_ERR(("Module look-up failed!!"));
+			exit(EXIT_FAILURE);
+		}
+	}
 	desc = module_build_desc(m);
 	m->length = dynstr_length(desc);
 	graph_modules_desc_start_update(g);
@@ -856,8 +996,6 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 {
 	va_list	arg;
 	Graph	*g;
-	DynStr	*desc;
-	uint32	old_link;
 
 	if((g = idset_lookup(graph_info.graphs, graph_id)) == NULL)
 	{
