@@ -2,6 +2,9 @@
  * A simple doubly-linked list datatype. Many operations are O(n).
 */
 
+#if !defined LIST_H
+#define	LIST_H
+
 typedef struct List	List;
 
 extern void	list_init(void);
@@ -31,3 +34,5 @@ extern void	list_foreach(const List *list, int (*callback)(void *data, void *use
 extern List *	list_find(List *list, int (*test)(void *data, void *userdata), void *userdata);
 
 extern void	list_destroy(List *list);
+
+#endif
