@@ -4,10 +4,11 @@
 
 #include <stdio.h>
 
+#include "purple.h"
+
 #include "log.h"
 #include "vecutil.h"
 
-#include "purple.h"
 #include "plugins.h"
 
 /* ----------------------------------------------------------------------------------------- */
@@ -37,8 +38,23 @@ static int input_real64(const PInputValue *v, real64 *value)
 	case P_INPUT_REAL32_VEC2:
 		*value = vec_real32_vec2_magnitude(v->v.vreal32_vec2);
 		break;
+	case P_INPUT_REAL32_VEC3:
+		*value = vec_real32_vec3_magnitude(v->v.vreal32_vec2);
+		break;
+	case P_INPUT_REAL32_VEC4:
+		*value = vec_real32_vec4_magnitude(v->v.vreal32_vec2);
+		break;
 	case P_INPUT_REAL64:
 		*value = v->v.vreal64;
+		break;
+	case P_INPUT_REAL64_VEC2:
+		*value = vec_real64_vec2_magnitude(v->v.vreal64_vec2);
+		break;
+	case P_INPUT_REAL64_VEC3:
+		*value = vec_real64_vec3_magnitude(v->v.vreal64_vec2);
+		break;
+	case P_INPUT_REAL64_VEC4:
+		*value = vec_real64_vec4_magnitude(v->v.vreal64_vec2);
 		break;
 	case P_INPUT_STRING:
 		*value = strtod(v->v.vstring, NULL);
@@ -69,7 +85,7 @@ uint32 p_input_uint32(PPInput input)
 
 	if(input_real64(v, &value))
 		return value;
-	LOG_WARN(("Can't convert value of type %d to int32", v->type));
+	LOG_WARN(("Can't convert value of type %d to uint32", v->type));
 	return 0u;
 }
 
@@ -91,6 +107,6 @@ real64 p_input_real64(PPInput input)
 
 	if(input_real64(v, &value))
 		return value;
-	LOG_WARN(("Can't convert value of type %d to real32", v->type));
+	LOG_WARN(("Can't convert value of type %d to real64", v->type));
 	return 0.0;
 }
