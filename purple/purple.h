@@ -232,6 +232,7 @@ typedef void	PNCCurve, PNCKey;
 unsigned int	p_node_c_curve_num(PINode *node);
 PNCCurve *	p_node_c_curve_nth(PINode *node, unsigned int n);
 PNCCurve *	p_node_c_curve_find(PINode *node, const char *name);
+void		p_node_c_curve_iter(PINode *node, PIter *iter);
 const char *	p_node_c_curve_get_name(const PNCCurve *curve);
 uint8		p_node_c_curve_get_dimensions(const PNCCurve *curve);
 
