@@ -149,17 +149,8 @@ static int fragments_equal(const NodeMaterial *node, const NdbMFragment *a,
 	case VN_M_FT_LIGHT:
 		if(a->frag.light.type == b->frag.light.type)
 		{
-			int	neq;
-
-			/* Comparing the node link requires some intelligence. It's either local
-			 * (special node field in NdbMFragment) or remote, using an ID only.
-			 * We do not currently compare actual bitmap contents, that'd be... Hard.
-			*/
-			if(a->node != NULL)
-				neq = a->node->id == b->frag.light.brdf;
-			else
-				neq = a->frag.light.brdf == b->frag.light.brdf;
-			return neq && a->frag.light.normal_falloff == b->frag.light.normal_falloff &&
+			return node_ref_equal(a, b, offsetof(VMatFrag, light.brdf)) &&
+				a->frag.light.normal_falloff == b->frag.light.normal_falloff &&
 				strcmp(a->frag.light.brdf_r, b->frag.light.brdf_r) == 0 &&
 				strcmp(a->frag.light.brdf_g, b->frag.light.brdf_g) == 0 &&
 				strcmp(a->frag.light.brdf_b, b->frag.light.brdf_b) == 0;
@@ -184,20 +175,8 @@ static int fragments_equal(const NodeMaterial *node, const NdbMFragment *a,
 	case VN_M_FT_TEXTURE:
 		if(fragment_refs_equal(node, a->frag.texture.mapping, target, b->frag.texture.mapping))
 		{
-			int	neq;
-
-#if 0
-			/* Comparing the node link requires some intelligence. It's either local
-			 * (special node field in NdbMFragment) or remote, using an ID only.
-			 * We do not currently compare actual bitmap contents, that'd be... Hard.
-			*/
-			if(a->node != NULL)
-				neq = a->node->id == b->frag.texture.bitmap;
-			else
-				neq = a->frag.texture.bitmap == b->frag.texture.bitmap;
-#endif
-			neq = node_ref_equal(a, b, offsetof(VMatFrag, texture.bitmap));
-			return neq && strcmp(a->frag.texture.layer_r, b->frag.texture.layer_r) == 0 &&
+			return node_ref_equal(a, b, offsetof(VMatFrag, texture.bitmap)) &&
+				strcmp(a->frag.texture.layer_r, b->frag.texture.layer_r) == 0 &&
 				strcmp(a->frag.texture.layer_g, b->frag.texture.layer_g) == 0 &&
 				strcmp(a->frag.texture.layer_b, b->frag.texture.layer_b) == 0;
 		}
