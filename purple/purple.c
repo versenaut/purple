@@ -523,7 +523,7 @@ static void console_update(void)
 				if(sscanf(line, "tsl %u %s", &node, lang) == 2)
 					verse_send_t_set_language(node, lang);
 			}
-			else
+			else if(line[0] != '\0')
 				printf("Input: '%s'\n", line);
 		}
 	}
