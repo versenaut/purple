@@ -44,10 +44,11 @@ struct PModule
  * Method interface used by UI client to control engine client. Feedback is through
  * updating of the shared textual description of the graph; this is done by the engine.
  * 
- * void node_create(uint32 graph, string32 plugin);
- * void node_destroy(uint32 graph, uint32 id);
- * 
- * void node_input_set_boolean(uint32 graph, uint32 node, uint8 input, boolean value);
- * void node_input_set_int32(uint32 graph, uint32 node, uint8 input, int32 value);
+ * void module_create(uint32 graph, string32 plugin);
+ * void module_destroy(uint32 graph, uint32 id);
+ *
+ * void module_input_set_module(uint32 graph, uint32 module, uint8 input, uint32 value);
+ * void module_input_set_boolean(uint32 graph, uint32 module, uint8 input, boolean value);
+ * void module_input_set_int32(uint32 graph, uint32 module, uint8 input, int32 value);
  * 
  */
