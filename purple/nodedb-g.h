@@ -8,7 +8,18 @@ typedef struct
 	char		name[16];
 	VNGLayerType	type;
 	void		*data;
+	uint32		def_uint;
+	real64		def_real;
 } NdbGLayer;
+
+typedef struct
+{
+	char	weight[16];
+	char	reference[16];
+	uint32	parent;
+	real64	pos[3];		/* XYZ (duh). */
+	real64	rot[4];		/* XYZW */
+} NdbGBone;
 
 typedef struct
 {
