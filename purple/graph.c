@@ -30,6 +30,7 @@ typedef struct
 {
 	uint32		id;
 	const Plugin	*plugin;	/* FIXME: Should be properly typed, of course. Placeholder. */
+	PInputSet	*inputs;
 
 	uint32		start, length;	/* Region in graph XML buffer used for this module. */
 } Module;
@@ -58,8 +59,8 @@ typedef struct
 enum { CREATE, RENAME, DESTROY, MOD_CREATE, MOD_INPUT_SET_REAL32 };
 
 #define	MI_INPUT(lct, uct)	\
-	{ 0, "m_i_set_" #lct, 3, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, \
-		VN_O_METHOD_PTYPE_ ##uct }, { "graph_id", "plugin_id", "value" } \
+	{ 0, "m_i_set_" #lct, 4, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8, \
+		VN_O_METHOD_PTYPE_ ##uct }, { "graph_id", "plugin_id", "index", "value" } \
 	}
 
 static MethodInfo method_info[] = {
@@ -261,6 +262,8 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 		return;
 	}
 	m->plugin = p;
+	m->inputs = plugin_inputset_new(m->plugin);
+	printf("Module creeted, inputset at %p\n", m->inputs);
 	m->start = m->length = 0;
 	if(g->modules == NULL)
 		g->modules = idset_new(0);
@@ -272,9 +275,26 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 	printf("Sent %u chars of desc to %u.%u: '%s'\n", m->length, g->node, g->buffer, desc);
 }
 
-static void module_input_set(PInputType type, uint32 graph_id, uint32 module_id, uint8 input_index, ...)
+static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_index, PInputType type, ...)
 {
-	printf("hello!\n");
+	va_list	arg;
+	Graph	*g;
+	Module	*m;
+
+	if((g = idset_lookup(graph_info.graphs, graph_id)) == NULL)
+	{
+		LOG_WARN(("Attempted to set module input in non-existant graph %u", graph_id));
+		return;
+	}
+	if((m = idset_lookup(g->modules, module_id)) == NULL)
+	{
+		LOG_WARN(("Attempted to set module input in non-existant module %u.%u", graph_id, module_id));
+		return;
+	}
+
+	va_start(arg, type);
+	plugin_inputset_set_va(m->inputs, input_index, type, arg);
+	va_end(arg);
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -369,7 +389,7 @@ void graph_method_receive_call(uint8 id, const void *param)
 			case DESTROY:	graph_destroy(arg[0].vuint32);					break;
 			case MOD_CREATE: module_create(arg[0].vuint32, arg[1].vuint32);			break;
 			case MOD_INPUT_SET_REAL32:
-				module_input_set(P_INPUT_REAL32, arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, arg[3].vreal32);
+				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32, arg[3].vreal32);
 				break;
 			}
 			return;
