@@ -67,7 +67,7 @@ static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 	size_t		size, tsize, i, esize;
 	int		send = 0;
 
-	esize = tlayer->type == VN_G_LAYER_VERTEX_XYZ ? (3 * sizeof (real64)) : (4 * sizeof (uint32));
+	esize = dynarr_get_elem_size(layer->data);
 
 	size  = dynarr_size(layer->data);
 	tsize = dynarr_size(layer->data);
