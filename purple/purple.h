@@ -157,6 +157,7 @@ PNTag *		p_node_tag_group_tag_find(const PNTagGroup *group, const char *name);
 void		p_node_tag_group_tag_iter(const PNTagGroup *group, PIter *iter);
 void		p_node_tag_group_tag_create(PNTagGroup *group, const char *name, VNTagType type, const VNTag *value);
 void		p_node_tag_group_tag_destroy(PNTagGroup *group, const char *name);
+const char *	p_node_tag_get_name(const PNTag *tag);
 
 /* Set from a "group/tag"-style path, with vararg for scalar values. */
 void		p_node_tag_create_path(PONode *node, const char *path, VNTagType type, ...);
