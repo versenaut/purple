@@ -1,9 +1,10 @@
 /*
  * This is a "magical" plug-in, that does a lookup of a named node in the node database.
- * It does not limit itself to the official Purple plug-in API, but uses core calls
+* It does not limit itself to the official Purple plug-in API, but uses core calls
  * directly since it is part of the application. It also uses the Purple API and has a
  * similar public init() function, ín order to be registerable as an externally visible
- * plug-in.
+ * plug-in. For technical reasons (public symbols), it'd probably be possible to write
+ * an actual library-based plug-in using these calls, too. *Don't* do that.
 */
 
 #include <stdio.h>
@@ -17,38 +18,43 @@
 
 #include "purple.h"
 
+/* ----------------------------------------------------------------------------------------- */
+
 typedef struct
 {
 	Node	*notify;
 	void	*notify_handle;
 } State;
 
+/* ----------------------------------------------------------------------------------------- */
+
+/* This gets called when the node we're watching changes. We need to cause a re-
+ * computation of any modules having this one as an input dependency.
+*/
 static void cb_notify(Node *node, NodeNotifyEvent ev, void *user)
 {
 	printf("Notification in input, node at %p\n", node);
 }
 
+/* Called when our solitary input changes. Look up the named node, and set up
+ * change-notification of the named node, if found.
+*/
 static void compute(PPInput *input, PPOutput output, void *state_typeless)
 {
 	char	name[64];
 	State	*state = state_typeless;
 
-	printf("Input::compute() running, state at %p\n", state);
 	if(p_input_string(input[0], name, sizeof name) != NULL)
 	{
 		Node	*node;
 
-		printf("Input looking up node '%s'\n", name);
 		node = nodedb_lookup_by_name(name);
 		if(node != state->notify)	/* Different from current? */
 		{
 			/* De-register current. */
 			nodedb_notify_node_remove(state->notify, state->notify_handle);
 			if(node != NULL)	/* Register new. */
-			{
 				state->notify_handle = nodedb_notify_node_add(node, cb_notify, NULL);
-				printf(" added notification, handle %p\n", state->notify_handle);
-			}
 			else
 				state->notify_handle = NULL;
 			state->notify = node;
@@ -58,6 +64,7 @@ static void compute(PPInput *input, PPOutput output, void *state_typeless)
 		printf("Input couldn't get node name to watch\n");
 }
 
+/* This gets called when the plug-in is instantiated. Initialize the state. */
 static void ctor(void *state_typeless)
 {
 	State	*state = state_typeless;
@@ -66,6 +73,7 @@ static void ctor(void *state_typeless)
 	state->notify_handle = NULL;
 }
 
+/* This gets called when the plug-in is de-instantiated. Remove any notification. */
 static void dtor(void *state_typeless)
 {
 	State	*state = state_typeless;
@@ -73,6 +81,8 @@ static void dtor(void *state_typeless)
 	if(state->notify)
 		nodedb_notify_node_remove(state->notify, state->notify_handle);
 }
+
+/* ----------------------------------------------------------------------------------------- */
 
 /* This works just as a "real" (library-based) plug-in's init() function. */
 void plugin_input_init(void)
