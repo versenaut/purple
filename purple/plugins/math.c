@@ -26,17 +26,20 @@ static void fact_ctor(void *state)
 
 static PComputeStatus compute_fact(PPInput *input, PPOutput output, void *state)
 {
-	int	*s = state;
+	uint32	*s = state;
 
 	if(s[1] == 0)	/* First run? */
 	{
-		s[1] = p_input_int32(input[0]);
+		s[1] = p_input_uint32(input[0]);
 	}
 	if(s[1] <= 1)
 	{
+		printf("fact done, emitting %u\n", s[0]);
 		p_output_uint32(output, s[0]);
+		fact_ctor(state);	/* Reset state. */
 		return P_COMPUTE_DONE;
 	}
+	printf("computing faculty, scaling %u by %u\n", s[0], s[1]);
 	s[0] *= s[1]--;
 	return P_COMPUTE_AGAIN;
 }
@@ -80,7 +83,8 @@ void init(void)
 	p_init_compute(compute_power_of_two);
 
 	p_init_create("fact");
-	p_init_state(2 * sizeof (int), NULL, NULL);
+	p_init_state(2 * sizeof (uint32), fact_ctor, NULL);
+	p_init_input(0, P_VALUE_UINT32, "n", P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_compute(compute_fact);
 
 	p_init_create("add_r32");
