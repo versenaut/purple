@@ -483,12 +483,12 @@ void plugins_libraries_init(void)
 	for(iter = plugins_info.libraries; iter != NULL; iter = list_next(iter))
 	{
 		Library	*lib = list_data(iter);
-		size_t	num = idset_size(plugins_info.plugins);
+		size_t	num = plugins_amount();
 		LOG_MSG(("Initializing library \"%s\"", lib->name));
 		api_init_begin(lib);
 		lib->init();
 		api_init_end();
-		LOG_MSG(("Done, that added %u plug-ins", idset_size(plugins_info.plugins) - num));
+		LOG_MSG(("Done, that added %u plug-ins", plugins_amount() - num));
 	}
 }
 
