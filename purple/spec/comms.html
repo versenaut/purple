@@ -655,7 +655,7 @@ NAME="AEN419"
 >Creating/Destroying Graphs</A
 ></H3
 ><P
->&#13;These are methods for creating and destroying graphs, i.e. named containers in which plug-ins can be instantiated.
+>&#13;These are methods for creating and destroying graphs, i.e. containers in which plug-ins can be instantiated.
 Graphs serve as <SPAN
 CLASS="QUOTE"
 >"projects"</SPAN
@@ -687,7 +687,7 @@ CLASS="FUNCDEF"
 CLASS="function"
 >create</TT
 ></CODE
->(VNodeID <TT
+>(string <TT
 CLASS="parameter"
 ><I
 >node</I
@@ -697,11 +697,6 @@ CLASS="parameter"
 ><I
 >buffer</I
 ></TT
->, string <TT
-CLASS="parameter"
-><I
->name</I
-></TT
 >);</CODE
 ></P
 ><P
@@ -710,9 +705,18 @@ CLASS="parameter"
 ></DT
 ><DD
 ><P
->Create a new graph with the given name. The name must be unique. The node and buffer parameters tell
-the Purple engine where the description of the graph will reside. This should be an text node and buffer,
-and its contents will be completely overwritten by the Purple engine.</P
+>Create a new graph in the given node. The node and buffer parameters tell the Purple engine where the
+description of the graph will reside. This should be a text node and buffer, and its contents will be completely
+overwritten by the Purple engine. The node is identified by name rather than numerical ID, since this information
+must be shared across Verse sessions and numerical IDs are local. The name of the buffer should be used as the name
+of the graph.</P
+><P
+>&#13;This will update the graph index, and assign the graph a numerical ID which <I
+CLASS="emphasis"
+>is</I
+> sharable across
+sessions.
+</P
 ></DD
 ><DT
 ><DIV
@@ -746,42 +750,6 @@ CLASS="parameter"
 >Destroy the indicated graph. Since Purple does not own the storage space for the description, as
 specified when creating it, nothing happens to the description.</P
 ></DD
-><DT
-><DIV
-CLASS="funcsynopsis"
-><A
-NAME="AEN451"
-></A
-><P
-></P
-><P
-><CODE
-><CODE
-CLASS="FUNCDEF"
-><TT
-CLASS="function"
->rename</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, string <TT
-CLASS="parameter"
-><I
->new_name</I
-></TT
->);</CODE
-></P
-><P
-></P
-></DIV
-></DT
-><DD
-><P
->Rename the indicated graph.</P
-></DD
 ></DL
 ></DIV
 >
@@ -796,7 +764,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN462"
+NAME="AEN450"
 >Creating/Destroying Modules</A
 ></H3
 ><P
@@ -810,7 +778,7 @@ CLASS="variablelist"
 ><DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN468"
+NAME="AEN456"
 ></A
 ><P
 ></P
@@ -849,7 +817,7 @@ representation of the Purple state, see below for details.
 ><DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN480"
+NAME="AEN468"
 ></A
 ><P
 ></P
@@ -895,7 +863,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN490"
+NAME="AEN478"
 >Setting Module Inputs</A
 ></H3
 ><P
@@ -915,7 +883,7 @@ CLASS="variablelist"
 ><DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN497"
+NAME="AEN485"
 ></A
 ><P
 ></P
@@ -956,7 +924,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN509"
+NAME="AEN497"
 ></A
 ><P
 ></P
@@ -997,7 +965,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN521"
+NAME="AEN509"
 ></A
 ><P
 ></P
@@ -1038,7 +1006,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN533"
+NAME="AEN521"
 ></A
 ><P
 ></P
@@ -1079,7 +1047,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN545"
+NAME="AEN533"
 ></A
 ><P
 ></P
@@ -1120,7 +1088,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN557"
+NAME="AEN545"
 ></A
 ><P
 ></P
@@ -1161,7 +1129,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN569"
+NAME="AEN557"
 ></A
 ><P
 ></P
@@ -1202,7 +1170,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN581"
+NAME="AEN569"
 ></A
 ><P
 ></P
@@ -1243,7 +1211,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN593"
+NAME="AEN581"
 ></A
 ><P
 ></P
@@ -1284,7 +1252,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN605"
+NAME="AEN593"
 ></A
 ><P
 ></P
@@ -1325,7 +1293,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN617"
+NAME="AEN605"
 ></A
 ><P
 ></P
@@ -1366,7 +1334,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN629"
+NAME="AEN617"
 ></A
 ><P
 ></P
@@ -1407,7 +1375,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN641"
+NAME="AEN629"
 ></A
 ><P
 ></P
@@ -1448,7 +1416,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN653"
+NAME="AEN641"
 ></A
 ><P
 ></P
@@ -1489,7 +1457,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN665"
+NAME="AEN653"
 ></A
 ><P
 ></P
@@ -1557,7 +1525,7 @@ CLASS="sect4"
 ><H4
 CLASS="sect4"
 ><A
-NAME="AEN682"
+NAME="AEN670"
 >Setting an Input to Nothing</A
 ></H4
 ><P
@@ -1579,7 +1547,7 @@ CLASS="variablelist"
 ><DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN690"
+NAME="AEN678"
 ></A
 ><P
 ></P
@@ -1655,7 +1623,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN708"
+NAME="AEN696"
 >An XML Document Type for Graph Descriptions</A
 ></H3
 ><P
@@ -1663,7 +1631,7 @@ NAME="AEN708"
 <DIV
 CLASS="example"
 ><A
-NAME="AEN711"
+NAME="AEN699"
 ></A
 ><P
 ><B
@@ -1677,7 +1645,7 @@ WIDTH="100%"
 ><TD
 ><PRE
 CLASS="programlisting"
->&#60;graph id="0" name="foo"&#62;
+>&#60;graph id="0"&#62;
 &#60;/graph&#62;
 </PRE
 ></TD
@@ -1688,17 +1656,13 @@ CLASS="programlisting"
 </P
 ><P
 >&#13;This description establishes that there exists a graph, known by the numerical ID of zero. The graph is empty, i.e.
-it contains no modules, and is named <TT
-CLASS="literal"
->foo</TT
->. Graphs are always named, and names are always
-unique for the instance of the Purple engine.
+it contains no modules.
 </P
 ><P
 >&#13;<DIV
 CLASS="example"
 ><A
-NAME="AEN717"
+NAME="AEN704"
 ></A
 ><P
 ><B
@@ -1712,7 +1676,7 @@ WIDTH="100%"
 ><TD
 ><PRE
 CLASS="programlisting"
->&#60;graph id="55" name="hello"&#62;
+>&#60;graph id="55"&#62;
  &#60;module id="0" plug-in="hello"/&#62;
 &#60;/graph&#62;
 </PRE
@@ -1746,7 +1710,7 @@ within the graph. Specifying a non-existing plug-in name is legal.
 ><DIV
 CLASS="example"
 ><A
-NAME="AEN726"
+NAME="AEN713"
 ></A
 ><P
 ><B
@@ -1772,7 +1736,7 @@ WIDTH="100%"
 ><TD
 ><PRE
 CLASS="programlisting"
->&#60;graph id="37" name="mult-test"&#62;
+>&#60;graph id="37"&#62;
  &#60;module id="0" plug-in="multiply"&#62;
   &#60;set input="0" type="real32"&#62;6&#60;/assign&#62;
   &#60;set input="1" type="real32"&#62;7&#60;/assign&#62;
@@ -1804,7 +1768,7 @@ match in practice, but this is not a requirement of the underlying basic technol
 ><DIV
 CLASS="example"
 ><A
-NAME="AEN737"
+NAME="AEN724"
 ></A
 ><P
 ><B
@@ -1827,7 +1791,7 @@ WIDTH="100%"
 ><TD
 ><PRE
 CLASS="programlisting"
->&#60;graph id="19" name="square-products"&#62;
+>&#60;graph id="19"&#62;
  &#60;module id="0" plug-in="multiply"&#62;
   &#60;set input="0" type="real32"&#62;6&#60;/assign&#62;
   &#60;set input="1" type="real32"&#62;7&#60;/assign&#62;
