@@ -127,10 +127,11 @@ static void resize(Hash *hash)
 
 	new_len = get_prime(hash->length + 1);
 	nv = mem_alloc(new_len * sizeof *nv);
-	for(i = 0; i < new_len; i++)
-		nv[i] = NULL;
 	if(nv != NULL)
 	{
+		for(i = 0; i < new_len; i++)
+			nv[i] = NULL;
+		LOG_MSG(("Allocated new vector, %u elements", new_len));
 		for(i = 0; i < hash->length; i++)
 		{
 			for(iter = hash->vector[i]; iter != NULL; iter = next)
@@ -138,7 +139,7 @@ static void resize(Hash *hash)
 				next = iter->next;
 				h = hash->hfunc(iter->key) % new_len;
 				iter->next = nv[h];
-				nv[h] = nv[h];
+				nv[h] = iter;
 			}
 		}
 		mem_free(hash->vector);
@@ -159,6 +160,7 @@ void hash_insert(Hash *hash, const void *key, void *data)
 
 	if(hash->size >= hash->length)
 	{
+		LOG_MSG(("Hash growing from length %u", hash->length));
 		resize(hash);
 	}
 
@@ -172,8 +174,9 @@ void hash_insert(Hash *hash, const void *key, void *data)
 		el->next = hash->vector[h];
 		hash->vector[h] = el;
 		hash->size++;
-		printf(" Element %p inserted at %u, len=%u\n", key, h, hash->length);
 	}
+	else
+		LOG_WARN(("Hash element allocation failed"));
 }
 
 void * hash_lookup(const Hash *hash, const void *key)
@@ -184,7 +187,6 @@ void * hash_lookup(const Hash *hash, const void *key)
 	if(hash == NULL || hash->size == 0)
 		return NULL;
 	h = hash->hfunc(key) % hash->length;
-	printf("hash: %p hashed to %u. len=%u\n", key, h, hash->length);
 	for(el = hash->vector[h]; el != NULL; el = el->next)
 	{
 		if(hash->kefunc(key, el->key))
