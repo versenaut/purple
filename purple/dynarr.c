@@ -102,7 +102,7 @@ void * dynarr_index(const DynArr *da, unsigned index)
 	if(da == NULL)
 		return NULL;
 	if(index < da->alloc)
-		return (char *) da->data + index * da->elem_size;
+		return (unsigned char *) da->data + index * da->elem_size;
 	return NULL;
 }
 
