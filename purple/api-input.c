@@ -81,56 +81,56 @@ static int input_real64(const PInputValue *v, real64 *value)
 
 boolean p_input_boolean(PPInput input)
 {
-	const PInputValue	*v = input;
+	const PInputValue	*in = input;
 	real64			value;
 
-	if(input_real64(v, &value))
+	if(input_real64(in, &value))
 		return value != 0.0;
-	LOG_WARN(("Can't convert value of type %d to boolean", v->type));
+	LOG_WARN(("Can't convert value of type %d to boolean", in->type));
 	return 0;
 }
 
 int32 p_input_int32(PPInput input)
 {
-	const PInputValue	*v = input;
+	const PInputValue	*in = input;
 	real64			value;
 
-	if(input_real64(v, &value))
+	if(input_real64(in, &value))
 		return value;
-	LOG_WARN(("Can't convert value of type %d to int32", v->type));
+	LOG_WARN(("Can't convert value of type %d to int32", in->type));
 	return 0;
 }
 
 uint32 p_input_uint32(PPInput input)
 {
-	const PInputValue	*v = input;
+	const PInputValue	*in = input;
 	real64			value;
 
-	if(input_real64(v, &value))
+	if(input_real64(in, &value))
 		return value;
-	LOG_WARN(("Can't convert value of type %d to uint32", v->type));
+	LOG_WARN(("Can't convert value of type %d to uint32", in->type));
 	return 0u;
 }
 
 real32 p_input_real32(PPInput input)
 {
-	const PInputValue	*v = input;
+	const PInputValue	*in = input;
 	real64			value;
 
-	if(input_real64(v, &value))
+	if(input_real64(in, &value))
 		return value;
-	LOG_WARN(("Can't convert value of type %d to real32", v->type));
+	LOG_WARN(("Can't convert value of type %d to real32", in->type));
 	return 0.0f;
 }
 
 real64 p_input_real64(PPInput input)
 {
-	const PInputValue	*v = input;
+	const PInputValue	*in = input;
 	real64			value;
 
-	if(input_real64(v, &value))
+	if(input_real64(in, &value))
 		return value;
-	LOG_WARN(("Can't convert value of type %d to real64", v->type));
+	LOG_WARN(("Can't convert value of type %d to real64", in->type));
 	return 0.0;
 }
 
