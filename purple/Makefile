@@ -16,7 +16,7 @@ LDLIBS=-ldl -lverse
 
 purple:		purple.c api-init.o client.o cron.o dynarr.o dynlib.o dynstr.o graph.o \
 		filelist.o hash.o list.o log.o mem.o memchunk.o plugins.o strutil.o textbuf.o \
-		timeval.o xmlutil.o \
+		timeval.o xmlnode.o xmlutil.o \
 		$(VERSE)/libverse.a
 
 api-init.o:	api-init.c purple.h
@@ -52,6 +52,8 @@ strutil.o:	strutil.c strutil.h
 textbuf.o:	textbuf.c textbuf.h
 
 timeval.o:	timeval.c timeval.h
+
+xmlnode.o:	xmlnode.c xmlnode.h
 
 xmlutil.o:	xmlutil.c xmlutil.h
 
