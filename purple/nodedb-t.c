@@ -44,6 +44,13 @@ void nodedb_t_copy(NodeText *n, const NodeText *src)
 	n->buffers = dynarr_new_copy(src->buffers, cb_copy_buffer, NULL);
 }
 
+void nodedb_t_set(NodeText *n, const NodeText *src)
+{
+	/* FIXME: This could be quicker. */
+	nodedb_t_destruct(n);
+	nodedb_t_copy(n, src);
+}
+
 void nodedb_t_destruct(NodeText *n)
 {
 	unsigned int	i, num;
@@ -60,6 +67,7 @@ void nodedb_t_destruct(NodeText *n)
 		}
 	}
 	dynarr_destroy(n->buffers);
+	n->buffers = NULL;
 }
 
 const char * nodedb_t_language_get(const NodeText *node)

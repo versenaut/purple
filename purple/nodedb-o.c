@@ -90,6 +90,13 @@ void nodedb_o_copy(NodeObject *n, const NodeObject *src)
 	n->method_groups = dynarr_new_copy(src->method_groups, cb_copy_method_group, NULL);
 }
 
+void nodedb_o_set(NodeObject *n, const NodeObject *src)
+{
+	/* FIXME: This could be quicker. */
+	nodedb_o_destruct(n);
+	nodedb_o_copy(n, src);
+}
+
 void nodedb_o_destruct(NodeObject *n)
 {
 	List		*iter;
@@ -97,9 +104,11 @@ void nodedb_o_destruct(NodeObject *n)
 	NdbOMethodGroup	*g;
 
 	dynarr_destroy(n->links);
+	n->links = NULL;
 	for(iter = n->links_local; iter != NULL; iter = list_next(iter))
 		mem_free(list_data(iter));
 	list_destroy(n->links_local);
+	n->links_local = NULL;
 	for(i = 0; i < dynarr_size(n->method_groups); i++)
 	{
 		if((g = dynarr_index(n->method_groups, i)) && g->name[0] != '\0')
@@ -118,6 +127,7 @@ void nodedb_o_destruct(NodeObject *n)
 		}
 	}
 	dynarr_destroy(n->method_groups);
+	n->method_groups = NULL;
 }
 
 void nodedb_o_light_set(NodeObject *n, real64 red, real64 green, real64 blue)

@@ -24,6 +24,7 @@ typedef struct
 
 extern void		nodedb_t_construct(NodeText *n);
 extern void		nodedb_t_copy(NodeText *n, const NodeText *src);
+extern void		nodedb_t_set(NodeText *n, const NodeText *src);
 extern void		nodedb_t_destruct(NodeText *n);
 
 extern const char *	nodedb_t_language_get(const NodeText *node);

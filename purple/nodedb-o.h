@@ -49,6 +49,7 @@ typedef struct
 
 extern void		nodedb_o_construct(NodeObject *n);
 extern void		nodedb_o_copy(NodeObject *n, const NodeObject *src);
+extern void		nodedb_o_set(NodeObject *n, const NodeObject *src);
 extern void		nodedb_o_destruct(NodeObject *n);
 
 extern void		nodedb_o_light_set(NodeObject *n, real64 red, real64 green, real64 blue);
