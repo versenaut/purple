@@ -150,6 +150,7 @@ PONode *	p_output_node(PPOutput out, PINode *node);
 /* Create an output node from scratch. */
 PONode *	p_output_node_create(PPOutput out, VNodeType type, uint32 label);
 
+/* This should probably never be used. FIXME: Well? */
 PONode *	p_output_node_copy(PPOutput out, PINode *node, uint32 label);
 
 /* Retreive object link target, copy it, and update link to point to new copy. */
@@ -157,9 +158,6 @@ PONode *	p_output_node_o_link(PPOutput out, PONode *node, const char *label);
 
 /* Pass on an input node *directly*, does not (as other create calls do) copy it. Dangerous. */
 PONode *	p_output_node_pass(PPOutput out, PINode *node);
-
-/* Creates a new empty output node for editing/data creation. */
-/*PONode * 	p_output_node_create(PPOutput out, VNodeType type, const char *name);*/
 
 /* Fills in the various single-value slots in the output. */
 void		p_output_int32(PPOutput out,  int32 value);
