@@ -87,7 +87,7 @@ struct PPortSet
 	size_t		size;		/* Number of inputs in set. */
 	uint32		*use;		/* Bitmask telling if a value is present. */
 	PPort		*input;		/* Array of storage for inputs. */
-	PPInput		*port;		/* Array of pointers to storage, presented to plug-in code. */
+	PPInput		*port;		/* Array of pointers to storage, link-resolved, presented to plug-ins. */
 };
 
 static struct
