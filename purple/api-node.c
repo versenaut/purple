@@ -185,6 +185,13 @@ const char * p_node_tag_get_name(const PNTag *tag)
 	return nodedb_tag_get_name(tag);
 }
 
+VNTagType p_node_tag_get_type(const PNTag *tag)
+{
+	if(tag != NULL)
+		return ((NdbTag *) tag)->type;
+	return -1;
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 void p_node_o_light_set(PONode *node, real64 red, real64 green, real64 blue)
