@@ -671,10 +671,7 @@ void plugins_libraries_load(void)
 			int	j;
 
 			for(j = 0; j < filelist_size(fl); j++)
-			{
-				printf("attempting to load '%s'\n", filelist_filename_full(fl, j));
 				library_new(filelist_filename_full(fl, j));
-			}
 		}
 		else
 			LOG_MSG(("Couldn't load file list from \"%s\"", plugins_info.paths[i]));
