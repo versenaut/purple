@@ -138,16 +138,41 @@ static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 			{
 			case VN_G_LAYER_VERTEX_XYZ:
 				verse_send_g_vertex_set_real64_xyz(target->node.id, tlayer->id, i,
-							      ((real64 *) data)[0],
-							      ((real64 *) data)[1], 
-							      ((real64 *) data)[2]);
+							      ((const real64 *) data)[0],
+							      ((const real64 *) data)[1], 
+							      ((const real64 *) data)[2]);
+				break;
+			case VN_G_LAYER_VERTEX_UINT32:
+				verse_send_g_vertex_set_uint32(target->node.id, tlayer->id, i, ((const uint32 *) data)[0]);
+				break;
+			case VN_G_LAYER_VERTEX_REAL:
+				verse_send_g_vertex_set_real64(target->node.id, tlayer->id, i, ((const real64 *) data)[0]);
 				break;
 			case VN_G_LAYER_POLYGON_CORNER_UINT32:
 				verse_send_g_polygon_set_corner_uint32(target->node.id, tlayer->id, i,
-								       ((uint32 *) data)[0],
-								       ((uint32 *) data)[1],
-								       ((uint32 *) data)[2],
-								       ((uint32 *) data)[3]);
+								       ((const uint32 *) data)[0],
+								       ((const uint32 *) data)[1],
+								       ((const uint32 *) data)[2],
+								       ((const uint32 *) data)[3]);
+				break;
+			case VN_G_LAYER_POLYGON_CORNER_REAL:
+				verse_send_g_polygon_set_corner_real64(target->node.id, tlayer->id, i,
+								       ((const real64 *) data)[0],
+								       ((const real64 *) data)[1],
+								       ((const real64 *) data)[2],
+								       ((const real64 *) data)[3]);
+				break;
+			case VN_G_LAYER_POLYGON_FACE_UINT8:
+				verse_send_g_polygon_set_face_uint8(target->node.id, tlayer->id, i,
+								       ((const uint8 *) data)[0]);
+				break;
+			case VN_G_LAYER_POLYGON_FACE_UINT32:
+				verse_send_g_polygon_set_face_uint32(target->node.id, tlayer->id, i,
+								       ((const uint32 *) data)[0]);
+				break;
+			case VN_G_LAYER_POLYGON_FACE_REAL:
+				verse_send_g_polygon_set_face_real64(target->node.id, tlayer->id, i,
+								       ((const real64 *) data)[0]);
 				break;
 			default:
 				;
