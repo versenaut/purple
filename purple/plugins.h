@@ -4,6 +4,8 @@
 
 #include <stdarg.h>
 
+#include "dynstr.h"
+
 #include "purple.h"
 
 typedef struct Library	Library;
@@ -16,6 +18,7 @@ extern void	plugin_set_input(Plugin *p, int index, PInputType type, const char *
 extern void	plugin_set_meta(Plugin *p, const char *category, const char *text);
 extern void	plugin_set_compute(Plugin *p, void (*compute)(PPInput *input, PPOutput output, void *user), void *user);
 extern char *	plugin_describe(const Plugin *p);
+extern void	plugin_describe_append(const Plugin *p, DynStr *ds);
 extern void	plugin_destroy(Plugin *p);
 
 extern void	plugins_libraries_load(void);
@@ -23,4 +26,4 @@ extern void	plugins_libraries_init(void);
 extern void	plugins_register(Library *owner, Plugin *p);	/* Used internally. Frees p on failure. */
 
 extern size_t	plugins_amount(void);
-extern void	plugins_build_xml(void);
+extern char *	plugins_build_xml(void);

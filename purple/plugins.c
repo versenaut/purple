@@ -293,11 +293,24 @@ static int cb_describe_meta(const void *data, void *user)
 char * plugin_describe(const Plugin *p)
 {
 	DynStr	*d;
-	size_t	num;
 
 	/* Head. */
 	d = dynstr_new("<plug-in");
-	dynstr_append_printf(d, " name=\"%s\"", p->name);
+
+	plugin_describe_append(p, d);
+
+	return dynstr_destroy(d, 0);	/* Destroys dynstr, but keeps and returns buffer. */
+}
+
+void plugin_describe_append(const Plugin *p, DynStr *d)
+{
+	size_t	num;
+
+	if(p == NULL || d == NULL)
+		return;
+
+	/* Head. */
+	dynstr_append_printf(d, "<plug-in name=\"%s\"", p->name);
 	dynstr_append_printf(d, ">\n");
 
 	/* Any inputs? */
@@ -353,7 +366,6 @@ char * plugin_describe(const Plugin *p)
 	
 	/* Done. */
 	dynstr_append(d, "</plug-in>\n");
-	return dynstr_destroy(d, 0);	/* Destroys dynstr, but keeps and returns buffer. */
 }
 
 void plugin_destroy(Plugin *p)
@@ -514,16 +526,19 @@ size_t plugins_amount(void)
 
 static int cb_build_xml(const void *data, void *user)
 {
-	char	*desc;
-
-	desc = plugin_describe(data);
-	printf("'%s'\n\n", desc);
-	mem_free(desc);
+	plugin_describe_append(data, user);
 
 	return 1;
 }
 
-void plugins_build_xml(void)
+char * plugins_build_xml(void)
 {
-	hash_foreach(plugins_info.plugins, cb_build_xml, NULL);
+	DynStr	*d;
+
+	d = dynstr_new("<?xml version=\"1.0\" standalone=\"yes\"?>\n\n"
+			  "<purple-plugins>");
+	hash_foreach(plugins_info.plugins, cb_build_xml, d);
+	dynstr_append(d, "</purple-plugins>\n");
+
+	return dynstr_destroy(d, 0);
 }
