@@ -54,7 +54,7 @@ DynArr * dynarr_new(size_t elem_size, size_t page_size)
 	return da;
 }
 
-DynArr * dynarr_new_copy(const DynArr *src, void (*element_copy)(void *dst, const void *src))
+DynArr * dynarr_new_copy(const DynArr *src, void (*element_copy)(void *dst, const void *src, void *user), void *user)
 {
 	DynArr		*da;
 	unsigned int	i;
@@ -73,7 +73,7 @@ DynArr * dynarr_new_copy(const DynArr *src, void (*element_copy)(void *dst, cons
 		if(element_copy != NULL)
 		{
 			if((dst = dynarr_set(da, i, NULL)) != NULL)
-				element_copy(dst, dynarr_index(src, i));
+ 				element_copy(dst, dynarr_index(src, i), user);
 		}
 		else
 			dynarr_set(da, i, dynarr_index(src, i));
