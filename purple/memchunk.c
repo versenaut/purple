@@ -45,7 +45,7 @@ static void grow(MemChunk *chunk)
 		Block	*here = buf, *first = here;
 		size_t	i;
 
-		LOG_MSG(("Memchunk \"%s\" grew", chunk->name));
+/*		LOG_MSG(("Memchunk \"%s\" grew", chunk->name));*/
 
 		here->next = chunk->next;
 		for(i = 0; i < chunk->growth - 1; i++, here = (Block *) (here->next))
