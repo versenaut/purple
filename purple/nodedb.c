@@ -3,6 +3,7 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "verse.h"
 
@@ -39,6 +40,24 @@ void nodedb_register(Node *n)
 Node * nodedb_lookup(VNodeID node_id)
 {
 	return hash_lookup(nodedb_info.nodes, (const void *) node_id);
+}
+
+static int cb_lookup_name(const void *data, void *user)
+{
+	if(strcmp(((const Node *) data)->name, ((void **) user)[0]) == 0)
+	{
+		((void **) user)[1] = (void *) data;
+		return 0;
+	}
+	return 1;
+}
+
+Node * nodedb_lookup_by_name(const char *name)
+{
+	void	*data[2] = { (void *) name, NULL };	/* I'm too lazy for a struct. */
+	/* FIXME: This is completely inefficent. */
+	hash_foreach(nodedb_info.nodes, cb_lookup_name, data);
+	return data[1];
 }
 
 NodeObject * nodedb_lookup_object(VNodeID node_id)
