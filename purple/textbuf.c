@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "log.h"
 #include "mem.h"
 
 #include "textbuf.h"
@@ -53,6 +54,40 @@ TextBuf * textbuf_new(size_t initial_size)
 
 void textbuf_insert(TextBuf *tb, size_t offset, const char *text)
 {
+	size_t	len;
+
+	if(tb == NULL || text == NULL)
+		return;
+	if(offset > tb->length)
+		offset = tb->length ? tb->length - 1 : 0;
+	len = strlen(text);
+	if(len == 0)
+		return;
+
+	printf("insert %u chars at %u\n", len, offset);
+	if(tb->length + len + 1 > tb->alloc)
+	{
+		char	*nb;
+
+		printf(" growing buffer\n");
+		nb = mem_realloc(tb->buf, tb->length + len + ALLOC_EXTRA);
+		if(nb != NULL)
+		{
+			tb->buf = nb;
+			tb->alloc = tb->length + len + ALLOC_EXTRA;
+			printf("  done, got %u bytes\n", tb->alloc);
+		}
+		else
+		{
+			LOG_ERR(("Out of memory when growing text buffer"));
+			return;
+		}
+	}
+	memmove(tb->buf + offset + len, tb->buf + offset, len);
+	memcpy(tb->buf + offset, text, len);
+	tb->length += len;
+	tb->buf[tb->length] = '\0';
+	printf(" done, final length is %u\n", tb->length);
 }
 
 void textbuf_delete(TextBuf *tb, size_t offset, size_t length)
