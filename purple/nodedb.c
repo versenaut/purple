@@ -3,7 +3,9 @@
  * 
  * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
  * 
- * 
+ * Main node database file. Relies on co-module nodedb-X to handle nodes of type X.
+ * Node database is not very opaque, for performance reasons (synchronizer needs
+ * access to everything).
 */
 
 #include <stdio.h>
