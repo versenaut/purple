@@ -79,6 +79,32 @@ static int sync_head_tags(const Node *n, const Node *target)
 			continue;
 		if((tg = nodedb_tag_group_lookup(target, g->name)) != NULL)
 		{
+			unsigned int	j;
+			NdbTag		*tag, *ttag;
+
+			for(j = 0; (tag = dynarr_index(g->tags, j)) != NULL; j++)
+			{
+				if(tag->name[0] == '\0')
+					continue;
+				ttag = nodedb_tag_lookup(tg, tag->name);
+				if(ttag != NULL)
+				{
+					/* Tag exists, see if fields match. */
+					if(tag->type != ttag->type)
+					{
+						printf("tag type mismatch\n");
+					}
+					else if(!nodedb_tag_values_equal(tag, ttag))
+					{
+						printf("tag value mismatch\n");
+					}
+				}
+				else
+				{
+					verse_send_tag_create(target->id, i, ~0, tag->name, tag->type, &tag->value);
+					sync = 0;
+				}
+			}
 		}
 		else
 		{
