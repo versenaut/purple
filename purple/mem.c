@@ -24,7 +24,7 @@ void mem_mode_set(enum MemMode mode)
 	the_mode = mode;
 }
 
-static void * do_return(void *p, size_t size)
+static void * do_return(const char *src, void *p, size_t size)
 {
 	if(p != NULL)
 		return p;
@@ -33,10 +33,10 @@ static void * do_return(void *p, size_t size)
 	case MEM_NULL_RETURN:
 		return NULL;
 	case MEM_NULL_WARN:
-		LOG_WARN(("Failed to allocate %u bytes", size));
+		LOG_WARN(("Failed to %s %u bytes, returning NULL", src, size));
 		return NULL;
 	case MEM_NULL_ERROR:
-		LOG_ERR(("Failed to allocate %u bytes, aborting", size));
+		LOG_ERR(("Failed to %s %u bytes, aborting", src, size));
 		abort();
 	}
 	return NULL;
@@ -44,12 +44,12 @@ static void * do_return(void *p, size_t size)
 
 void * mem_alloc(size_t size)
 {
-	return do_return(malloc(size), size);
+	return do_return("malloc", malloc(size), size);
 }
 
 void * mem_realloc(void *ptr, size_t size)
 {
-	return do_return(realloc(ptr, size), size);
+	return do_return("realloc", realloc(ptr, size), size);
 }
 
 void mem_free(void *ptr)
