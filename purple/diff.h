@@ -12,9 +12,9 @@ typedef enum { DIFF_MATCH = 1, DIFF_DELETE, DIFF_INSERT } DiffOp;
 
 typedef struct
 {
-	DiffOp	op;
-	int	off;	/* Offset into a if MATCH or DELETE but b if INSERT. */
-	int	len;
+	short	op;	/* A DiffOp, but smaller. */
+	size_t	off;	/* Offset into a if MATCH or DELETE but b if INSERT. */
+	size_t	len;
 } DiffEdit;
 
 /* Simple comparison, cuts down on number of arguments needed. */
