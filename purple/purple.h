@@ -40,56 +40,6 @@ typedef enum
 typedef struct PPort	*PPInput;	/* An input is a pointer to a port. */
 typedef struct PPort	*PPOutput;	/* So is an output. Simplicity. */
 
-#if 0
-typedef enum
-{
-	P_INPUT_BOOLEAN = 0,
-	P_INPUT_INT32,
-	P_INPUT_UINT32,
-	P_INPUT_REAL32,
-	P_INPUT_REAL32_VEC2,
-	P_INPUT_REAL32_VEC3,
-	P_INPUT_REAL32_VEC4,
-	P_INPUT_REAL32_MAT16,
-	P_INPUT_REAL64,
-	P_INPUT_REAL64_VEC2,
-	P_INPUT_REAL64_VEC3,
-	P_INPUT_REAL64_VEC4,
-	P_INPUT_REAL64_MAT16,
-	P_INPUT_STRING,
-	P_INPUT_MODULE,
-} PInputType;
-
-typedef struct
-{
-	PInputType	type;		/* The type of value currently stored. */
-	union {
-	boolean	vboolean;
-	int32	vint32;
-	uint32	vuint32;
-	real32	vreal32;
-	real32	vreal32_vec2[2];
-	real32	vreal32_vec3[3];
-	real32	vreal32_vec4[4];
-	real32	vreal32_mat16[16];
-
-	real64	vreal64;
-	real64	vreal64_vec2[2];
-	real64	vreal64_vec3[3];
-	real64	vreal64_vec4[4];
-	real64	vreal64_mat16[16];
-
-	char	*vstring;
-	uint32	vmodule;
-	}	v;
-} PInputValue;
-
-/* "Ports" are used to model inputs and outputs. */
-typedef void 		PPort;
-typedef const PPort *	PPInput;
-typedef PPort *		PPOutput;
-#endif
-
 typedef enum
 {
 	P_INPUT_TAG_DONE = 0,
