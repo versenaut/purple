@@ -41,14 +41,14 @@ Node * nodedb_lookup(VNodeID node_id)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void notify_mine_check(Node *n)
+static void notify_mine_check(Node *n, NodeNotifyEvent ev)
 {
 	if(nodedb_info.notify_mine != NULL && n->owner == nodedb_info.avatar)
 	{
 		const List	*iter;
 
 		for(iter = nodedb_info.notify_mine; iter != NULL; iter = list_next(iter))
-			((void (*)(Node *node)) list_data(iter))(n);
+			((void (*)(Node *node, NodeNotifyEvent e)) list_data(iter))(n, ev);
 	}
 }
 
@@ -72,8 +72,9 @@ static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeID 
 		if(n->owner == nodedb_info.avatar)
 		{
 			hash_insert(nodedb_info.nodes_mine, (const void *) n->id, n);
-			notify_mine_check(n);
+			notify_mine_check(n, NODEDB_NOTIFY_CREATE);
 		}
+		verse_send_node_subscribe(node_id);
 	}
 	else
 		LOG_WARN(("Can't handle creation of node type %d--not implemented", type));
@@ -87,7 +88,7 @@ static void cb_node_name_set(void *user, VNodeID node_id, const char *name)
 	{
 		stu_strncpy(n->name, sizeof n->name, name);
 		LOG_MSG(("Name of %u set to \"%s\"", n->id, n->name));
-		notify_mine_check(n);
+		notify_mine_check(n, NODEDB_NOTIFY_DATA);
 	}
 	else
 		LOG_WARN(("Couldn't set name of node %u, not found in database", node_id));
@@ -114,7 +115,6 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 	for(i = 0; i < sizeof nodedb_info.chunk_node / sizeof *nodedb_info.chunk_node; i++)
 		nodedb_info.chunk_node[i] = NULL;
 	nodedb_info.chunk_node[V_NT_TEXT] = memchunk_new("chunk-node-text", sizeof (NodeText), 16);
-	printf("chunk for type %d is %p\n", V_NT_TEXT, nodedb_info.chunk_node[V_NT_TEXT]);
 
 	nodedb_info.nodes      = hash_new(node_hash, node_has_key);
 	nodedb_info.nodes_mine = hash_new(node_hash, node_has_key);
@@ -126,7 +126,7 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
  	verse_send_node_list(mask);
 }
 
-void nodedb_notify_add(NodeOwnership whose, void (*notify)(Node *node))
+void nodedb_notify_add(NodeOwnership whose, void (*notify)(Node *node, NodeNotifyEvent e))
 {
 	if(whose == NODEDB_OWNERSHIP_MINE)
 	{

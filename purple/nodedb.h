@@ -10,6 +10,7 @@ extern NodeText *	nodedb_lookup_text(VNodeID node_id);	/* Convenient. */
 extern Node *		nodedb_lookup_mine_by_name(const char *name);
 
 typedef enum { NODEDB_OWNERSHIP_ALL, NODEDB_OWNERSHIP_MINE, NODEDB_OWNERSHIP_OTHERS } NodeOwnership;
+typedef enum { NODEDB_NOTIFY_CREATE, NODEDB_NOTIFY_STRUCTURE, NODEDB_NOTIFY_DATA, NODEDB_NOTIFY_DELETE } NodeNotifyEvent;
 
 /* Add a callback that will be called when a change occurs in a node. */
-extern void		nodedb_notify_add(NodeOwnership whose, void (*notify)(Node *node));
+extern void		nodedb_notify_add(NodeOwnership whose, void (*notify)(Node *node, NodeNotifyEvent ev));
