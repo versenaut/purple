@@ -114,7 +114,13 @@ void		p_init_state(size_t size,
 			     void (*constructor)(void *state),
 			     void (*destructor)(void *state));
 
-void		p_init_compute(void (*compute)(PPInput *input, PPOutput output, void *state));
+typedef enum
+{
+	P_COMPUTE_DONE = 0,
+	P_COMPUTE_AGAIN
+} PComputeStatus;
+
+void		p_init_compute(PComputeStatus (*compute)(PPInput *input, PPOutput output, void *state));
 
 /* Read out inputs, registered earlier. One for each type. :/ If this wasn't in C, we could use meta
  * information to just say p_input(input) and have it return a value of the proper registered type.
@@ -167,9 +173,14 @@ PONode *	p_output_node(const PINode *node);
 PONode * 	p_output_node_create(VNodeType type, const char *name);
 
 /* Fills in the various single-value slots in the output. */
-void		p_output_uint32(uint32 value);
-void		p_output_real32(real32 value);
-void		p_output_real64(real64 value);
-void		p_output_string(const char *value);
+void		p_output_int32(PPOutput out,  int32 value);
+void		p_output_uint32(PPOutput out, uint32 value);
+void		p_output_real32(PPOutput out, real32 value);
+void		p_output_real32_vec2(PPOutput out, const real32 *value);
+void		p_output_real32_vec3(PPOutput out, const real32 *value);
+void		p_output_real32_vec4(PPOutput out, const real32 *value);
+void		p_output_real32_mat16(PPOutput out, const real32 *value);
+void		p_output_real64(PPOutput out, real64 value);
+void		p_output_string(PPOutput out, const char *value);
 
 #endif		/* PURPLE_H */
