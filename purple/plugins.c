@@ -13,6 +13,7 @@
 #include "dynstr.h"
 #include "filelist.h"
 #include "hash.h"
+#include "idset.h"
 #include "list.h"
 #include "log.h"
 #include "mem.h"
@@ -84,15 +85,15 @@ typedef struct
 
 struct Plugin
 {
-	uint32	id;
-	char	name[64];
-	Library	*library;
+	unsigned int	id;
+	char		name[64];
+	Library		*library;
 
-	DynArr	*input;
+	DynArr		*input;
 
-	Hash	*meta;
-	void	(*compute)(PPInput *input, PPOutput output, void *user);
-	void	*compute_user;
+	Hash		*meta;
+	void		(*compute)(PPInput *input, PPOutput output, void *user);
+	void		*compute_user;
 };
 
 static struct
@@ -102,21 +103,11 @@ static struct
 
 	MemChunk	*chunk_meta;
 
-	uint32		next_id;
-	Hash		*plugins;		/* All currently loaded, available plugins. */
+	IdSet		*plugins;
+	Hash		*plugins_name;		/* All currently loaded, available plugins. */
 } plugins_info = { NULL };
 
 /* ----------------------------------------------------------------------------------------- */
-
-static void plugins_id_reset(void)
-{
-	plugins_info.next_id = 1;
-}
-
-static uint32 plugins_id_get(void)
-{
-	return plugins_info.next_id++;
-}
 
 Plugin * plugin_new(const char *name)
 {
@@ -127,7 +118,6 @@ Plugin * plugin_new(const char *name)
 
 	if((p = mem_alloc(sizeof *p)) != NULL)
 	{
-		p->id = plugins_id_get();
 		stu_strncpy(p->name, sizeof p->name, name);
 		p->library = NULL;
 		p->meta = NULL;
@@ -383,7 +373,8 @@ void plugin_destroy(Plugin *p)
 {
 	if(p != NULL)
 	{
-		hash_remove(plugins_info.plugins, p);
+		idset_remove(plugins_info.plugins, p->id);
+		hash_remove(plugins_info.plugins_name, p);
 		dynarr_destroy(p->input);
 		hash_destroy(p->meta);
 		mem_free(p);
@@ -405,7 +396,8 @@ void plugins_init(const char *paths)
 {
 	paths_set(paths);
 	plugins_info.libraries = NULL;
-	plugins_info.plugins = hash_new_string();
+	plugins_info.plugins = idset_new(1);
+	plugins_info.plugins_name = hash_new_string();
 	plugins_info.chunk_meta  = memchunk_new("Meta", sizeof (MetaEntry), 4);
 }
 
@@ -472,7 +464,6 @@ void plugins_libraries_load(void)
 #else
 		const char	*suffix = ".so";
 #endif
-		plugins_id_reset();
 		if((fl = filelist_new(plugins_info.paths[i], suffix)) != NULL)
 		{
 			int	j;
@@ -492,12 +483,12 @@ void plugins_libraries_init(void)
 	for(iter = plugins_info.libraries; iter != NULL; iter = list_next(iter))
 	{
 		Library	*lib = list_data(iter);
-		size_t	num = hash_size(plugins_info.plugins);
+		size_t	num = idset_size(plugins_info.plugins);
 		LOG_MSG(("Initializing library \"%s\"", lib->name));
 		api_init_begin(lib);
 		lib->init();
 		api_init_end();
-		LOG_MSG(("Done, that added %u plug-ins", hash_size(plugins_info.plugins) - num));
+		LOG_MSG(("Done, that added %u plug-ins", idset_size(plugins_info.plugins) - num));
 	}
 }
 
@@ -519,7 +510,7 @@ void plugins_register(Library *owner, Plugin *p)
 		plugin_destroy(p);
 		return;
 	}
-	if(hash_lookup(plugins_info.plugins, p->name) != NULL)
+	if(hash_lookup(plugins_info.plugins_name, p->name) != NULL)
 	{
 		LOG_WARN(("Library \"%s\" attempted to register plugin \"%s\", which is already registered--ignored",
 			  owner->name, p->name));
@@ -527,13 +518,14 @@ void plugins_register(Library *owner, Plugin *p)
 		return;
 	}
 	p->library = owner;
-	hash_insert(plugins_info.plugins, p->name, p);
+	p->id = idset_insert(plugins_info.plugins, p);
+	hash_insert(plugins_info.plugins_name, p->name, p);
 	LOG_MSG(("Registered plug-in \"%s\" with %u inputs", p->name, dynarr_size(p->input)));
 }
 
 size_t plugins_amount(void)
 {
-	return hash_size(plugins_info.plugins);
+	return idset_size(plugins_info.plugins);
 }
 
 static int cb_build_xml(const void *data, void *user)
@@ -546,11 +538,20 @@ static int cb_build_xml(const void *data, void *user)
 
 char * plugins_build_xml(void)
 {
-	DynStr	*d;
+	unsigned int	id;
+	Plugin		*p;
+	DynStr		*d;
 
 	d = dynstr_new("<?xml version=\"1.0\" standalone=\"yes\"?>\n\n"
 			  "<purple-plugins>");
-	hash_foreach(plugins_info.plugins, cb_build_xml, d);
+	
+	for(id = idset_foreach_first(plugins_info.plugins); (p = idset_lookup(plugins_info.plugins, id)) != NULL;
+	    id = idset_foreach_next(plugins_info.plugins, id))
+	{
+		dynstr_append_c(d, '\n');
+		plugin_describe_append(p, d);
+	}
+/*	hash_foreach(plugins_info.plugins_name, cb_build_xml, d);*/
 	dynstr_append(d, "</purple-plugins>\n");
 
 	return dynstr_destroy(d, 0);
