@@ -75,12 +75,10 @@ void dynstr_assign(DynStr *str, const char *text)
 	if(str == NULL || text == NULL)
 		return;
 	len = strlen(text);
-	printf("len=%u existing=%u\n", len, str->len);
 	if(len <= str->len && len < 128)
 	{
 		strcpy(str->str, text);
 		str->len = len;
-		printf(" copied, text now '%s'\n", str->str);
 		return;
 	}
 	if((nb = mem_alloc(len + 1)) != NULL)
