@@ -10,6 +10,7 @@
 #include <sys/select.h>
 
 #include "verse.h"
+#include "purple.h"
 
 #include "cron.h"
 #include "dynarr.h"
@@ -366,6 +367,14 @@ static void console_update(void)
 
 				if(sscanf(line, "mc %u %u", &g, &p) == 2)
 					graph_method_send_call_mod_create(g, p);
+			}
+			else if(strncmp(line, "mis ", 4) == 0)
+			{
+				uint32	g, m, i;
+				real32	v;
+
+				if(sscanf(line, "mis %u %u %u %g", &g, &m, &i, &v) == 4)
+					graph_method_send_call_mod_input_set(g, m, i, P_INPUT_REAL32, v);
 			}
 			else if(strncmp(line, "nc ", 3) == 0)
 			{
