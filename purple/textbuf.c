@@ -95,7 +95,7 @@ void textbuf_delete(TextBuf *tb, size_t offset, size_t length)
 	if(tb == NULL)
 		return;
 	if(offset > tb->length)
-		offset = tb->length != 0 ? tb->length - 1 : 0;
+		return;
 	if(offset + length > tb->length)
 		length = tb->length - offset;
 	if(length == 0)
