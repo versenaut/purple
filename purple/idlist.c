@@ -1,5 +1,7 @@
 /*
- * 
+ * A list of IDs, used for dependent-tracking by graph modules. Tries to be at least marginally
+ * clever and store IDs below a certain (see header) limit efficiently as bits set in a mask,
+ * and resorting to an actual linked list for bigger IDs. Might work out okay.
 */
 
 #include "verse.h"
@@ -13,23 +15,24 @@
 
 #include "idlist.h"
 
-#define	QUICK_MAX	64
-
-struct IdList
-{
-	uint32	quick[QUICK_MAX/32];	/* *Must* be 32-bit, assumed in code below. */
-	List	*slow;
-};
+/* ----------------------------------------------------------------------------------------- */
 
 IdList * idlist_new(void)
 {
 	IdList	*il;
 
-	il = mem_alloc(sizeof *il);
-	memset(il->quick, 0, sizeof il->quick);
-	il->slow = NULL;
-
+	if((il = mem_alloc(sizeof *il)) != NULL)
+		idlist_construct(il);
 	return il;
+}
+
+void idlist_construct(IdList *il)
+{
+	if(il != NULL)
+	{
+		memset(il->quick, 0, sizeof il->quick);
+		il->slow = NULL;
+	}
 }
 
 void idlist_insert(IdList *il, unsigned int id)
@@ -75,14 +78,22 @@ void idlist_foreach(const IdList *il, int (*callback)(unsigned int id, void *dat
 			return;
 }
 
+void idlist_destruct(IdList *il)
+{
+	if(il != NULL)
+		list_destroy(il->slow);
+}
+
 void idlist_destroy(IdList *il)
 {
 	if(il != NULL)
 	{
-		list_destroy(il->slow);
+		idlist_destruct(il);
 		mem_free(il);
 	}
 }
+
+/* ----------------------------------------------------------------------------------------- */
 
 static int cb_test_as_string(unsigned int id, void *data)
 {
