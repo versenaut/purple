@@ -395,14 +395,17 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer, int *complete)
 			else if(st == TEXT)
 			{
 				dynstr_trim(token);
-				if(parent != NULL)
-					node_text_add(parent, token);
-				else
+				if(dynstr_length(token) > 0)
 				{
-					LOG_WARN(("Ignoring top-level text"));
-					dynstr_destroy(token, 1);
+					if(parent != NULL)
+						node_text_add(parent, token);
+					else
+					{
+						LOG_WARN(("Ignoring top-level text"));
+						dynstr_destroy(token, 1);
+					}
+					token = NULL;
 				}
-				token = NULL;
 			}
 		}
 		else
