@@ -94,7 +94,7 @@ static void graph_xml_build(uint32 id, const Graph *g, char *buf, size_t bufsize
 				" </graph>\n", id, g->name, g->node, g->buffer);
 }
 
-/* Go through all graphs, and recompute xml starting points. Handy when a graph has been
+/* Go through all graphs, and recompute XML starting points. Handy when a graph has been
  * deleted, or when the length of one or more graph's XML representation has changed.
 */
 static void graph_xml_renumber(void)
