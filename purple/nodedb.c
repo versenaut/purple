@@ -58,6 +58,15 @@ Node * nodedb_lookup(VNodeID node_id)
 	return hash_lookup(nodedb_info.nodes, (const void *) node_id);
 }
 
+Node * nodedb_lookup_with_type(VNodeID node_id, VNodeType type)
+{
+	Node	*n;
+
+	if((n = nodedb_lookup(node_id)) != NULL && n->type == type)
+		return n;
+	return NULL;
+}
+
 static int cb_lookup_name(const void *data, void *user)
 {
 	if(strcmp(((const Node *) data)->name, ((void **) user)[0]) == 0)
@@ -66,15 +75,6 @@ static int cb_lookup_name(const void *data, void *user)
 		return 0;
 	}
 	return 1;
-}
-
-Node * nodedb_lookup_with_type(VNodeID node_id, VNodeType type)
-{
-	Node	*n;
-
-	if((n = nodedb_lookup(node_id)) != NULL && n->type == type)
-		return n;
-	return NULL;
 }
 
 Node * nodedb_lookup_by_name(const char *name)
