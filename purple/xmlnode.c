@@ -63,7 +63,6 @@ static const char * token_get(const char *buffer, DynStr **token, int skip_space
 {
 	TokenStatus	dummy;
 	DynStr		*d;
-	int		in_tag = 0;
 
 	if(buffer == NULL || token == NULL)
 		return NULL;
