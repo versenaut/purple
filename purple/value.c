@@ -1,5 +1,7 @@
 /*
- * 
+ * Value management. Values are used to hold both things assigned to inputs, and the result of
+ * computation, i.e. output buffers. They are rather heavy-weight because of this duality, but
+ * it is hopefully worth it.
 */
 
 #include <stdarg.h>
@@ -532,12 +534,27 @@ real64 value_get_real64(const PValue *v, PValue *cache)
 	return get_as_real64(v);
 }
 
+static boolean get_as_real64_vec2(const PValue *v, real64 *vec)
+{
+	return FALSE;
+}
+
 const real64 * value_get_real64_vec2(const PValue *v, PValue *cache)
 {
 	if(v == NULL)
 		return NULL;
 	IF_SET(v, REAL64_VEC2)
 		return v->v.vreal64_vec2;
+	else if(cache != NULL)
+	{
+		IF_SET(cache, REAL64_VEC2)
+			return v->v.vreal64_vec2;
+		if(get_as_real64_vec2(v, &cache->v.vreal64))
+		{
+			DO_SET(cache, REAL64_VEC2);
+			return v->v.vreal64_vec2;
+		}
+	}
 	return NULL;	/* FIXME: Implement heuristics. */
 }
 
