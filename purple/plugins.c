@@ -465,7 +465,6 @@ void plugin_inputset_set_va(PInputSet *is, unsigned int index, PInputType type, 
 	{
 	case P_INPUT_REAL32:
 		is->value[index].vreal32 = va_arg(arg, double);
-		printf("module input %u set to %g\n", index, is->value[index].vreal32);
 		break;
 	}
 	is->use[index / 32] |= 1 << (index % 32);
