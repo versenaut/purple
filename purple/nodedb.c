@@ -131,7 +131,8 @@ Node * nodedb_new(VNodeType type)
 	{
 		Node	*n = (Node *) memchunk_alloc(ch);
 
-		n->id         = 0U;
+		n->ref	      = 0;	/* Caller must ref() immediately. */
+		n->id         = ~0U;	/* Identify as locally created (non-host-approved) node. */
 		n->type       = type;
 		n->name[0]    = '\0';
 		n->owner      = 0U;
@@ -155,7 +156,6 @@ Node * nodedb_new(VNodeType type)
 		default:
 			LOG_WARN(("Missing node-specific init code for type %d", type));
 		}
-
 		return n;
 	}
 	return NULL;
@@ -178,7 +178,7 @@ Node * nodedb_new_copy(const Node *src)
 		return NULL;
 	if((n = nodedb_new(src->type)) != NULL)
 	{
-		n->id = 0;
+		n->id = src->id;
 		n->type = src->type;
 		strcpy(n->name, src->name);
 		n->owner = src->owner;
@@ -247,6 +247,27 @@ void nodedb_destroy(Node *n)
 
 /* ----------------------------------------------------------------------------------------- */
 
+void nodedb_ref(Node *node)
+{
+	if(node != NULL)
+		node->ref++;
+}
+
+int nodedb_unref(Node *node)
+{
+	if(node != NULL)
+	{
+		node->ref--;
+		if(node->ref <= 0)
+		{
+			LOG_MSG(("Node %u (%s) has zero references, destroying", node->id, node->name));
+			nodedb_destroy(node);
+			return 1;
+		}
+	}
+	return 0;
+}
+
 void nodedb_rename(Node *node, const char *name)
 {
 	if(node == NULL || name == NULL)
@@ -262,9 +283,10 @@ static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeOwn
 
 	if((n = nodedb_new(type)) != NULL)
 	{
-		n->id    = node_id;
+		n->id    = node_id;	/* Set ID to actual host-assigned value. */
 		n->owner = ownership;
 		hash_insert(nodedb_info.nodes, (const void *) n->id, n);
+		nodedb_ref(n);
 		LOG_MSG(("Stored node %u, type %d", node_id, type));
 		if(n->owner == VN_OWNER_MINE)
 		{

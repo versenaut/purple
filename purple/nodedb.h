@@ -7,17 +7,19 @@ typedef struct
 	char		name[VN_TAG_NAME_SIZE];
 	VNTagType	type;
 	VNTag		value;
-} Tag;
+} NdbTag;
 
 typedef struct
 {
 	char		name[VN_TAG_GROUP_SIZE];
 	DynArr		*tags;
-} TagGroup;
+} NdbTagGroup;
 
 /* This is typedef:ed to Node in the public purple.h header. */
 struct Node
 {
+	int		ref;		/* Reference count. When decresed to zero, node is destroyed. */
+
 	VNodeID		id;
 	VNodeType	type;
 	char		name[32];
@@ -25,6 +27,12 @@ struct Node
 	DynArr		*tag_groups;
 
 	List		*notify;
+
+	union
+	{
+	Node		*parent;	/* Used in output node to keep track of original. */
+	Node		*child;		/* Used in input node to keep track of copy. */
+	}		copy;
 };
 
 #include "nodedb-b.h"
@@ -43,6 +51,13 @@ extern NodeText *	nodedb_lookup_text(VNodeID node_id);
 extern Node *		nodedb_new(VNodeType type);
 extern Node *		nodedb_new_copy(const Node *src);
 extern void		nodedb_destroy(Node *n);
+
+/* Nodes are reference counted. Users are supposed to call nodedb_new(), then immediately ref() the
+ * created node on success (initial count is zero). Calling unref() will decrease count by one, and
+ * automatically destroy the node if it went below one.
+*/
+extern void		nodedb_ref(Node *n);
+extern int		nodedb_unref(Node *n);	/* Returns 1 if node was destroyed. */
 
 extern void		nodedb_rename(Node *node, const char *name);
 
