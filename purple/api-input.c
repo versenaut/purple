@@ -265,6 +265,11 @@ const char * p_input_string(PPInput input, char *buffer, size_t buf_max)
 
 #endif
 
+boolean p_input_boolean(PPInput input)
+{
+	return port_input_boolean(input);
+}
+
 uint32 p_input_uint32(PPInput input)
 {
 	return port_input_uint32(input);
@@ -277,11 +282,7 @@ real32 p_input_real32(PPInput input)
 
 const char * p_input_string(PPInput input)
 {
-	const char	*str;
-
-	if((str = port_input_string(input)) == NULL)
-		str = nodeset_get_string(input->nodes);
-	return str;
+	return port_input_string(input);
 }
 
 PINode * p_input_node(PPInput input)
