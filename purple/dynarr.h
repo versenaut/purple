@@ -24,9 +24,10 @@ extern void	dynarr_set_default(DynArr *da, const void *element);
 extern void *	dynarr_index(const DynArr *da, unsigned index);
 
 /* Set the given index to the given content. Causes the array to re-allocate itself if
- * the indicated position is outside its current bounds.
+ * the indicated position is outside its current bounds. Returns pointer to element in
+ * array. The initializer <element> may be NULL to do allocation only.
 */
-extern void	dynarr_set(DynArr *da, unsigned int index, const void *element);
+extern void *	dynarr_set(DynArr *da, unsigned int index, const void *element);
 
 /* Does a set on the next non-allocated index. Returns index. */
 extern unsigned int	dynarr_append(DynArr *da, const void *element);

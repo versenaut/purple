@@ -67,10 +67,10 @@ void * dynarr_index(const DynArr *da, unsigned index)
 	return NULL;
 }
 
-void dynarr_set(DynArr *da, unsigned int index, const void *element)
+void * dynarr_set(DynArr *da, unsigned int index, const void *element)
 {
-	if(da == NULL || element == NULL)
-		return;
+	if(da == NULL)
+		return NULL;
 	if(index >= da->alloc)
 	{
 		size_t	size;
@@ -100,9 +100,11 @@ void dynarr_set(DynArr *da, unsigned int index, const void *element)
 		else
 			LOG_ERR(("Dynamic array couldn't grow to %u elements; realloc() failed", da->alloc + da->page_size));
 	}
-	memcpy((char *) da->data + index * da->elem_size, element, da->elem_size);
+	if(element != NULL)
+		memcpy((char *) da->data + index * da->elem_size, element, da->elem_size);
 	if(index >= da->next)
 		da->next = index + 1;
+	return (char *) da->data + index * da->elem_size;
 }
 
 unsigned int dynarr_append(DynArr *da, const void *element)
