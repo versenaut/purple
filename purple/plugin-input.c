@@ -23,8 +23,9 @@
 /* A struct like this is associated with every instance of this plug-in. */
 typedef struct
 {
-	Node	*notify;
-	void	*notify_handle;
+	Node		*notify;
+	void		*notify_handle;
+	PPOutput	output;
 } State;
 
 /* ----------------------------------------------------------------------------------------- */
@@ -45,6 +46,8 @@ static void compute(PPInput *input, PPOutput output, void *state_typeless)
 {
 	const char	*name;
 	State		*state = state_typeless;
+
+	state->output = output;
 
 	if((name = p_input_string(input[0])) != NULL)
 	{
