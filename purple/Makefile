@@ -17,10 +17,10 @@ LDLIBS=-ldl -lverse -lm
 purple:		purple.c \
 		api-init.o api-input.o api-output.o \
 		client.o cron.o dynarr.o dynlib.o dynstr.o graph.o \
-		filelist.o hash.o idset.o list.o log.o mem.o memchunk.o \
+		filelist.o hash.o idlist.o idset.o list.o log.o mem.o memchunk.o \
 		nodedb.o nodedb-o.o nodedb-t.o \
 		plugins.o plugin-input.o \
-		port.o strutil.o textbuf.o timeval.o value.o vecutil.o xmlnode.o xmlutil.o \
+		port.o scheduler.o strutil.o textbuf.o timeval.o value.o vecutil.o xmlnode.o xmlutil.o \
 		$(VERSE)/libverse.a
 
 api-init.o:	api-init.c purple.h
@@ -45,6 +45,8 @@ graph.o:	graph.c graph.h
 
 hash.o:		hash.c hash.h
 
+idlist.o:	idlist.c idlist.h
+
 idset.o:	idset.c idset.h
 
 list.o:		list.c list.h
@@ -66,6 +68,8 @@ plugins.o:	plugins.c plugins.h
 plugin-input.o:	plugin-input.c purple.h
 
 port.o:		port.c port.h value.h
+
+scheduler.o:	scheduler.c scheduler.h
 
 strutil.o:	strutil.c strutil.h
 
