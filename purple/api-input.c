@@ -5,6 +5,8 @@
 #include <stdio.h>
 
 #include "log.h"
+#include "vecutil.h"
+
 #include "purple.h"
 #include "plugins.h"
 
@@ -22,16 +24,25 @@ static int input_real64(const PInputValue *v, real64 *value)
 	{
 	case P_INPUT_BOOLEAN:
 		*value = v->v.vboolean;
+		break;
 	case P_INPUT_INT32:
 		*value = v->v.vint32;
+		break;
 	case P_INPUT_UINT32:
 		*value = v->v.vuint32;
+		break;
 	case P_INPUT_REAL32:
 		*value = v->v.vreal32;
+		break;
+	case P_INPUT_REAL32_VEC2:
+		*value = vec_real32_vec2_magnitude(v->v.vreal32_vec2);
+		break;
 	case P_INPUT_REAL64:
 		*value = v->v.vreal64;
+		break;
 	case P_INPUT_STRING:
 		*value = strtod(v->v.vstring, NULL);
+		break;
 	default:
 		return 0;
 	}
