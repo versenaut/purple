@@ -12,6 +12,7 @@
 #include "log.h"
 #include "strutil.h"
 #include "value.h"
+#include "port.h"
 #include "vecutil.h"
 
 #include "plugins.h"
