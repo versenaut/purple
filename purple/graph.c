@@ -150,8 +150,8 @@ static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 
 static void graph_rename(uint32 id, const char *name)
 {
-	Graph		*g;
-	char		xml[256];
+	Graph	*g;
+	char	xml[256];
 
 	if((g = dynarr_index(graph_info.graphs, id)) == NULL || g->name[0] == '\0')
 	{
@@ -176,7 +176,7 @@ static void graph_rename(uint32 id, const char *name)
 
 static void graph_destroy(uint32 id)
 {
-	Graph		*g;
+	Graph	*g;
 
 	if((g = dynarr_index(graph_info.graphs, id)) == NULL || g->name[0] == '\0')
 	{
