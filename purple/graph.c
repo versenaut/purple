@@ -234,11 +234,31 @@ static void graph_destroy(uint32 id)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void module_build_desc(const Module *m, DynStr *d)
+static DynStr * module_build_desc(const Module *m)
 {
+	DynStr	*d;
+
+	d = dynstr_new_sized(256);
 	dynstr_append_printf(d, " <module id=\"%u\" plug-in=\"%u\">\n", m->id, plugin_id(m->plugin));
 	plugin_inputset_describe(m->inputs, d);
 	dynstr_append(d, " </module>\n");
+
+	return d;
+}
+
+static void modules_desc_start_update(Graph *g)
+{
+	unsigned int	id;
+	Module		*m;
+	size_t		pos;
+
+	for(id = idset_foreach_first(g->modules), pos = g->desc_start;
+	    (m = idset_lookup(g->modules, id)) != NULL;
+	    id = idset_foreach_next(g->modules, id))
+	{
+		m->start = pos;
+		pos += m->length;
+	}
 }
 
 static void module_create(uint32 graph_id, uint32 plugin_id)
@@ -266,17 +286,15 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 	}
 	m->plugin = p;
 	m->inputs = plugin_inputset_new(m->plugin);
-	printf("Module creeted, inputset at %p\n", m->inputs);
 	m->start = m->length = 0;
 	if(g->modules == NULL)
 		g->modules = idset_new(0);
 	m->id = idset_insert(g->modules, m);
 	LOG_MSG(("Instantiated plugin %u (%s) as module %u in graph %u (%s)", plugin_id, plugin_name(p), m->id, graph_id, g->name));
-	desc = dynstr_new_sized(256);
-	module_build_desc(m, desc);
+	desc = module_build_desc(m);
 	m->length = dynstr_length(desc);
-	verse_send_t_text_set(g->node, g->buffer, g->desc_start, 0, dynstr_string(desc));
-	printf("Sent %u chars of desc to %u.%u: '%s'\n", m->length, g->node, g->buffer, dynstr_string(desc));
+	modules_desc_start_update(g);
+	verse_send_t_text_set(g->node, g->buffer, m->start, 0, dynstr_string(desc));
 	dynstr_destroy(desc, 1);
 }
 
@@ -297,20 +315,21 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 		LOG_WARN(("Attempted to set module input in non-existant module %u.%u", graph_id, module_id));
 		return;
 	}
-
 	va_start(arg, type);
 	plugin_inputset_set_va(m->inputs, input_index, type, arg);
 	va_end(arg);
-	desc = dynstr_new_sized(256);
-	module_build_desc(m, desc);
-	printf("Desc with input set:\n%s", dynstr_string(desc));
+	desc = module_build_desc(m);
+	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, dynstr_string(desc));
+	m->length = dynstr_length(desc);
 	dynstr_destroy(desc, 1);
+	modules_desc_start_update(g);
 }
 
 static void module_input_clear(uint32 graph_id, uint32 module_id, uint8 input_index)
 {
 	Graph	*g;
 	Module	*m;
+	DynStr	*desc;
 
 	if((g = idset_lookup(graph_info.graphs, graph_id)) == NULL)
 	{
@@ -324,9 +343,10 @@ static void module_input_clear(uint32 graph_id, uint32 module_id, uint8 input_in
 	}
 
 	plugin_inputset_clear(m->inputs, input_index);
-/*	module_build_desc(m, xml, sizeof xml);
-	printf("Desc with input cleared:\n%s", xml);
-*/
+	desc = module_build_desc(m);
+	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, dynstr_string(desc));
+	dynstr_destroy(desc, 1);
+	modules_desc_start_update(g);
 }
 
 /* ----------------------------------------------------------------------------------------- */
