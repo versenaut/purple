@@ -19,6 +19,9 @@ static struct
 
 /* ----------------------------------------------------------------------------------------- */
 
+/* Begin use of Init API, expecting calls to come from code held in <owner>. If the owning
+ * library is NULL, a "magical" plug-in that is part of the Purple core is being initialized.
+*/
 void api_init_begin(Library *owner)
 {
 	init_info.owner = owner;
@@ -62,6 +65,11 @@ void p_init_input(int index, PInputType type, const char *name, ...)
 	va_start(args, name);
 	plugin_set_input(init_info.plugin, index, type, name, args);
 	va_end(args);
+}
+
+void p_init_state(size_t size)
+{
+	plugin_set_state(init_info.plugin, size);
 }
 
 void p_init_compute(void (*compute)(PPInput *input, PPOutput output, void *state))
