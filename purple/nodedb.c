@@ -41,6 +41,15 @@ Node * nodedb_lookup(VNodeID node_id)
 	return hash_lookup(nodedb_info.nodes, (const void *) node_id);
 }
 
+NodeObject * nodedb_lookup_object(VNodeID node_id)
+{
+	Node	*n;
+
+	if((n = nodedb_lookup(node_id)) != NULL)
+		return n->type == V_NT_OBJECT ? (NodeObject *) n : NULL;
+	return NULL;
+}
+
 NodeText * nodedb_lookup_text(VNodeID node_id)
 {
 	Node	*n;

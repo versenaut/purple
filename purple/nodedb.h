@@ -30,7 +30,8 @@ typedef struct
 extern void		nodedb_register_callbacks(VNodeID avatar, uint32 mask);
 
 extern Node *		nodedb_lookup(VNodeID node_id);
-extern NodeText *	nodedb_lookup_text(VNodeID node_id);	/* Convenient. */
+extern NodeObject *	nodedb_lookup_object(VNodeID node_id);	/* Convenient. */
+extern NodeText *	nodedb_lookup_text(VNodeID node_id);
 
 extern Node *		nodedb_lookup_mine_by_name(const char *name);
 
