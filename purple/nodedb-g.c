@@ -273,6 +273,24 @@ void nodedb_g_vertex_set_xyz(NdbGLayer *layer, uint32 vertex_id, real64 x, real6
 	}
 }
 
+void nodedb_g_vertex_delete(NdbGLayer *layer, uint32 vertex_id)
+{
+	if(layer == NULL)
+		return;
+	if(layer->data == NULL)
+		return;
+	if(vertex_id < dynarr_size(layer->data))
+	{
+		real64	*vtx = dynarr_index(layer->data, vertex_id);
+
+		if(vtx != NULL)
+		{
+			vtx[0] = vtx[1] = vtx[2] = V_REAL64_MAX;
+			printf("vertex %u.%u deleted at %p\n", layer->id, vertex_id, vtx);
+		}
+	}
+}
+
 void nodedb_g_vertex_get_xyz(const NdbGLayer *layer, uint32 vertex_id, real64 *x, real64 *y, real64 *z)
 {
 	real64	*vtx;
@@ -446,6 +464,19 @@ POLYGON_FACE(uint32)
 POLYGON_FACE(real32)
 POLYGON_FACE(real64)
 
+static void cb_g_vertex_delete(void *user, VNodeID node_id, uint32 vertex_id)
+{
+	NodeGeometry	*node;
+	NdbGLayer	*layer;
+
+	printf("got vertex_delete, %u %u\n", node_id, vertex_id);
+	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
+		return;
+	if((layer = nodedb_g_layer_lookup_id(node, 0)) == NULL || layer->name[0] == '\0')
+		return;
+	nodedb_g_vertex_delete(layer, vertex_id);
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 void nodedb_g_crease_set_vertex(NodeGeometry *n, const char *layer, uint32 def)
@@ -529,6 +560,8 @@ void nodedb_g_register_callbacks(void)
 
 	verse_callback_set(verse_send_g_vertex_set_xyz_real32,		cb_g_vertex_set_xyz_real32,	NULL);
 	verse_callback_set(verse_send_g_vertex_set_xyz_real64,		cb_g_vertex_set_xyz_real64,	NULL);
+	verse_callback_set(verse_send_g_vertex_delete_real32,		cb_g_vertex_delete,		NULL);
+	verse_callback_set(verse_send_g_vertex_delete_real64,		cb_g_vertex_delete,		NULL);
 	verse_callback_set(verse_send_g_vertex_set_uint32,		cb_g_vertex_set_uint32,		NULL);
 	verse_callback_set(verse_send_g_vertex_set_real32,		cb_g_vertex_set_real32,		NULL);
 	verse_callback_set(verse_send_g_vertex_set_real64,		cb_g_vertex_set_real64,		NULL);
