@@ -85,7 +85,8 @@ static int find_middle_snake(const void *a, int aoff, int n,
 		Context *ctx,
 		Snake *ms)
 {
-	int	delta, odd, mid, d;
+	int			delta, odd, mid, d;
+	const unsigned char	*a0, *b0;
 
 	delta = n - m;
 	odd = delta & 1;
@@ -112,11 +113,8 @@ static int find_middle_snake(const void *a, int aoff, int n,
 
 			ms->x = x;
 			ms->y = y;
-			{
-				const unsigned char *a0 = a + aoff;
-				const unsigned char *b0 = b + boff;
-				for(; x < n && y < m && a0[x] == b0[y]; x++, y++);
-			}
+			for(a0 = a + aoff, b0 = b + boff; x < n && y < m && a0[x] == b0[y]; x++, y++)
+				;
 			v_set(ctx, k, 0, x);
 
 			if(odd && k >= (delta - (d - 1)) && k <= (delta + (d - 1)))
@@ -141,11 +139,8 @@ static int find_middle_snake(const void *a, int aoff, int n,
 
 			ms->u = x;
 			ms->v = y;
-			{
-				const unsigned char *a0 = a + aoff;
-				const unsigned char *b0 = b + boff;
-				for(;x > 0 && y > 0 && a0[x - 1] == b0[y - 1]; x--, y--);
-			}
+			for(a0 = a + aoff, b0 = b + boff;x > 0 && y > 0 && a0[x - 1] == b0[y - 1]; x--, y--)
+				;
 			v_set(ctx, kr, 1, x);
 
 			if(!odd && kr >= -d && kr <= d)
@@ -261,10 +256,11 @@ int diff_compare(const void *a, int aoff, int n,
 	 const void *b, int boff, int m,
 	 int dmax, DynArr *ses, int *sn, DynArr *buf)
 {
-	Context	ctx;
-	int	d = 0, x, y;
-	DiffEdit *e = NULL;
-	DynArr	*tmp;
+	Context			ctx;
+	int			d = 0, x, y;
+	DiffEdit 		*e = NULL;
+	DynArr			*tmp;
+	const unsigned char	*a0, *b0;
 
 	if(buf != NULL)
 		ctx.buf = buf;
@@ -294,14 +290,9 @@ int diff_compare(const void *a, int aoff, int n,
           * that match entirely.
           */
 	x = y = 0;
-	{
-		const unsigned char *a0 = a + aoff;
-		const unsigned char *b0 = b + boff;
-		for(; x < n && y < m && a0[x] == b0[y]; x++, y++);
-	}
+	for(a0 = a + aoff, b0 = b + boff; x < n && y < m && a0[x] == b0[y]; x++, y++)
+		;
 	edit(&ctx, DIFF_MATCH, aoff, x);
-
-	printf("destroying temporary, size=%u\n", dynarr_size(tmp));
 
 	if((d = ses_compute(a, aoff + x, n - x, b, boff + y, m - y, &ctx)) == -1)
 	{
@@ -315,4 +306,9 @@ int diff_compare(const void *a, int aoff, int n,
 	if(buf == NULL)
 		dynarr_destroy(tmp);
 	return d;
+}
+
+int diff_compare_simple(const void *a, size_t n, const void *b, size_t m, DynArr *edits)
+{
+	return diff_compare(a, 0, n,  b, 0, m,  -1, edits, NULL, NULL);
 }
