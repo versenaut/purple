@@ -7,8 +7,8 @@
 #include "purple.h"
 
 #include "dynstr.h"
-#include "nodeset.h"
 #include "value.h"
+#include "nodeset.h"
 
 #include "port.h"
 
@@ -68,7 +68,16 @@ int port_set_node(PPort *port, PONode *node)
 }
 
 /* Save some typing in these (inelegant?) accessor function definitions. Trampolines. */
-#define	ACCESSOR(t, n)	t port_input_ ##n (PPort *port) { return value_get_ ##n (&port->value, &port->cache); }
+#define	ACCESSOR(t, n)	t port_input_ ##n (PPort *port)\
+{\
+	t	tmp;\
+\
+	if(value_get_ ## n(&port->value, &port->cache, &tmp))\
+		return tmp;\
+	if(nodeset_get_ ## n(port->nodes, &port->cache))\
+		return port->cache.v.v ## n;\
+	return tmp;	/* FIXME: This should be the default value, not uninitialized junk. :) */ \
+}
 
 ACCESSOR(boolean, boolean)
 ACCESSOR(int32, int32)
@@ -84,7 +93,6 @@ ACCESSOR(const real64 *, real64_vec3)
 ACCESSOR(const real64 *, real64_vec4)
 ACCESSOR(const real64 *, real64_mat16)
 ACCESSOR(const char *, string)
-ACCESSOR(uint32, module)
 
 PINode * port_input_node(PPort *port)
 {

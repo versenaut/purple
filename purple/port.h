@@ -34,5 +34,4 @@ extern const real64 *	port_input_real64_vec3(PPort *port);
 extern const real64 *	port_input_real64_vec4(PPort *port);
 extern const real64 *	port_input_real64_mat16(PPort *port);
 extern const char *	port_input_string(PPort *port);
-extern uint32		port_input_module(PPort *port);
 extern PINode *		port_input_node(PPort *port);
