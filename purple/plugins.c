@@ -73,8 +73,8 @@ struct Plugin
 	DynArr		*input;
 
 	Hash		*meta;
-	void		(*compute)(PPInput *input, PPOutput output, void *user);
-	void		*compute_user;
+	void		(*compute)(PPInput *input, PPOutput output, void *state);
+	MemChunk	*state;		/* Instance state blocks allocated from here. */
 };
 
 struct PInputSet
@@ -166,7 +166,7 @@ Plugin * plugin_new(const char *name)
 		p->input = NULL;
 		p->meta = NULL;
 		p->compute = NULL;
-		p->compute_user = NULL;
+		p->state = NULL;
 	}
 	return p;
 }
@@ -365,12 +365,24 @@ void plugin_set_meta(Plugin *p, const char *category, const char *text)
 	}
 }
 
-void plugin_set_compute(Plugin *p, void (*compute)(PPInput *input, PPOutput output, void *user), void *user)
+void plugin_set_state(Plugin *p, size_t size)
+{
+	if(p == NULL)
+		return;
+	if(p->state != NULL)
+	{
+		memchunk_destroy(p->state);
+		p->state = NULL;
+	}
+	if(size > 0)
+		p->state = memchunk_new(p->name, size, 4);
+}
+
+void plugin_set_compute(Plugin *p, void (*compute)(PPInput *input, PPOutput output, void *state))
 {
 	if(p != NULL && compute != NULL)
 	{
 		p->compute = compute;
-		p->compute_user = user;
 	}
 }
 
@@ -689,7 +701,7 @@ void plugin_inputset_destroy(PInputSet *is)
 	mem_free(is);
 }
 
-void plugin_run_compute(Plugin *p, PInputSet *is)
+void plugin_run_compute(Plugin *p, PInputSet *is, void *state)
 {
 	PPInput	*port;
 
@@ -709,7 +721,46 @@ void plugin_run_compute(Plugin *p, PInputSet *is)
 				return;
 			}
 		}
-		p->compute(port, NULL, p->compute_user);
+		p->compute(port, NULL, state);
+	}
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
+int plugin_instance_init(Plugin *p, PInstance *inst)
+{
+	if(p == NULL || inst == NULL)
+		return 0;
+	if((inst->inputs = plugin_inputset_new(p)) == NULL)
+		return 0;
+	if(p->state != NULL)
+	{
+		if((inst->state = memchunk_alloc(p->state)) != NULL)
+		{
+			memset(inst->state, 0, memchunk_chunk_size(p->state));
+			return 1;
+		}
+		plugin_inputset_destroy(inst->inputs);
+		inst->inputs = NULL;
+		return 0;
+	}
+	inst->state = NULL;
+	return 1;
+}
+
+void plugin_instance_free(Plugin *p, PInstance *inst)
+{
+	if(p == NULL || inst == NULL)
+		return;
+	if(inst->inputs != NULL)
+	{
+		plugin_inputset_destroy(inst->inputs);
+		inst->inputs = NULL;
+	}
+	if(inst->state != NULL)
+	{
+		memchunk_free(p->state, inst->state);
+		inst->state = NULL;
 	}
 }
 
