@@ -100,7 +100,7 @@ void p_node_tag_create_path(PONode *node, const char *path, VNTagType type, ...)
 
 	if(node == NULL || path == NULL || *path == '\0')
 		return;
-	for(put = group; *path != '/' && (put - group) < (sizeof group - 1);)
+	for(put = group; *path != '/' && (size_t) (put - group) < (sizeof group - 1);)
 		*put++ = *path++;
 	*put = '\0';
 	if(*path == '/')
@@ -164,7 +164,7 @@ void p_node_tag_destroy_path(PONode *node, const char *path)
 
 	if(node == NULL || path == NULL || *path == '\0')
 		return;
-	for(put = group; *path != '\0' && *path != '/' && (put - group) < (sizeof group - 1);)
+	for(put = group; *path != '\0' && *path != '/' && (size_t) (put - group) < (sizeof group - 1);)
 		*put++ = *path++;
 	*put = '\0';
 	if(*path == '/')
@@ -361,7 +361,7 @@ void p_node_m_fragment_iter(PINode *node, PIter *iter)
 
 VNMFragmentType p_node_m_fragment_get_type(const PNMFragment *fragment)
 {
-	return fragment != NULL ? ((NdbMFragment *) fragment)->type : -1;
+	return fragment != NULL ? ((NdbMFragment *) fragment)->type : (VNMFragmentType) -1;
 }
 
 PNMFragment * p_node_m_fragment_create_color(PONode *node, real64 red, real64 green, real64 blue)
