@@ -13,6 +13,7 @@ extern List *	list_prepend(List *list, void *data);
 extern List *	list_concat(List *head, List *tail);
 extern List *	list_reverse(List *list);
 
+extern List *	list_remove(List *list, void *data);
 extern List *	list_unlink(List *list, List *element);
 extern List *	list_tail(List *list);
 

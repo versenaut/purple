@@ -113,6 +113,22 @@ List * list_reverse(List *list)
 	return list;
 }
 
+List * list_remove(List *list, void *data)
+{
+	List	*iter;
+
+	for(iter = list; iter != NULL; iter = list_next(iter))
+	{
+		if(list_data(iter) == data)
+		{
+			list = list_unlink(list, iter);
+			list_destroy(iter);
+			return list;
+		}
+	}
+	return list;
+}
+
 List * list_unlink(List *list, List *element)
 {
 	List	*prev, *next;
