@@ -30,7 +30,7 @@ typedef struct
 extern IdList *	idlist_new(void);
 extern void	idlist_construct(IdList *il);	/* Use on fresh allocated memory to initialize. */
 
-extern void	idlist_add(IdList *il, unsigned int id);
+extern void	idlist_insert(IdList *il, unsigned int id);
 extern void	idlist_remove(IdList *il, unsigned int id);
 
 extern void	idlist_foreach(const IdList *il, int (*callback)(unsigned int id, void *data), void *data);
