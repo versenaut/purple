@@ -174,7 +174,10 @@ void dynstr_append_c(DynStr *str, char c)
 	if(str == NULL || c == '\0')
 		return;
 	if(str->alloc > str->len + 1)
+	{
 		str->str[str->len++] = c;
+		str->str[str->len] = '\0';
+	}
 	else
 	{
 		char	buf[2];
