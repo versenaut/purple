@@ -283,7 +283,7 @@ void sync_node_add(Node *node)
 		sync_info.queue_create = list_prepend(sync_info.queue_create, (void *) node);
 	else
 		sync_info.queue_sync = list_prepend(sync_info.queue_sync, (void *) node);
-	nodedb_ref(node);	/* We've added a refernce to the node. */
+	nodedb_ref(node);	/* We've added a reference to the node. */
 }
 
 void sync_update(double slice)
