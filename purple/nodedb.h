@@ -24,6 +24,7 @@ typedef struct
 	DynArr		*tag_groups;
 } Node;
 
+#include "nodedb-o.h"
 #include "nodedb-t.h"
 
 extern void		nodedb_register_callbacks(VNodeID avatar, uint32 mask);
