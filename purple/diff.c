@@ -55,7 +55,7 @@
 #define FV(k)	v_get(ctx, (k), 0)
 #define RV(k)	v_get(ctx, (k), 1)
 
-struct context
+typedef struct
 {
 	idx_fn	idx;
 	cmp_fn	cmp;
@@ -63,21 +63,21 @@ struct context
 	DynArr	*buf, *ses;
 	int	si;
 	int	dmax;
-};
+} Context;
 
-struct middle_snake
+typedef struct
 {
 	int	x, y, u, v;
-};
+} Snake;
 
-static void v_set(struct context *ctx, int k, int r, int val)
+static void v_set(Context *ctx, int k, int r, int val)
 {
 	int	j = (k <= 0) ? -k * 4 + r : k * 4 + (r - 2);	/* Pack -N to N into 0 to N * 2. */
 
 	dynarr_set(ctx->buf, j, &val);
 }
 
-static int v_get(struct context *ctx, int k, int r)
+static int v_get(Context *ctx, int k, int r)
 {
 	int	j = (k <= 0) ? -k * 4 + r : k * 4 + (r - 2);	/* Pack -N to N into 0 to N * 2. */
 
@@ -86,8 +86,8 @@ static int v_get(struct context *ctx, int k, int r)
 
 static int find_middle_snake(const void *a, int aoff, int n,
 		const void *b, int boff, int m,
-		struct context *ctx,
-		struct middle_snake *ms)
+		Context *ctx,
+		Snake *ms)
 {
 	int	delta, odd, mid, d;
 
@@ -187,9 +187,9 @@ static int find_middle_snake(const void *a, int aoff, int n,
 	return -1;
 }
 
-static void edit(struct context *ctx, int op, int off, int len)
+static void edit(Context *ctx, int op, int off, int len)
 {
-	struct diff_edit *e;
+	DiffOp *e;
 
 	if(len == 0 || ctx->ses == NULL)
 		return;
@@ -207,10 +207,10 @@ static void edit(struct context *ctx, int op, int off, int len)
 		e->len += len;
 }
 
-static int ses_compute(const void *a, int aoff, int n, const void *b, int boff, int m, struct context *ctx)
+static int ses_compute(const void *a, int aoff, int n, const void *b, int boff, int m, Context *ctx)
 {
-	struct middle_snake	ms;
-	int			d;
+	Snake	ms;
+	int	d;
 
 	if(n == 0)
 	{
@@ -288,10 +288,10 @@ int diff_compare(const void *a, int aoff, int n,
 	 DynArr *ses, int *sn,
 	 DynArr *buf)
 {
-	struct context	ctx;
-	int		d = 0, x, y;
-	struct diff_edit *e = NULL;
-	DynArr		*tmp;
+	Context	ctx;
+	int	d = 0, x, y;
+	DiffOp *e = NULL;
+	DynArr	*tmp;
 
 	if(!idx != !cmp)	/* Ensure both NULL or both non-NULL. */
 	{

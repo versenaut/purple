@@ -13,12 +13,12 @@ typedef const void *	(*idx_fn)(const void *s, int idx, void *context);
 
 typedef enum { DIFF_MATCH = 1, DIFF_DELETE, DIFF_INSERT } diff_op;
 
-struct diff_edit
+typedef struct
 {
 	short	op;
 	int	off;	/* Offset into a if MATCH or DELETE but b if INSERT. */
 	int	len;
-};
+} DiffOp;
 
 /* consider alternate behavior for each NULL parameter  */
 extern int diff_compare(const void *a, int aoff, int n, const void *b, int boff, int m,
