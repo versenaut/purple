@@ -129,7 +129,7 @@ void nodedb_o_link_set(NodeObject *n, uint16 link_id, VNodeID link, const char *
 	l->id = link_id;
 	l->link = link;
 	stu_strncpy(l->label, sizeof l->label, label);
-	l->target = target_id;
+	l->target_id = target_id;
 	printf("link set %u->%u, ID %u, label '%s' target %u\n", n->node.id, link, link_id, label, target_id);
 }
 
@@ -139,10 +139,39 @@ void nodedb_o_link_set_local(NodeObject *n, const PONode *link, const char *labe
 
 	if(n == NULL || n->node.type != V_NT_OBJECT)
 		return;
+	/* Check if equivalent link already exists, and if so don't add it. Saves synchronizer some work. */
+/*	if(link->id != ~0)
+	{
+		unsigned int	i;
+		const NdbOLink	*l;
+
+		for(i = 0; (l = dynarr_index(n->links, i)) != NULL; i++)
+		{
+			printf(" checking, is %u == %u?\n", l->link, link->id);
+			if(l->link == link->id && l->target_id == target_id && strcmp(l->label, label) == 0)
+			{
+				printf("link is known on host side, ignoring\n");
+				return;
+			}
+		}
+	}
+	else
+*/	if(link->id == ~0)	/* Don't duplicate local links. */
+	{
+		const List	*iter;
+
+		for(iter = n->links_local; iter != NULL; iter = list_next(iter))
+		{
+			const NdbOLinkLocal	*l = list_data(iter);
+
+			if(l->link == link && l->target_id == target_id && strcmp(l->label, label) == 0)
+				return;
+		}
+	}
 	l = mem_alloc(sizeof *l);
 	l->link = link;
 	stu_strncpy(l->label, sizeof l->label, label);
-	l->target = target_id;
+	l->target_id = target_id;
 	n->links_local = list_prepend(n->links_local, l);
 	printf("local link created\n");
 }
