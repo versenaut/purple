@@ -336,7 +336,7 @@ static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 
 static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 {
-	unsigned int	i, sync = 1;
+	unsigned int	i, sync = 1, send;
 	NdbMFragment	*f;
 
 	if((unsigned int) 12 < 0)	printf("apa\n");
@@ -345,13 +345,19 @@ static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 	{
 		if(f->id == (VNMFragmentID) ~0)
 			continue;
-		printf("There's a source fragment type %d, can we find it in destination?\n", f->type);
-		if(!nodedb_m_fragment_find_equal(target, n, f))
+/*		printf("There's a source fragment type %d, can we find it in destination?\n", f->type);*/
+		if(nodedb_m_fragment_find_equal(target, n, f) == NULL)
 		{
 			VMatFrag	tmp;
-			int		send = 0;
 
-			printf("no, attempting create\n");
+			if(f->pending)
+			{
+/*				printf(" no, but fragment create has already been issued and is pending, just wait\n");*/
+				sync = 0;	/* If creation is pending, we are by definition not in sync yet. */
+				continue;
+			}
+/*			printf(" no, attempting create\n");*/
+			send = 0;
 			switch(f->type)
 			{
 			case VN_M_FT_COLOR:
@@ -359,6 +365,19 @@ static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 				send = 1;
 				break;
 			case VN_M_FT_LIGHT:
+				if((f->node == NULL || f->node->id != (VNodeID) ~0) ||
+				   f->frag.light.brdf == (VNodeID) ~0)
+				{
+					tmp.light.type = f->frag.light.type;
+					tmp.light.normal_falloff = f->frag.light.normal_falloff;
+					tmp.light.brdf = f->node != NULL ? f->node->id : (VNodeID) ~0;
+					strcpy(tmp.light.brdf_r, f->frag.light.brdf_r);
+					strcpy(tmp.light.brdf_g, f->frag.light.brdf_g);
+					strcpy(tmp.light.brdf_b, f->frag.light.brdf_b);
+					send = 1;
+				}
+				else if(f->node != NULL && f->node->id == (VNodeID) ~0)
+					sync = 0;
 				break;
 			case VN_M_FT_REFLECTION:
 				tmp.reflection = f->frag.reflection;
@@ -383,6 +402,17 @@ static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 				send = 1;
 				break;
 			case VN_M_FT_TEXTURE:
+				if((f->node == NULL || (f->node->id != (VNodeID) ~0)) &&
+				   nodedb_m_fragment_resolve(&tmp.texture.mapping, target, n, f->frag.texture.mapping))
+				{
+					tmp.texture.bitmap = f->node->id;
+					strcpy(tmp.texture.layer_r, f->frag.texture.layer_r);
+					strcpy(tmp.texture.layer_g, f->frag.texture.layer_g);
+					strcpy(tmp.texture.layer_b, f->frag.texture.layer_b);
+					send = 1;
+				}
+				else if(f->node != NULL && f->node->id == (VNodeID) ~0)
+					sync = 0;
 				break;
 			case VN_M_FT_NOISE:
 				if(nodedb_m_fragment_resolve(&tmp.noise.mapping, target, n, f->frag.noise.mapping))
@@ -430,6 +460,8 @@ static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 				   nodedb_m_fragment_resolve(&tmp.output.back,  target, n, f->frag.output.back))
 				{
 					strcpy(tmp.output.label, f->frag.output.label);
+					printf("about to create output label=%s, front=%u back=%u\n",
+					       tmp.output.label, tmp.output.front, tmp.output.back);
 					send = 1;
 				}
 				break;
@@ -437,9 +469,19 @@ static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 			if(send)
 			{
 				verse_send_m_fragment_create(target->node.id, ~0, f->type, &tmp);
+				f->pending = 1;
 				sync = 0;
 			}
 			break;
+		}
+	}
+	if(sync == 1)	/* Once sync is (re)established, clear all pending flags. */
+	{
+		for(i = 0; (f = dynarr_index(n->fragments, i)) != NULL; i++)
+		{
+			if(f->id == (VNMFragmentID) ~0)
+				continue;
+			f->pending = 0;
 		}
 	}
 	return sync;
