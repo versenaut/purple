@@ -18,6 +18,7 @@ struct IdSet
 	DynArr		*arr;
 	List		*removed;
 	size_t		size;		/* Number of active references. */
+	unsigned int	max;		/* Known maximum ID. */
 };
 
 IdSet * idset_new(unsigned int offset)
@@ -29,6 +30,7 @@ IdSet * idset_new(unsigned int offset)
 	is->arr = dynarr_new(sizeof (void *), 4);
 	is->removed = NULL;
 	is->size = 0;
+	is->max  = 0;
 
 	return is;
 }
@@ -48,6 +50,7 @@ unsigned int idset_insert(IdSet *is, void *object)
 	else
 		index = dynarr_append(is->arr, &object);
 	is->size++;
+	is->max = index > is->max ? index : is->max;
 	return index + is->offset;
 }
 
@@ -85,6 +88,8 @@ void * idset_lookup(const IdSet *is, unsigned int id)
 	if(is == NULL)
 		return NULL;
 	id -= is->offset;
+	if(id > is->max)
+		return NULL;
 	if((objp = dynarr_index(is->arr, id)) != NULL)
 		return *objp;
 	return NULL;
@@ -97,7 +102,8 @@ unsigned int idset_foreach_first(const IdSet *is)
 
 	if(is == NULL)
 		return 0;
-	for(id = 0; id < dynarr_size(is->arr); id++)
+	printf("Computing first ID for set of %u\n", is->size);
+	for(id = 0; id <= is->max && id < dynarr_size(is->arr); id++)
 	{
 		if((objp = dynarr_index(is->arr, id)) != NULL && *objp != NULL)
 			return id + is->offset;
