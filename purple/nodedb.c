@@ -302,6 +302,38 @@ VNodeType nodedb_type_get(const Node *node)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static void cb_default_tag_group(unsigned int index, void *element, void *user)
+{
+	NdbTagGroup	*g = element;
+
+	g->name[0] = '\0';
+	g->tags    = NULL;
+}
+
+NdbTagGroup * nodedb_tag_group_create(Node *node, uint16 group_id, const char *name)
+{
+	NdbTagGroup	*group;
+
+	if(node == NULL || name == NULL || *name == '\0')
+		return NULL;
+	if(node->tag_groups == NULL)
+	{
+		node->tag_groups = dynarr_new(sizeof *group, 2);
+		dynarr_set_default_func(node->tag_groups, cb_default_tag_group, NULL);
+	}
+	if(group_id == (uint16) ~0)
+		group = dynarr_append(node->tag_groups, NULL, NULL);
+	else
+		group = dynarr_set(node->tag_groups, group_id, NULL);
+	if(group != NULL)
+	{
+		group->id = group_id;
+		stu_strncpy(group->name, sizeof group->name, name);
+		group->tags = NULL;
+	}
+	return group;
+}
+
 NdbTagGroup * nodedb_tag_group_lookup(const Node *node, const char *name)
 {
 	unsigned int	i;
@@ -421,14 +453,9 @@ static void cb_tag_group_create(void *user, VNodeID node_id, uint16 group_id, co
 
 	if((n = nodedb_lookup(node_id)) != NULL)
 	{
-		NdbTagGroup	*tg;
-
-		if(n->tag_groups == NULL)
-			n->tag_groups = dynarr_new(sizeof *tg, 2);
-		if((tg = dynarr_set(n->tag_groups, group_id, NULL)) != NULL)
+		if(nodedb_tag_group_create(n, group_id, name) != NULL)
 		{
-			stu_strncpy(tg->name, sizeof tg->name, name);
-			tg->tags = NULL;
+			verse_send_tag_group_subscribe(node_id, group_id);
 			NOTIFY(n, STRUCTURE);
 		}
 	}

@@ -15,6 +15,7 @@ typedef struct
 
 typedef struct
 {
+	uint16		id;
 	char		name[VN_TAG_GROUP_SIZE];
 	DynArr		*tags;
 } NdbTagGroup;
@@ -68,6 +69,7 @@ extern int		nodedb_unref(Node *n);	/* Returns 1 if node was destroyed. */
 extern void		nodedb_rename(Node *node, const char *name);
 extern VNodeType	nodedb_type_get(const Node *node);
 
+extern NdbTagGroup *	nodedb_tag_group_create(Node *node, uint16 group_id, const char *name);
 extern NdbTagGroup *	nodedb_tag_group_lookup(const Node *node, const char *name);
 extern NdbTag *		nodedb_tag_lookup(NdbTagGroup *group, const char *name);
 extern int		nodedb_tag_values_equal(const NdbTag *t1, const NdbTag *t2);
