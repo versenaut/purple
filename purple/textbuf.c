@@ -64,18 +64,15 @@ void textbuf_insert(TextBuf *tb, size_t offset, const char *text)
 	if(len == 0)
 		return;
 
-	printf("insert %u chars at %u\n", len, offset);
 	if(tb->length + len + 1 > tb->alloc)
 	{
 		char	*nb;
 
-		printf(" growing buffer\n");
 		nb = mem_realloc(tb->buf, tb->length + len + ALLOC_EXTRA);
 		if(nb != NULL)
 		{
 			tb->buf = nb;
 			tb->alloc = tb->length + len + ALLOC_EXTRA;
-			printf("  done, got %u bytes\n", tb->alloc);
 		}
 		else
 		{
@@ -87,7 +84,6 @@ void textbuf_insert(TextBuf *tb, size_t offset, const char *text)
 	memcpy(tb->buf + offset, text, len);
 	tb->length += len;
 	tb->buf[tb->length] = '\0';
-	printf(" done, final length is %u\n", tb->length);
 }
 
 void textbuf_delete(TextBuf *tb, size_t offset, size_t length)
@@ -100,8 +96,6 @@ void textbuf_delete(TextBuf *tb, size_t offset, size_t length)
 		length = tb->length - offset;
 	if(length == 0)
 		return;
-	printf("deleting %u at %u\n", length, offset);
-	printf(" moving %u bytes of tail\n", tb->length - (offset + length));
 	memmove(tb->buf + offset, tb->buf + offset + length, tb->length - (offset + length));
 	tb->length -= length;
 	tb->buf[tb->length] = '\0';
