@@ -127,6 +127,7 @@ Node * nodedb_new(VNodeType type)
 		n->name[0]    = '\0';
 		n->owner      = 0U;
 		n->tag_groups = NULL;
+		n->notify     = NULL;
 
 		switch(n->type)
 		{
