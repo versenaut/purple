@@ -106,7 +106,7 @@ PINode *	p_input_node_nth(PPInput input, int index);	/* Input n:th node, or NULL
  * PIter iter;
  *
  * for(p_whatever_iter(whatever, &iter); (el = p_iter_get(&iter)) != NULL; p_iter_next(&iter))
- * 	/* process element <el> here. */
+ * 	{ process element <el> here }
 */
 typedef struct
 {
