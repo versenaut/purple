@@ -187,7 +187,7 @@ static void combo_buffers_refresh(MainInfo *min)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_connect_accept(void *user, uint32 avatar, void *address, void *connection)
+static void cb_connect_accept(void *user, uint32 avatar, void *address, void *connection, uint8 *host_id)
 {
 	printf("Connected\n");
 	verse_send_node_list(1 << V_NT_TEXT);
@@ -414,7 +414,7 @@ int main(int argc, char *argv[])
 	verse_callback_set(verse_send_t_buffer_create,	cb_node_t_buffer_create, &min);
 	verse_callback_set(verse_send_t_text_set,	cb_t_text_set, &min);
 
-	min.session = verse_send_connect("vtv", "secret", "localhost");
+	min.session = verse_send_connect("vtv", "secret", "localhost", NULL);
 	gtk_main();
 
 	return 0;
