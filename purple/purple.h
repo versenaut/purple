@@ -151,9 +151,9 @@ const char *	p_node_tag_group_get_name(const PNTagGroup *group);
 
 PNTagGroup *	p_node_tag_group_create(PONode *node, const char *name);
 void		p_node_tag_group_destroy(PONode *node, PNTagGroup *group);
-void		p_node_tag_group_tag_num(PNTagGroup *group);
-void		p_node_tag_group_tag_nth(PNTagGroup *group, unsigned int n);
-void		p_node_tag_group_tag_find(PNTagGroup *group, const char *name);
+void		p_node_tag_group_tag_num(const PNTagGroup *group);
+void		p_node_tag_group_tag_nth(const PNTagGroup *group, unsigned int n);
+void		p_node_tag_group_tag_find(const PNTagGroup *group, const char *name);
 void		p_node_tag_group_tag_create(PNTagGroup *group, const char *name, VNTagType type, const VNTag *value);
 void		p_node_tag_group_tag_destroy(PNTagGroup *group, const char *name);
 
