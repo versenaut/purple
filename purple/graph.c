@@ -84,7 +84,7 @@ void graph_method_receive_create(uint8 id, const char *name)
 /* ----------------------------------------------------------------------------------------- */
 
 /* Build the XML description of a graph, for the index. */
-static void graph_xml_build(uint32 id, const Graph *g, char *buf, size_t bufsize)
+static void graph_index_build(uint32 id, const Graph *g, char *buf, size_t bufsize)
 {
 	snprintf(buf, bufsize,	" <graph id=\"%u\" name=\"%s\">\n"
 				"  <at>\n"
@@ -97,7 +97,7 @@ static void graph_xml_build(uint32 id, const Graph *g, char *buf, size_t bufsize
 /* Go through all graphs, and recompute XML starting points. Handy when a graph has been
  * deleted, or when the length of one or more graph's XML representation has changed.
 */
-static void graph_xml_renumber(void)
+static void graph_index_renumber(void)
 {
 	unsigned int	i, pos;
 	Graph		*g;
@@ -142,7 +142,7 @@ static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 	}
 	gg = dynarr_index(graph_info.graphs, id);
 	gg->xml_start = pos;
-	graph_xml_build(id, gg, xml, sizeof xml);
+	graph_index_build(id, gg, xml, sizeof xml);
 	gg->xml_length = strlen(xml);
 	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, gg->xml_start, 0, xml);
 	hash_insert(graph_info.graphs_name, gg->name, gg);
@@ -168,10 +168,10 @@ static void graph_rename(uint32 id, const char *name)
 	hash_remove(graph_info.graphs_name, g->name);
 	stu_strncpy(g->name, sizeof g->name, name);
 	hash_insert(graph_info.graphs_name, g->name, g);
-	graph_xml_build(id, g, xml, sizeof xml);
+	graph_index_build(id, g, xml, sizeof xml);
 	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, g->xml_start, g->xml_length, xml);
 	g->xml_length = strlen(xml);
-	graph_xml_renumber();
+	graph_index_renumber();
 }
 
 static void graph_destroy(uint32 id)
@@ -187,7 +187,7 @@ static void graph_destroy(uint32 id)
 	graph_info.free_ids = list_prepend(graph_info.free_ids, (void *) id);
 	hash_remove(graph_info.graphs_name, g->name);
 	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, g->xml_start, g->xml_length, NULL);
-	graph_xml_renumber();
+	graph_index_renumber();
 }
 
 /* ----------------------------------------------------------------------------------------- */
