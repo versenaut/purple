@@ -166,6 +166,17 @@ void graph_method_send_call_create(VNodeID node, VLayerID buffer, const char *na
 	}
 }
 
+void graph_method_send_call_rename(uint32 id, const char *name)
+{
+	VNOParam	param[sizeof rename_type / sizeof *rename_type];
+	void		*pack;
+
+	param[0].vuint32 = id;
+	param[1].vstring = name;
+	if((pack = verse_method_call_pack(sizeof rename_type / sizeof *rename_type, rename_type, param)) != NULL)
+		verse_send_o_method_call(client_info.avatar, client_info.gid_control, graph_info.mid_rename, 0, pack);
+}
+
 void graph_method_send_call_destroy(uint32 id)
 {
 	VNOParam	param[sizeof destroy_type / sizeof *destroy_type];
