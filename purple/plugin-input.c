@@ -42,7 +42,7 @@ static void cb_notify(Node *node, NodeNotifyEvent ev, void *user)
 /* Called when our solitary input changes. Look up the named node,
  * and set up change-notification on it, if found.
 */
-static void compute(PPInput *input, PPOutput output, void *state_typeless)
+static PComputeStatus compute(PPInput *input, PPOutput output, void *state_typeless)
 {
 	const char	*name;
 	State		*state = state_typeless;
@@ -67,6 +67,7 @@ static void compute(PPInput *input, PPOutput output, void *state_typeless)
 	}
 	else
 		printf("Input couldn't get node name to watch\n");
+	return P_COMPUTE_DONE;
 }
 
 /* This gets called when the plug-in is instantiated. Initialize the state. */
