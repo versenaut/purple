@@ -75,12 +75,13 @@ void		p_init_input(int index, PInputType type, const char *name, ...);
 void		p_init_meta(const char *category, const char *text);
 
 /* "Ports" are used to model inputs and outputs. */
-typedef struct PPort *	PPort;
-typedef const PPort	PPInput;
-typedef PPort		PPOutput;
+typedef void 		PPort;
+typedef const PPort *	PPInput;
+typedef PPort *		PPOutput;
 
-boolean		p_port_input_boolean(const PPort port);
+/*boolean		p_port_input_boolean(const PPort port);
 void		p_port_output_boolean(PPort port);
+*/
 
 /* Read out inputs, registered earlier. One for each type. :/ If this wasn't in C, we could use meta
  * information to just say p_input(input) and have it return a value of the proper registered type.
