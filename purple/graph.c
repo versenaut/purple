@@ -426,6 +426,7 @@ PONode * graph_port_output_node_copy(PPOutput port, PINode *node, uint32 label)
 		if((store = dynarr_index(m->out.nodes.node, label)) != NULL)
 		{
 			printf("Returning previously copied node with label %u\n", label);
+			/* FIXME: We need to refresh the node's contents here, to make it look like a copy again! */
 			graph_port_output_set_node(port, *store);
 			return *store;
 		}
