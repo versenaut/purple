@@ -160,7 +160,10 @@ void dynstr_append_c(DynStr *ds, char c)
 		ds->str[ds->len++] = c;
 	else
 	{
-		char	buf[2] = { c, '\0' };
+		char	buf[2];
+
+		buf[0] = c;
+		buf[1] = '\0';
 		dynstr_append(ds, buf);
 	}
 }
