@@ -19,6 +19,8 @@
 #include "plugins.h"
 #include "strutil.h"
 #include "textbuf.h"
+#include "value.h"
+#include "port.h"
 
 #include "nodedb.h"
 
@@ -33,6 +35,7 @@ typedef struct
 	uint32		id;
 	Plugin		*plugin;
 	PInstance	instance;
+	PPort		output;
 
 	uint32		start, length;	/* Region in graph XML buffer used for this module. */
 } Module;
@@ -285,13 +288,13 @@ static boolean traverse_module(const Graph *g, uint32 module_id, uint32 source_i
 	{
 		unsigned int	i;
 
-		for(i = plugin_inputset_size(m->instance.inputs); i-- > 0;)
+		for(i = plugin_portset_size(m->instance.inputs); i-- > 0;)
 		{
 			uint32	link;
 
 			if(module_id == ti->module_id && i == ti->input)
 				link = ti->source;
-			else if(plugin_inputset_get_module(m->instance.inputs, i, &link) && idset_lookup(g->modules, link))
+			else if(plugin_portset_get_module(m->instance.inputs, i, &link) && idset_lookup(g->modules, link))
 				;
 			else
 				continue;
@@ -341,7 +344,7 @@ static DynStr * module_build_desc(const Module *m)
 
 	d = dynstr_new_sized(256);
 	dynstr_append_printf(d, " <module id=\"%u\" plug-in=\"%u\">\n", m->id, plugin_id(m->plugin));
-	plugin_inputset_describe(m->instance.inputs, d);
+	plugin_portset_describe(m->instance.inputs, d);
 	dynstr_append(d, " </module>\n");
 
 	return d;
@@ -425,7 +428,7 @@ static void module_destroy(uint32 graph_id, uint32 module_id)
 }
 
 /* Set a module input to a value. The value might be either a literal, or a reference to another module's output. */
-static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_index, PInputType type, ...)
+static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_index, PValueType type, ...)
 {
 	va_list	arg;
 	Graph	*g;
@@ -443,7 +446,7 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 		return;
 	}
 	va_start(arg, type);
-	plugin_inputset_set_va(m->instance.inputs, input_index, type, arg);
+	plugin_portset_set_va(m->instance.inputs, input_index, type, arg);
 	va_end(arg);
 	desc = module_build_desc(m);
 	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, dynstr_string(desc));
@@ -471,7 +474,7 @@ static void module_input_clear(uint32 graph_id, uint32 module_id, uint8 input_in
 		LOG_WARN(("Attempted to clear module input in non-existant module %u.%u", graph_id, module_id));
 		return;
 	}
-	plugin_inputset_clear(m->instance.inputs, input_index);
+	plugin_portset_clear(m->instance.inputs, input_index);
 	desc = module_build_desc(m);
 	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, dynstr_string(desc));
 	m->length = dynstr_length(desc);
@@ -534,53 +537,54 @@ void graph_method_send_call_mod_destroy(uint32 graph_id, uint32 module_id)
 	send_method_call(MOD_DESTROY, param);
 }
 
-void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32 index, const PInputValue *value)
+void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32 index, const void *value)
 {
 	VNOParam	param[4];
 	VNOParamType	type[4] = { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8 };
 	void		*pack;
 	int		method = 0, i;
-
+#if 0
+	
 	param[0].vuint32 = graph_id;
 	param[1].vuint32 = mod_id;
 	param[2].vuint8  = index;
 	/* Map module input type "down" to Verse method call parameter type. */
 	switch(value->type)
 	{
-	case P_INPUT_BOOLEAN:
+	case P_VALUE_BOOLEAN:
 		type[3] = VN_O_METHOD_PTYPE_UINT8;
 		param[3].vuint8 = value->v.vboolean;
 		method = MOD_INPUT_SET_BOOLEAN;
 		break;
-	case P_INPUT_INT32:
+	case P_VALUE_INT32:
 		type[3] = VN_O_METHOD_PTYPE_INT32;
 		param[3].vint32 = value->v.vint32;
 		method = MOD_INPUT_SET_INT32;
 		break;
-	case P_INPUT_UINT32:
+	case P_VALUE_UINT32:
 		type[3] = VN_O_METHOD_PTYPE_UINT32;
 		param[3].vuint32 = value->v.vuint32;
 		method = MOD_INPUT_SET_UINT32;
 		break;
-	case P_INPUT_REAL32:
+	case P_VALUE_REAL32:
 		type[3] = VN_O_METHOD_PTYPE_REAL32;
 		param[3].vreal32 = value->v.vreal32;
 		method = MOD_INPUT_SET_REAL32;
 		break;
-	case P_INPUT_REAL32_VEC2:
+	case P_VALUE_REAL32_VEC2:
 		type[3] = VN_O_METHOD_PTYPE_REAL32_VEC2;
 		param[3].vreal32_vec[0] = value->v.vreal32_vec2[0];
 		param[3].vreal32_vec[1] = value->v.vreal32_vec2[1];
 		method = MOD_INPUT_SET_REAL32_VEC2;
 		break;
-	case P_INPUT_REAL32_VEC3:
+	case P_VALUE_REAL32_VEC3:
 		type[3] = VN_O_METHOD_PTYPE_REAL32_VEC3;
 		param[3].vreal32_vec[0] = value->v.vreal32_vec3[0];
 		param[3].vreal32_vec[1] = value->v.vreal32_vec3[1];
 		param[3].vreal32_vec[2] = value->v.vreal32_vec3[2];
 		method = MOD_INPUT_SET_REAL32_VEC3;
 		break;
-	case P_INPUT_REAL32_VEC4:
+	case P_VALUE_REAL32_VEC4:
 		type[3] = VN_O_METHOD_PTYPE_REAL32_VEC4;
 		param[3].vreal32_vec[0] = value->v.vreal32_vec4[0];
 		param[3].vreal32_vec[1] = value->v.vreal32_vec4[1];
@@ -588,31 +592,31 @@ void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32
 		param[3].vreal32_vec[3] = value->v.vreal32_vec4[3];
 		method = MOD_INPUT_SET_REAL32_VEC4;
 		break;
-	case P_INPUT_REAL32_MAT16:
+	case P_VALUE_REAL32_MAT16:
 		type[3] = VN_O_METHOD_PTYPE_REAL32_MAT16;
 		for(i = 0; i < 16; i++)
 			param[3].vreal32_mat[i] = value->v.vreal32_mat16[i];
 		method = MOD_INPUT_SET_REAL32_MAT16;
 		break;
-	case P_INPUT_REAL64:
+	case P_VALUE_REAL64:
 		type[3] = VN_O_METHOD_PTYPE_REAL64;
 		param[3].vreal64 = value->v.vreal64;
 		method = MOD_INPUT_SET_REAL64;
 		break;
-	case P_INPUT_REAL64_VEC2:
+	case P_VALUE_REAL64_VEC2:
 		type[3] = VN_O_METHOD_PTYPE_REAL64_VEC2;
 		param[3].vreal64_vec[0] = value->v.vreal64_vec2[0];
 		param[3].vreal64_vec[1] = value->v.vreal64_vec2[1];
 		method = MOD_INPUT_SET_REAL64_VEC2;
 		break;
-	case P_INPUT_REAL64_VEC3:
+	case P_VALUE_REAL64_VEC3:
 		type[3] = VN_O_METHOD_PTYPE_REAL64_VEC3;
 		param[3].vreal64_vec[0] = value->v.vreal64_vec3[0];
 		param[3].vreal64_vec[1] = value->v.vreal64_vec3[1];
 		param[3].vreal64_vec[2] = value->v.vreal64_vec3[2];
 		method = MOD_INPUT_SET_REAL64_VEC3;
 		break;
-	case P_INPUT_REAL64_VEC4:
+	case P_VALUE_REAL64_VEC4:
 		type[3] = VN_O_METHOD_PTYPE_REAL64_VEC4;
 		param[3].vreal64_vec[0] = value->v.vreal64_vec4[0];
 		param[3].vreal64_vec[1] = value->v.vreal64_vec4[1];
@@ -620,18 +624,18 @@ void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32
 		param[3].vreal64_vec[3] = value->v.vreal64_vec4[3];
 		method = MOD_INPUT_SET_REAL64_VEC4;
 		break;
-	case P_INPUT_REAL64_MAT16:
+	case P_VALUE_REAL64_MAT16:
 		type[3] = VN_O_METHOD_PTYPE_REAL64_MAT16;
 		for(i = 0; i < 16; i++)
 			param[3].vreal64_mat[i] = value->v.vreal64_mat16[i];
 		method = MOD_INPUT_SET_REAL64_MAT16;
 		break;
-	case P_INPUT_MODULE:
+	case P_VALUE_MODULE:
 		type[3] = VN_O_METHOD_PTYPE_UINT32;
 		param[3].vuint32 = value->v.vmodule;
 		method = MOD_INPUT_SET_MODULE;
 		break;
-	case P_INPUT_STRING:
+	case P_VALUE_STRING:
 		type[3] = VN_O_METHOD_PTYPE_STRING;
 		param[3].vstring = value->v.vstring;
 		method = MOD_INPUT_SET_STRING;
@@ -643,6 +647,7 @@ void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32
 	if((pack = verse_method_call_pack(4, type, param)) != NULL)
 		verse_send_o_method_call(client_info.avatar, client_info.gid_control,
 					 method_info[method].id, 0, pack);
+#endif
 }
 
 void graph_method_send_call_mod_input_clear(uint32 graph_id, uint32 module_id, uint32 input)
@@ -677,50 +682,50 @@ void graph_method_receive_call(uint8 id, const void *param)
 			module_input_clear(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8);
 			break;
 		case MOD_INPUT_SET_BOOLEAN:
-			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_BOOLEAN, arg[3].vuint8);
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_VALUE_BOOLEAN, arg[3].vuint8);
 			break;
 		case MOD_INPUT_SET_INT32:
-			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_INT32, arg[3].vint32);
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_VALUE_INT32, arg[3].vint32);
 			break;
 		case MOD_INPUT_SET_UINT32:
-			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_UINT32, arg[3].vuint32);
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_VALUE_UINT32, arg[3].vuint32);
 			break;
 		case MOD_INPUT_SET_REAL32:
-			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32, arg[3].vreal32);
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_VALUE_REAL32, arg[3].vreal32);
 			break;
 		case MOD_INPUT_SET_REAL32_VEC2:
-			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32_VEC2, &arg[3].vreal32_vec);
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_VALUE_REAL32_VEC2, &arg[3].vreal32_vec);
 			break;
 		case MOD_INPUT_SET_REAL32_VEC3:
-			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32_VEC3, &arg[3].vreal32_vec);
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_VALUE_REAL32_VEC3, &arg[3].vreal32_vec);
 			break;
 		case MOD_INPUT_SET_REAL32_VEC4:
-			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32_VEC4, &arg[3].vreal32_vec);
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_VALUE_REAL32_VEC4, &arg[3].vreal32_vec);
 			break;
 		case MOD_INPUT_SET_REAL32_MAT16:
-			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32_MAT16, &arg[3].vreal32_mat);
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_VALUE_REAL32_MAT16, &arg[3].vreal32_mat);
 			break;
 		case MOD_INPUT_SET_REAL64:
-			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64, arg[3].vreal64);
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_VALUE_REAL64, arg[3].vreal64);
 			break;
 		case MOD_INPUT_SET_REAL64_VEC2:
-			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64_VEC2, &arg[3].vreal64_vec);
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_VALUE_REAL64_VEC2, &arg[3].vreal64_vec);
 			break;
 		case MOD_INPUT_SET_REAL64_VEC3:
-			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64_VEC3, &arg[3].vreal64_vec);
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_VALUE_REAL64_VEC3, &arg[3].vreal64_vec);
 			break;
 		case MOD_INPUT_SET_REAL64_VEC4:
-			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64_VEC4, &arg[3].vreal64_vec);
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_VALUE_REAL64_VEC4, &arg[3].vreal64_vec);
 			break;
 		case MOD_INPUT_SET_REAL64_MAT16:
-			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64_MAT16, &arg[3].vreal64_mat);
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_VALUE_REAL64_MAT16, &arg[3].vreal64_mat);
 			break;
 		case MOD_INPUT_SET_MODULE:
 			if(!graph_cyclic_after(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, arg[3].vuint32))
-				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_MODULE, arg[3].vuint32);
+				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_VALUE_MODULE, arg[3].vuint32);
 			break;
 		case MOD_INPUT_SET_STRING:
-			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_STRING, arg[3].vstring);
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_VALUE_STRING, arg[3].vstring);
 			break;
 		}
 		return;
