@@ -19,8 +19,13 @@
 */
 static int input_real64(const PInputValue *v, real64 *value)
 {
-	if(v == NULL || value == NULL)
-		return 0.0;
+	if(value == NULL)
+		return 0;
+	if(v == NULL)		/* Non-connected input simply reads as zero. Might be good. */
+	{
+		*value = 0;
+		return 1;
+	}
 	switch(v->type)
 	{
 	case P_INPUT_BOOLEAN:
