@@ -21,6 +21,7 @@ struct DynArr
 	size_t		alloc;
 	size_t		next;
 	const void	*def;
+	void		(*def_func)(unsigned int index, void *element);
 };
 
 static MemChunk *the_chunk = NULL;
@@ -48,6 +49,7 @@ DynArr * dynarr_new(size_t elem_size, size_t page_size)
 	da->alloc = 0;
 	da->next  = 0;
 	da->def = NULL;
+	da->def_func = NULL;
 
 	return da;
 }
@@ -61,6 +63,7 @@ DynArr * dynarr_new_copy(const DynArr *src, void (*element_copy)(void *dst, cons
 		return NULL;
 	da = dynarr_new(src->elem_size, src->page_size);
 	dynarr_set_default(da, src->def);
+	dynarr_set_default_func(da, src->def_func);
 	if(src->next > 0)		/* Sneakily "pre-warm" the array, to minimize allocations in loop below. */
 		dynarr_set(da, src->next - 1, NULL);
 	for(i = 0; i < src->next; i++)
@@ -82,6 +85,12 @@ void dynarr_set_default(DynArr *da, const void *def)
 {
 	if(da != NULL)
 		da->def = def;
+}
+
+void dynarr_set_default_func(DynArr *da, void (*func)(unsigned int, void *element))
+{
+	if(da != NULL)
+		da->def_func = func;
 }
 
 void * dynarr_index(const DynArr *da, unsigned index)
@@ -108,7 +117,7 @@ void * dynarr_set(DynArr *da, unsigned int index, const void *element)
 
 		if(nd != NULL)
 		{
-			LOG_MSG(("Dynarr: Grew array to %u elements of size %u", size, da->elem_size));
+/*			LOG_MSG(("Dynarr: Grew array to %u elements of size %u", size, da->elem_size));*/
 			if(da->def != NULL)
 			{
 				unsigned int	i;
@@ -118,6 +127,17 @@ void * dynarr_set(DynArr *da, unsigned int index, const void *element)
 					if(i == index)	/* Don't initialize the element we're about to set. */
 						continue;
 					memcpy((char *) nd + i * da->elem_size, da->def, da->elem_size);
+				}
+			}
+			else if(da->def_func != NULL)
+			{
+				unsigned int	i;
+
+				for(i = da->alloc; i < size; i++)
+				{
+					if(i == index)
+						continue;
+					da->def_func(i, (char *) nd + i * da->elem_size);
 				}
 			}
 			da->data  = nd;

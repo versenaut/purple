@@ -25,6 +25,9 @@ extern DynArr *	dynarr_new_copy(const DynArr *src, void (*element_copy)(void *ds
 */
 extern void	dynarr_set_default(DynArr *da, const void *element);
 
+/* Register a callback that is used to initialize newly allocated elements. */
+extern void	dynarr_set_default_func(DynArr *da, void (*set)(unsigned int index, void *element));
+
 /* Index into the dynamic array. Returns a pointer to the indicated element, or NULL if
  * it is out of bounds. Does not cause the array to grow, use set for that.
 */
