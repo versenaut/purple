@@ -331,7 +331,7 @@ static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 			continue;
 		if(nodedb_g_layer_find(n, layer->name) == 0)
 		{
-			printf("sync destroying target-only layer %u.%u (%s)\n", target->node.id, layer->id, layer->name);
+			printf("sync destroying target-only geometry layer %u.%u (%s)\n", target->node.id, layer->id, layer->name);
 			verse_send_g_layer_destroy(target->node.id, layer->id);
 		}
 	}
@@ -662,7 +662,16 @@ static int sync_bitmap(const NodeBitmap *n, const NodeBitmap *target)
 			sync = 0;
 		}
 	}
-	/* FIXME: Scan for destroyed layers, too. */
+	for(i = 0; (layer = dynarr_index(target->layers, i)) != NULL; i++)
+	{
+		if(layer->name[0] == '\0')
+			continue;
+		if(nodedb_b_layer_find(n, layer->name) == NULL)
+		{
+			printf("sync destroying target-only bitmap layer %u.%u (%s)\n", target->node.id, layer->id, layer->name);
+			verse_send_b_layer_destroy(target->node.id, layer->id);
+		}
+	}
 	return sync;
 }
 
