@@ -117,6 +117,7 @@ void		p_node_tag_set(PNTagGroup *group, const char *name, VNTagType type, const 
 void		p_node_tag_destroy(PNTagGroup *group, const char *name);
 
 void		p_node_o_link_set(PONode *node, const PONode *link, const char *label, uint32 target_id);
+PINode *	p_node_o_link_get(const PONode *node, const char *label, uint32 target_id);
 
 /* Geometry-node manipulation functions. */
 typedef void	PNGLayer;
@@ -146,7 +147,16 @@ void		p_node_b_layer_destroy(PONode *node, uint16 layer_id);
 /* Duplicates an input node, and returns something you can actually edit. */
 PONode *	p_output_node(PPOutput out, PINode *node);
 
+/* Create an output node from scratch. */
 PONode *	p_output_node_create(PPOutput out, VNodeType type, uint32 label);
+
+PONode *	p_output_node_copy(PPOutput out, PINode *node, uint32 label);
+
+/* Retreive object link target, copy it, and update link to point to new copy. */
+PONode *	p_output_node_o_link(PPOutput out, PONode *node, const char *label);
+
+/* Pass on an input node *directly*, does not (as other create calls do) copy it. Dangerous. */
+PONode *	p_output_node_pass(PPOutput out, PINode *node);
 
 /* Creates a new empty output node for editing/data creation. */
 /*PONode * 	p_output_node_create(PPOutput out, VNodeType type, const char *name);*/
