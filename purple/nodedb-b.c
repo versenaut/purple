@@ -1,7 +1,8 @@
 /*
- * Bitmap node databasing. Bitmaps are stored by allocating contigious blocks of memory for
- * the required layers, nothing very fancy at all. One bit per pixel layers are stored using
- * 8-bit bytes as the smallest unit of allocation, so a 10x10 layer requires 20 bytes.
+ * Bitmap node databasing. Bitmaps are stored by allocating contiguous blocks of memory for
+ * the required layers, nothing very fancy at all. One-bit-per-pixel layers are stored using
+ * 8-bit bytes as the smallest unit of allocation, and never using any single byte for pixels
+ * from two different rows, so a 10x10 layer requires 20 bytes.
 */
 
 #include <stdio.h>
