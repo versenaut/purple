@@ -88,5 +88,5 @@ ACCESSOR(uint32, module)
 
 PINode * port_input_node(PPort *port)
 {
-	return port != NULL ? nodeset_retreive(port->nodes) : NULL;
+	return port != NULL ? nodeset_retrieve(port->nodes) : NULL;
 }

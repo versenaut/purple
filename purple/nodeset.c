@@ -66,7 +66,7 @@ void nodeset_clear(NodeSet *ns)
 	ns->nodes = NULL;
 }
 
-PINode * nodeset_retreive(const NodeSet *ns)
+PINode * nodeset_retrieve(const NodeSet *ns)
 {
 	if(ns == NULL)
 		return NULL;
@@ -79,7 +79,7 @@ const char * nodeset_get_string(const NodeSet *ns)
 
 	if(ns == NULL)
 		return "";
-	if((n = nodeset_retreive(ns)) != NULL)
+	if((n = nodeset_retrieve(ns)) != NULL)
 		return p_node_name_get(n);
 	return NULL;
 }
