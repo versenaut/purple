@@ -131,7 +131,7 @@ void nodedb_b_destruct(NodeBitmap *n)
 
 /* ----------------------------------------------------------------------------------------- */
 
-int nodedb_b_dimensions_set(NodeBitmap *node, uint16 width, uint16 height, uint16 depth)
+int nodedb_b_set_dimensions(NodeBitmap *node, uint16 width, uint16 height, uint16 depth)
 {
 	NdbBLayer	*layer;
 	size_t		i, y, z, ps, layer_size, dss, sss;
@@ -139,7 +139,7 @@ int nodedb_b_dimensions_set(NodeBitmap *node, uint16 width, uint16 height, uint1
 
 	if(width == node->width && height == node->height && depth == node->depth)
 		return 0;
-	printf("setting dimensions to %ux%ux%u\n", width, height, depth);
+	printf("setting dimensions of node %u at %p to %ux%ux%u\n", node->node.id, node, width, height, depth);
 	/* Resize all layers. Heavy lifting. */
 	for(i = 0; i < dynarr_size(node->layers); i++)
 	{
@@ -182,7 +182,7 @@ int nodedb_b_dimensions_set(NodeBitmap *node, uint16 width, uint16 height, uint1
 	return 1;
 }
 
-void nodedb_b_dimensions_get(const NodeBitmap *node, uint16 *width, uint16 *height, uint16 *depth)
+void nodedb_b_get_dimensions(const NodeBitmap *node, uint16 *width, uint16 *height, uint16 *depth)
 {
 	if(node == NULL)
 		return;
@@ -378,8 +378,8 @@ static void layer_put_pixel(const NodeBitmap *node, NdbBLayer *layer, unsigned c
 /* Initialize multi framebuffer by reading out and writing pixel <x> from the current scanline in all layers. */
 static void multi_put_pixel(struct multi_info *mi, int x)
 {
-	real64	pix;
-	int	i;
+	unsigned  int	i;
+	real64		pix;
 
 	if(mi->format == VN_B_LAYER_UINT1)
 	{
@@ -642,7 +642,7 @@ static void cb_b_dimensions_set(void *user, VNodeID node_id, uint16 width, uint1
 
 	if((node = (NodeBitmap *) nodedb_lookup_with_type(node_id, V_NT_BITMAP)) == NULL)
 		return;
-	if(nodedb_b_dimensions_set(node, width, height, depth))
+	if(nodedb_b_set_dimensions(node, width, height, depth))
 		NOTIFY(node, STRUCTURE);
 }
 
@@ -651,12 +651,8 @@ static void cb_b_layer_create(void *user, VNodeID node_id, VLayerID layer_id, co
 	NodeBitmap	*node;
 	NdbBLayer	*layer;
 
-	printf("now in cb_layer_create, node_id=%u layer_id=%u (%s)\n", node_id, layer_id, name);
 	if((node = (NodeBitmap *) nodedb_lookup_with_type(node_id, V_NT_BITMAP)) == NULL)
-	{
-		printf(" node not found in database\n");
 		return;
-	}
 	if((layer = dynarr_index(node->layers, layer_id)) != NULL && layer->name[0] != '\0' && strcmp(layer->name, name) != 0)
 	{
 		LOG_WARN(("Layer already exists--unhandled case"));
