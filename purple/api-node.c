@@ -445,6 +445,12 @@ PNCCurve * p_node_c_curve_find(PINode *node, const char *name)
 	return nodedb_c_curve_find((NodeCurve *) node, name);
 }
 
+void p_node_c_curve_iter(PINode *node, PIter *iter)
+{
+	if(node != NULL)
+		iter_init_dynarr_string(iter, ((NodeCurve *) node)->curves, offsetof(NodeCurve, curves));
+}
+
 const char * p_node_c_curve_get_name(const PNCCurve *curve)
 {
 	if(curve != NULL)
