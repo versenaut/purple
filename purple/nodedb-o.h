@@ -35,7 +35,7 @@ typedef struct
 	char		**param_name;
 } NdbOMethod;
 
-extern void		nodedb_o_init(NodeObject *n);
+extern void		nodedb_o_construct(NodeObject *n);
 
 extern NdbOMethodGroup*	nodedb_o_method_group_lookup(NodeObject *n, const char *name);
 extern const NdbOMethod*nodedb_o_method_lookup(const NdbOMethodGroup *group, const char *name);

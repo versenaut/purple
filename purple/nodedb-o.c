@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "verse.h"
+#include "purple.h"
 
 #include "dynarr.h"
 #include "list.h"
@@ -18,7 +19,7 @@
 
 /* ----------------------------------------------------------------------------------------- */
 
-void nodedb_o_init(NodeObject *n)
+void nodedb_o_construct(NodeObject *n)
 {
 	n->light[0] = n->light[1] = n->light[2] = 0.0;
 	n->links = NULL;
