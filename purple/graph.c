@@ -500,6 +500,7 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 	}
 	m->graph = g;
 	m->plugin = p;
+	port_init(&m->out.port);
 	plugin_instance_init(m->plugin, &m->instance);
 	plugin_instance_set_output(&m->instance, &m->out.port);
 	plugin_instance_set_link_resolver(&m->instance, cb_module_lookup, g);
