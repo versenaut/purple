@@ -24,11 +24,12 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 				    "sixteen", "seventeen", "eighteen", "nineteen" },
 			*ten[] = { "ten", "twenty", "thirty", "forty", "fifty",
 				"sixty", "seventy", "eighty", "ninety" };
+	char	line[1024];
 
 	node = p_output_node_create(output, V_NT_TEXT, 0);
+	p_node_name_set(node, "textnum");
 /*	p_node_t_language_set(node, "English");*/		/* Yes, really. */
 	buf = p_node_t_buffer_create(node, "number");
-	p_node_t_buffer_delete(buf, 0, ~0);		/* I don't exactly rule. :/ */
 	if(number < 0)
 	{
 		p_node_t_buffer_append(buf, "minus ");
@@ -80,6 +81,9 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		}
 	} while(number > 0);
 
+/*	if(p_node_t_buffer_read_line(buf, 0, line, sizeof line) != NULL)
+		printf("built: '%s'\n", line);
+*/
 	return P_COMPUTE_DONE;
 }
 
