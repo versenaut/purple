@@ -35,17 +35,18 @@ typedef struct
 static void cb_notify(Node *node, NodeNotifyEvent ev, void *user)
 {
 	printf("Notification in input, node at %p\n", node);
+/*	p_output_node(node);*/
 }
 
-/* Called when our solitary input changes. Look up the named node, and set up
- * change-notification of the named node, if found.
+/* Called when our solitary input changes. Look up the named node,
+ * and set up change-notification on it, if found.
 */
-static void compute(PPInput *input, PPOutput output, void *state_typeless)
+static void compute(PPInput *input, PPOutput *output, void *state_typeless)
 {
-	char	name[64];
-	State	*state = state_typeless;
+	const char	*name;
+	State		*state = state_typeless;
 
-	if(p_input_string(input[0], name, sizeof name) != NULL)
+	if((name = p_input_string(input[0])) != NULL)
 	{
 		Node	*node;
 
@@ -89,7 +90,7 @@ static void dtor(void *state_typeless)
 void plugin_input_init(void)
 {
 	p_init_create("node-input");
-	p_init_input(0, P_INPUT_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_meta("desc/purpose", "Built-in plug-in, outputs the single node whose name is given");
 	p_init_meta("author", "Emil Brink");
 	p_init_state(sizeof (State), ctor, dtor);
