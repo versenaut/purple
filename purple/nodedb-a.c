@@ -176,20 +176,6 @@ static void cb_a_layer_create(void *user, VNodeID node_id, VLayerID layer_id, co
 		NOTIFY(n, STRUCTURE);
 		verse_send_a_layer_subscribe(node_id, layer_id);
 	}
-/*	if((n = nodedb_lookup_text(node_id)) != NULL)
-	{
-		NdbTBuffer	*tb;
-
-		if((tb = dynarr_set(n->buffers, buffer_id, NULL)) != NULL)
-		{
-			tb->id = buffer_id;
-			stu_strncpy(tb->name, sizeof tb->name, name);
-			tb->text = textbuf_new(1024);
-			printf("Text buffer %u.%u %s created\n", node_id, buffer_id, name);
-			NOTIFY(n, STRUCTURE);
-		}
-	}
-*/
 }
 
 static void cb_a_layer_destroy(void *user, VNodeID node_id, VLayerID buffer_id)
@@ -207,7 +193,7 @@ static void cb_a_layer_destroy(void *user, VNodeID node_id, VLayerID buffer_id)
 	}
 }
 
-static void cb_a_block_set(void *user, VNodeID node_id, VLayerID layer_id, uint32 pos, ...)
+static void cb_a_block_set(void *user, VNodeID node_id, VLayerID layer_id, uint32 block_index, VNALayerType type, const VNASample *data)
 {
 	NodeAudio	*n;
 
@@ -217,6 +203,23 @@ static void cb_a_block_set(void *user, VNodeID node_id, VLayerID layer_id, uint3
 
 		if((al = dynarr_index(n->layers, layer_id)) != NULL)
 		{
+			printf("Setting audio block %u.%u.%u\n", node_id, layer_id, block_index);
+			NOTIFY(n, DATA);
+		}
+	}
+}
+
+static void cb_a_block_clear(void *user, VNodeID node_id, VLayerID layer_id, uint32 block_index)
+{
+	NodeAudio	*n;
+
+	if((n = (NodeAudio *) nodedb_lookup_with_type(node_id, V_NT_AUDIO)) != NULL)
+	{
+		NdbALayer	*al;
+
+		if((al = dynarr_index(n->layers, layer_id)) != NULL)
+		{
+			printf("Clearing audio block %u.%u.%u\n", node_id, layer_id, block_index);
 			NOTIFY(n, DATA);
 		}
 	}
@@ -229,4 +232,5 @@ void nodedb_a_register_callbacks(void)
 	verse_callback_set(verse_send_a_layer_create,	cb_a_layer_create, NULL);
 	verse_callback_set(verse_send_a_layer_destroy,	cb_a_layer_destroy, NULL);
 	verse_callback_set(verse_send_a_block_set,	cb_a_block_set, NULL);
+	verse_callback_set(verse_send_a_block_clear,	cb_a_block_clear, NULL);
 }
