@@ -664,13 +664,7 @@ void plugin_inputset_destroy(PInputSet *is)
 	if(is == NULL)
 		return;
 	for(i = 0; i < is->size; i++)
-	{
-		if(is->use[i / 32] & (1 << (i % 32)))
-		{
-			if(is->value[i].type == P_INPUT_STRING)
-				mem_free(is->value[i].v.vstring);
-		}
-	}
+		plugin_inputset_clear(is, i);
 	mem_free(is);
 }
 
