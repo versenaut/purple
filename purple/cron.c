@@ -176,7 +176,7 @@ void cron_update(void)
 		next = list_next(iter);
 		if(timeval_passed(&job->when.oneshot, &now))
 		{
-			if(job->handler == (void *) printf)
+			if(job->handler == (int (*)(void *)) printf)
 				printf("%s\n", (const char *) job->data);
 			else
 				job->handler(job->data);
