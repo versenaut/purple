@@ -244,6 +244,13 @@ const char * p_node_g_layer_get_name(const PNGLayer *layer)
 	return nodedb_g_layer_get_name(layer);
 }
 
+VNGLayerType p_node_g_layer_get_type(const PNGLayer *layer)
+{
+	if(layer != NULL)
+		return ((NdbGLayer *) layer)->type;
+	return -1;
+}
+
 void p_node_g_vertex_set_xyz(PNGLayer *layer, uint32 id, real64 x, real64 y, real64 z)
 {
 	nodedb_g_vertex_set_xyz(layer, id, x, y, z);

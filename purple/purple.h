@@ -178,6 +178,7 @@ PNGLayer *	p_node_g_layer_nth(PINode *node, unsigned int n);
 PNGLayer *	p_node_g_layer_find(PINode *node, const char *name);
 size_t		p_node_g_layer_get_size(const PNGLayer *layer);
 const char *	p_node_g_layer_get_name(const PNGLayer *layer);
+VNGLayerType	p_node_g_layer_get_type(const PNGLayer *layer);
 
 PNGLayer *	p_node_g_layer_create(PONode *node, const char *name, VNGLayerType type,
 					     uint32 def_int, real32 def_real);
