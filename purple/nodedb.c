@@ -69,6 +69,15 @@ Node * nodedb_lookup_by_name(const char *name)
 	return data[1];
 }
 
+Node * nodedb_lookup_with_type(VNodeID node_id, VNodeType type)
+{
+	Node	*n;
+
+	if((n = nodedb_lookup(node_id)) != NULL && n->type == type)
+		return n;
+	return NULL;
+}
+			       
 NodeObject * nodedb_lookup_object(VNodeID node_id)
 {
 	Node	*n;
@@ -295,6 +304,7 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 	verse_callback_set(verse_send_node_create,	cb_node_create,	NULL);
 	verse_callback_set(verse_send_node_name_set,	cb_node_name_set, NULL);
 
+	nodedb_b_register_callbacks();
 	nodedb_o_register_callbacks();
 	nodedb_t_register_callbacks();
 
