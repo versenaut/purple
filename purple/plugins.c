@@ -322,8 +322,7 @@ void plugin_describe_append(const Plugin *p, DynStr *d)
 		return;
 
 	/* Head. */
-	dynstr_append_printf(d, "<plug-in id=\"%u\" name=\"%s\"", p->id, p->name);
-	dynstr_append_printf(d, ">\n");
+	dynstr_append_printf(d, "<plug-in id=\"%u\" name=\"%s\">\n", p->id, p->name);
 
 	/* Any inputs? */
 	if((num = dynarr_size(p->input)) > 0)
