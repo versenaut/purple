@@ -1,5 +1,5 @@
 /*
- * Count number of factors in a number. If result is 1, number is prime. Grossely
+ * Count number of factors in a number. If result is 0, number is prime. Grossely
  * naive, mainly to really use up a lot of time for doing the computation.
 */
 
@@ -21,7 +21,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state_typel
 	{
 		state->number  = p_input_uint32(input[0]);
 		state->index   = 2;
-		state->factors = 1;
+		state->factors = 0;
 	}
 	if(state->index >= state->number)	/* Done? */
 	{
