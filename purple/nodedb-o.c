@@ -75,6 +75,7 @@ static void cb_o_method_group_create(void *user, VNodeID node_id, uint16 group_i
 			g->id = group_id;
 			stu_strncpy(g->name, sizeof name, name);
 			g->methods = NULL;
+			NOTIFY(n, STRUCTURE);
 		}
 	}
 }
@@ -92,6 +93,7 @@ static void cb_o_method_group_destroy(void *user, VNodeID node_id, uint16 group_
 			g->id = 0;
 			g->name[0] = '\0';
 			dynarr_destroy(g->methods);
+			NOTIFY(n, STRUCTURE);
 		}
 	}
 }
