@@ -332,6 +332,24 @@ POLYGON_FACE(real64)
 
 /* ----------------------------------------------------------------------------------------- */
 
+void nodedb_g_crease_set_vertex(NodeGeometry *n, const char *layer, uint32 def)
+{
+	if(n->node.type != V_NT_GEOMETRY)
+		return;
+	stu_strncpy(n->crease_vertex.layer, sizeof n->crease_vertex.layer, layer);
+	n->crease_vertex.def = def;
+}
+
+void nodedb_g_crease_set_edge(NodeGeometry *n, const char *layer, uint32 def)
+{
+	if(n->node.type != V_NT_GEOMETRY)
+		return;
+	stu_strncpy(n->crease_edge.layer, sizeof n->crease_edge.layer, layer);
+	n->crease_edge.def = def;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 static void cb_g_bone_create(void *user, VNodeID node_id, uint16 bone_id, const char *weight, const char *reference,
 			     uint32 parent, real64 pos_x, real64 pos_y, real64 pos_z,
 			     real64 rot_x, real64 rot_y, real64 rot_z, real64 rot_w)
@@ -411,5 +429,5 @@ void nodedb_g_register_callbacks(void)
 	verse_callback_set(verse_send_g_bone_create,			cb_g_bone_create, NULL);
 
 	verse_callback_set(verse_send_g_crease_set_vertex,		cb_g_crease_set_vertex, NULL);
-	verse_callback_set(verse_send_g_crease_set_vertex,		cb_g_crease_set_edge, NULL);
+	verse_callback_set(verse_send_g_crease_set_edge,		cb_g_crease_set_edge, NULL);
 }

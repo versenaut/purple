@@ -43,4 +43,7 @@ extern void		nodedb_g_vertex_set_xyz(NodeGeometry *node, NdbGLayer *layer, uint3
 extern void		nodedb_g_polygon_set_corner_uint32(NodeGeometry *node, NdbGLayer *layer, uint32 polygon_id,
 							   uint32 v0, uint32 v1, uint32 v2, uint32 v3);
 
+extern void		nodedb_g_crease_set_vertex(NodeGeometry *node, const char *layer, uint32 def);
+extern void		nodedb_g_crease_set_edge(NodeGeometry *node, const char *layer, uint32 def);
+
 extern void		nodedb_g_register_callbacks(void);

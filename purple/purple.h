@@ -130,6 +130,9 @@ void		p_node_g_vertex_set_real32_xyz(PNGLayer *layer, uint32 id, real32 x, real3
 void		p_node_g_vertex_set_real64_xyz(PNGLayer *layer, uint32 id, real64 x, real64 y, real64 z);
 void		p_node_g_polygon_set_corner_uint32(PONode *node, PNGLayer *layer, uint32 id, uint32 v0, uint32 v1, uint32 v2, uint32 v3);
 
+void		p_node_g_crease_set_vertex(PONode *node, const char *layer, uint32 def);
+void		p_node_g_crease_set_edge(PONode *node, const char *layer, uint32 def);
+
 /* Bitmap-node manipulation functions. */
 void		p_node_b_dimensions_set(PONode *node, uint16 width, uint16 height, uint16 depth);
 uint16		p_node_b_layer_create(PONode *node, const char *name, VNBLayerType type);

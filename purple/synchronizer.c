@@ -200,6 +200,27 @@ static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 	return send;
 }
 
+static int sync_geometry_creases(const NodeGeometry *n, const NodeGeometry *target)
+{
+	int	sync = 1;
+
+	if(target->crease_vertex.def != n->crease_vertex.def || strcmp(target->crease_vertex.layer, n->crease_vertex.layer) != 0)
+	{
+		verse_send_g_crease_set_vertex(target->node.id, n->crease_vertex.layer, n->crease_vertex.def);
+		sync = 0;
+	}
+	if(target->crease_edge.def != n->crease_edge.def || strcmp(target->crease_edge.layer, n->crease_edge.layer) != 0)
+	{
+		printf("edge crease mismatch. have: '%s', %u -- want '%s',%u\n",
+		       target->crease_edge.layer, target->crease_edge.def,
+		       n->crease_edge.layer, n->crease_edge.def);
+		verse_send_g_crease_set_edge(target->node.id, n->crease_edge.layer, n->crease_edge.def);
+		printf(" sent '%s',%u\n", n->crease_edge.layer, n->crease_edge.def);
+		sync = 0;
+	}
+	return sync;
+}
+
 static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 {
 	unsigned int	i, sync = 1;
@@ -230,6 +251,9 @@ static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 			sync = 0;
 		}
 	}
+	/* Step two: see if crease information has changed. */
+	sync &= sync_geometry_creases(n, target);
+
 	return sync;
 }
 

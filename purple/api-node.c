@@ -47,12 +47,26 @@ void p_node_g_vertex_set_xyz(PONode *node, PNGLayer *layer, uint32 index, real64
 {
 	if(node == NULL || layer == NULL || node->type != V_NT_GEOMETRY)
 		return;
-	nodedb_g_vertex_set_xyz(node, layer, index, x, y, z);
+	nodedb_g_vertex_set_xyz((NodeGeometry *) node, layer, index, x, y, z);
 }
 
 void p_node_g_polygon_set_corner_uint32(PONode *node, PNGLayer *layer, uint32 index,  uint32 v0, uint32 v1, uint32 v2, uint32 v3)
 {
 	if(node == NULL || layer == NULL)
 		return;
-	nodedb_g_polygon_set_corner_uint32(node, layer, index, v0, v1, v2, v3);
+	nodedb_g_polygon_set_corner_uint32((NodeGeometry *) node, layer, index, v0, v1, v2, v3);
+}
+
+void p_node_g_crease_set_vertex(PONode *node, const char *layer, uint32 def)
+{
+	if(node == NULL || layer == NULL)
+		return;
+	nodedb_g_crease_set_vertex((NodeGeometry *) node, layer, def);
+}
+
+void p_node_g_crease_set_edge(PONode *node, const char *layer, uint32 def)
+{
+	if(node == NULL || layer == NULL)
+		return;
+	nodedb_g_crease_set_edge((NodeGeometry *) node, layer, def);
 }
