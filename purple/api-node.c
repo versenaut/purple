@@ -2,6 +2,8 @@
  * 
 */
 
+#include <stdarg.h>
+
 #include "verse.h"
 
 #include "purple.h"
@@ -111,6 +113,11 @@ void p_node_b_dimensions_set(PONode *node, uint16 width, uint16 height, uint16 d
 	nodedb_b_dimensions_set((NodeBitmap *) node, width, height, depth);
 }
 
+void p_node_b_dimensions_get(PINode *node, uint16 *width, uint16 *height, uint16 *depth)
+{
+	nodedb_b_dimensions_get((NodeBitmap *) node, width, height, depth);
+}
+
 PNBLayer * p_node_b_layer_create(PONode *node, const char *name, VNBLayerType type)
 {
 	PNBLayer	*l;
@@ -120,6 +127,11 @@ PNBLayer * p_node_b_layer_create(PONode *node, const char *name, VNBLayerType ty
 	if((l = nodedb_b_layer_lookup((NodeBitmap *) node, name)) != NULL)
 		return l;
 	return nodedb_b_layer_create((NodeBitmap *) node, ~0, name, type);
+}
+
+PNBLayer * p_node_b_layer_lookup(PINode *node, const char *name)
+{
+	return nodedb_b_layer_lookup((NodeBitmap *) node, name);
 }
 
 void * p_node_b_layer_access_begin(PONode *node, PNBLayer *layer)
@@ -138,3 +150,18 @@ void p_node_b_layer_foreach_set(PONode *node, PNBLayer *layer,
 	nodedb_b_layer_foreach_set((NodeBitmap *) node, layer, pixel, user);
 }
 
+void * p_node_b_layer_access_multi_begin(PONode *node, VNBLayerType format, ...)
+{
+	va_list	layers;
+	void	*fb;
+
+	va_start(layers, format);
+	fb = nodedb_b_layer_access_multi_begin((NodeBitmap *) node, format, layers);
+	va_end(layers);
+	return fb;
+}
+
+void p_node_b_layer_access_multi_end(PONode *node, void *framebuffer)
+{
+	nodedb_b_layer_access_multi_end((NodeBitmap *) node, framebuffer);
+}

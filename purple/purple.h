@@ -140,10 +140,13 @@ void		p_node_g_crease_set_edge(PONode *node, const char *layer, uint32 def);
 typedef void	PNBLayer;
 
 void		p_node_b_dimensions_set(PONode *node, uint16 width, uint16 height, uint16 depth);
+void		p_node_b_dimensions_get(PINode *node, uint16 *width, uint16 *height, uint16 *depth);
 PNBLayer *	p_node_b_layer_create(PONode *node, const char *name, VNBLayerType type);
-PNBLayer *	p_node_b_layer_lookup(PONode *node, const char *name);
+PNBLayer *	p_node_b_layer_lookup(PINode *node, const char *name);
 void *		p_node_b_layer_access_begin(PONode *node, PNBLayer *layer);
 void		p_node_b_layer_access_end(PONode *node, PNBLayer *layer, void *framebuffer);
+void *		p_node_b_layer_access_multi_begin(PONode *node, VNBLayerType format, ... /* Layer names ending with NULL. */);
+void		p_node_b_layer_access_multi_end(PONode *node, void *framebuffer);
 /* Simple write-only set-function, that should return pixel for (x,y,z). Can't read; not suitable for filtering. */
 void		p_node_b_layer_foreach_set(PONode *node, PNBLayer *layer,
 					   real64 (*pixel)(uint32 x, uint32 y, uint32 z, void *user), void *user);

@@ -40,6 +40,7 @@ extern void		nodedb_b_copy(NodeBitmap *n, const NodeBitmap *src);
 extern void		nodedb_b_destruct(NodeBitmap *n);
 
 extern int		nodedb_b_dimensions_set(NodeBitmap *node, uint16 width, uint16 height, uint16 depth);
+extern void		nodedb_b_dimensions_get(const NodeBitmap *node, uint16 *width, uint16 *height, uint16 *depth);
 
 extern NdbBLayer *	nodedb_b_layer_create(NodeBitmap *node, VLayerID layer_id, const char *name, VNBLayerType type);
 extern NdbBLayer *	nodedb_b_layer_lookup(const NodeBitmap *node, const char *name);
@@ -47,6 +48,9 @@ extern NdbBLayer *	nodedb_b_layer_lookup_id(const NodeBitmap *node, uint16 buffe
 
 extern void *		nodedb_b_layer_access_begin(NodeBitmap *node, NdbBLayer *layer);
 extern void		nodedb_b_layer_access_end(NodeBitmap *node, NdbBLayer *layer, void *framebuffer);
+
+extern void *		nodedb_b_layer_access_multi_begin(NodeBitmap *node, VNBLayerType format, va_list layers);
+extern void		nodedb_b_layer_access_multi_end(NodeBitmap *node, void *framebuffer);
 
 extern void		nodedb_b_layer_foreach_set(NodeBitmap *node, NdbBLayer *layer,
 						real64 (*pixel)(uint32 x, uint32 y, uint32 z, void *user), void *user);
