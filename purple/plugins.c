@@ -26,6 +26,8 @@
 #include "value.h"
 #include "nodeset.h"
 #include "strutil.h"
+#include "plugin-input.h"
+#include "plugin-output.h"
 #include "port.h"
 #include "xmlutil.h"
 
@@ -694,6 +696,9 @@ void plugins_libraries_init(void)
 {
 	const List	*iter;
 
+	/* Initialize "built-in" plug-ins. */
+	plugin_input_init();
+	plugin_output_init();
 	for(iter = plugins_info.libraries; iter != NULL; iter = list_next(iter))
 	{
 		Library	*lib = list_data(iter);
