@@ -1,6 +1,10 @@
 /*
  * Editable text. This could well be implemented at least semi-cleverly, using
- * e.g. "gapped storage", but here is the most naive approach thinkable. Almost.
+ * e.g. "gapped storage", but here is the most naive approach thinkable. We simply
+ * allocate a slab of memory, and keep the text in there. The text is always kept
+ * as a continous, properly terminated C string, with no holes or gaps. The only
+ * allowance done for performance is allocating some extra storage to keep every
+ * insert() from being a realloc().
 */
 
 #include <stdio.h>
