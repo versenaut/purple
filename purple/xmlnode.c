@@ -1,8 +1,13 @@
 /*
+ * xmlnode.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A very trivial and non-compliant with anything "XML parser" workalike.
 */
 
 #include <ctype.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,7 +54,7 @@ static const char * append_entity(const char *buffer, DynStr *token)
 		size_t	len;
 		char	replace;
 	} entity[] = { { "&lt;", 4, '<' }, { "&gt;", 4, '>' }, { "&amp;", 5, '&' }, { "&quot;", 6, '"' } };
-	int	i;
+	unsigned int	i;
 
 	for(i = 0; i < sizeof entity / sizeof *entity; i++)
 	{
@@ -276,8 +281,8 @@ static XmlNode * node_new(const char *token)
 	{
 		if(elen > 0)
 		{
-			char	*put = (char *) (node + 1);
-			int	i;
+			char		*put = (char *) (node + 1);
+			unsigned int	i;
 
 			for(i = 0; i < elen - 1; i++)
 				*put++ = token[i];
@@ -435,10 +440,14 @@ XmlNode * xmlnode_new(const char *buffer)
 		return NULL;
 	}
 	return root;
-
 }
 
-const char * xmlnode_attrib_get(const XmlNode *node, const char *name)
+const char * xmlnode_get_name(const XmlNode *node)
+{
+	return node != NULL ? node->element : NULL;
+}
+
+const char * xmlnode_attrib_get_value(const XmlNode *node, const char *name)
 {
 	int	lo, hi;
 
@@ -459,6 +468,122 @@ const char * xmlnode_attrib_get(const XmlNode *node, const char *name)
 	}
 	return NULL;
 }
+
+/* ----------------------------------------------------------------------------------------- */
+
+static int filter_node(const XmlNode *node, void **filter, size_t filter_size)
+{
+	size_t	i;
+
+	for(i = 0; i < filter_size; i++)
+	{
+		void	*cmd = filter[i];
+
+		printf("read command %p\n", cmd);
+		if(cmd == (void *) XMLNODE_FILTER_ACCEPT)
+			break;
+		else if(cmd == (void *) XMLNODE_FILTER_NAME)
+		{
+			cmd = filter[++i];
+			if(strcmp(node->element, cmd) != 0)
+				return 0;
+		}
+		else if(cmd == (void *) XMLNODE_FILTER_ATTRIB)
+		{
+			cmd = filter[++i];
+			if(xmlnode_attrib_get_value(node, cmd) == NULL)
+				return 0;
+		}
+		else if(cmd == (void *) XMLNODE_FILTER_ATTRIB_VALUE)
+		{
+			void		*value;
+			const char	*v;
+
+			cmd   = filter[++i];
+			value = filter[++i];
+			if(((v = xmlnode_attrib_get_value(node, cmd)) == NULL) || (strcmp(v, value) != 0))
+				return 0;
+		}
+	}
+	return 1;
+}
+
+List * xmlnode_nodeset_get(const XmlNode *node, XmlNodeAxis axis, ...)
+{
+	void	*filter[32];
+	size_t	filter_size;
+	va_list	va;
+
+	va_start(va, axis);
+	for(filter_size = 0; filter_size < sizeof filter / sizeof *filter; filter_size++)
+	{
+		filter[filter_size] = va_arg(va, void *);
+		if(filter[filter_size] == (void *) 0)
+			break;
+	}
+	va_end(va);
+	printf("filter size is %u, axis is %d\n", filter_size, axis);
+
+	if(axis == XMLNODE_AXIS_ANCESTOR)
+	{
+		List	*list = NULL;
+
+		for(node = node->parent; node != NULL; node = node->parent)
+		{
+			if(filter_node(node, filter, filter_size))
+				list = list_prepend(list, (void *) node);
+		}
+		return list;
+	}
+	else if(axis == XMLNODE_AXIS_CHILD)
+	{
+		List	*list = NULL, *iter;
+
+		printf("traverse children\n");
+		for(iter = node->children; iter != NULL; iter = list_next(iter))
+		{
+			if(filter_node(list_data(iter), filter, filter_size))
+				list = list_append(list, list_data(iter));
+		}
+		return list;
+	}
+	return NULL;
+}
+
+/* Evaluate micro-minimalistic "dialect" (I use the term loosely) xpath-like expression.
+ * The "single" means that this is guaranteed not to return a nodeset, it will simply
+ * take the first result it finds. Preferrably used where the single result is the only.
+*/
+const char * xmlnode_eval_single(const XmlNode *node, const char *path)
+{
+	XmlNodeAxis	axis = XMLNODE_AXIS_CHILD;
+	char		part[256], *put;			/* Static limits rule. */
+	List		*res;
+
+	while(*path)
+	{
+		for(put = part; *path && *path != '/' && (size_t) (put - part) < sizeof part - 1;)
+			*put++ = *path++;
+		*put = '\0';
+		if(*path == '/')
+			path++;
+		if(*part == '\0')
+			break;
+		if(part[0] == '@')
+			return xmlnode_attrib_get_value(node, part + 1);
+		res = xmlnode_nodeset_get(node, axis, XMLNODE_NAME(part), XMLNODE_DONE);
+		if(res != NULL)
+		{
+			node = list_data(res);
+			list_destroy(res);
+		}
+		else
+			return NULL;
+	}
+	return node != NULL ? node->text : NULL;
+}
+
+/* ----------------------------------------------------------------------------------------- */
 
 /* Worker function to print outline of a node hierarchy. */
 static void do_print_outline(const XmlNode *root, int indent)
