@@ -58,7 +58,7 @@ void p_init_meta(const char *category, const char *text)
 	plugin_set_meta(init_info.plugin, category, text);
 }
 
-void p_init_input(int index, PInputType type, const char *name, ...)
+void p_init_input(int index, PValueType type, const char *name, ...)
 {
 	va_list	args;
 
@@ -72,7 +72,7 @@ void p_init_state(size_t size, void (*constructor)(void *state), void (*destruct
 	plugin_set_state(init_info.plugin, size, constructor, destructor);
 }
 
-void p_init_compute(void (*compute)(PPInput *input, PPOutput output, void *state))
+void p_init_compute(PComputeStatus (*compute)(PPInput *input, PPOutput output, void *state))
 {
 	plugin_set_compute(init_info.plugin, compute);
 }
