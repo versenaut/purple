@@ -77,8 +77,8 @@ static void cb_c_curve_create(void *user, VNodeID node_id, VLayerID curve_id, co
 			c->dimensions = dimensions;
 			c->keys = NULL;
 			printf("Curve curve %u.%u %s created, dim=%u\n", node_id, curve_id, name, c->dimensions);
-			NOTIFY(n, STRUCTURE);
 			verse_send_c_curve_subscribe(node_id, curve_id);
+			NOTIFY(n, STRUCTURE);
 		}
 	}
 	else
@@ -180,7 +180,8 @@ static void cb_c_key_set(void *user, VNodeID node_id, VLayerID curve_id, uint32 
 					for(i = 0; i < dimensions; i++)
 						printf(" (%u,%g)", post_pos[i], post_value[i]);
 					printf("\n");
-*/				}
+*/					NOTIFY(n, ins ? DATA : STRUCTURE);
+				}
 			}
 			else
 				LOG_WARN(("Got key_set with wrong dimensions, %u is not %u", dimensions, c->dimensions));
@@ -206,7 +207,7 @@ static void cb_c_key_destroy(void *user, VNodeID node_id, VLayerID curve_id, uin
 			{
 				k->id = ~0;
 				c->curve = list_remove(c->curve, k);
-				printf("key %u.%u.%u deleted\n", node_id, curve_id, key_id);
+				NOTIFY(n, STRUCTURE);
 			}
 		}
 	}
