@@ -98,3 +98,15 @@ PONode * p_output_node(PPOutput out, PINode *v)
 		graph_port_output_set_node(out, n);
 	return NULL;
 }
+
+PONode * p_output_node_create(PPOutput out, VNodeType type, const char *name)
+{
+	Node	*n;
+
+	if((n = nodedb_new(type)) != NULL)
+	{
+		nodedb_rename(n, name);
+		graph_port_output_set_node(out, n);
+	}
+	return n;
+}
