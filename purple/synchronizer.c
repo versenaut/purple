@@ -12,6 +12,8 @@
 #include "textbuf.h"
 #include "nodedb.h"
 
+#include "command-structs.h"
+
 #include "synchronizer.h"
 
 /* ----------------------------------------------------------------------------------------- */
@@ -19,6 +21,7 @@
 static struct
 {
 	List	*queue_create;
+	List	*queue_create_pend;
 	List	*queue_sync;
 } sync_info;
 
@@ -26,12 +29,25 @@ static struct
 
 static void cb_notify(Node *node, NodeNotifyEvent ev)
 {
+	List	*iter, *next;
+
 	if(ev != NODEDB_NOTIFY_CREATE)
-	{
-		printf("Nodedb ignoring non-create event\n");
 		return;
+	for(iter = sync_info.queue_create_pend; iter != NULL; iter = next)
+	{
+		Node	*n;
+
+		next = list_next(iter);
+		n = list_data(iter);
+		if(n->type == node->type)
+		{
+			sync_info.queue_create_pend = list_unlink(sync_info.queue_create_pend, iter);
+			list_destroy(iter);
+			n->id = node->id;	/* To-sync copy now has known ID. Excellent. */
+			sync_info.queue_sync = list_prepend(sync_info.queue_sync, n);	/* Re-add to other queue. */
+			break;
+		}
 	}
-	printf("A node of type %d was created, could it be mine?\n", node->type);
 }
 
 void sync_init(void)
@@ -49,9 +65,27 @@ void sync_node_add(const Node *node)
 		sync_info.queue_create = list_prepend(sync_info.queue_create, (void *) node);
 	else
 		sync_info.queue_sync = list_prepend(sync_info.queue_sync, (void *) node);
+	nodedb_ref(node);	/* We've added a refernce to the node. */
 }
 
 void sync_update(double slice)
 {
-	
+	if(sync_info.queue_create != NULL)
+	{
+		List	*iter, *next;
+		Node	*n;
+
+		printf("Checking create\n");
+		for(iter = sync_info.queue_create; iter != NULL; iter = next)
+		{
+			next = list_next(iter);
+			n = list_data(iter);
+			verse_send_node_create(~0, n->type, 0);
+			/* Move node from "to create" to "pending" list; no change in refcount. */
+			sync_info.queue_create = list_unlink(sync_info.queue_create, iter);
+			list_destroy(iter);
+			printf(" creating node of type %d\n", n->type);
+			sync_info.queue_create_pend = list_prepend(sync_info.queue_create_pend, n);
+		}
+	}
 }
