@@ -114,8 +114,8 @@ static struct TypeName
 	{ P_INPUT_REAL64_VEC3,	"real64_vec3" },
 	{ P_INPUT_REAL64_VEC4,	"real64_vec4" },
 	{ P_INPUT_REAL64_MAT16,	"real64_mat16" },
-	{ P_INPUT_MODULE,	"module" },
 	{ P_INPUT_STRING,	"string" },
+	{ P_INPUT_MODULE,	"module" },
 	}, type_map_by_name[sizeof type_map_by_value / sizeof *type_map_by_value];
 
 /* ----------------------------------------------------------------------------------------- */
