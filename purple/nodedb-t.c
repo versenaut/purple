@@ -80,7 +80,25 @@ size_t nodedb_t_buffer_get_count(const NodeText *node)
 	return count;
 }
 
-NdbTBuffer * nodedb_t_buffer_lookup(const NodeText *node, const char *name)
+NdbTBuffer * nodedb_t_buffer_get_nth(const NodeText *node, unsigned int n)
+{
+	unsigned int	i;
+	NdbTBuffer	*b;
+
+	if(node == NULL || node->node.type != V_NT_TEXT)
+		return 0;
+	for(i = 0; (b = dynarr_index(node->buffers, i)) != NULL; i++)
+	{
+		if(b->name[0] == '\0')
+			continue;
+		if(n == 0)
+			return b;
+		n--;
+	}
+	return NULL;
+}
+
+NdbTBuffer * nodedb_t_buffer_get_named(const NodeText *node, const char *name)
 {
 	unsigned int	i;
 	NdbTBuffer	*b;
