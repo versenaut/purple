@@ -17,6 +17,9 @@ typedef struct
 	int	len;
 } DiffEdit;
 
-/* consider alternate behavior for each NULL parameter  */
-extern int diff_compare(const void *a, int aoff, int n, const void *b, int boff, int m,
-		int dmax, DynArr *ses, int *sn, DynArr *buf);
+/* Simple comparison, cuts down on number of arguments needed. */
+extern int	diff_compare_simple(const void *a, size_t n, const void *b, size_t m, DynArr *edits);
+
+/* Expose all bells and whistles of the diffing algorithm. */
+extern int	diff_compare(const void *a, int aoff, int n, const void *b, int boff, int m,
+				int dmax, DynArr *ses, int *sn, DynArr *buf);
