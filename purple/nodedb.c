@@ -22,7 +22,6 @@
 #include "mem.h"
 #include "memchunk.h"
 #include "strutil.h"
-#include "textbuf.h"
 
 #include "nodedb.h"
 #include "nodedb-internal.h"
