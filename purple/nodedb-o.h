@@ -36,6 +36,7 @@ typedef struct
 } NdbOMethod;
 
 extern void		nodedb_o_construct(NodeObject *n);
+extern void		nodedb_o_copy(NodeObject *n, const NodeObject *src);
 extern void		nodedb_o_destruct(NodeObject *n);
 
 extern NdbOMethodGroup*	nodedb_o_method_group_lookup(NodeObject *n, const char *name);
