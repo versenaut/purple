@@ -282,13 +282,13 @@ int value_set_va(PValue *v, PValueType type, va_list arg)
 	return do_set(v, type, arg);
 }
 
-int value_set_defminmax_va(PValue *v, PValueType type, va_list arg)
+int value_set_defminmax_va(PValue *v, PValueType type, va_list *arg)
 {
 	if(type == P_VALUE_STRING)
-		return value_set_va(v, type, arg);
+		return value_set_va(v, type, *arg);
 	else
 	{
-		double	d = va_arg(arg, double);
+		double	d = va_arg(*arg, double);
 
 		switch(type)
 		{
