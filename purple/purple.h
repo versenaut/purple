@@ -168,7 +168,7 @@ void		p_node_g_layer_delete(PONode *node, const char *name);
 
 
 /* Duplicates an input node, and returns something you can actually edit. */
-PONode *	p_output_node(const PINode *node);
+PONode *	p_output_node(PPOutput out, const PINode *node);
 
 /* Creates a new empty output node for editing/data creation. */
 PONode * 	p_output_node_create(VNodeType type, const char *name);
