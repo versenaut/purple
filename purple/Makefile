@@ -20,7 +20,8 @@ purple:		purple.c \
 		filelist.o hash.o idlist.o idset.o list.o log.o mem.o memchunk.o \
 		nodedb.o nodedb-a.o nodedb-b.o nodedb-c.o nodedb-g.o nodedb-m.o nodedb-o.o nodedb-t.o \
 		nodeset.o plugins.o plugin-input.o plugin-output.o \
-		port.o scheduler.o strutil.o synchronizer.o textbuf.o timeval.o value.o vecutil.o xmlnode.o xmlutil.o \
+		port.o resume.o scheduler.o strutil.o synchronizer.o textbuf.o timeval.o \
+		value.o vecutil.o xmlnode.o xmlutil.o \
 		$(VERSE)/libverse.a
 
 xmlnode.a:	xmlnode.o dynstr.o mem.o memchunk.o list.o strutil.o log.o
@@ -91,6 +92,8 @@ plugin-input.o:	plugin-input.c purple.h
 plugin-output.o:	plugin-output.c purple.h
 
 port.o:		port.c port.h value.h
+
+resume.o:	resume.c resume.h
 
 scheduler.o:	scheduler.c scheduler.h
 
