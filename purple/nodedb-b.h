@@ -2,6 +2,8 @@
  * Bitmap node database implementation.
 */
 
+#include <stdarg.h>
+
 /* This is used to avoid copying tiles back and forth when sychronizing, by
  * instead providing enough access information to let it at the bytes.
 */
