@@ -377,6 +377,16 @@ NdbTagGroup * nodedb_tag_group_lookup(const Node *node, const char *name)
 	return NULL;
 }
 
+void nodedb_tag_group_destroy(NdbTagGroup *group)
+{
+	if(group == NULL)
+		return;
+	nodedb_tag_destroy_all(group);
+	printf("destroying tag group '%s', id=%u\n", group->name, group->id);
+	group->name[0] = '\0';
+	group->id = -1;
+}
+
 static void cb_default_tag(unsigned int index, void *element, void *user)
 {
 	NdbTag	*tag = element;
@@ -404,11 +414,37 @@ void nodedb_tag_create(NdbTagGroup *group, uint16 tag_id, const char *name, VNTa
 	{
 		tag->id = tag_id;
 		stu_strncpy(tag->name, sizeof tag->name, name);
-		nodedb_tag_set(tag, type, value);
+		nodedb_tag_value_set(tag, type, value);
 	}
 }
 
-void nodedb_tag_clear(NdbTag *tag)
+void nodedb_tag_destroy(NdbTagGroup *group, NdbTag *tag)
+{
+	if(group == NULL || tag == NULL)
+		return;
+	nodedb_tag_value_clear(tag);
+	tag->name[0] = '\0';
+	tag->id = -1;
+}
+
+void nodedb_tag_destroy_all(NdbTagGroup *group)
+{
+	unsigned int	i;
+	NdbTag		*tag;
+
+	if(group == NULL)
+		return;
+	for(i = 0; (tag = dynarr_index(group->tags, i)) != NULL; i++)
+	{
+		if(tag->name[0] == '\0')
+			continue;
+		nodedb_tag_value_clear(tag);
+	}
+	dynarr_destroy(group->tags);
+	group->tags = NULL;
+}
+
+void nodedb_tag_value_clear(NdbTag *tag)
 {
 	/* Throw out any old non-scalar value. */
 	if(!NODEDB_TAG_TYPE_SCALAR(tag->type))
@@ -421,11 +457,11 @@ void nodedb_tag_clear(NdbTag *tag)
 	tag->type = -1;
 }
 
-void nodedb_tag_set(NdbTag *tag, VNTagType type, const VNTag *value)
+void nodedb_tag_value_set(NdbTag *tag, VNTagType type, const VNTag *value)
 {
 	if(tag == NULL || value == NULL)
 		return;
-	nodedb_tag_clear(tag);
+	nodedb_tag_value_clear(tag);
 	tag->type  = type;
 	if(NODEDB_TAG_TYPE_SCALAR(type))
 		tag->value = *value;
@@ -597,7 +633,7 @@ static void cb_tag_destroy(void *user, VNodeID node_id, uint16 group_id, uint16 
 		return;
 	if((tag = dynarr_index(tg->tags, tag_id)) != NULL)
 	{
-		nodedb_tag_clear(tag);
+		nodedb_tag_value_clear(tag);
 		tag->name[0] = '\0';
 		NOTIFY(n, DATA);
 	}
