@@ -96,7 +96,8 @@ const real64 *	p_input_real64_vec3(PPInput input);
 const real64 *	p_input_real64_vec4(PPInput input);
 const real64 *	p_input_real64_mat16(PPInput input);
 const char *	p_input_string(PPInput input);
-PINode *	p_input_node(PPInput input);	/* Inputs the "first" node, somehow. */
+PINode *	p_input_node(PPInput input);			/* Inputs the "first" node, somehow. */
+PINode *	p_input_node_nth(PPInput input, int index);	/* Input n:th node, or NULL. */
 
 /* Node manipulation functions. Getters work on both input and output
  * nodes, setting requires output.
