@@ -113,8 +113,8 @@ static struct TypeName
 	{ P_INPUT_REAL64_VEC3,	"real64_vec3" },
 	{ P_INPUT_REAL64_VEC4,	"real64_vec4" },
 	{ P_INPUT_REAL64_MAT16,	"real64_mat16" },
+	{ P_INPUT_MODULE,	"module" },
 	{ P_INPUT_STRING,	"string" },
-	{ P_INPUT_NODE,		"node" }
 	}, type_map_by_name[sizeof type_map_by_value / sizeof *type_map_by_value];
 
 /* ----------------------------------------------------------------------------------------- */
@@ -242,6 +242,9 @@ static int set_value(PInputValue *value, PInputType new_type, va_list *taglist)
 			value->v.vreal64_vec4[3] = data[3];
 		}
 		return 1;
+	case P_INPUT_MODULE:
+		value->v.vmodule = (uint32) va_arg(*taglist, uint32);
+		return 1;
 	case P_INPUT_STRING:
 		value->v.vstring = stu_strdup((const char *) va_arg(*taglist, const char *));
 		return 1;
@@ -267,7 +270,7 @@ void plugin_set_input(Plugin *p, int index, PInputType type, const char *name, v
 		LOG_ERR(("Plug-in \"%s\" attempted to set input \"%s\" with bad index %d--ignored", p->name, name, index));
 		return;
 	}
-	if(type < P_INPUT_BOOLEAN || type > P_INPUT_NODE)
+	if(type < P_INPUT_BOOLEAN || type > P_INPUT_STRING)
 	{
 		LOG_ERR(("Plug-in \"%s\" attempted to set input %d with bad type %d--ignored", p->name, index, type));
 		return;
@@ -418,11 +421,11 @@ static void append_value(DynStr *d, const PInputValue *v)
 			dynstr_append_printf(d, "]");
 		}
 		break;
+	case P_INPUT_MODULE:
+		dynstr_append_printf(d, "%u", v->v.vmodule);
+		break;
 	case P_INPUT_STRING:
 		xml_dynstr_append(d, v->v.vstring);
-		break;
-	case P_INPUT_NODE:
-		LOG_WARN(("Not implemented (node input)"));
 		break;
 	}
 }

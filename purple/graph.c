@@ -64,6 +64,7 @@ enum
 	MOD_INPUT_SET_BOOLEAN, MOD_INPUT_SET_INT32, MOD_INPUT_SET_UINT32,
 	MOD_INPUT_SET_REAL32, MOD_INPUT_SET_REAL32_VEC2, MOD_INPUT_SET_REAL32_VEC3, MOD_INPUT_SET_REAL32_VEC4,
 	MOD_INPUT_SET_REAL64, MOD_INPUT_SET_REAL64_VEC2, MOD_INPUT_SET_REAL64_VEC3, MOD_INPUT_SET_REAL64_VEC4,
+	MOD_INPUT_SET_MODULE,
 	MOD_INPUT_SET_STRING
 };
 
@@ -97,6 +98,7 @@ static MethodInfo method_info[] = {
 	MI_INPUT_VEC(r64, REAL64, 2),
 	MI_INPUT_VEC(r64, REAL64, 3),
 	MI_INPUT_VEC(r64, REAL64, 4),
+	MI_INPUT(module, UINT32),
 	MI_INPUT(string, STRING)
 };
 
@@ -207,6 +209,8 @@ static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 	Node		*node;
 	Graph		*g, *me;
 	char		xml[256];
+
+	printf("create graph %s\n", name);
 
 	/* Make sure name is unique. */
 	if(hash_lookup(graph_info.graphs_name, name) != NULL)
@@ -401,6 +405,7 @@ void send_method_call(int method, const VNOParam *param)
 	const MethodInfo *mi;
 	void *pack;
 
+	printf("sending method %d\n", method);
 	if(method < 0 || method >= sizeof method_info / sizeof *method_info)
 		return;
 	mi = method_info + method;
@@ -528,7 +533,11 @@ void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32
 		param[3].vreal64_vec[2] = value->v.vreal64_vec4[2];
 		param[3].vreal64_vec[3] = value->v.vreal64_vec4[3];
 		method = MOD_INPUT_SET_REAL64_VEC4;
-		printf("prepared method %g %g %g %g\n", param[3].vreal64_vec[0], param[3].vreal64_vec[1], param[3].vreal64_vec[2], param[3].vreal64_vec[3]);
+		break;
+	case P_INPUT_MODULE:
+		type[3] = VN_O_METHOD_PTYPE_UINT32;
+		param[3].vstring = value->v.vmodule;
+		method = MOD_INPUT_SET_MODULE;
 		break;
 	case P_INPUT_STRING:
 		type[3] = VN_O_METHOD_PTYPE_STRING;
@@ -607,6 +616,9 @@ void graph_method_receive_call(uint8 id, const void *param)
 				break;
 			case MOD_INPUT_SET_REAL64_VEC4:
 				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64_VEC4, &arg[3].vreal64_vec);
+				break;
+			case MOD_INPUT_SET_MODULE:
+				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_MODULE, arg[3].vuint32);
 				break;
 			case MOD_INPUT_SET_STRING:
 				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_STRING, arg[3].vstring);
