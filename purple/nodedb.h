@@ -82,7 +82,7 @@ extern void		nodedb_tag_group_destroy(NdbTagGroup *group);
 
 extern unsigned int	nodedb_tag_group_tag_num(const NdbTagGroup *group);
 extern NdbTag *		nodedb_tag_group_tag_nth(const NdbTagGroup *group, unsigned int n);
-extern NdbTag *		nodedb_tag_group_tag_find(NdbTagGroup *group, const char *name);
+extern NdbTag *		nodedb_tag_group_tag_find(const NdbTagGroup *group, const char *name);
 extern void		nodedb_tag_create(NdbTagGroup *group, uint16 tag_id, const char *name, VNTagType type, const VNTag *value);
 extern void		nodedb_tag_destroy(NdbTagGroup *group, NdbTag *tag);
 extern void		nodedb_tag_destroy_all(NdbTagGroup *group);

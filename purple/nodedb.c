@@ -464,6 +464,23 @@ NdbTag * nodedb_tag_group_tag_nth(const NdbTagGroup *group, unsigned int n)
 	return NULL;
 }
 
+NdbTag * nodedb_tag_group_tag_find(const NdbTagGroup *group, const char *name)
+{
+	unsigned int	i;
+	NdbTag		*tag;
+
+	if(group == NULL || name == NULL || *name == '\0')
+		return NULL;
+	for(i = 0; (tag = dynarr_index(group->tags, i)) != NULL; i++)
+	{
+		if(tag->name[0] == '\0')
+			continue;
+		if(strcmp(tag->name, name) == 0)
+			return tag;
+	}
+	return NULL;
+}
+
 void nodedb_tag_create(NdbTagGroup *group, uint16 tag_id, const char *name, VNTagType type, const VNTag *value)
 {
 	NdbTag	*tag;
