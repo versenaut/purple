@@ -80,6 +80,14 @@ void nodedb_c_destruct(NodeCurve *n)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static void cb_curve_default(unsigned int indec, void *element, void *user)
+{
+	NdbCCurve	*curve = element;
+
+	curve->id = ~0;
+	curve->name[0] = '\0';
+}
+
 NdbCCurve * nodedb_c_curve_create(NodeCurve *node, VLayerID curve_id, const char *name, uint8 dimensions)
 {
 	NdbCCurve	*curve;
@@ -87,7 +95,10 @@ NdbCCurve * nodedb_c_curve_create(NodeCurve *node, VLayerID curve_id, const char
 	if(node == NULL || name == NULL || dimensions > 4)
 		return NULL;
 	if(node->curves == NULL)
+	{
 		node->curves = dynarr_new(sizeof (NdbCCurve), 4);
+		dynarr_set_default_func(node->curves, cb_curve_default, NULL);
+	}
 	if(curve_id == (VLayerID) ~0)
 		curve = dynarr_append(node->curves, NULL, NULL);
 	else
