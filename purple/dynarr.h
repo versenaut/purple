@@ -14,7 +14,8 @@ extern DynArr *	dynarr_new(size_t elem_size, size_t page_size);
 
 /* Create a new dynamic array that holds a copy of the <src> array and its data. The element_copy
  * function is called with each element, and should return a pointer to a copy to insert at the
- * present index, or NULL if the element should be left undefined.
+ * present index, or NULL if the element should be left undefined. Elements that are not assigned
+ * in the source will be *copied*, defaulting is not used during copy.
 */
 extern DynArr *	dynarr_new_copy(const DynArr *src, void (*element_copy)(void *dst, const void *src));
 
