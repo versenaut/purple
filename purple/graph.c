@@ -58,7 +58,9 @@ typedef struct
 	uint8		   id;			/* Filled-in once created. */ 
 } MethodInfo;
 
-enum { CREATE, DESTROY, MOD_CREATE, MOD_INPUT_CLEAR, MOD_INPUT_SET_BOOLEAN, MOD_INPUT_SET_REAL32 };
+enum { CREATE, DESTROY, MOD_CREATE, MOD_INPUT_CLEAR,
+	MOD_INPUT_SET_BOOLEAN, MOD_INPUT_SET_INT32, MOD_INPUT_SET_UINT32,
+	MOD_INPUT_SET_REAL32 };
 
 #define	MI_INPUT(lct, uct)	\
 	{ "m_i_set_" #lct, 4, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8, \
@@ -74,9 +76,12 @@ static MethodInfo method_info[] = {
 	{ "mod_input_clear", 3, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8 },
 			{ "graph_id", "plugin_id", "input" } },
 	MI_INPUT(boolean, UINT8),
+	MI_INPUT(int32, INT32),
+	MI_INPUT(uint32, UINT32),
 	MI_INPUT(real32, REAL32),
 /*	{ 0, "mod_destroy", 2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "module_id" } }
-*/};
+*/
+};
 
 static struct
 {
@@ -395,31 +400,46 @@ void graph_method_send_call_mod_create(uint32 graph_id, uint32 plugin_id)
 	send_method_call(MOD_CREATE, param);
 }
 
-void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32 index, PInputType vtype, ...)
+void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32 index, const PInputValue *value)
 {
 	VNOParam	param[4];
 	VNOParamType	type[4] = { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8 };
-	va_list		arg;
 	void		*pack;
+	int		method = 0;
 
 	param[0].vuint32 = graph_id;
 	param[1].vuint32 = mod_id;
 	param[2].vuint8  = index;
-	va_start(arg, vtype);
-	switch(vtype)
+	/* Map module input type "down" to Verse method call parameter type. */
+	switch(value->type)
 	{
+	case P_INPUT_BOOLEAN:
+		type[3] = VN_O_METHOD_PTYPE_UINT8;
+		param[3].vuint8 = value->v.vboolean;
+		method = MOD_INPUT_SET_BOOLEAN;
+		break;
+	case P_INPUT_INT32:
+		type[3] = VN_O_METHOD_PTYPE_INT32;
+		param[3].vint32 = value->v.vint32;
+		method = MOD_INPUT_SET_INT32;
+		break;
+	case P_INPUT_UINT32:
+		type[3] = VN_O_METHOD_PTYPE_UINT32;
+		param[3].vuint32 = value->v.vuint32;
+		method = MOD_INPUT_SET_UINT32;
+		break;
 	case P_INPUT_REAL32:
-		param[3].vreal32 = (real32) va_arg(arg, double);
 		type[3] = VN_O_METHOD_PTYPE_REAL32;
+		param[3].vreal32 = value->v.vreal32;
+		method = MOD_INPUT_SET_REAL32;
 		break;
 	default:
-		LOG_WARN(("Input-setting type %d not implemented", vtype));
-		break;
+		printf("Can't prepare input setting, type %d\n", value->type);
+		return;
 	}
-	va_end(arg);
 	if((pack = verse_method_call_pack(4, type, param)) != NULL)
 		verse_send_o_method_call(client_info.avatar, client_info.gid_control,
-					 method_info[MOD_INPUT_SET_REAL32].id, 0, pack);
+					 method_info[method].id, 0, pack);
 }
 
 void graph_method_send_call_mod_input_clear(uint32 graph_id, uint32 module_id, uint32 input)
@@ -451,6 +471,15 @@ void graph_method_receive_call(uint8 id, const void *param)
 			case MOD_CREATE: module_create(arg[0].vuint32, arg[1].vuint32);			break;
 			case MOD_INPUT_CLEAR:
 				module_input_clear(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8);
+				break;
+			case MOD_INPUT_SET_BOOLEAN:
+				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_BOOLEAN, arg[3].vuint8);
+				break;
+			case MOD_INPUT_SET_INT32:
+				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_INT32, arg[3].vint32);
+				break;
+			case MOD_INPUT_SET_UINT32:
+				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_UINT32, arg[3].vuint32);
 				break;
 			case MOD_INPUT_SET_REAL32:
 				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32, arg[3].vreal32);
