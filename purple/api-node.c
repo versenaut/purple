@@ -344,6 +344,23 @@ void p_node_g_crease_set_edge(PONode *node, const char *layer, uint32 def)
 
 /* ----------------------------------------------------------------------------------------- */
 
+unsigned int p_node_m_fragment_num(PINode *node)
+{
+	return nodedb_m_fragment_num((NodeMaterial *) node);
+}
+
+PNMFragment * p_node_fragment_nth(PINode *node, unsigned int n)
+{
+	return nodedb_m_fragment_nth((NodeMaterial *) node, n);
+}
+
+void p_node_m_fragment_iter(PINode *node, PIter *iter)
+{
+	iter_init_dynarr_enum_negative(iter, ((NodeMaterial *) node)->fragments, offsetof(NdbMFragment, type));
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 void p_node_b_dimensions_set(PONode *node, uint16 width, uint16 height, uint16 depth)
 {
 	if(node == NULL)
