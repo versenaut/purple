@@ -23,7 +23,7 @@ void nodedb_t_construct(NodeText *n)
 	n->buffers = dynarr_new(sizeof (NdbTBuffer), 2);
 }
 
-static void cb_copy_buffer(void *d, const void *s)
+static void cb_copy_buffer(void *d, const void *s, void *user)
 {
 	const NdbTBuffer	*src = s;
 	NdbTBuffer		*dst = d;
@@ -36,7 +36,7 @@ static void cb_copy_buffer(void *d, const void *s)
 
 void nodedb_t_copy(NodeText *n, const NodeText *src)
 {
-	n->buffers = dynarr_new_copy(src->buffers, cb_copy_buffer);
+	n->buffers = dynarr_new_copy(src->buffers, cb_copy_buffer, NULL);
 }
 
 void nodedb_t_destruct(NodeText *n)

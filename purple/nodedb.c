@@ -158,13 +158,13 @@ Node * nodedb_new(VNodeType type)
 	return NULL;
 }
 
-static void cb_copy_tag_group(void *d, const void *s)
+static void cb_copy_tag_group(void *d, const void *s, void *user)
 {
 	const TagGroup	*src = s;
 	TagGroup	*dst = d;
 
 	strcpy(dst->name, src->name);
-	dst->tags = dynarr_new_copy(src->tags, NULL);	/* Tags are memcpy():able, let dynarr do it. */
+	dst->tags = dynarr_new_copy(src->tags, NULL, NULL);	/* Tags are memcpy():able, let dynarr do it. */
 }
 
 Node * nodedb_new_copy(const Node *src)
@@ -179,7 +179,7 @@ Node * nodedb_new_copy(const Node *src)
 		n->type = src->type;
 		strcpy(n->name, src->name);
 		n->owner = src->owner;
-		n->tag_groups = dynarr_new_copy(src->tag_groups, cb_copy_tag_group);
+		n->tag_groups = dynarr_new_copy(src->tag_groups, cb_copy_tag_group, NULL);
 		switch(n->type)
 		{
 		case V_NT_BITMAP:

@@ -55,7 +55,7 @@ static void method_set(NdbOMethod *m, uint16 method_id, const char *name, uint8 
 }
 
 /* Copy a method. Simple, just set the fresh memory using the old one for parameters. */
-static void cb_copy_method(void *d, const void *s)
+static void cb_copy_method(void *d, const void *s, void *user)
 {
 	const NdbOMethod	*src = s;
 
@@ -63,14 +63,14 @@ static void cb_copy_method(void *d, const void *s)
 }
 
 /* Copy a method group, including (of course) all its methods. */
-static void cb_copy_method_group(void *d, const void *s)
+static void cb_copy_method_group(void *d, const void *s, void *user)
 {
 	const NdbOMethodGroup	*src = s;
 	NdbOMethodGroup		*dst = d;
 
 	dst->id = src->id;
 	strcpy(dst->name, src->name);
-	dst->methods = dynarr_new_copy(src->methods, cb_copy_method);
+	dst->methods = dynarr_new_copy(src->methods, cb_copy_method, NULL);
 }
 
 void nodedb_o_copy(NodeObject *n, const NodeObject *src)
@@ -78,8 +78,8 @@ void nodedb_o_copy(NodeObject *n, const NodeObject *src)
 	memcpy(n->xform, src->xform, sizeof *n->xform);
 	memcpy(n->light, src->light, sizeof *n->light);
 
-	n->links = dynarr_new_copy(src->links, NULL);	/* Link data structure is monolithic. */
-	n->method_groups = dynarr_new_copy(src->method_groups, cb_copy_method_group);
+	n->links = dynarr_new_copy(src->links, NULL, NULL);	/* Link data structure is monolithic. */
+	n->method_groups = dynarr_new_copy(src->method_groups, cb_copy_method_group, NULL);
 }
 
 void nodedb_o_destruct(NodeObject *n)
