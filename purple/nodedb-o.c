@@ -54,6 +54,17 @@ const NdbOMethod * nodedb_o_method_lookup(const NdbOMethodGroup *group, const ch
 	return NULL;
 }
 
+const NdbOMethod * nodedb_o_method_lookup_id(const NdbOMethodGroup *group, uint8 id)
+{
+	const NdbOMethod	*m;
+
+	if(group == NULL)
+		return NULL;
+	if((m = dynarr_index(group->methods, id)) == NULL)
+		return NULL;
+	return m;
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 static void cb_o_link_set(void *user, VNodeID node_id, uint16 link_id, uint32 link, const char *name, uint32 target_id)
