@@ -51,7 +51,6 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		}
 		else if(number > 10 && number < 20)
 		{
-			printf("processing teen\n");
 			if(part > 0)
 				part = append(part, buf, "and");
 			part = append(part, buf, teen[number - 11]);
