@@ -412,7 +412,7 @@ void send_method_call(int method, const VNOParam *param)
 	mi = method_info + method;
 	if(mi->id == (uint8) ~0)
 	{
-		LOG_WARN(("Can't send call ot method %s(), not created yet", mi->name));
+		LOG_WARN(("Can't send call to method %s(), not created yet", mi->name));
 		return;
 	}
 	if((pack = verse_method_call_pack(mi->param_count, mi->param_type, param)) != NULL)
