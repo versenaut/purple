@@ -25,6 +25,7 @@
 
 void nodedb_t_construct(NodeText *n)
 {
+	n->language[0] = '\0';
 	n->buffers = NULL;
 }
 
@@ -41,6 +42,7 @@ static void cb_copy_buffer(void *d, const void *s, void *user)
 
 void nodedb_t_copy(NodeText *n, const NodeText *src)
 {
+	strcpy(n->language, src->language);
 	n->buffers = dynarr_new_copy(src->buffers, cb_copy_buffer, NULL);
 }
 
