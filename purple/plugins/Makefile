@@ -5,13 +5,17 @@
 CC=gcc
 CFLAGS=-I.. -I../../verse/ -shared -Wstrict-prototypes -Wmissing-prototypes
 
-ALL:	libbbox.so libchecker.so libcube.so libdisc.so libhello.so libfactors.so libmath.so \
-	libmeasure.so libscale.so libstringop.so libwarp.so
+ALL:	libaverage.so libbbox.so libbmblend.so libchecker.so libcube.so libdisc.so \
+	libhello.so libfactors.so libmath.so libmeasure.so libscale.so libstringop.so libwarp.so
 
 lib%.so : %.c
 	$(CC) $(CFLAGS) -o $@ $^
 
+libaverage.so:	average.c
+
 libbbbox.so:	bbox.c
+
+libbmblend.so:	bmblend.c
 
 libchecker.so:	checker.c
 
