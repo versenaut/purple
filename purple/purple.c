@@ -158,25 +158,6 @@ static void test_strutil(void)
 	mem_free(p);
 }
 
-static void test_dynstr(void)
-{
-	DynStr	*ds;
-
-	ds = dynstr_new("");
-	dynstr_append_c(ds, 'h');
-	dynstr_append_c(ds, 'e');
-	dynstr_append_c(ds, 'l');
-	dynstr_append_c(ds, 'l');
-	dynstr_append_c(ds, 'o');
-	printf("string: '%s'\n", dynstr_string(ds));
-
-	dynstr_assign(ds, "");
-	xml_dynstr_append(ds, "\"me\" & my <friends>");
-	printf("string: '%s'\n", dynstr_string(ds));
-
-	dynstr_destroy(ds, TRUE);
-}
-
 static void test_textbuf(void)
 {
 	TextBuf	*tb;
@@ -587,12 +568,10 @@ int main(void)
 	graph_init();
 
 /*	test_chunk();
-	test_list();
 	test_dynarr();
 	test_hash();
 	test_filelist();
 	test_strutil();
-	test_dynstr();
 	test_textbuf();
 	test_xmlnode();
 	test_idset();
