@@ -8,6 +8,7 @@
 #include "verse.h"
 
 #include "dynarr.h"
+#include "mem.h"
 #include "strutil.h"
 #include "textbuf.h"
 
@@ -105,8 +106,17 @@ static void cb_o_method_group_destroy(void *user, VNodeID node_id, uint16 group_
 
 		if((g = dynarr_index(n->method_groups, group_id)) != NULL)
 		{
+			unsigned int	i;
+			NdbOMethod	*m;
+
 			g->id = 0;
 			g->name[0] = '\0';
+			for(i = 0; (m = dynarr_index(g->methods, i)) != NULL; i++)
+			{
+				if(m->name[i] == '\0')
+					continue;
+				mem_free(m->param_type);
+			}
 			dynarr_destroy(g->methods);
 			NOTIFY(n, STRUCTURE);
 		}
@@ -128,13 +138,33 @@ static void cb_o_method_create(void *user, VNodeID node_id, uint16 group_id, uin
 
 			if(g->methods == NULL)
 				g->methods = dynarr_new(sizeof (NdbOMethod), 4);
-			if((m = dynarr_index(g->methods, method_id)) != NULL)
+			if((m = dynarr_set(g->methods, method_id, NULL)) != NULL)
 			{
-				printf("here, things don't quite happen\n");
+				unsigned int	i;
+				char		*put;
+				size_t		size;
+
+				size = param_count * (sizeof *m->param_type + sizeof *m->param_name);
+				for(i = 0; i < param_count; i++)
+					size += strlen(param_name[i]) + 1;
+				m->param_type = mem_alloc(size);
+				memcpy(m->param_type, param_type, param_count * sizeof *m->param_type);
+				m->param_name = (char **) (m->param_type + param_count);
+				put = (char *) (m->param_name + param_count);
+				for(i = 0; i < param_count; i++)
+				{
+					m->param_name[i] = put;
+					strcpy(put, param_name[i]);
+					put += strlen(param_name[i]) + 1;
+				}
 				NOTIFY(n, STRUCTURE);
 			}
 		}
+		else
+			printf(" no group\n");
 	}
+	else
+		printf(" no node\n");
 }
 
 /* ----------------------------------------------------------------------------------------- */
