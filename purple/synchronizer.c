@@ -51,11 +51,11 @@ static void cb_notify(Node *node, NodeNotifyEvent ev)
 		n = list_data(iter);
 		if(n->type == node->type)
 		{
+			LOG_MSG(("Node at %p has host-side ID %u, we can now sync it", n, node->id));
 			sync_info.queue_create_pend = list_unlink(sync_info.queue_create_pend, iter);
 			list_destroy(iter);
 			n->id = node->id;	/* To-sync copy now has known ID. Excellent. */
 			sync_info.queue_sync = list_prepend(sync_info.queue_sync, n);	/* Re-add to other queue. */
-			LOG_MSG(("Node at %p has host-side ID %u", n, n->id));
 			break;
 		}
 	}
@@ -852,7 +852,7 @@ static int sync_audio_layer(const NodeAudio *n, const NdbALayer *layer,
 		{
 			if(!nodedb_a_blocks_equal(layer->type, blk, tblk))
 			{
-				printf(" Block %u differs, sending new version\n", index);
+/*				printf(" Block %u differs, sending new version\n", index);*/
 				verse_send_a_block_set(target->node.id, tlayer->id, index, tlayer->type, blk->data);
 				sync = 0;
 			}
@@ -863,6 +863,7 @@ static int sync_audio_layer(const NodeAudio *n, const NdbALayer *layer,
 			verse_send_a_block_set(target->node.id, tlayer->id, index, tlayer->type, blk->data);
 		}
 	}
+	printf(" block(s) sent\n");
 	return sync;
 }
 
