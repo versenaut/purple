@@ -65,21 +65,6 @@ static void test_chunk(void)
 	memchunk_destroy(c);
 }
 
-static int cmp_int(const void *data1, const void *data2)
-{
-	int	a = (int) data1, b = (int) data2;
-
-	printf("comparing %d vs %d\n", a, b);
-
-	return a < b ? -1 : a > b;
-}
-
-static int cb_print_int(void *data, void *userdata)
-{
-	printf(" %d", (int) data);
-	return 1;
-}
-
 static void test_dynarr(void)
 {
 	DynArr	*a;
