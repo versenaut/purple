@@ -1217,8 +1217,9 @@ it, thus triggering a cascade of re-computations.
 <para>
 Computation in Purple is based solely on a data flow model. Modules are assumed to depend only on their inputs;
 it is not valid to write a plug-in with i.e. an internal dependency on time or some other <quote>global</quote>
-input. The root cause for re-computation of a module's output value is a change of one of its inputs, or a change
-of the output connection (a module whose output is not connected to anything need never have its value computed).
+event source. The root cause for re-computation of a module's output value is a change of one of its inputs, or
+a change of the output connection (a module whose output is not connected to anything need never have its value
+computed).
 </para>
 <para>
 Although plug-ins are written in C, a very imperative language, plug-ins as a whole do not have side-effects;
@@ -1233,6 +1234,25 @@ expensive in terms of memory (it is possible for a module's output value to be a
 hundreds of full Verse nodes). Rather, it will make the module &Compute; the output value whenever it is
 needed.
 </para>
+<sect3>
+<title>Node Dependencies</title>
+<para>
+As stated above, only input changes can cause recomputation of a module's output. This is easy enough for
+literal input values such as booleans, numbers and strings, but what about Verse node data? It must be 
+possible to express that a graph depends on the contents of a Verse node, and should be recomputed when
+the node's data changes.
+</para>
+<para>
+Node dependencies are expressed using instances of a built-in, special and magical, <emphasis>node selector</emphasis>
+plug-in. The node selector is rather simple, in its initial implementation: it has a string input, and
+outputs the Verse node whose name is the value of that input. That's it.
+</para>
+<para>
+Because the node selector plug-in is magical, and not implemented using the Purple API but instead hard-wired
+into the Purple engine, it can set up an interal dependency on the node database, and pass on any change
+as required.
+</para>
+</sect3>
 </sect2>
 
 
