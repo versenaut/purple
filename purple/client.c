@@ -127,7 +127,7 @@ static void cb_node_notify_mine(Node *node, NodeNotifyEvent e)
 			}
 			else if(client_info.gid_control != (uint16) ~0)
 			{
-				graph_method_receive_create((NodeObject *) node);
+				graph_method_check_created((NodeObject *) node);
 			}
 		}
 	}

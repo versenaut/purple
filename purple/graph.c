@@ -150,7 +150,7 @@ void graph_method_send_creates(uint32 avatar, uint8 group_id)
 
 /* ----------------------------------------------------------------------------------------- */
 
-void graph_method_receive_create(NodeObject *obj)
+void graph_method_check_created(NodeObject *obj)
 {
 	NdbOMethodGroup	*g;
 	unsigned int	i;
