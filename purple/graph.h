@@ -1,5 +1,5 @@
 /*
- * Graph editing functionality.
+ * Graph editing functionality. Graphs are very opaque.
 */
 
 /* Initialize graph module. Must be called before module is used. */
