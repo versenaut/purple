@@ -78,7 +78,7 @@ static void cb_node_notify_mine(Node *node, NodeNotifyEvent e)
 					client_info.plugins.buffer = buf->id;
 					if((text = plugins_build_xml()) != NULL)
 					{
-						char	buf[512];
+						char	buf[1024];
 						size_t	len = strlen(text), pos, chunk;
 
 						for(pos = 0; pos < len; pos += chunk)
