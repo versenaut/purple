@@ -14,16 +14,18 @@
 
 struct IdSet
 {
-	DynArr	*arr;
-	List	*removed;
-	size_t	size;		/* Number of active references. */
+	unsigned int	offset;		/* Bias all IDs by this amount. */
+	DynArr		*arr;
+	List		*removed;
+	size_t		size;		/* Number of active references. */
 };
 
-IdSet * idset_new(void)
+IdSet * idset_new(unsigned int offset)
 {
 	IdSet	*is;
 
 	is = mem_alloc(sizeof *is);
+	is->offset = offset;
 	is->arr = dynarr_new(sizeof (void *), 4);
 	is->removed = NULL;
 	is->size = 0;
@@ -46,7 +48,7 @@ unsigned int idset_insert(IdSet *is, void *object)
 	else
 		index = dynarr_append(is->arr, &object);
 	is->size++;
-	return index;
+	return index + is->offset;
 }
 
 void idset_remove(IdSet *is, unsigned int id)
@@ -55,6 +57,7 @@ void idset_remove(IdSet *is, unsigned int id)
 
 	if(is == NULL)
 		return;
+	id -= is->offset;
 	if((objp = dynarr_index(is->arr, id)) != NULL)
 	{
 		void	*obj;
@@ -81,6 +84,7 @@ void * idset_lookup(const IdSet *is, unsigned int id)
 
 	if(is == NULL)
 		return NULL;
+	id -= is->offset;
 	if((objp = dynarr_index(is->arr, id)) != NULL)
 		return *objp;
 	return NULL;
@@ -96,7 +100,7 @@ unsigned int idset_foreach_first(const IdSet *is)
 	for(id = 0; id < dynarr_size(is->arr); id++)
 	{
 		if((objp = dynarr_index(is->arr, id)) != NULL && *objp != NULL)
-			return id;
+			return id + is->offset;
 	}
 	return 0;
 }
@@ -107,12 +111,13 @@ unsigned int idset_foreach_next(const IdSet *is, unsigned int id)
 
 	if(is == NULL)
 		return 0;
+	id -= is->offset;
 	while((objp = dynarr_index(is->arr, ++id)) != NULL)
 	{
 		if(*objp != NULL)
-			return id;
+			break;
 	}
-	return id;
+	return id + is->offset;
 }
 
 void idset_destroy(IdSet *is)

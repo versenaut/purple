@@ -6,7 +6,11 @@
 
 typedef struct IdSet	IdSet;
 
-extern IdSet *		idset_new(void);
+/* Create a new IdSet, with the given <offset> on all IDs. No ID will be less than the
+ * <offset>. Handy for reserving a low range of numbers, or perhaps just reserving the
+ * ID zero (by setting offset to 1).
+*/
+extern IdSet *		idset_new(unsigned int offset);
 
 extern unsigned int	idset_insert(IdSet *is, void *object);
 extern void		idset_remove(IdSet *is, unsigned int id);
