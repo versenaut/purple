@@ -366,6 +366,15 @@ static void graph_modules_desc_start_update(Graph *g)
 	}
 }
 
+static PPOutput cb_module_lookup(uint32 module_id, void *data)
+{
+	Module	*m;
+
+	if((m = idset_lookup(((Graph *) data)->modules, module_id)) != NULL)
+		return &m->output;
+	return NULL;
+}
+
 /* Create a new module, i.e. a plug-in instance, in a graph. */
 static void module_create(uint32 graph_id, uint32 plugin_id)
 {
@@ -392,6 +401,8 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 	}
 	m->plugin = p;
 	plugin_instance_init(m->plugin, &m->instance);
+	plugin_instance_set_output(&m->instance, &m->output);
+	plugin_instance_set_link_resolver(&m->instance, cb_module_lookup, g);
 	m->start = m->length = 0;
 	if(g->modules == NULL)
 		g->modules = idset_new(0);
