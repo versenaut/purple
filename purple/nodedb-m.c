@@ -357,18 +357,9 @@ NdbMFragment * nodedb_m_fragment_create_geometry(NodeMaterial *node, const char 
 
 	if(node == NULL)
 		return NULL;
-	if(layer_r != NULL)
-		stu_strncpy(frag.geometry.layer_r, sizeof frag.geometry.layer_r, layer_r);
-	else
-		frag.geometry.layer_r[0] = '\0';
-	if(layer_g != NULL)
-		stu_strncpy(frag.geometry.layer_g, sizeof frag.geometry.layer_g, layer_g);
-	else
-		frag.geometry.layer_g[0] = '\0';
-	if(layer_b != NULL)
-		stu_strncpy(frag.geometry.layer_b, sizeof frag.geometry.layer_b, layer_b);
-	else
-		frag.geometry.layer_b[0] = '\0';
+	stu_strncpy_accept_null(frag.geometry.layer_r, sizeof frag.geometry.layer_r, layer_r);
+	stu_strncpy_accept_null(frag.geometry.layer_g, sizeof frag.geometry.layer_g, layer_g);
+	stu_strncpy_accept_null(frag.geometry.layer_b, sizeof frag.geometry.layer_b, layer_b);
 	return nodedb_m_fragment_create(node, ~0, VN_M_FT_GEOMETRY, &frag);
 }
 
