@@ -8,7 +8,7 @@
 /* This gets called whenever the input, the size, changes. Create a cube with the given side length. */
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
-	enum { MY_OBJECT, MY_GEOMETRY };		/* Node labels. */
+	enum { MY_OBJECT, MY_GEOMETRY };			/* Node labels. */
 	PONode		*obj, *geo;
 	real32		size = p_input_real32(input[0]);	/* Read out the size. */;
 	int		i;
