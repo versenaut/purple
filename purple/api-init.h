@@ -1,4 +1,8 @@
 /*
+ * api-init.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Internal header for the Init part of the Purple API.
 */
 

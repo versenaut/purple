@@ -1,4 +1,8 @@
 /*
+ * strutil.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * String utility functions. Prefixed by stu_ since str is reserved by C.
 */
 

@@ -1,4 +1,8 @@
 /*
+ * idlist.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A list of IDs, used for dependent-tracking by graph modules. To reduce memory allocation
  * overhead, we simply stuff both ID and the required count (this is a multiset) into the
  * list data pointer. This limits both ID and count ranges, but... Should be OK anyway.

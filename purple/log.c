@@ -1,4 +1,8 @@
 /*
+ * log.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Logging primitives. Please use macros in log.h in actual code, the functions themselves
  * are a bit rough around the edges for technical reasons. It can probably be done better.
 */

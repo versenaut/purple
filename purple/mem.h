@@ -1,4 +1,8 @@
 /*
+ * mem.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Memory handling functions, to ease debugging and stuff in the future.
  *
  * Note that not all allocations go through these, there are various modules

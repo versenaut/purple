@@ -1,4 +1,8 @@
 /*
+ * dynarr.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A dynamic array, to save me some boring realloc() logic all over the place.
  *
  * NOTE: This doesn't pay attention to alignment restrictions very much, but

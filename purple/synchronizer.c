@@ -1,4 +1,8 @@
 /*
+ * synchronizer.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Main node synchronization pipeline implementation. Basically, maintain lists of nodes that
  * are known to have changed in some way, and compare each node to its corresponding "input
  * version" held in the nodedb. Then, if differences are found, send Verse commands to make

@@ -1,4 +1,8 @@
 /*
+ * plugins.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A module for managing plug-in loading. 
 */
 

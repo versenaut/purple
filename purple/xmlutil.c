@@ -1,4 +1,8 @@
 /*
+ * xmlutil.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Some simple XML helper functions.
 */
 

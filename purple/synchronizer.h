@@ -1,4 +1,8 @@
 /*
+ * synchronizer.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Output node synchronization pipeline. Maintains a bunch of nodes, compares them to
  * corresponding "host side" nodes, and generates difference-removing commands as is
  * needed.

@@ -1,4 +1,8 @@
 /*
+ * list.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A run-of-the-mill doubly linked list.
 */
 

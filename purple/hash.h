@@ -1,4 +1,8 @@
 /*
+ * hash.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A hash table might come in handy.
 */
 

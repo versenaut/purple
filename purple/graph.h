@@ -1,4 +1,8 @@
 /*
+ * graph.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Graph editing functionality. Graphs are very opaque. Most of the graph processing
  * occurs as a response to method calls, which are received through the graph function
  * exported below, and then processed internally by calling various other modules.

@@ -1,4 +1,8 @@
 /*
+ * filelist.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A module to list files in a given directory. Handy for plug-in discovery and loading.
 */
 

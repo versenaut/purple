@@ -1,4 +1,8 @@
 /*
+ * scheduler.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A scheduler. Sounds a lot more sophisticated than it really is, at this point.
 */
 

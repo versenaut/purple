@@ -1,4 +1,8 @@
 /*
+ * nodedb-m.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Material node databasing.
 */
 

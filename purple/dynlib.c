@@ -1,4 +1,8 @@
 /*
+ * dynlib.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Dynamic library abstraction. Really rather thin.
 */
 

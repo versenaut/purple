@@ -1,4 +1,8 @@
 /*
+ * value.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Value management. Values are used to hold both things assigned to inputs, and the result of
  * computation, i.e. output buffers. They are rather heavy-weight because of this duality, but
  * it is hopefully worth it.

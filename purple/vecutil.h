@@ -1,4 +1,8 @@
 /*
+ * vecutil.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Some very basic vector math utilities. Needed in input processing,
  * but might also be useful to export to plug-in code at some point.
 */

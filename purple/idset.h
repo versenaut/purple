@@ -1,4 +1,8 @@
 /*
+ * idset.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * IdSet, a simple data structure for managing a set of object references, each of which
  * is given a numerical ID. Objects can be inserted and removed, with IDs re-used from
  * removed objects. IDs of inserted objects never change.

@@ -1,4 +1,8 @@
 /*
+ * idlist.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A data type for handling a list of IDs. These IDs are expected to come from an IdSet,
  * and the intended use is to track dependents of a module. A single ID cannot occur mor
  * than once in the list.

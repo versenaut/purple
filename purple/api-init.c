@@ -1,4 +1,8 @@
 /*
+ * api-init.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Initialize a library, letting it describe the plug-ins it defines.
 */
 

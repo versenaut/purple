@@ -1,4 +1,8 @@
 /*
+ * client.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * The Verse magic happens mainly in here.
 */
 

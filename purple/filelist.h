@@ -1,4 +1,8 @@
 /*
+ * filelist.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Create an opaque data type that holds the names of the files in a given directory.
  * Needed since there is no platform-agnostic API for traversing the contents of a dir.
 */

@@ -1,4 +1,8 @@
 /*
+ * plugin-input.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * This is a "magical" plug-in, that does a lookup of a named node in the node database.
  * It does not limit itself to the official Purple plug-in API, but uses core calls
  * directly since it is part of the application. It also uses the Purple API and has a

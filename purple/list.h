@@ -1,4 +1,8 @@
 /*
+ * list.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A simple doubly-linked list datatype. Many operations are O(n).
 */
 

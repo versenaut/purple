@@ -1,4 +1,8 @@
 /*
+ * memchunk.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Chunked allocation utility module. Makes allocating and freeing many small
  * blocks of the same size into an O(1) activity, on average.
 */

@@ -1,4 +1,8 @@
 /*
+ * nodedb-b.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Bitmap node databasing. Bitmaps are stored by allocating contiguous blocks of memory for
  * the required layers, nothing very fancy at all. One-bit-per-pixel layers are stored using
  * 8-bit bytes as the smallest unit of allocation, and never using any single byte for pixels

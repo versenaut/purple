@@ -1,4 +1,8 @@
 /*
+ * hash.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A hash table data type. Always handy to have around.
 */
 

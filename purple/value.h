@@ -1,4 +1,8 @@
 /*
+ * value.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Value handling module. Values are containers that at any point can hold a set of values,
  * each having a distinct type. They are used to form "ports", which model plug-in inputs and
  * outputs. If the world was slightly more perfect, input ports would be implemented as unions,

@@ -1,4 +1,8 @@
 /*
+ * nodedb-internal.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Internal definitions for nodedb-X implementations. The price paid for splitting it
  * into several C files.
 */

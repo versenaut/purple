@@ -1,4 +1,8 @@
 /*
+ * strutil.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * String utility functions. Prefixed by stu* since str* is reserved by C.
 */
 

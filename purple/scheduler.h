@@ -1,4 +1,8 @@
 /*
+ * scheduler.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * The scheduler module is responsible for making plug-in code run, by calling (indirectly)
  * their compute() entry points.
 */

@@ -1,4 +1,8 @@
 /*
+ * dynarr.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A dynamic array, to save me some realloc() logic all over the place.
 */
 

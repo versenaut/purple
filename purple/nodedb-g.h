@@ -1,4 +1,8 @@
 /*
+ * nodedb-g.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Geometry node database implementation.
 */
 

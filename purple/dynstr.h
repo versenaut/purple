@@ -1,4 +1,8 @@
 /*
+ * dynstr.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A dynamically allocated string. Optimized solely for appending, and not at all
  * useful for e.g. UTF-8 or other exotic multibyte encodings. It will break. Also
  * cannot contain null bytes.

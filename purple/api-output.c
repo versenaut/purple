@@ -1,4 +1,8 @@
 /*
+ * api-output.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * The Output API, used by plug-in code to emit resulting values. Simple wrapper for
  * graph output calls.
 */

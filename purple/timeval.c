@@ -1,4 +1,8 @@
 /*
+ * timeval.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Functions for measuring time.
 */
 

@@ -1,4 +1,8 @@
 /*
+ * client.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A module to hold the things that make this program into an actual Verse client.
 */
 

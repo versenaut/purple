@@ -1,4 +1,8 @@
 /*
+ * graph.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Graph editing module.
 */
 

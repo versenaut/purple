@@ -1,4 +1,8 @@
 /*
+ * cron.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A "cron" module, for handling scheduling of jobs. A "job" here can be anything,
  * it's just represented as a function to be called. We support either jobs to run
  * at a given time relative from when it's scheduled, as well as periodic jobs that

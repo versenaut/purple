@@ -1,4 +1,8 @@
 /*
+ * memchunk.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A "chunked" memory allocation system, to make allocation of many small
  * blocks a bit more efficient. Very much inspired by glib's API. Does not
  * shrink, from an external perspective, until destroyed.

@@ -1,4 +1,8 @@
 /*
+ * xmlutil.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Simple utility function(s) for dealing with XML output.
 */
 

@@ -1,4 +1,8 @@
 /*
+ * textbuf.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Editable text. This could well be implemented at least semi-cleverly, using
  * e.g. "gapped storage", but here is the most naive approach thinkable. We simply
  * allocate a slab of memory, and keep the text in there. The text is always kept

@@ -1,4 +1,8 @@
 /*
+ * vecutil.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Vector (and matrix) math routines.
 */
 

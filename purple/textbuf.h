@@ -1,4 +1,8 @@
 /*
+ * textbuf.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Data structure for holding editable text. Intended to serve as the "backing store"
  * for a Verse text node buffer.
 */

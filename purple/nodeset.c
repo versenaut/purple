@@ -1,4 +1,8 @@
 /*
+ * nodeset.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * NodeSets are used to hold collections of Verse node references, for value passing.
 */
 

@@ -1,4 +1,8 @@
 /*
+ * nodeset.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * NodeSets store nodes in ports. They are a bit asymmetrical: output nodes go in
  * (as a node is output through a port), input nodes come out (as a port is queried
  * using the input API). This is only a change in const-ness, however.

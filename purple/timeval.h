@@ -1,4 +1,8 @@
 /*
+ * timeval.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A little something to measure elapsed time.
 */
 

@@ -1,4 +1,8 @@
 /*
+ * port.c
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Ports are... cached values.
 */
 

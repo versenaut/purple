@@ -1,4 +1,8 @@
 /*
+ * dynlib.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * A simple little wrapper for loading dynamic libraries of code. This is needed because
  * there is no platform-independent API for doing this, it's different between e.g. Unix
  * (dlopen) and Windows (LoadLibrary).

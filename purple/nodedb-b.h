@@ -1,4 +1,8 @@
 /*
+ * nodedb-b.h
+ * 
+ * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * 
  * Bitmap node database implementation.
 */
 
