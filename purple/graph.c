@@ -489,7 +489,7 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 	if(g->modules == NULL)
 		g->modules = idset_new(0);
 	m->id = idset_insert(g->modules, m);
-	LOG_MSG(("Instantiated plugin %u (%s) as module %u in graph %u (%s)", plugin_id, plugin_name(p), m->id, graph_id, g->name));
+	LOG_MSG(("Module %u.%u is plugin %u (%s)", graph_id, m->id, plugin_id, plugin_name(p)));
 	desc = module_build_desc(m);
 	m->length = dynstr_length(desc);
 	graph_modules_desc_start_update(g);
