@@ -7,8 +7,14 @@
 
 #include "verse.h"
 
+typedef struct Node	Node;
+typedef const Node	PINode;
+typedef Node		PONode;
+
+#if 0
 typedef struct PINode PINode;	/* Input node, read-only. */
 typedef struct PONode PONode;	/* Output node, read-write. */
+#endif
 
 typedef enum
 {
@@ -140,13 +146,13 @@ const real64 *	p_input_real64_vec3(PPInput input);
 const real64 *	p_input_real64_vec4(PPInput input);
 const real64 *	p_input_real64_mat16(PPInput input);
 const char *	p_input_string(PPInput input);
-const PINode *	p_input_node(PPInput input);
+PINode *	p_input_node(PPInput input);	/* Inputs the "first" node, somehow. */
 
 /* Node manipulation functions. Getters work on both input and output
  * nodes, setting requires output.
 */
 
-const char *	p_node_name_get(const void *node);
+const char *	p_node_name_get(const Node *node);
 void		p_node_name_set(PONode *node, const char *name);
 
 /* Tag functions. */
@@ -168,7 +174,7 @@ void		p_node_g_layer_delete(PONode *node, const char *name);
 
 
 /* Duplicates an input node, and returns something you can actually edit. */
-PONode *	p_output_node(PPOutput out, const PINode *node);
+PONode *	p_output_node(PPOutput out, PINode *node);
 
 /* Creates a new empty output node for editing/data creation. */
 PONode * 	p_output_node_create(VNodeType type, const char *name);
