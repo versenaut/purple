@@ -37,6 +37,7 @@ struct XmlNode
 	Attrib		*attrib;
 	XmlNode		*parent;
 	List		*children;
+	void		*user;
 };
 
 /* ----------------------------------------------------------------------------------------- */
@@ -296,6 +297,7 @@ static XmlNode * node_new(const char *token)
 		node->attrib   = attribs_build(token ? token + elen : NULL, &node->attrib_num);
 		node->parent   = NULL;
 		node->children = NULL;
+		node->user     = NULL;
 		return node;
 	}
 	return NULL;
@@ -447,11 +449,22 @@ const char * xmlnode_get_name(const XmlNode *node)
 	return node != NULL ? node->element : NULL;
 }
 
+void xmlnode_set_user(XmlNode *node, void *user)
+{
+	if(node != NULL)
+		node->user = user;
+}
+
+void * xmlnode_get_user(const XmlNode *node)
+{
+	return node != NULL ? node->user : NULL;
+}
+
 const char * xmlnode_attrib_get_value(const XmlNode *node, const char *name)
 {
 	int	lo, hi;
 
-	if(node == NULL || name == NULL)
+	if(node == NULL || name == NULL || node->attrib == NULL)
 		return NULL;
 
 	for(lo = 0, hi = node->attrib_num; lo <= hi;)
@@ -581,6 +594,56 @@ const char * xmlnode_eval_single(const XmlNode *node, const char *path)
 			return NULL;
 	}
 	return node != NULL ? node->text : NULL;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
+static void iter_traverse(const XmlNode *node, List **list)
+{
+	const List	*iter;
+
+	*list = list_append(*list, (void *) node);
+	for(iter = node->children; iter != NULL; iter = list_next(iter))
+		iter_traverse(list_data(iter), list);
+}
+
+List * xmlnode_iter_begin(const XmlNode *root)
+{
+	List	*flat = NULL;
+
+	iter_traverse(root, &flat);
+
+	return flat;
+}
+
+static int has_ancestor(const XmlNode *node, const XmlNode *ancestor)
+{
+	if(node == NULL)
+		return 0;
+	if(ancestor == NULL)
+		return node->parent == NULL;
+	while(node != NULL)
+	{
+		if(node == ancestor)
+			return 1;
+		node = node->parent;
+	}
+	return 0;
+}
+
+/* Skip to the next node. If <skip> is NULL, the next node in the order is returned,
+ * if it's non-NULL, we skip nodes having <skip> as the (possibly remote) parent.
+*/
+const List * xmlnode_iter_next(const List *list, const XmlNode *skip)
+{
+	if(skip == NULL)
+		return list_next(list);
+	else
+	{
+		for(list = list_next(list); list != NULL && has_ancestor(list_data(list), skip); list = list_next(list))
+			;
+	}
+	return list;
 }
 
 /* ----------------------------------------------------------------------------------------- */

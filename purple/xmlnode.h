@@ -20,6 +20,9 @@ extern XmlNode	*	xmlnode_new(const char *buffer);
 
 extern const char *	xmlnode_get_name(const XmlNode *node);
 
+extern void		xmlnode_set_user(XmlNode *node, void *user);
+extern void *		xmlnode_get_user(const XmlNode *node);
+
 /* Get value of named <attribute>. */
 extern const char *	xmlnode_attrib_get_value(const XmlNode *node, const char *attribute);
 
@@ -54,6 +57,14 @@ extern List *		xmlnode_nodeset_get(const XmlNode *node, XmlNodeAxis axis, ...);
  * xmlnode_eval_single(root, "at/node");
 */
 extern const char *	xmlnode_eval_single(const XmlNode *node, const char *path);
+
+/* Flatten hierarchy into a list for iterating. Use next() below to traverse, and destroy when done. */
+extern List *		xmlnode_iter_begin(const XmlNode *root);
+
+/* Skip to the next node: if skip is 0, return next child if available, else sibling.
+ * If skip is positive, a sibling is always returned (again, if available).
+*/
+extern const List *	xmlnode_iter_next(const List *list, const XmlNode *skip);
 
 /* Print outline of XML parse tree rooted at <root>. Mainly for debugging. */
 extern void		xmlnode_print_outline(const XmlNode *root);
