@@ -412,13 +412,13 @@ static int sync_text_buffer(const NodeText *n, const NdbTBuffer *buffer,
 				char	temp[1024];
 				size_t	off, chunk;
 
-				for(off = ed->off; len > 0; off += chunk, len -= chunk)
+				for(off = ed->off, len = ed->len; len > 0; off += chunk, len -= chunk)
 				{
 					chunk = len > sizeof temp - 1 ? sizeof temp - 1 : len;
-					stu_strncpy(temp, chunk, text + off);
+					stu_strncpy(temp, chunk + 1, text + off);
 					temp[chunk] = '\0';
 					verse_send_t_text_set(target->node.id, tbuffer->id, pos, 0, temp);
-					pos += chunk;
+					pos += chunk - 1;
 				}
 			}
 		}
