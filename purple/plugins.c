@@ -375,6 +375,11 @@ const Plugin * plugin_lookup(unsigned int id)
 	return idset_lookup(plugins_info.plugins, id);
 }
 
+unsigned int plugin_id(const Plugin *p)
+{
+	return p != NULL ? p->id : 0;
+}
+
 const char * plugin_name(const Plugin *p)
 {
 	return p != NULL ? p->name : NULL;
