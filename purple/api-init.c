@@ -1,5 +1,5 @@
 /*
- * 
+ * Initialize a library, letting it describe the plug-ins it defines.
 */
 
 #include <stdarg.h>
@@ -41,6 +41,8 @@ void api_init_end(void)
 }
 
 /* ----------------------------------------------------------------------------------------- */
+
+/* These are the plug-in-visible actual Purple API functions. */
 
 void p_init_create(const char *name)
 {
