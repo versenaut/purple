@@ -5,10 +5,15 @@
 CC=gcc
 CFLAGS=-I.. -I../../verse/ -shared -Wstrict-prototypes -Wmissing-prototypes
 
-ALL:	libcube.so libhello.so libfactors.so libmath.so libmeasure.so libscale.so libstringop.so
+ALL:	libbbox.so libchecker.so libcube.so libhello.so libfactors.so libmath.so \
+	libmeasure.so libscale.so libstringop.so libwarp.so
 
 lib%.so : %.c
 	$(CC) $(CFLAGS) -o $@ $^
+
+libbbbox.so:	bbox.c
+
+libchecker.so:	checker.c
 
 libcube.so:	cube.c
 
@@ -21,6 +26,8 @@ libmeasure.so:	measure.c
 libscale.so:	scale.c
 
 libstringop.so:	stringop.c
+
+libwarp.so:	warp.c
 
 # ---------------------------------------------------------
 
