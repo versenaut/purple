@@ -68,14 +68,6 @@ static int cb_lookup_name(const void *data, void *user)
 	return 1;
 }
 
-Node * nodedb_lookup_by_name(const char *name)
-{
-	void	*data[2] = { (void *) name, NULL };	/* I'm too lazy for a struct. */
-	/* FIXME: This is completely inefficent. */
-	hash_foreach(nodedb_info.nodes, cb_lookup_name, data);
-	return data[1];
-}
-
 Node * nodedb_lookup_with_type(VNodeID node_id, VNodeType type)
 {
 	Node	*n;
@@ -83,6 +75,14 @@ Node * nodedb_lookup_with_type(VNodeID node_id, VNodeType type)
 	if((n = nodedb_lookup(node_id)) != NULL && n->type == type)
 		return n;
 	return NULL;
+}
+
+Node * nodedb_lookup_by_name(const char *name)
+{
+	void	*data[2] = { (void *) name, NULL };	/* I'm too lazy for a struct. */
+	/* FIXME: This is completely inefficent. */
+	hash_foreach(nodedb_info.nodes, cb_lookup_name, data);
+	return data[1];
 }
 
 Node * nodedb_lookup_by_name_with_type(const char *name, VNodeType type)
