@@ -117,10 +117,10 @@ typedef struct
 	{
 	struct
 	{
-	void		*arr;
+	const void	*arr;
 	unsigned int	index;
 	}		dynarr;
-	void		*list;
+	const void	*list;
 	}		data;
 } PIter;
 
