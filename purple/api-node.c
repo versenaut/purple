@@ -392,17 +392,6 @@ PNMFragment * p_node_m_fragment_create_volume(PONode *node,  real64 diffusion, r
 	return nodedb_m_fragment_create_volume((NodeMaterial *) node, diffusion, col_r, col_g, col_b, color);
 }
 
-PNMFragment * p_node_m_fragment_create_blender(PONode *node, VNMBlendType type,
-					       const PNMFragment *data_a, const PNMFragment *data_b, const PNMFragment *ctrl)
-{
-	return nodedb_m_fragment_create_blender((NodeMaterial *) node, type, data_a, data_b, ctrl);
-}
-
-PNMFragment * p_node_m_fragment_create_matrix(PONode *node, const real64 *matrix, const PNMFragment *data)
-{
-	return nodedb_m_fragment_create_matrix((NodeMaterial *) node, matrix, data);
-}
-
 PNMFragment * p_node_m_fragment_create_geometry(NodeMaterial *node,
 						const char *layer_r, const char *layer_g, const char *layer_b)
 {
@@ -414,6 +403,30 @@ PNMFragment * p_node_m_fragment_create_texture(PONode *node, PINode *bitmap,
 					    const PNMFragment *mapping)
 {
 	return nodedb_m_fragment_create_texture((NodeMaterial *) node, bitmap, layer_r, layer_g, layer_b, mapping);
+}
+
+PNMFragment * p_node_m_fragment_create_noise(PONode *node, VNMNoiseType type, const PNMFragment *mapping)
+{
+	return nodedb_m_fragment_create_noise((NodeMaterial *) node, type, mapping);
+}
+
+
+PNMFragment * p_node_m_fragment_create_blender(PONode *node, VNMBlendType type,
+					       const PNMFragment *data_a, const PNMFragment *data_b, const PNMFragment *ctrl)
+{
+	return nodedb_m_fragment_create_blender((NodeMaterial *) node, type, data_a, data_b, ctrl);
+}
+
+PNMFragment * p_node_m_fragment_create_matrix(PONode *node, const real64 *matrix, const PNMFragment *data)
+{
+	return nodedb_m_fragment_create_matrix((NodeMaterial *) node, matrix, data);
+}
+
+PNMFragment * p_node_m_fragment_create_ramp(PONode *node, VNMRampType type, uint8 channel,
+						      const PNMFragment *mapping, uint8 point_count,
+						      const VNMRampPoint *ramp)
+{
+	return nodedb_m_fragment_create_ramp((NodeMaterial *) node, type, channel, mapping, point_count, ramp);
 }
 
 PNMFragment * p_node_m_fragment_create_output(PONode *node, const char *label, const PNMFragment *front, const PNMFragment *back)
