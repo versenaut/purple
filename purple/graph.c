@@ -98,7 +98,6 @@ static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 	if(graph_info.free_ids != NULL)
 	{
 		uint32	id = (uint32) list_data(graph_info.free_ids);
-		printf("re-using ID %u from deleted graph\n", id);
 		graph_info.free_ids = list_tail(graph_info.free_ids);
 		dynarr_set(graph_info.graphs, id, &g);
 	}
@@ -117,6 +116,7 @@ static void graph_destroy(uint32 id)
 	}
 	g->name[0] = '\0';
 	graph_info.free_ids = list_prepend(graph_info.free_ids, (void *) id);
+	hash_remove(graph_info.graphs_name, g->name);
 }
 
 /* ----------------------------------------------------------------------------------------- */
