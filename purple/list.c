@@ -275,6 +275,16 @@ void list_foreach(const List *list, int (*callback)(void *data, void *userdata),
 	}
 }
 
+List * list_find_custom(const List *list, const void *data, int (*compare)(const void *listdata, const void *data))
+{
+	for(; list != NULL; list = list_next(list))
+	{
+		if(compare(list_data(list), data) == 0)
+			return (List *) list;
+	}
+	return NULL;
+}
+
 List * list_find_sorted(const List *list, const void *data, int (*compare)(const void *listdata, const void *data))
 {
 	for(; list != NULL; list = list->next)

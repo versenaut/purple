@@ -252,5 +252,22 @@ int main(void)
 	}
 	test_end();
 
+	test_begin("Find custom");
+	{
+		int	ok = 0;
+
+		l = list_new((void *) 4);
+		l = list_append(l, (void *) 11);
+		l = list_append(l, (void *) 17);
+		l = list_append(l, (void *) 21);
+		l = list_append(l, (void *) 44);
+		ok = list_find_custom(l, (void *) 1, cmp_int) == NULL &&
+			list_find_custom(l, (void *) 4, cmp_int) == l &&
+			list_find_custom(l, (void *) 44, cmp_int) == list_last(l);
+		list_destroy(l);
+		test_result(ok);
+	}
+	test_end();
+
 	return test_package_end();
 }
