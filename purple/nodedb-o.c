@@ -256,7 +256,7 @@ static void cb_o_method_create(void *user, VNodeID node_id, uint16 group_id, uin
 			if(g->methods == NULL)
 			{
 				g->methods = dynarr_new(sizeof (NdbOMethod), 4);
-				dynarr_set_default_func(g->methods, cb_method_default);
+				dynarr_set_default_func(g->methods, cb_method_default, NULL);
 			}
 			if((m = dynarr_set(g->methods, method_id, NULL)) != NULL)
 			{
