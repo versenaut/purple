@@ -188,6 +188,7 @@ static void graph_destroy(uint32 id)
 	g->name[0] = '\0';
 	hash_remove(graph_info.graphs_name, g->name);
 	idset_remove(graph_info.graphs, id);
+	mem_free(g);
 	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, g->index_start, g->index_length, NULL);
 	graph_index_renumber();
 }
