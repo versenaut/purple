@@ -6,21 +6,28 @@
 
 typedef struct
 {
-	int	value;	/* Just to prevent an empty struct. */
+	unsigned int	value;	/* Just to prevent an empty struct. */
 } State;
 
-static void compute(PPInput *input, PPOutput output, void *state)
+static void compute(PPInput *input, PPOutput output, void *state_typeless)
 {
+	State	*state = state_typeless;
+
+	state->value++;
 }
 
 static void ctor(void *state_typeless)
 {
 	State	*state = state_typeless;
+
+	state->value = 0;
 }
 
 static void dtor(void *state_typeless)
 {
 	State	*state = state_typeless;
+
+	printf("We compute()d %u times\n", state->value);
 }
 
 void init(void)
