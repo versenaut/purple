@@ -305,7 +305,7 @@ static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 		if(layer->name[0] == '\0')
 			continue;
 /*		printf("does target have '%s'?\n", layer->name);*/
-		if((tlayer = nodedb_g_layer_lookup(target, layer->name)) != NULL)
+		if((tlayer = nodedb_g_layer_find(target, layer->name)) != NULL)
 		{
 /*			printf(" yes\n");*/
 			if(layer->type != tlayer->type)
