@@ -139,6 +139,7 @@ static void cb_b_dimensions_set(void *user, VNodeID node_id, uint16 width, uint1
 	node->width  = width;
 	node->height = height;
 	node->depth  = depth;
+	NOTIFY(node, STRUCTURE);
 }
 
 static void cb_b_layer_create(void *user, VNodeID node_id, VLayerID layer_id, const char *name, VNBLayerType type)
@@ -162,6 +163,7 @@ static void cb_b_layer_create(void *user, VNodeID node_id, VLayerID layer_id, co
 		layer->type = type;
 		layer->framebuffer = NULL;
 		verse_send_b_layer_subscribe(node_id, layer_id, 0);
+		NOTIFY(node, STRUCTURE);
 	}
 }
 
@@ -177,6 +179,7 @@ static void cb_b_layer_destroy(void *user, VNodeID node_id, VLayerID layer_id)
 	layer->name[0] = '\0';
 	layer->type = -1;
 	mem_free(layer->framebuffer);
+	NOTIFY(node, STRUCTURE);
 }
 
 static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16 tile_x, uint16 tile_y, uint16 tile_z,
@@ -276,6 +279,7 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 			put += 4 * ps;
 		}
 	}
+	NOTIFY(node, DATA);
 }
 
 /* ----------------------------------------------------------------------------------------- */
