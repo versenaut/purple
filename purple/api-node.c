@@ -333,6 +333,20 @@ PNCCurve * p_node_c_curve_find(PINode *node, const char *name)
 	return nodedb_c_curve_find((NodeCurve *) node, name);
 }
 
+const char * p_node_c_curve_get_name(const PNCCurve *curve)
+{
+	if(curve != NULL)
+		return ((NdbCCurve *) curve)->name;
+	return NULL;
+}
+
+uint8 p_node_c_curve_get_dimensions(const PNCCurve *curve)
+{
+	if(curve != NULL)
+		return ((NdbCCurve *) curve)->dimensions;
+	return 0;
+}
+
 PNCCurve * p_node_c_curve_create(PONode *node, const char *name, uint8 dimensions)
 {
 	return nodedb_c_curve_create((NodeCurve *) node, ~0, name, dimensions);

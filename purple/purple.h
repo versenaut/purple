@@ -181,9 +181,10 @@ typedef void	PNCCurve, PNCKey;
 unsigned int	p_node_c_curve_num(PINode *node);
 PNCCurve *	p_node_c_curve_nth(PINode *node, unsigned int n);
 PNCCurve *	p_node_c_curve_find(PINode *node, const char *name);
+const char *	p_node_c_curve_get_name(const PNCCurve *curve);
+uint8		p_node_c_curve_get_dimensions(const PNCCurve *curve);
 
 PNCCurve *	p_node_c_curve_create(PONode *node, const char *name, uint8 dimensions);
-uint8		p_node_c_curve_dimensions_get(const PNCCurve *curve);
 unsigned int	p_node_c_curve_key_num(const PNCCurve *curve);
 PNCKey *	p_node_c_curve_key_nth(const PNCCurve *curve, unsigned int n);
 
