@@ -2,24 +2,29 @@
  * 
 */
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "purple.h"
 
+#include "dynstr.h"
 #include "log.h"
 #include "strutil.h"
+#include "value.h"
 #include "vecutil.h"
 
 #include "plugins.h"
 
 /* ----------------------------------------------------------------------------------------- */
 
+#if 0
+
 /* Helper function: return input value as a 64-bit floating point number. This is handy,
  * since all scalar numerical types supported are representable as such. Cuts down on
  * code in type-specific input readers. Returns 1 if <value> was set, 0 if not.
 */
-static int input_real64(const PInputValue *v, real64 *value)
+static int input_real64(const PValue *v, real64 *value)
 {
 	if(value == NULL)
 		return 0;
@@ -254,4 +259,16 @@ const char * p_input_string(PPInput input, char *buffer, size_t buf_max)
 	if(put > 0 && put < buf_max)
 		return buffer;
 	return NULL;
+}
+
+#endif
+
+real32 p_input_real32(PPInput input)
+{
+	return port_input_real32(input);
+}
+
+const char * p_input_string(PPInput input)
+{
+	return port_input_string(input);
 }
