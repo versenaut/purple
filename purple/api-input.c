@@ -133,3 +133,72 @@ real64 p_input_real64(PPInput input)
 	LOG_WARN(("Can't convert value of type %d to real64", v->type));
 	return 0.0;
 }
+
+/* Input a string. Always copies into user-supplied buffer, even for string inputs. */
+const char * p_input_string(PPInput input, char *buffer, size_t buf_max)
+{
+	const PInputValue	*in = input;
+	int			put;
+
+	if(in == NULL || buffer == NULL || buf_max < 2)
+		return NULL;
+	switch(in->type)
+	{
+	case P_INPUT_BOOLEAN:
+		put = snprintf(buffer, buf_max, "%s", in->v.vboolean ? "true" : "false");
+		break;
+	case P_INPUT_INT32:
+		put = snprintf(buffer, buf_max, "%d", in->v.vint32);
+		break;
+	case P_INPUT_UINT32:
+		put = snprintf(buffer, buf_max, "%u", in->v.vuint32);
+		break;
+	case P_INPUT_REAL32:
+		put = snprintf(buffer, buf_max, "%g", in->v.vreal32);
+		break;
+	case P_INPUT_REAL32_VEC2:
+		put = snprintf(buffer, buf_max, "[%g %g]", in->v.vreal32_vec2[0], in->v.vreal32_vec2[1]);
+		break;
+	case P_INPUT_REAL32_VEC3:
+		put = snprintf(buffer, buf_max, "[%g %g %g]", in->v.vreal32_vec3[0], in->v.vreal32_vec3[1], in->v.vreal32_vec3[2]);
+		break;
+	case P_INPUT_REAL32_VEC4:
+		put = snprintf(buffer, buf_max, "[%g %g %g %g]",
+			 in->v.vreal32_vec4[0], in->v.vreal32_vec4[1], in->v.vreal32_vec4[2], in->v.vreal32_vec4[3]);
+		break;
+	case P_INPUT_REAL32_MAT16:
+		put = snprintf(buffer, buf_max, "[[%g %g %g %g][%g %g %g %g][%g %g %g %g][%g %g %g %g]]",
+			 in->v.vreal32_mat16[0], in->v.vreal32_mat16[1], in->v.vreal32_mat16[2], in->v.vreal32_mat16[3],
+			 in->v.vreal32_mat16[4], in->v.vreal32_mat16[5], in->v.vreal32_mat16[6], in->v.vreal32_mat16[7],
+			 in->v.vreal32_mat16[8], in->v.vreal32_mat16[9], in->v.vreal32_mat16[10], in->v.vreal32_mat16[11],
+			 in->v.vreal32_mat16[12], in->v.vreal32_mat16[13], in->v.vreal32_mat16[14], in->v.vreal32_mat16[15]);
+		break;
+	case P_INPUT_REAL64:
+		put = snprintf(buffer, buf_max, "%.10g", in->v.vreal64);
+		break;
+	case P_INPUT_REAL64_VEC2:
+		put = snprintf(buffer, buf_max, "[%.10g %.10g]", in->v.vreal64_vec2[0], in->v.vreal64_vec2[1]);
+		break;
+	case P_INPUT_REAL64_VEC3:
+		put = snprintf(buffer, buf_max, "[%.10g %.10g %.10g]", in->v.vreal64_vec3[0], in->v.vreal64_vec3[1], in->v.vreal64_vec3[2]);
+		break;
+	case P_INPUT_REAL64_VEC4:
+		put = snprintf(buffer, buf_max, "[%.10g %.10g %.10g %.10g]",
+			 in->v.vreal64_vec4[0], in->v.vreal64_vec4[1], in->v.vreal64_vec4[2], in->v.vreal64_vec4[3]);
+		break;
+	case P_INPUT_REAL64_MAT16:
+		put = snprintf(buffer, buf_max, "[[%.10g %.10g %.10g %.10g][%.10g %.10g %.10g %.10g]"
+			 "[%.10g %.10g %.10g %.10g][%.10g %.10g %.10g %.10g]]",
+			 in->v.vreal64_mat16[0], in->v.vreal64_mat16[1], in->v.vreal64_mat16[2], in->v.vreal64_mat16[3],
+			 in->v.vreal64_mat16[4], in->v.vreal64_mat16[5], in->v.vreal64_mat16[6], in->v.vreal64_mat16[7],
+			 in->v.vreal64_mat16[8], in->v.vreal64_mat16[9], in->v.vreal64_mat16[10], in->v.vreal64_mat16[11],
+			 in->v.vreal64_mat16[12], in->v.vreal64_mat16[13], in->v.vreal64_mat16[14], in->v.vreal64_mat16[15]);
+		break;
+	case P_INPUT_STRING:
+		stu_strncpy(buffer, buf_max, in->v.vstring);	/* Possibly quicker than snprintf(). */
+		break;
+	}
+	if(put > 0 && put < buf_max)
+		return buffer;
+	return NULL;
+}
