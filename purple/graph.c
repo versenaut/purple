@@ -155,7 +155,7 @@ static void graph_rename(uint32 id, const char *name)
 	Graph	*g;
 	char	xml[256];
 
-	if((g = dynarr_index(graph_info.graphs, id)) == NULL || g->name[0] == '\0')
+	if((g = idset_lookup(graph_info.graphs, id)) == NULL)
 	{
 		LOG_WARN(("Couldn't rename graph %u, not found", id));
 		return;
