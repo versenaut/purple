@@ -319,7 +319,7 @@ static int cron_handler(void *data)
 
 static void console_parse_module_input_set(const char *line)
 {
-	char		tcode[32];
+	char		tcode[4];
 	const char	*literal,
 			tsel[] = "bdurRms", *tpos;
 	const PInputType tarr[] = {
@@ -330,7 +330,7 @@ static void console_parse_module_input_set(const char *line)
 	uint32		g, m, i, got;
 	PInputValue	value;
 
-	if(sscanf(line, "mis%s %u %u %u", tcode, &g, &m, &i) != 4 || (literal = strchr(line, ':')) == NULL)
+	if(sscanf(line, "mis%c%c%u %u %u", tcode, tcode + 1, &g, &m, &i) != 5 || (literal = strchr(line, ':')) == NULL)
 	{
 		printf("Syntax: mis<TYPE> <GRAPH> <MODULE> <INPUT> : <VALUE>\n");
 		return;
@@ -345,7 +345,9 @@ static void console_parse_module_input_set(const char *line)
 	value.type = tarr[tpos - tsel];
 	if(value.type == P_INPUT_REAL32 || value.type == P_INPUT_REAL64)
 	{
-		if(tcode[1] == '2')			/* Vector? */
+		if(tcode[1] == ' ')			/* No modifier? */
+			;
+		else if(tcode[1] == '2')		/* Vector? */
 			value.type += 1;
 		else if(tcode[1] == '3')
 			value.type += 2;
@@ -358,7 +360,6 @@ static void console_parse_module_input_set(const char *line)
 			printf("Illegal vector/matrix code %c\n", tcode[1]);
 			return;
 		}
-		literal++;
 	}
 
 	switch(value.type)
