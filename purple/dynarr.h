@@ -10,6 +10,9 @@
  * hardware, perhaps...
 */
 
+#if !defined DYNARR_H
+#define	DYNARR_H
+
 typedef struct DynArr	DynArr;
 
 /* Initialize dynarr module. This must be called before any of the below functions are used. */
@@ -65,3 +68,5 @@ extern void	dynarr_clear(DynArr *da);
 
 /* Destroy an array an all the elements held in it. */
 extern void	dynarr_destroy(DynArr *da);
+
+#endif		/* DYNARR_H */
