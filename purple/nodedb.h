@@ -86,6 +86,7 @@ extern NdbTag *		nodedb_tag_group_tag_find(const NdbTagGroup *group, const char 
 extern void		nodedb_tag_create(NdbTagGroup *group, uint16 tag_id, const char *name, VNTagType type, const VNTag *value);
 extern void		nodedb_tag_destroy(NdbTagGroup *group, NdbTag *tag);
 extern void		nodedb_tag_destroy_all(NdbTagGroup *group);
+extern const char *	nodedb_tag_get_name(const NdbTag *tag);
 extern void		nodedb_tag_value_clear(NdbTag *tag);
 extern void		nodedb_tag_value_set(NdbTag *tag, VNTagType type, const VNTag *value);
 extern int		nodedb_tag_values_equal(const NdbTag *t1, const NdbTag *t2);

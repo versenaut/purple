@@ -481,6 +481,13 @@ NdbTag * nodedb_tag_group_tag_find(const NdbTagGroup *group, const char *name)
 	return NULL;
 }
 
+const char * nodedb_tag_get_name(const NdbTag *tag)
+{
+	if(tag != NULL)
+		return tag->name;
+	return NULL;
+}
+
 void nodedb_tag_create(NdbTagGroup *group, uint16 tag_id, const char *name, VNTagType type, const VNTag *value)
 {
 	NdbTag	*tag;
@@ -563,21 +570,6 @@ void nodedb_tag_value_set(NdbTag *tag, VNTagType type, const VNTag *value)
 				memcpy(tag->value.vblob.blob, value->vblob.blob, tag->value.vblob.size);
 		}
 	}
-}
-
-NdbTag * nodedb_tag_lookup(NdbTagGroup *group, const char *name)
-{
-	unsigned int	i;
-	NdbTag		*tag;
-
-	if(group == NULL || name == NULL || *name == '\0')
-		return NULL;
-	for(i = 0; (tag = dynarr_index(group->tags, i)) != NULL; i++)
-	{
-		if(strcmp(tag->name, name) == 0)
-			return tag;
-	}
-	return NULL;
 }
 
 /* Compare two tags. Does *not* check the name, only the type and actual values. Returns boolean equality. */
