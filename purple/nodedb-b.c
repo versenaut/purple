@@ -36,6 +36,20 @@ void nodedb_b_copy(NodeBitmap *n, const NodeBitmap *src)
 
 void nodedb_b_destruct(NodeBitmap *n)
 {
+	if(n->layers != NULL)
+	{
+		unsigned int	i;
+		NdbBLayer	*layer;
+
+		for(i = 0; i < dynarr_size(n->layers); i++)
+		{
+			if((layer = dynarr_index(n->layers, i)) == NULL || layer->name[0] == '\0')
+				continue;
+			if(layer->type != VN_B_LAYER_UINT1)
+				mem_free(layer->framebuffer);
+		}
+		dynarr_destroy(n->layers);
+	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
