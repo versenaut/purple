@@ -74,10 +74,13 @@ extern VNodeType	nodedb_type_get(const Node *node);
 
 extern NdbTagGroup *	nodedb_tag_group_create(Node *node, uint16 group_id, const char *name);
 extern NdbTagGroup *	nodedb_tag_group_lookup(const Node *node, const char *name);
+extern void		nodedb_tag_group_destroy(NdbTagGroup *group);
 extern NdbTag *		nodedb_tag_lookup(NdbTagGroup *group, const char *name);
 extern void		nodedb_tag_create(NdbTagGroup *group, uint16 tag_id, const char *name, VNTagType type, const VNTag *value);
-extern void		nodedb_tag_clear(NdbTag *tag);
-extern void		nodedb_tag_set(NdbTag *tag, VNTagType type, const VNTag *value);
+extern void		nodedb_tag_destroy(NdbTagGroup *group, NdbTag *tag);
+extern void		nodedb_tag_destroy_all(NdbTagGroup *group);
+extern void		nodedb_tag_value_clear(NdbTag *tag);
+extern void		nodedb_tag_value_set(NdbTag *tag, VNTagType type, const VNTag *value);
 extern int		nodedb_tag_values_equal(const NdbTag *t1, const NdbTag *t2);
 
 typedef enum { NODEDB_OWNERSHIP_ALL, NODEDB_OWNERSHIP_MINE, NODEDB_OWNERSHIP_OTHERS } NodeOwnership;
