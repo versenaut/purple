@@ -24,16 +24,38 @@ void nodedb_c_construct(NodeCurve *n)
 	n->curves = NULL;
 }
 
+static void cb_key_default(unsigned int index, void *element, void *user)
+{
+	NdbCKey	*key = element;
+
+	key->id = ~0;
+}
+
+static int cb_key_compare(const void *d1, const void *d2)
+{
+	const NdbCKey	*k1 = d1, *k2 = d2;
+
+	return k1->pos < k2->pos ? -1 : k1->pos > k2->pos;
+}
+
 static void cb_copy_curve(void *d, const void *s, void *user)
 {
-/*	const NdbTBuffer	*src = s;
-	NdbTBuffer		*dst = d;
+	const NdbCCurve	*src = s;
+	NdbCCurve	*dst = d;
+	NdbCKey		*key;
+	unsigned int	i;
 
 	dst->id = src->id;
 	strcpy(dst->name, src->name);
-	dst->text = textbuf_new(textbuf_length(src->text));
-	textbuf_insert(dst->text, 0, textbuf_text(src->text));
-*/}
+	dst->dimensions = src->dimensions;
+	dst->keys = dynarr_new_copy(src->keys, NULL, NULL);	/* Keys are trivially copyable. */
+	dst->curve = NULL;
+	for(i = 0; (key = dynarr_index(dst->keys, i)) != NULL; i++)
+	{
+		dst->curve = list_insert_sorted(dst->curve, key, cb_key_compare);
+	}
+	/* FIXME: List. */
+}
 
 void nodedb_c_copy(NodeCurve *n, const NodeCurve *src)
 {
@@ -104,20 +126,6 @@ static void cb_c_curve_destroy(void *user, VNodeID node_id, VLayerID curve_id)
 	}
 }
 
-static void cb_key_default(unsigned int index, void *element, void *user)
-{
-	NdbCKey	*key = element;
-
-	key->id = ~0;
-}
-
-static int cb_key_compare(const void *d1, const void *d2)
-{
-	const NdbCKey	*k1 = d1, *k2 = d2;
-
-	return k1->pos < k2->pos ? -1 : k1->pos > k2->pos;
-}
-
 static void cb_c_key_set(void *user, VNodeID node_id, VLayerID curve_id, uint32 key_id, uint8 dimensions,
 			 real64 *pre_value, uint32 *pre_pos, real64 *value, real64 pos, real64 *post_value, uint32 *post_pos)
 {
@@ -180,7 +188,10 @@ static void cb_c_key_set(void *user, VNodeID node_id, VLayerID curve_id, uint32 
 					for(i = 0; i < dimensions; i++)
 						printf(" (%u,%g)", post_pos[i], post_value[i]);
 					printf("\n");
-*/					NOTIFY(n, ins ? DATA : STRUCTURE);
+*/					if(ins)
+						NOTIFY(n, STRUCTURE);
+					else
+						NOTIFY(n, DATA);
 				}
 			}
 			else
