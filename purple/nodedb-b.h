@@ -7,7 +7,11 @@ typedef struct
 	uint16		id;
 	char		name[16];
 	VNBLayerType	type;
-	VNBTile		**tiles;	/* Cube of tile pointers. In "XYZ" order. */
+	union
+	{
+	void		*framebuffer;
+	uint16		vuint1;
+	} data;
 } NdbBLayer;
 
 typedef struct
