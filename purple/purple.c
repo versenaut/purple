@@ -317,6 +317,54 @@ static int cron_handler(void *data)
 	return count > 0;
 }
 
+static void console_parse_module_input_set(const char *line)
+{
+	char		tcode;
+	const char	*literal,
+			tsel[] = "bdur", *tpos;
+	const PInputType tarr[] = { P_INPUT_BOOLEAN, P_INPUT_INT32, P_INPUT_UINT32, P_INPUT_REAL32 };
+	uint32		g, m, i, got;
+	PInputType	type;
+	PInputValue	value;
+
+	if(sscanf(line, "mis%c %u %u %u", &tcode, &g, &m, &i) != 4 || (literal = strchr(line, ':')) == NULL)
+	{
+		printf("Syntax: mis<TYPE> <GRAPH> <MODULE> <INPUT> : <VALUE>\n");
+		printf(" Valid types: 'r' -- real number\n");
+		return;
+	}
+	literal++;
+
+	if((tpos = strchr(tsel, tcode)) == NULL)
+	{
+		printf("Unknown type character '%c' in mis command--use one of %s\n", tcode, tsel);
+		return;
+	}
+	value.type = tarr[tpos - tsel];
+
+	switch(value.type)
+	{
+	case P_INPUT_BOOLEAN:
+		got = sscanf(literal, "%u", &value.v.vboolean);
+		break;
+	case P_INPUT_INT32:
+		got = sscanf(literal, "%d", &value.v.vint32);
+		break;
+	case P_INPUT_UINT32:
+		got = sscanf(literal, "%u", &value.v.vuint32);
+		break;
+	case P_INPUT_REAL32:
+		got = sscanf(literal, "%g", &value.v.vreal32);
+		break;
+	default:
+		;
+	}
+	if(got == 1)
+		graph_method_send_call_mod_input_set(g, m, i, &value);
+	else
+		printf("mis couldn't parse %s as type %c literal\n", literal, tcode);
+}
+
 static void console_update(void)
 {
 	int	fd;
@@ -361,14 +409,8 @@ static void console_update(void)
 				if(sscanf(line, "mc %u %u", &g, &p) == 2)
 					graph_method_send_call_mod_create(g, p);
 			}
-			else if(strncmp(line, "mis ", 4) == 0)
-			{
-				uint32	g, m, i;
-				real32	v;
-
-				if(sscanf(line, "mis %u %u %u %g", &g, &m, &i, &v) == 4)
-					graph_method_send_call_mod_input_set(g, m, i, P_INPUT_REAL32, v);
-			}
+			else if(strncmp(line, "mis", 3) == 0)
+				console_parse_module_input_set(line);
 			else if(strncmp(line, "mic ", 4) == 0)
 			{
 				uint32	g, m, i;
