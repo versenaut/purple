@@ -324,6 +324,17 @@ NdbMFragment * nodedb_m_fragment_create_reflection(NodeMaterial *node, real64 no
 	return nodedb_m_fragment_create(node, ~0, VN_M_FT_REFLECTION, &frag);
 }
 
+NdbMFragment * nodedb_m_fragment_create_transparency(NodeMaterial *node, real64 normal_falloff, real64 refraction_index)
+{
+	VMatFrag	frag;
+
+	if(node == NULL)
+		return NULL;
+	frag.transparency.normal_falloff = normal_falloff;
+	frag.transparency.refraction_index = refraction_index;
+	return nodedb_m_fragment_create(node, ~0, VN_M_FT_TRANSPARENCY, &frag);
+}
+
 NdbMFragment * nodedb_m_fragment_create_blender(NodeMaterial *node, VNMBlendType type,
 						const PNMFragment *data_a, const PNMFragment *data_b, const PNMFragment *ctrl)
 {
