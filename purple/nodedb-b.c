@@ -112,6 +112,12 @@ void nodedb_b_copy(NodeBitmap *n, const NodeBitmap *src)
 		n->layers = dynarr_new_copy(src->layers, cb_copy_layer, n);
 }
 
+void nodedb_b_set(NodeBitmap *n, const NodeBitmap *src)
+{
+	nodedb_b_destruct(n);
+	nodedb_b_copy(n, src);
+}
+			   
 void nodedb_b_destruct(NodeBitmap *n)
 {
 	if(n->layers != NULL)

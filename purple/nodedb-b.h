@@ -44,6 +44,7 @@ typedef struct
 
 extern void		nodedb_b_construct(NodeBitmap *n);
 extern void		nodedb_b_copy(NodeBitmap *n, const NodeBitmap *src);
+extern void		nodedb_b_set(NodeBitmap *n, const NodeBitmap *src);
 extern void		nodedb_b_destruct(NodeBitmap *n);
 
 extern int		nodedb_b_set_dimensions(NodeBitmap *node, uint16 width, uint16 height, uint16 depth);
