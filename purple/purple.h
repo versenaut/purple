@@ -136,15 +136,18 @@ PINode *	p_node_o_link_get(const PONode *node, const char *label, uint32 target_
 typedef void	PNGLayer;
 typedef void	PNGBone;
 
-PNGLayer *	p_node_g_layer_lookup(PINode *node, const char *name);
-size_t		p_node_g_layer_size(PINode *node, const PNGLayer *layer);
-const char *	p_node_g_layer_name(const PNGLayer *layer);
+unsigned int	p_node_g_layer_num(PINode *node);
+PNGLayer *	p_node_g_layer_nth(PINode *node);
+PNGLayer *	p_node_g_layer_find(PINode *node, const char *name);
+size_t		p_node_g_layer_get_size(const PNGLayer *layer);
+const char *	p_node_g_layer_get_name(const PNGLayer *layer);
+
 PNGLayer *	p_node_g_layer_create(PONode *node, const char *name, VNGLayerType type,
 					     uint32 def_int, real32 def_real);
 void		p_node_g_layer_destroy(PNGLayer *node, const char *name);
-void		p_node_g_vertex_set_xyz(PONode *node, PNGLayer *layer, uint32 id, real64 x, real64 y, real64 z);
-void		p_node_g_vertex_get_xyz(const PONode *node, const PNGLayer *layer, uint32 id, real64 *x, real64 *y, real64 *z);
-void		p_node_g_polygon_set_corner_uint32(PONode *node, PNGLayer *layer, uint32 id, uint32 v0, uint32 v1, uint32 v2, uint32 v3);
+void		p_node_g_vertex_set_xyz(PNGLayer *layer, uint32 id, real64 x, real64 y, real64 z);
+void		p_node_g_vertex_get_xyz(const PNGLayer *layer, uint32 id, real64 *x, real64 *y, real64 *z);
+void		p_node_g_polygon_set_corner_uint32(PNGLayer *layer, uint32 id, uint32 v0, uint32 v1, uint32 v2, uint32 v3);
 
 void		p_node_g_crease_set_vertex(PONode *node, const char *layer, uint32 def);
 void		p_node_g_crease_set_edge(PONode *node, const char *layer, uint32 def);
