@@ -59,12 +59,14 @@ void sched_update(void)
 	iter = sched_info.ready_iter;
 	if(iter == NULL)
 		iter = sched_info.ready;
-	for(; iter != NULL; iter = next)
+	while(timeval_elapsed(&t, NULL) < RUNTIME_LIMIT)
 	{
 		PluginStatus	res;
 		Task		*task;
 
-		if(timeval_elapsed(&t, NULL) > RUNTIME_LIMIT)
+		if(iter == NULL)
+			iter = sched_info.ready;	/* Restart if all computations done. */
+		if(iter == NULL)			/* If no tasks need running, don't waste CPU here. */
 			break;
 		next = list_next(iter);
 		task = list_data(iter);
@@ -76,6 +78,7 @@ void sched_update(void)
 			list_destroy(iter);
 			LOG_MSG(("Task removed, there are now %u ready tasks", list_length(sched_info.ready)));
 		}
+		iter = next;
 	}
 	sched_info.ready_iter = iter;
 }
