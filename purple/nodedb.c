@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "verse.h"
+#include "purple.h"
 
 #include "dynarr.h"
 #include "hash.h"
@@ -113,7 +114,7 @@ void nodedb_internal_notify_node_check(Node *n, NodeNotifyEvent ev)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeID owner_id)
+Node * nodedb_new(VNodeType type)
 {
 	MemChunk	*ch;
 
@@ -121,22 +122,94 @@ static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeID 
 	{
 		Node	*n = (Node *) memchunk_alloc(ch);
 
-		n->id = node_id;
+		n->id = 0U;
 		n->type = type;
 		n->name[0] = '\0';
-		n->owner = owner_id;
+		n->owner = 0U;
 		n->tag_groups = NULL;
+
 		switch(n->type)
 		{
 		case V_NT_OBJECT:
-			nodedb_o_init((NodeObject *) n);
+			nodedb_o_construct((NodeObject *) n);
 			break;
 		case V_NT_TEXT:
-			nodedb_t_init((NodeText *) n);
+			nodedb_t_construct((NodeText *) n);
 			break;
 		default:
 			LOG_WARN(("Missing node-specific init code for type %d", type));
 		}
+
+		return n;
+	}
+	return NULL;
+}
+
+Node * nodedb_new_copy(const Node *src)
+{
+	Node	*n;
+
+	if(src == NULL)
+		return NULL;
+	if((n = nodedb_new(src->type)) != NULL)
+	{
+		n->id = 0;
+		n->type = src->type;
+		strcpy(n->name, src->name);
+		n->owner = src->owner;
+		/* FIXME: Copy tag groups, here. */
+		switch(n->type)
+		{
+		case V_NT_TEXT:
+			nodedb_t_copy((NodeText *) n, (const NodeText *) src);
+			break;
+		default:
+			LOG_WARN(("Node copy not implemented for type %d\n", n->type));
+		}
+	}
+	return n;
+}
+
+void nodedb_destroy(Node *n)
+{
+	MemChunk	*ch;
+
+	if(n == NULL)
+		return;
+
+	if((ch = nodedb_info.chunk_node[n->type]) != NULL)
+	{
+		switch(n->type)
+		{
+		case V_NT_TEXT:
+			nodedb_t_destruct((NodeText *) n);
+			break;
+		default:
+			LOG_WARN(("Node destruction not implemented for type %d\n", n->type));
+		}
+		memchunk_free(ch, n);
+	}
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
+void nodedb_rename(Node *node, const char *name)
+{
+	if(node == NULL || name == NULL)
+		return;
+	stu_strncpy(node->name, sizeof node->name, name);
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
+static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeID owner_id)
+{
+	Node	*n;
+
+	if((n = nodedb_new(type)) != NULL)
+	{
+		n->id    = node_id;
+		n->owner = owner_id;
 		hash_insert(nodedb_info.nodes, (const void *) n->id, n);
 		LOG_MSG(("Stored node %u, type %d", node_id, type));
 		if(n->owner == nodedb_info.avatar)
