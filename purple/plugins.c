@@ -213,7 +213,6 @@ void plugin_set_meta(Plugin *p, const char *category, const char *text)
 		{
 			strcpy(m->category, cat);
 			m->text = stu_strdup_maxlen(text, META_TEXT_LIMIT);
-			printf("meta string: '%s'\n", m->text);
 			hash_insert(p->meta, cat, m);
 		}
 	}
