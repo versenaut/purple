@@ -445,16 +445,16 @@ PNMFragment * p_node_m_fragment_create_output(PONode *node, const char *label, c
 
 /* ----------------------------------------------------------------------------------------- */
 
-void p_node_b_dimensions_set(PONode *node, uint16 width, uint16 height, uint16 depth)
+void p_node_b_set_dimensions(PONode *node, uint16 width, uint16 height, uint16 depth)
 {
 	if(node == NULL)
 		return;
-	nodedb_b_dimensions_set((NodeBitmap *) node, width, height, depth);
+	nodedb_b_set_dimensions((NodeBitmap *) node, width, height, depth);
 }
 
-void p_node_b_dimensions_get(PINode *node, uint16 *width, uint16 *height, uint16 *depth)
+void p_node_b_get_dimensions(PINode *node, uint16 *width, uint16 *height, uint16 *depth)
 {
-	nodedb_b_dimensions_get((NodeBitmap *) node, width, height, depth);
+	nodedb_b_get_dimensions((NodeBitmap *) node, width, height, depth);
 }
 
 unsigned int p_node_b_layer_num(PINode *node)

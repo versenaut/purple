@@ -46,8 +46,8 @@ extern void		nodedb_b_construct(NodeBitmap *n);
 extern void		nodedb_b_copy(NodeBitmap *n, const NodeBitmap *src);
 extern void		nodedb_b_destruct(NodeBitmap *n);
 
-extern int		nodedb_b_dimensions_set(NodeBitmap *node, uint16 width, uint16 height, uint16 depth);
-extern void		nodedb_b_dimensions_get(const NodeBitmap *node, uint16 *width, uint16 *height, uint16 *depth);
+extern int		nodedb_b_set_dimensions(NodeBitmap *node, uint16 width, uint16 height, uint16 depth);
+extern void		nodedb_b_get_dimensions(const NodeBitmap *node, uint16 *width, uint16 *height, uint16 *depth);
 
 extern unsigned int	nodedb_b_layer_num(const NodeBitmap *node);
 extern NdbBLayer *	nodedb_b_layer_nth(const NodeBitmap *node, unsigned int n);
