@@ -270,10 +270,15 @@ static int sync_node(Node *n)
 		LOG_WARN(("Couldn't look up existing (target) node for %u--aborting sync", n->id));
 		return 0;
 	}
-	if(n->type == V_NT_OBJECT)
+	switch(n->type)
+	{
+	case V_NT_OBJECT:
 		return sync_object((NodeObject *) n, (NodeObject *) target);
-	if(n->type == V_NT_GEOMETRY)
+	case V_NT_GEOMETRY:
 		return sync_geometry((NodeGeometry *) n, (NodeGeometry *) target);
+	default:
+		printf("Can't sync node of type %d\n", n->type);
+	}
 	return 0;
 }
 
