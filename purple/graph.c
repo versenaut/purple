@@ -333,6 +333,7 @@ void graph_port_output_set(PPOutput port, PValueType type, ...)
 	va_list		arg;
 
 	va_start(arg, type);
+	port_clear(port);
 	port_set_va(port, type, arg);
 	va_end(arg);
 
@@ -481,7 +482,6 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 	m->graph = g;
 	m->plugin = p;
 	plugin_instance_init(m->plugin, &m->instance);
-	printf("instatiated %s, inputs at %p\n", plugin_name(p), m->instance.inputs);
 	plugin_instance_set_output(&m->instance, &m->out.port);
 	plugin_instance_set_link_resolver(&m->instance, cb_module_lookup, g);
 	idlist_construct(&m->out.dependants);
