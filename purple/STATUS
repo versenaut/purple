@@ -1,0 +1,36 @@
+
+Some kind of status list for the Purple engine client.
+
+Done:
+
+* Basic "plumbing" code, abstract data types, and stuff.
+* Custom (small) XML parser for in-memory XML documents.
+* Plug-in code loading and init-part of the Purple API.
+* Export plug-in description as XML to text node created by the
+  engine.
+* Decide on graph storage; one text node per graph, or just one buffer?
+  One node per graph simplifies associating graphs with objects, but
+  "wastes" the buffer grouping and potentially creates many nodes.
+	DONE: Graphs are stored in user-supplied text node buffers.
+* Implement graph create/destroy method calls, with text updates.
+	DONE: The engine maintains a "meta" text node, a buffer of
+  which contains a graph index that lists all existing graphs. This
+  index is kept up to date when graphs are created/renamed/destroyed.
+* Test graph creation method calls.
+
+
+Todo:
+
+* Implement text updates of actual graph contents.
+* Implement module (plug-in instantiation) handling.
+* Test module handling (creation, linking, deletion).
+* Start designing and implementing node storage system, with event
+  handling and comparison. Scary.
+* Implement corresponding plug-in APIs for dealing with node data.
+* Implement general purpose data structure to hold the "value" of
+  a module input or output (node set, and scalars).
+* Implement scheduler for actually running plug-in code, and pass
+  data between them.
+* Implement node comparison capability to find changes in outputs.
+* Send changes in geometry back to Verse server.
+* Automatically resolve circularities by referencing a copy.
