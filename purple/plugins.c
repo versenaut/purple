@@ -247,14 +247,12 @@ static int cb_describe_meta(const void *data, void *user)
 {
 	const MetaEntry	*m = data;
 
-	dynstr_append_printf(user,
-		     "  <entry>\n"
-		     "   <category>%s</category>\n"
-		     "   <value>", m->category);
+	dynstr_append(user,"  <entry category=\"");
+	xml_dynstr_append(user, m->category);
+	dynstr_append(user, "\">");
 	xml_dynstr_append(user, m->text);
-	dynstr_append(user,
-		     "</value>\n"
-		     "  </entry>\n");
+	dynstr_append(user, "</entry>\n");
+
 	return 1;	           
 }
 
