@@ -109,7 +109,8 @@ void		p_init_meta(const char *category, const char *text);
 
 /* Each instance can have its own unique state, passed to compute(). Opaque, specify size in bytes.
  * The constructor() and destructor() functions will be called when plug-in is instantiated/de-inst:ed.
-*/
+ * If the constructor is NULL, the state will be initialized by Purple to "all bits zero".
+ */
 void		p_init_state(size_t size,
 			     void (*constructor)(void *state),
 			     void (*destructor)(void *state));

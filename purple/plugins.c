@@ -506,6 +506,8 @@ int plugin_instance_init(Plugin *p, PInstance *inst)
 		{
 			if(p->ctor != NULL)
 				p->ctor(inst->state);
+			else
+				memset(inst->state, 0, memchunk_chunk_size(p->state));
 			return 1;
 		}
 		plugin_portset_destroy(inst->inputs);
