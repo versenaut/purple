@@ -48,6 +48,9 @@ extern NdbBLayer *	nodedb_b_layer_lookup_id(const NodeBitmap *node, uint16 buffe
 extern void *		nodedb_b_layer_access_begin(NodeBitmap *node, NdbBLayer *layer);
 extern void		nodedb_b_layer_access_end(NodeBitmap *node, NdbBLayer *layer, void *framebuffer);
 
+extern void		nodedb_b_layer_foreach_set(NodeBitmap *node, NdbBLayer *layer,
+						real64 (*pixel)(uint32 x, uint32 y, uint32 z, void *user), void *user);
+
 extern void		nodedb_b_tile_describe(const NodeBitmap *node, const NdbBLayer *layer, NdbBTileDesc *desc);
 
 extern void		nodedb_b_register_callbacks(void);
