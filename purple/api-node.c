@@ -86,10 +86,27 @@ void p_node_tag_create_path(PONode *node, const char *path, VNTagType type, ...)
 			value.vreal64 = va_arg(arg, real64);
 			break;
 		case VN_TAG_STRING:
-			value.vstring = va_arg(arg, const char *);	/* Duplicated by nodedb. */
+			value.vstring = va_arg(arg, char *);	/* Duplicated by nodedb. */
 			break;
-		default:
-			printf("not implemented\n");
+		case VN_TAG_REAL64_VEC3:
+			value.vreal64_vec3[0] = va_arg(arg, real64);
+			value.vreal64_vec3[1] = va_arg(arg, real64);
+			value.vreal64_vec3[2] = va_arg(arg, real64);
+			break;
+		case VN_TAG_LINK:
+			value.vlink = va_arg(arg, VNodeID);
+			break;
+		case VN_TAG_ANIMATION:
+			value.vanimation.curve = va_arg(arg, VNodeID);
+			value.vanimation.start = va_arg(arg, uint32);
+			value.vanimation.end   = va_arg(arg, uint32);
+			break;
+		case VN_TAG_BLOB:
+			value.vblob.size = va_arg(arg, unsigned int);
+			value.vblob.blob = va_arg(arg, void *);
+			break;
+		case VN_TAG_TYPE_COUNT:
+			;
 		}
 		va_end(arg);
 		/* If tag exists, just (re)set the value, else create it. */
