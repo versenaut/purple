@@ -23,7 +23,7 @@ void nodedb_o_init(NodeObject *n)
 	n->method_groups = NULL;
 }
 
-NdbOMethodGroup * nodedb_o_buffer_lookup(const NodeObject *node, const char *name)
+NdbOMethodGroup * nodedb_o_method_group_lookup(NodeObject *node, const char *name)
 {
 	unsigned int	i;
 	NdbOMethodGroup	*g;
