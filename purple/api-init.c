@@ -67,9 +67,9 @@ void p_init_input(int index, PInputType type, const char *name, ...)
 	va_end(args);
 }
 
-void p_init_state(size_t size)
+void p_init_state(size_t size, void (*constructor)(void *state), void (*destructor)(void *))
 {
-	plugin_set_state(init_info.plugin, size);
+	plugin_set_state(init_info.plugin, size, constructor, destructor);
 }
 
 void p_init_compute(void (*compute)(PPInput *input, PPOutput output, void *state))
