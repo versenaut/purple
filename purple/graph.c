@@ -131,10 +131,23 @@ static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 	hash_insert(graph_info.graphs_name, gg->name, gg);
 }
 
+static graph_xml_renumber(void)
+{
+	unsigned int	i, pos;
+	Graph		*g;
+
+	for(i = 0, pos = client_info.graphs.start; i < dynarr_size(graph_info.graphs); i++)
+	{
+		if((g = dynarr_index(graph_info.graphs, i)) == NULL || g->name[0] == '\0')
+			continue;
+		g->xml_start = pos;
+		pos += g->xml_length;
+	}
+}
+
 static void graph_rename(uint32 id, const char *name)
 {
 	Graph		*g;
-	unsigned int	i, pos;
 	char		xml[256];
 
 	if((g = dynarr_index(graph_info.graphs, id)) == NULL || g->name[0] == '\0')
@@ -155,20 +168,12 @@ static void graph_rename(uint32 id, const char *name)
 	graph_build_xml(id, g, xml, sizeof xml);
 	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, g->xml_start, g->xml_length, xml);
 	g->xml_length = strlen(xml);
-
-	for(i = 0, pos = client_info.graphs.start; i < dynarr_size(graph_info.graphs); i++)
-	{
-		if((g = dynarr_index(graph_info.graphs, i)) == NULL || g->name[0] == '\0')
-			continue;
-		g->xml_start = pos;
-		pos += g->xml_length;
-	}
+	graph_xml_renumber();
 }
 
 static void graph_destroy(uint32 id)
 {
 	Graph		*g;
-	unsigned int	i, pos;
 
 	if((g = dynarr_index(graph_info.graphs, id)) == NULL || g->name[0] == '\0')
 	{
@@ -179,14 +184,7 @@ static void graph_destroy(uint32 id)
 	graph_info.free_ids = list_prepend(graph_info.free_ids, (void *) id);
 	hash_remove(graph_info.graphs_name, g->name);
 	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, g->xml_start, g->xml_length, NULL);
-
-	for(i = 0, pos = client_info.graphs.start; i < dynarr_size(graph_info.graphs); i++)
-	{
-		if((g = dynarr_index(graph_info.graphs, i)) == NULL || g->name[0] == '\0')
-			continue;
-		g->xml_start = pos;
-		pos += g->xml_length;
-	}
+	graph_xml_renumber();
 }
 
 /* ----------------------------------------------------------------------------------------- */
