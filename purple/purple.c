@@ -25,6 +25,7 @@
 #include "verse.h"
 #include "purple.h"
 
+#include "bintree.h"
 #include "cron.h"
 #include "dynarr.h"
 #include "dynlib.h"
@@ -415,12 +416,11 @@ static int console_script(char *line, size_t line_size)
 	"tbc 2 klax\n"
 	"gc 2 0 busta\n"
 
-	"mc 1 8\n"
-	"mc 1 15\n"
+	"mc 1 4\n"
 	"mc 1 2\n"
-	"mism 1 2 0 : 1\n"
 	"mism 1 1 0 : 0\n"
-	"misu 1 0 0 : 16\n";
+	"misr 1 0 0 : 440\n"
+	"misr 1 0 1 : 1.5\n";
 	static int	next_line = 0;
 
 	if(strcmp(line, ".") == 0)
