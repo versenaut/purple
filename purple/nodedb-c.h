@@ -49,5 +49,11 @@ extern NdbCCurve *	nodedb_c_curve_create(NodeCurve *node, VLayerID curve_id, con
 extern uint8		nodedb_c_curve_dimensions_get(const NdbCCurve *curve);
 extern unsigned int	nodedb_c_curve_key_num(const NdbCCurve *curve);
 extern NdbCKey *	nodedb_c_curve_key_nth(const NdbCCurve *curve, unsigned int n);
+extern NdbCKey *	nodedb_c_curve_key_find(const NdbCCurve *curve, real64 pos);
+extern int		nodedb_c_curve_key_equal(const NdbCCurve *curve, const NdbCKey *k1, const NdbCKey *k2);
+extern NdbCKey *	nodedb_c_key_create(NdbCCurve *curve, uint32 key_id,
+					    real64 pos, const real64 *value,
+					    const uint32 *pre_pos, const real64 *pre_value,
+					    const uint32 *post_pos, const real64 *post_value);
 
 extern void		nodedb_c_register_callbacks(void);
