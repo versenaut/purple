@@ -101,5 +101,5 @@ PINode * port_input_node(PPort *port)
 
 PINode * port_input_node_nth(PPort *port, unsigned int index)
 {
-	return port != NULL ? nodeset_retreive_nth(port->nodes, index) : NULL;
+	return port != NULL ? nodeset_retrieve_nth(port->nodes, index) : NULL;
 }

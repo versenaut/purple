@@ -74,7 +74,7 @@ PINode * nodeset_retrieve(const NodeSet *ns)
 	return list_data(ns->nodes);
 }
 
-PINode * nodeset_retreive_nth(const NodeSet *ns, unsigned int index)
+PINode * nodeset_retrieve_nth(const NodeSet *ns, unsigned int index)
 {
 	const List	*iter;
 
