@@ -60,6 +60,11 @@ static void notify_mine_create(Node *node)
 		verse_send_node_subscribe(node->id);
 		verse_send_o_link_set(client_info.avatar, ~0, node->id, "meta", 0);
 	}
+	else if(node->type == V_NT_TEXT)
+	{
+		printf("Purple-created text node found, assuming it's graph storage (setting language)\n");
+		verse_send_t_set_language(node->id, "xml/purple/graph");
+	}
 }
 
 /* Track changes to nodes owned by this client, i.e. the PurpleMeta text node. */
