@@ -170,11 +170,11 @@ void plugin_set_input(Plugin *p, int index, PValueType type, const char *name, v
 			else if(tag == P_INPUT_TAG_REQUIRED)
 				i.spec.req = 1;
 			else if(tag == P_INPUT_TAG_MIN)
-				i.spec.min = value_set_defminmax_va(&i.spec.min_val, i.type, taglist);
+				i.spec.min = value_set_defminmax_va(&i.spec.min_val, i.type, &taglist);
 			else if(tag == P_INPUT_TAG_MAX)
-				i.spec.max = value_set_defminmax_va(&i.spec.max_val, i.type, taglist);
+				i.spec.max = value_set_defminmax_va(&i.spec.max_val, i.type, &taglist);
 			else if(tag == P_INPUT_TAG_DEFAULT)
-				i.spec.def = value_set_defminmax_va(&i.spec.def_val, i.type, taglist);
+				i.spec.def = value_set_defminmax_va(&i.spec.def_val, i.type, &taglist);
 		}
 		dynarr_append(p->input, &i, NULL);
 	}
@@ -295,28 +295,28 @@ void plugin_describe_append(const Plugin *p, DynStr *d)
 			if(in->spec.def || in->spec.min || in->spec.max)
 			{
 				char		buf[1024];
-				const char	*p;
+				const char	*ptr;
 
 				dynstr_append(d, "   <range>\n");
 				if(in->spec.def)
 				{
 					dynstr_append(d, "    <def>");
-					if((p = value_as_string(&in->spec.def_val, buf, sizeof buf, NULL)) != NULL)
-						dynstr_append(d, p);
+					if((ptr = value_as_string(&in->spec.def_val, buf, sizeof buf, NULL)) != NULL)
+						dynstr_append(d, ptr);
 					dynstr_append(d, "</def>\n");
 				}
 				if(in->spec.min)
 				{
 					dynstr_append(d, "    <min>");
-					if((p = value_as_string(&in->spec.min_val, buf, sizeof buf, NULL)) != NULL)
-						dynstr_append(d, p);
+					if((ptr = value_as_string(&in->spec.min_val, buf, sizeof buf, NULL)) != NULL)
+						dynstr_append(d, ptr);
 					dynstr_append(d, "</min>\n");
 				}
 				if(in->spec.max)
 				{
 					dynstr_append(d, "    <max>");
-					if((p = value_as_string(&in->spec.max_val, buf, sizeof buf, NULL)) != NULL)
-						dynstr_append(d, p);
+					if((ptr = value_as_string(&in->spec.max_val, buf, sizeof buf, NULL)) != NULL)
+						dynstr_append(d, ptr);
 					dynstr_append(d, "</max>\n");
 				}
 				dynstr_append(d, "   </range>\n");
