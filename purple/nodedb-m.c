@@ -127,7 +127,7 @@ static int fragments_equal(const NodeMaterial *node, const NdbMFragment *a,
 			if(a->node != NULL)
 				neq = a->node->id == b->frag.light.brdf;
 			else
-				neq = a->frag.texture.bitmap == b->frag.light.brdf;
+				neq = a->frag.light.brdf == b->frag.light.brdf;
 			return neq && a->frag.light.normal_falloff == b->frag.light.normal_falloff &&
 				strcmp(a->frag.light.brdf_r, b->frag.light.brdf_r) == 0 &&
 				strcmp(a->frag.light.brdf_g, b->frag.light.brdf_g) == 0 &&
@@ -151,7 +151,6 @@ static int fragments_equal(const NodeMaterial *node, const NdbMFragment *a,
 		       strcmp(a->frag.geometry.layer_g, b->frag.geometry.layer_g) == 0 &&
 		       strcmp(a->frag.geometry.layer_b, b->frag.geometry.layer_b) == 0;
 	case VN_M_FT_TEXTURE:
-		printf("comparing textures: nodes are %x and %x\n", a->frag.texture.bitmap, b->frag.texture.bitmap);
 		if(fragment_refs_equal(node, a->frag.texture.mapping, target, b->frag.texture.mapping))
 		{
 			int	neq;
@@ -199,13 +198,9 @@ static int fragments_equal(const NodeMaterial *node, const NdbMFragment *a,
 			fragment_refs_equal(node, a->frag.alternative.alt_b,
 					    target, b->frag.alternative.alt_b);
 	case VN_M_FT_OUTPUT:
-		printf("comparing output fragments\n");
 		return strcmp(a->frag.output.label, b->frag.output.label) == 0 &&
-				fragment_refs_equal(node, a->frag.output.front,
-					   target, b->frag.output.front) &&
-				fragment_refs_equal(node, a->frag.output.back,
-					    target, b->frag.output.back);
-
+			fragment_refs_equal(node, a->frag.output.front, target, b->frag.output.front) &&
+			fragment_refs_equal(node, a->frag.output.back,  target, b->frag.output.back);
 	}
 	return 0;
 }
@@ -234,7 +229,6 @@ int nodedb_m_fragment_resolve(VNMFragmentID *id, const NodeMaterial *node,
 
 	if(id == NULL || node == NULL || source == NULL)
 		return 0;
-	printf("resolving %u\n", f);
 	if(f == (VNMFragmentID) ~0)	/* If reference is NULL, it resolves easily enough. */
 	{
 		*id = f;
@@ -244,7 +238,6 @@ int nodedb_m_fragment_resolve(VNMFragmentID *id, const NodeMaterial *node,
 	{
 		if((tfrag = nodedb_m_fragment_find_equal(node, source, frag)) != NULL)
 		{
-			printf("found equal fragment type %d\n", tfrag->type);
 			*id = tfrag->id;
 			return 1;
 		}
@@ -288,23 +281,25 @@ NdbMFragment * nodedb_m_fragment_create(NodeMaterial *node, VNMFragmentID fragme
 		f->type = type;
 		f->frag = *fragment;
 		f->node = NULL;		/* Always set after creation, when used (light, texture). */
+		f->pending = 0;
 		printf("fragment %u.%u created, type=%u\n", node->node.id, fragment_id, f->type);
-		if(f->type == VN_M_FT_TEXTURE)
-		{
-			printf(" it's texture! bitmap link is %u\n", f->frag.texture.bitmap);
-		}
 	}
 	return f;
 }
 
-static void node_ref_set(NdbMFragment *frag, const Node *node)
-{
-	if(frag == NULL || node == NULL)
-		return;
-	frag->node = node;	/* Very little work to do; the importance here is in the formalism. */
-}
-
 /* ----------------------------------------------------------------------------------------- */
+
+static void node_ref_set(NdbMFragment *frag, VNodeID *reffield, const Node *node)
+{
+	if(frag == NULL || reffield == NULL)
+		return;
+	if(node != NULL)
+		*reffield = node->id;
+	else
+		*reffield = (VNodeID) ~0;
+	frag->node = node;	/* Very little work to do; the importance here is in the formalism. */
+	printf("set fragment; frag=%p field=%u node=%p\n", frag, *reffield, frag->node);
+}
 
 static void link_set(VNMFragmentID *ptr, const NdbMFragment *fragment)
 {
@@ -332,11 +327,11 @@ NdbMFragment * nodedb_m_fragment_create_light(NodeMaterial *node, VNMLightType t
 		return NULL;
 	frag.light.type = type;
 	frag.light.normal_falloff = normal_falloff;
-	stu_strncpy(frag.light.brdf_r, sizeof frag.light.brdf_r, brdf_r);
-	stu_strncpy(frag.light.brdf_g, sizeof frag.light.brdf_g, brdf_g);
-	stu_strncpy(frag.light.brdf_b, sizeof frag.light.brdf_b, brdf_b);
+	stu_strncpy_accept_null(frag.light.brdf_r, sizeof frag.light.brdf_r, brdf_r);
+	stu_strncpy_accept_null(frag.light.brdf_g, sizeof frag.light.brdf_g, brdf_g);
+	stu_strncpy_accept_null(frag.light.brdf_b, sizeof frag.light.brdf_b, brdf_b);
 	f = nodedb_m_fragment_create(node, ~0, VN_M_FT_LIGHT, &frag);
-	node_ref_set(f, brdf);
+	node_ref_set(f, &f->frag.light.brdf, brdf);
 	return f;
 }
 
@@ -405,7 +400,7 @@ NdbMFragment * nodedb_m_fragment_create_texture(NodeMaterial *node, const Node *
 	stu_strncpy_accept_null(frag.texture.layer_b, sizeof frag.texture.layer_b, layer_b);
 	link_set(&frag.texture.mapping, mapping);
 	f = nodedb_m_fragment_create(node, ~0, VN_M_FT_TEXTURE, &frag);
-	node_ref_set(f, bitmap);
+	node_ref_set(f, &f->frag.texture.bitmap, bitmap);
 	return f;
 }
 
@@ -466,7 +461,7 @@ NdbMFragment * nodedb_m_fragment_create_animation(NodeMaterial *node, const char
 
 	if(node == NULL || label == NULL || *label == '\0')
 		return NULL;
-	stu_strncpy(frag.animation.label, sizeof frag.animation.label, label);
+	stu_strncpy_accept_null(frag.animation.label, sizeof frag.animation.label, label);
 	return nodedb_m_fragment_create(node, ~0, VN_M_FT_ANIMATION, &frag);
 }
 
@@ -489,7 +484,7 @@ NdbMFragment * nodedb_m_fragment_create_output(NodeMaterial *node, const char *l
 
 	if(node == NULL || label == NULL || *label == '\0')
 		return NULL;
-	stu_strncpy(frag.output.label, sizeof frag.output.label, label);
+	stu_strncpy_accept_null(frag.output.label, sizeof frag.output.label, label);
 	link_set(&frag.output.front, front);
 	link_set(&frag.output.back,  back);
 	return nodedb_m_fragment_create(node, ~0, VN_M_FT_OUTPUT, &frag);
