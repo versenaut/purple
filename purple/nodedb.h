@@ -33,12 +33,6 @@ struct Node
 	DynArr		*tag_groups;
 
 	List		*notify;
-
-	union
-	{
-	Node		*parent;	/* Used in output node to keep track of original. */
-	Node		*child;		/* Used in input node to keep track of copy. */
-	}		copy;
 };
 
 #include "nodedb-b.h"
