@@ -409,6 +409,13 @@ PNMFragment * p_node_m_fragment_create_geometry(NodeMaterial *node,
 	return nodedb_m_fragment_create_geometry((NodeMaterial *) node, layer_r, layer_g, layer_b);
 }
 
+PNMFragment * p_node_m_fragment_create_texture(PONode *node, PINode *bitmap,
+					    const char *layer_r, const char *layer_g, const char *layer_b,
+					    const PNMFragment *mapping)
+{
+	return nodedb_m_fragment_create_texture((NodeMaterial *) node, bitmap, layer_r, layer_g, layer_b, mapping);
+}
+
 PNMFragment * p_node_m_fragment_create_output(PONode *node, const char *label, const PNMFragment *front, const PNMFragment *back)
 {
 	return nodedb_m_fragment_create_output((NodeMaterial *) node, label, front, back);
