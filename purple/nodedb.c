@@ -257,7 +257,7 @@ int nodedb_unref(Node *node)
 {
 	if(node != NULL)
 	{
-		printf("unreffing %p (%u)\n", node, node->id);
+/*		printf("unreffing %p (%u)\n", node, node->id);*/
 		node->ref--;
 		if(node->ref <= 0)
 		{
@@ -265,9 +265,9 @@ int nodedb_unref(Node *node)
 			nodedb_destroy(node);
 			return 1;
 		}
-		else
+/*		else
 			printf(" not destroyed, count=%d\n", node->ref);
-	}
+*/	}
 	return 0;
 }
 
