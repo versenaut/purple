@@ -471,6 +471,15 @@ static void do_print_outline(const XmlNode *root, int indent)
 		printf("%s%s", root->element, root->text != NULL ? " : " : "");
 	if(root->text != NULL)
 		printf("\"%s\"", root->text);
+	if(root->attrib_num > 0)
+	{
+		size_t	i;
+
+		printf(" [");
+		for(i = 0; i < root->attrib_num; i++)
+			printf(" %s=\"%s\"", root->attrib[i].name, root->attrib[i].value);
+		printf(" ]");
+	}
 	putchar('\n');
 	for(iter = root->children; iter != NULL; iter = list_next(iter))
 		do_print_outline(list_data(iter), indent + 1);
