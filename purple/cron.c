@@ -70,7 +70,7 @@ unsigned int cron_add(CronTimeType type, double seconds, int (*handler)(void *da
 	Job	*j;
 	List	*id;
 
-	if(type > 1)
+	if(type > 2)
 		return 0;
 	if(handler == NULL)
 		return 0;
@@ -91,11 +91,11 @@ unsigned int cron_add(CronTimeType type, double seconds, int (*handler)(void *da
 		timeval_future(&j->when.oneshot, seconds);
 		cron_info.oneshot = list_append(cron_info.oneshot, j);
 	}
-	else if(type == CRON_PERIODIC)
+	else if(type == CRON_PERIODIC || type == CRON_PERIODIC_SOON)
 	{
 		j->id = PERIODIC_SET(j->id);
 		j->when.periodic.period = seconds;
-		j->when.periodic.bucket = 0.0;
+		j->when.periodic.bucket = type == CRON_PERIODIC_SOON ? seconds - 0.5 : 0.0;
 		cron_info.periodic = list_append(cron_info.periodic, j);
 	}
 	return j->id;

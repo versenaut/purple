@@ -13,6 +13,7 @@ typedef enum
 {
 	CRON_ONESHOT = 0,
 	CRON_PERIODIC,
+	CRON_PERIODIC_SOON,
 } CronTimeType;
 
 extern void		cron_init(void);
