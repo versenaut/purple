@@ -163,11 +163,11 @@ void plugin_set_input(Plugin *p, int index, PValueType type, const char *name, v
 			else if(tag == P_INPUT_TAG_REQUIRED)
 				i.spec.req = 1;
 			else if(tag == P_INPUT_TAG_MIN)
-				i.spec.min = value_set(&i.spec.min_val, i.type, &taglist);
+				i.spec.min = value_set_va(&i.spec.min_val, i.type, taglist);
 			else if(tag == P_INPUT_TAG_MAX)
-				i.spec.max = value_set(&i.spec.max_val, i.type, &taglist);
+				i.spec.max = value_set_va(&i.spec.max_val, i.type, taglist);
 			else if(tag == P_INPUT_TAG_DEFAULT)
-				i.spec.def = value_set(&i.spec.def_val, i.type, &taglist);
+				i.spec.def = value_set_va(&i.spec.def_val, i.type, taglist);
 		}
 		dynarr_append(p->input, &i);
 	}
