@@ -144,7 +144,7 @@ void * dynarr_set(DynArr *da, unsigned int index, const void *element)
 
 				for(i = da->alloc; i < size; i++)
 				{
-					if(i == index)
+					if(i == index && element != NULL)
 						continue;
 					da->def_func(i, (char *) nd + i * da->elem_size, da->def_func_user);
 				}
