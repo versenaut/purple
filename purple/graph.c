@@ -35,19 +35,9 @@
 
 typedef struct
 {
-	PPort		port;		/* Result is stored here. */
-	IdList		dependants;	/* Tracks dependants, to notify when output changes. */
+	PPort	port;		/* Result is stored here. */
+	IdList	dependants;	/* Tracks dependants, to notify when output changes. */
 } Output;
-
-typedef struct
-{
-	uint32		id;
-	Plugin		*plugin;
-	PInstance	instance;	/* Input values, state data. */
-	Output		out;		/* Things having to do with output/result, see above. */
-
-	uint32		start, length;	/* Region in graph XML buffer used for this module. */
-} Module;
 
 typedef struct
 {
@@ -60,6 +50,17 @@ typedef struct
 	uint32	desc_start;	/* Base location in graph XML buffer, first module starts here. */
 	IdSet	*modules;
 } Graph;
+
+typedef struct
+{
+	uint32		id;
+	Graph		*graph;		/* Which graph does this module belong to? */
+	Plugin		*plugin;
+	PInstance	instance;	/* Input values, state data. */
+	Output		out;		/* Things having to do with output/result, see above. */
+
+	uint32		start, length;	/* Region in graph XML buffer used for this module. */
+} Module;
 
 /* Bookkeeping structure used to keep track of the various methods used to control the Purple engine. */
 typedef struct
@@ -305,7 +306,7 @@ static void module_dep_remove(const Graph *g, uint32 module_id, uint32 dep_old)
 }
 
 /* Module <m> is about to be destroyed. Notify all dependants, in both directions. Not too expensive. */
-static void module_dep_destroy_warning(Graph *g, Module *m)
+static void module_dep_destroy_warning(Module *m)
 {
 	IdListIter	iter;
 	size_t		num, i;
@@ -313,13 +314,13 @@ static void module_dep_destroy_warning(Graph *g, Module *m)
 
 	/* First, remove input links to this module from others, the dependants. */
 	for(idlist_foreach_init(&m->out.dependants, &iter); idlist_foreach_step(&m->out.dependants, &iter); )
-		module_input_clear_links_to(g, iter.id, m->id);
+		module_input_clear_links_to(m->graph, iter.id, m->id);
 	/* Second, tell sources this module no longer depends on them. */
 	num = plugin_portset_size(m->instance.inputs);
 	for(i = 0; i < num; i++)
 	{
 		if(plugin_portset_get_module(m->instance.inputs, i, &lt))
-			module_dep_remove(g, lt, m->id);
+			module_dep_remove(m->graph, lt, m->id);
 	}
 }
 
@@ -327,14 +328,24 @@ static void module_dep_destroy_warning(Graph *g, Module *m)
 
 void graph_port_output_set(PPOutput port, PValueType type, ...)
 {
-	Module	*m = MODULE_FROM_PORT(port);
-	va_list	arg;
+	Module		*m = MODULE_FROM_PORT(port), *dep;
+	IdListIter	iter;
+	va_list		arg;
 
 	va_start(arg, type);
 	port_set_va(port, type, arg);
 	va_end(arg);
 
-	/* At this point, we need to care about dependants. */
+	/* Our output changed, so ask scheduler to attempt to recompute any dependants. */
+	for(idlist_foreach_init(&m->out.dependants, &iter); idlist_foreach_step(&m->out.dependants, &iter); )
+	{
+		if((dep = idset_lookup(m->graph->modules, iter.id)) != NULL)
+		{
+			sched_add(&dep->instance);
+		}
+		else
+			printf("Couldn't find module %u in graph %s, a dependant of module %u\n", iter.id, m->graph->name, m->id);
+	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -467,6 +478,7 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 		LOG_WARN(("Module allocation failed in graph %u, plug-in %u", graph_id, plugin_id));
 		return;
 	}
+	m->graph = g;
 	m->plugin = p;
 	plugin_instance_init(m->plugin, &m->instance);
 	printf("instatiated %s, inputs at %p\n", plugin_name(p), m->instance.inputs);
@@ -501,7 +513,7 @@ static void module_destroy(uint32 graph_id, uint32 module_id)
 		LOG_WARN(("Attempted to destroy unknown module %u in graph %u, aborting", module_id, graph_id));
 		return;
 	}
-	module_dep_destroy_warning(g, m);
+	module_dep_destroy_warning(m);
 	idset_remove(g->modules, module_id);
 	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, NULL);
 	idlist_destruct(&m->out.dependants);
