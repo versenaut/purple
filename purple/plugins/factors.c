@@ -8,16 +8,16 @@
 
 typedef struct
 {
-	uint32	number;
-	uint32	index;
-	int32	factors;
+	uint32	number;			/* Number we're computing factors for. */
+	uint32	index;			/* Next value to check if it's a factor. */
+	int32	factors;		/* Counts number of factors found. -1 before start. */
 } State;
 
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state_typeless)
 {
 	State	*state = state_typeless;
 
-	if(state->factors < 0)		/* Not yet initialized? */
+	if(state->factors < 0)			/* Not yet initialized? */
 	{
 		state->number  = p_input_uint32(input[0]);
 		state->index   = 2;
