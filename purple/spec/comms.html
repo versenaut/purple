@@ -1552,11 +1552,82 @@ The engine will convert the available value to the requested type.
 >
 
 </P
+><DIV
+CLASS="sect4"
+><H4
+CLASS="sect4"
+><A
+NAME="AEN682"
+>Setting an Input to Nothing</A
+></H4
+><P
+>Besides setting an input to an absolute value, or the output of another module, as the methods above allow
+you to do, it is also necessary to <SPAN
+CLASS="QUOTE"
+>"disconnect"</SPAN
+> a module input and <I
+CLASS="emphasis"
+>not</I
+> assign
+it any particular value. This is done by the following method:
+<P
+></P
+><DIV
+CLASS="variablelist"
+><DL
+><DT
+><DIV
+CLASS="funcsynopsis"
+><A
+NAME="AEN690"
+></A
+><P
+></P
+><P
+><CODE
+><CODE
+CLASS="FUNCDEF"
+><TT
+CLASS="function"
+>mod_input_clear</TT
+></CODE
+>(uint32 <TT
+CLASS="parameter"
+><I
+>graph</I
+></TT
+>, uint32 <TT
+CLASS="parameter"
+><I
+>plugin</I
+></TT
+>, uint8 <TT
+CLASS="parameter"
+><I
+>inputa</I
+></TT
+>);</CODE
+></P
+><P
+></P
+></DIV
+></DT
+><DD
+><P
+>&#13;This method removes any assigned value from a module's input.
+</P
+></DD
+></DL
+></DIV
+>
+
+</P
 ><P
 >&#13;Executing any of the above methods will, assuming the execution is actually granted by the engine, result in
 changes to the graph description (addition/removal of a module, or change of a module's input). These changes
 will be done by the engine, and replicated through the use of a shared text buffer. See below.
 </P
+></DIV
 ></DIV
 ></DIV
 ><DIV
@@ -1584,7 +1655,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN688"
+NAME="AEN708"
 >An XML Document Type for Graph Descriptions</A
 ></H3
 ><P
@@ -1592,7 +1663,7 @@ NAME="AEN688"
 <DIV
 CLASS="example"
 ><A
-NAME="AEN691"
+NAME="AEN711"
 ></A
 ><P
 ><B
@@ -1627,7 +1698,7 @@ unique for the instance of the Purple engine.
 >&#13;<DIV
 CLASS="example"
 ><A
-NAME="AEN697"
+NAME="AEN717"
 ></A
 ><P
 ><B
@@ -1675,7 +1746,7 @@ within the graph. Specifying a non-existing plug-in name is legal.
 ><DIV
 CLASS="example"
 ><A
-NAME="AEN706"
+NAME="AEN726"
 ></A
 ><P
 ><B
@@ -1733,7 +1804,7 @@ match in practice, but this is not a requirement of the underlying basic technol
 ><DIV
 CLASS="example"
 ><A
-NAME="AEN717"
+NAME="AEN737"
 ></A
 ><P
 ><B
