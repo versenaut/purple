@@ -129,12 +129,12 @@ char * nodedb_t_buffer_read_line(NdbTBuffer *buffer, unsigned int line, char *pu
 {
 	const char	*text;
 
-	/* Fast forward to line <line>, with a wide understanding idea of what is a line break:
-	 * a lone CR (Mac), lone LF (Unix), CR followed by any number of LFs, and LF followed
-	 * by any number of CRs all work as a single line break.
-	*/
 	if((text = nodedb_t_buffer_read_begin(buffer)) != NULL)
 	{
+		/* Fast forward to line <line>, with a wide understanding idea of what is a line break:
+		 * a lone CR (Mac), lone LF (Unix), CR followed by any number of LFs, and LF followed
+		 * by any number of CRs all work as a single line break.
+		*/
 		while(*text != '\0')
 		{
 			if(line == 0)
@@ -150,11 +150,11 @@ char * nodedb_t_buffer_read_line(NdbTBuffer *buffer, unsigned int line, char *pu
 			else
 				text++;
 		}
+		/* Now copy text to user's buffer, until line or buffer ends. */
 		if(*text != '\0')
 		{
 			char	*p = put;
 
-			printf("line begins: '%s'\n", text);
 			putmax--;
 			while(*text != '\0' && *text != '\n' && *text != '\r' && putmax > 0)
 				*p++ = *text++;
