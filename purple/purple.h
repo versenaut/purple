@@ -239,6 +239,10 @@ uint8		p_node_c_curve_get_dimensions(const PNCCurve *curve);
 PNCCurve *	p_node_c_curve_create(PONode *node, const char *name, uint8 dimensions);
 unsigned int	p_node_c_curve_key_num(const PNCCurve *curve);
 PNCKey *	p_node_c_curve_key_nth(const PNCCurve *curve, unsigned int n);
+real64		p_node_c_curve_key_get_pos(const PNCKey *key);
+real64		p_node_c_curve_key_get_value(const PNCKey *key, uint8 dimension);
+uint32		p_node_c_curve_key_get_pre(const PNCKey *key, uint8 dimension, real64 *value);
+uint32		p_node_c_curve_key_get_post(const PNCKey *key, uint8 dimension, real64 *value);
 PNCKey *	p_node_c_curve_key_create(PNCCurve *curve, real64 pos, const real64 *value,
 					  const uint32 *pre_pos, const real64 *pre_value,
 					  const uint32 *post_pos, const real64 *post_value);

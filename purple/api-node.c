@@ -484,6 +484,38 @@ PNCKey * p_node_c_curve_key_nth(const PNCCurve *curve, unsigned int n)
 	return nodedb_c_curve_key_nth(curve, n);
 }
 
+real64 p_node_c_curve_key_get_pos(const PNCKey *key)
+{
+	return key != NULL ? ((NdbCKey *) key)->pos : 0.0;
+}
+
+real64 p_node_c_curve_key_get_value(const PNCKey *key, uint8 dimension)
+{
+	return key != NULL ? ((NdbCKey *) key)->value[dimension] : 0.0;
+}
+
+uint32 p_node_c_curve_key_get_pre(const PNCKey *key, uint8 dimension, real64 *value)
+{
+	if(key != NULL)
+	{
+		if(value != NULL)
+			*value = ((NdbCKey *) key)->pre.value[dimension];
+		return ((NdbCKey *) key)->pre.pos[dimension];
+	}
+	return 0;
+}
+
+uint32 p_node_c_curve_key_get_post(const PNCKey *key, uint8 dimension, real64 *value)
+{
+	if(key != NULL)
+	{
+		if(value != NULL)
+			*value = ((NdbCKey *) key)->post.value[dimension];
+		return ((NdbCKey *) key)->post.pos[dimension];
+	}
+	return 0;
+}
+
 PNCKey * p_node_c_curve_key_create(PNCCurve *curve,
 				   real64 pos, const real64 *value,
 				   const uint32 *pre_pos, const real64 *pre_value,
