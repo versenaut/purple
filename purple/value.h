@@ -45,7 +45,9 @@ extern boolean		value_type_present(const PValue *v, PValueType type);
 /* Return name of the type the value is set to. Only works if there is exactly one type set. */
 extern const char *	value_type_name(const PValue *v);
 
+#if 0
 extern void		value_append(const PValue *v, DynStr *d);
+#endif
 
 /* Get a value, reading from (and updating) the optional cache if the source value does
  * not hold the desired type. Data ownership is always in the value or the cache.
