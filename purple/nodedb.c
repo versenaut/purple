@@ -257,6 +257,7 @@ int nodedb_unref(Node *node)
 {
 	if(node != NULL)
 	{
+		printf("unreffing %p (%u)\n", node, node->id);
 		node->ref--;
 		if(node->ref <= 0)
 		{
@@ -264,6 +265,8 @@ int nodedb_unref(Node *node)
 			nodedb_destroy(node);
 			return 1;
 		}
+		else
+			printf(" not destroyed, count=%d\n", node->ref);
 	}
 	return 0;
 }
@@ -273,6 +276,13 @@ void nodedb_rename(Node *node, const char *name)
 	if(node == NULL || name == NULL)
 		return;
 	stu_strncpy(node->name, sizeof node->name, name);
+}
+
+VNodeType nodedb_type_get(const Node *node)
+{
+	if(node != NULL)
+		return node->type;
+	return V_NT_NUM_TYPES;
 }
 
 /* ----------------------------------------------------------------------------------------- */
