@@ -1,5 +1,5 @@
 /*
- * 
+ *
 */
 
 #include <ctype.h>
@@ -314,14 +314,11 @@ static void node_child_add(XmlNode *parent, XmlNode *child)
 static void node_text_add(XmlNode *parent, DynStr *text)
 {
 	if(parent->text == NULL)
-	{
-		printf("Adding text to node %s\n", parent->element);
 		parent->text = dynstr_destroy(text, 0);
-	}
 	else
 	{
 		XmlNode	*tc;
-		printf("Adding text child to node %s\n", parent->element);
+
 		tc = node_new(NULL);
 		tc->text = dynstr_destroy(text, 0);
 		node_child_add(parent, tc);
@@ -343,7 +340,6 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer)
 			{
 				const char	*tag = dynstr_string(token);
 
-				printf("got %s tag: '%s'\n", st == TAG ? "regular" : "empty", tag);
 				if(tag[0] == '?' || strncmp(tag, "!--", 3) == 0)
 					dynstr_truncate(token, 0);
 				else if(tag[0] == '/')
@@ -371,11 +367,8 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer)
 			}
 			else if(st == TEXT)
 			{
-				printf("got text: '%s'\n", dynstr_string(token));
 				if(parent != NULL)
-				{
 					node_text_add(parent, token);
-				}
 				else
 					dynstr_destroy(token, 1);
 				token = NULL;
