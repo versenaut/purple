@@ -17,6 +17,8 @@
 #include "textbuf.h"
 #include "nodedb.h"
 
+#include "api-init.h"
+
 #include "purple.h"
 
 /* ----------------------------------------------------------------------------------------- */
