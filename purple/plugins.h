@@ -38,4 +38,5 @@ extern PInputSet *	plugin_inputset_new(const Plugin *p);
 extern void		plugin_inputset_set_va(PInputSet *is, unsigned int index, PInputType type, va_list arg);
 extern void		plugin_inputset_clear(PInputSet *is, unsigned int index);
 extern boolean		plugin_inputset_is_set(const PInputSet *is, unsigned int index);
+extern int		plugin_inputset_describe(const PInputSet *is, char *buf, size_t max);
 extern void		plugin_inputset_destroy(PInputSet *is);

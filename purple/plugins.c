@@ -485,6 +485,25 @@ boolean plugin_inputset_is_set(const PInputSet *is, unsigned int index)
 	return is->use[index / 32] & (1 << (index % 32)) != 0;
 }
 
+int plugin_inputset_describe(const PInputSet *is, char *buf, size_t max)
+{
+	size_t	used = 0, len = 0;
+	int	i;
+
+	if(is == NULL || buf == NULL || max < 10)
+		return;
+
+	for(i = 0; i < is->size; i++)
+	{
+		if(is->use[i / 32] & (1 << (i % 32)))
+		{
+			len = snprintf(buf + used, max - used, " <set input=\"%u\" type=\"%s\">value</set>\n", i, "test");
+			used += len;
+		}
+	}
+	return used;
+}
+
 void plugin_inputset_destroy(PInputSet *is)
 {
 	if(is != NULL)
