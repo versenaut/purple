@@ -56,7 +56,7 @@ static void test_chunk(void)
 	struct vertex {
 		float x, y, z;
 	} *v1, *v2, *v[16];
-	int	i;
+	unsigned int	i;
 
 	c = memchunk_new("test", sizeof (struct vertex), 16);
 	v1 = memchunk_alloc(c);
