@@ -363,6 +363,24 @@ NdbMFragment * nodedb_m_fragment_create_geometry(NodeMaterial *node, const char 
 	return nodedb_m_fragment_create(node, ~0, VN_M_FT_GEOMETRY, &frag);
 }
 
+NdbMFragment * nodedb_m_fragment_create_texture(NodeMaterial *node, const Node *bitmap,
+							 const char *layer_r, const char *layer_g, const char *layer_b,
+							 const NdbMFragment *mapping)
+{
+	VMatFrag	frag;
+	NdbMFragment	*f;
+
+	if(node == NULL)
+		return NULL;
+	stu_strncpy_accept_null(frag.texture.layer_r, sizeof frag.texture.layer_r, layer_r);
+	stu_strncpy_accept_null(frag.texture.layer_g, sizeof frag.texture.layer_g, layer_g);
+	stu_strncpy_accept_null(frag.texture.layer_b, sizeof frag.texture.layer_b, layer_b);
+	link_set(&frag.texture.mapping, mapping);
+	f = nodedb_m_fragment_create(node, ~0, VN_M_FT_TEXTURE, &frag);
+	nodedb_m_node_ref_set(f, bitmap);
+	return f;
+}
+
 NdbMFragment * nodedb_m_fragment_create_blender(NodeMaterial *node, VNMBlendType type,
 						const PNMFragment *data_a, const PNMFragment *data_b, const PNMFragment *ctrl)
 {
