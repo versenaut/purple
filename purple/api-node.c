@@ -369,6 +369,34 @@ PNMFragment * p_node_m_fragment_create_color(PONode *node, real64 red, real64 gr
 	return nodedb_m_fragment_create_color(node, red, green, blue);
 }
 
+PNMFragment * p_node_m_fragment_create_light(PONode *node, VNMLightType type, real64 normal_falloff,
+					     PINode *brdf, const char *brdf_red, const char *brdf_green, const char *brdf_blue)
+{
+	return nodedb_m_fragment_create_light((NodeMaterial *) node, type, normal_falloff, (Node *) brdf,
+					      brdf_red, brdf_green, brdf_blue);
+}
+
+PNMFragment * p_node_m_fragment_create_reflection(PONode *node, real64 normal_falloff)
+{
+	return nodedb_m_fragment_create_reflection((NodeMaterial *) node, normal_falloff);
+}
+
+PNMFragment * p_node_m_fragment_create_transparency(PONode *node, real64 normal_falloff, real64 refraction_index)
+{
+	return nodedb_m_fragment_create_transparency((NodeMaterial *) node, normal_falloff, refraction_index);
+}
+
+PNMFragment * p_node_m_fragment_create_blender(PONode *node, VNMBlendType type,
+					       const PNMFragment *data_a, const PNMFragment *data_b, const PNMFragment *ctrl)
+{
+	return nodedb_m_fragment_create_blender((NodeMaterial *) node, type, data_a, data_b, ctrl);
+}
+
+PNMFragment * p_node_m_fragment_create_matrix(PONode *node, const real64 *matrix, const PNMFragment *data)
+{
+	return nodedb_m_fragment_create_matrix((NodeMaterial *) node, matrix, data);
+}
+
 PNMFragment * p_node_m_fragment_create_output(PONode *node, const char *label, const PNMFragment *front, const PNMFragment *back)
 {
 	return nodedb_m_fragment_create_output((NodeMaterial *) node, label, front, back);

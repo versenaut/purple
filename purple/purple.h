@@ -214,7 +214,12 @@ VNMFragmentType	p_node_m_fragment_get_type(const PNMFragment *f);
 PNMFragment *	p_node_m_fragment_get_link(const PNMFragment *f, unsigned char *label);
 PNMFragment *	p_node_m_fragment_create_color(PONode *node, real64 red, real64 green, real64 blue);
 PNMFragment *	p_node_m_fragment_create_light(PONode *node, VNMLightType type, real64 normal_falloff,
-					       PINode *brdf, const char *brdf_red, const char *brdf_green, const char *brdf_blue);
+					       PINode *brdf,
+					       const char *brdf_red, const char *brdf_green, const char *brdf_blue);
+PNMFragment *	p_node_m_fragment_create_reflection(PONode *node, real64 normal_falloff);
+PNMFragment *	p_node_m_fragment_create_transparency(PONode *node, real64 normal_fallof, real64 refract);
+PNMFragment *	p_node_m_fragment_create_volume(PONode *node, real64 diffusion, real64 col_r, real64 col_g, real64 col_b,
+							const PNMFragment *color);
 PNMFragment *	p_node_m_fragment_create_output(PONode *node, const char *label,
 						const PNMFragment *front, const PNMFragment *back);
 
