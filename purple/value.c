@@ -482,21 +482,37 @@ real32 value_get_real32(const PValue *v, PValue *cache)
 
 const real32 * value_get_real32_vec2(const PValue *v, PValue *cache)
 {
+	if(v == NULL)
+		return NULL;
+	IF_SET(v, REAL32_VEC2)
+		return v->v.vreal32_vec2;
 	return NULL;	/* FIXME: Implement heuristics. */
 }
 
 const real32 * value_get_real32_vec3(const PValue *v, PValue *cache)
 {
+	if(v == NULL)
+		return NULL;
+	IF_SET(v, REAL32_VEC3)
+		return v->v.vreal32_vec3;
 	return NULL;	/* FIXME: Implement heuristics. */
 }
 
 const real32 * value_get_real32_vec4(const PValue *v, PValue *cache)
 {
+	if(v == NULL)
+		return NULL;
+	IF_SET(v, REAL32_VEC4)
+		return v->v.vreal32_vec4;
 	return NULL;	/* FIXME: Implement heuristics. */
 }
 
 const real32 * value_get_real32_mat16(const PValue *v, PValue *cache)
 {
+	if(v == NULL)
+		return NULL;
+	IF_SET(v, REAL32_MAT16)
+		return v->v.vreal32_mat16;
 	return NULL;	/* FIXME: Implement heuristics. */
 }
 
