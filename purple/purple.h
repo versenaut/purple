@@ -90,16 +90,16 @@ boolean		p_input_boolean(PPInput input);
 int32		p_input_int32(PPInput input);
 uint32		p_input_uint32(PPInput input);
 real32		p_input_real32(PPInput input);
-const real32 *	p_input_real32_vec2(PPInput input);
-const real32 *	p_input_real32_vec3(PPInput input);
-const real32 *	p_input_real32_vec4(PPInput input);
-const real32 *	p_input_real32_mat16(PPInput input);
+const real32 *	p_input_real32_vec2(PPInput input, real32 *buf);
+const real32 *	p_input_real32_vec3(PPInput input, real32 *buf);
+const real32 *	p_input_real32_vec4(PPInput input, real32 *buf);
+const real32 *	p_input_real32_mat16(PPInput input, real32 *buf);
 real64		p_input_real64(PPInput input);
-const real64 *	p_input_real64_vec2(PPInput input);
-const real64 *	p_input_real64_vec3(PPInput input);
-const real64 *	p_input_real64_vec4(PPInput input);
-const real64 *	p_input_real64_mat16(PPInput input);
-const char *	p_input_string(PPInput input);
+const real64 *	p_input_real64_vec2(PPInput input, real64 *buf);
+const real64 *	p_input_real64_vec3(PPInput input, real64 *buf);
+const real64 *	p_input_real64_vec4(PPInput input, real64 *buf);
+const real64 *	p_input_real64_mat16(PPInput input, real64 *buf);
+const char *	p_input_string(PPInput input, char *buf, size_t buf_max);
 const PINode *	p_input_node(PPInput input);
 
 /* Node manipulation functions. All require an output node. */
