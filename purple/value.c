@@ -244,7 +244,13 @@ static int do_set(PValue *v, PValueType type, va_list arg)
 		v->v.vmodule = (uint32) va_arg(arg, uint32);
 		return 1;
 	case P_VALUE_STRING:
-		v->v.vstring = stu_strdup((const char *) va_arg(arg, const char *));
+		{
+			const char	*s = va_arg(arg, const char *);
+
+			printf("setting string to '%s'\n", s);
+			v->v.vstring = stu_strdup(s/*(const char *) va_arg(arg, const char *)*/);
+			printf("string set to '%s'\n", v->v.vstring);
+		}
 		return 1;
 	default:
 		LOG_WARN(("Problem in do_set(): type %d unhandled", type));
@@ -460,58 +466,73 @@ const char * value_get_string(const PValue *v, PValue *cache)
 		return v->v.vstring;
 	else if(cache != NULL)
 	{
-		char	buf[1024];	/* Used for temporary formatting, then copied dynamically. Not free. */
-		int	put = -1;
+		char	buf[1024], *p;	/* Used for temporary formatting, then copied dynamically. Not free. */
+		size_t	used;
 
 		IF_SET(cache, STRING)
 			return cache->v.vstring;
-		else IF_SET(v, BOOLEAN)
-			put = snprintf(buf, sizeof buf, "%s", v->v.vboolean ? "TRUE" : "FALSE");
-		else IF_SET(v, INT32)
-			put = snprintf(buf, sizeof buf, "%d", v->v.vint32);
-		else IF_SET(v, UINT32)
-			put = snprintf(buf, sizeof buf, "%u", v->v.vuint32);
-		else IF_SET(v, REAL32)
-			put = snprintf(buf, sizeof buf, "%g", v->v.vreal32);
-		else IF_SET(v, REAL64)
-			put = snprintf(buf, sizeof buf, "%10g", v->v.vreal64);
-		else IF_SET(v, REAL32_VEC2)
-			put = snprintf(buf, sizeof buf, "[%g %g]", v->v.vreal32_vec2[0], v->v.vreal32_vec2[1]);
-		else IF_SET(v, REAL32_VEC3)
-			put = snprintf(buf, sizeof buf, "[%g %g %g]", v->v.vreal32_vec3[0], v->v.vreal32_vec3[1], v->v.vreal32_vec3[2]);
-		else IF_SET(v, REAL32_VEC4)
-			put = snprintf(buf, sizeof buf, "[%g %g %g %g]", v->v.vreal32_vec4[0], v->v.vreal32_vec4[1],
-				       v->v.vreal32_vec4[2], v->v.vreal32_vec4[3]);
-		else IF_SET(v, REAL32_MAT16)
-			put = snprintf(buf, sizeof buf, "[[%g %g %g %g][%g %g %g %g][%g %g %g %g][%g %g %g %g]]",
-				 v->v.vreal32_mat16[0], v->v.vreal32_mat16[1], v->v.vreal32_mat16[2], v->v.vreal32_mat16[3],
-				 v->v.vreal32_mat16[4], v->v.vreal32_mat16[5], v->v.vreal32_mat16[6], v->v.vreal32_mat16[7],
-				 v->v.vreal32_mat16[8], v->v.vreal32_mat16[9], v->v.vreal32_mat16[10], v->v.vreal32_mat16[11],
-				 v->v.vreal32_mat16[12], v->v.vreal32_mat16[13], v->v.vreal32_mat16[14], v->v.vreal32_mat16[15]);
-		else IF_SET(v, REAL64)
-			put = snprintf(buf, sizeof buf, "%.10g", v->v.vreal64);
-		else IF_SET(v, REAL64_VEC2)
-			put = snprintf(buf, sizeof buf, "[%.10g %.10g]", v->v.vreal64_vec2[0], v->v.vreal64_vec2[1]);
-		else IF_SET(v, REAL64_VEC3)
-			put = snprintf(buf, sizeof buf, "[%.10g %.10g %.10g]", v->v.vreal64_vec3[0], v->v.vreal64_vec3[1], v->v.vreal64_vec3[2]);
-		else IF_SET(v, REAL64_VEC4)
-			put = snprintf(buf, sizeof buf, "[%.10g %.10g %.10g %.10g]",
-				 v->v.vreal64_vec4[0], v->v.vreal64_vec4[1], v->v.vreal64_vec4[2], v->v.vreal64_vec4[3]);
-		else IF_SET(v, REAL64_MAT16)
-			put = snprintf(buf, sizeof buf, "[[%.10g %.10g %.10g %.10g][%.10g %.10g %.10g %.10g]"
-				 "[%.10g %.10g %.10g %.10g][%.10g %.10g %.10g %.10g]]",
-				 v->v.vreal64_mat16[0], v->v.vreal64_mat16[1], v->v.vreal64_mat16[2], v->v.vreal64_mat16[3],
-				 v->v.vreal64_mat16[4], v->v.vreal64_mat16[5], v->v.vreal64_mat16[6], v->v.vreal64_mat16[7],
-				 v->v.vreal64_mat16[8], v->v.vreal64_mat16[9], v->v.vreal64_mat16[10], v->v.vreal64_mat16[11],
-				 v->v.vreal64_mat16[12], v->v.vreal64_mat16[13], v->v.vreal64_mat16[14], v->v.vreal64_mat16[15]);
-		if(put > 0)
+		else if((p = value_as_string(v, buf, sizeof buf, &used)) != NULL)	/* Never returns v->v.vstring. */
 		{
-			cache->v.vstring = mem_alloc(put + 1);
-			memcpy(cache->v.vstring, buf, put + 1);
+			cache->v.vstring = mem_alloc(used);
+			memcpy(cache->v.vstring, buf, used);
 			DO_SET(cache, STRING);
 			return cache->v.vstring;
 		}
 		GET_FAIL(v, "string", "");
+	}
+	return NULL;
+}
+
+const char * value_as_string(const PValue *v, char *buf, size_t buf_max, size_t *used)
+{
+	int	put;
+
+	IF_SET(v, STRING)
+		return v->v.vstring;
+	else IF_SET(v, BOOLEAN)
+		put = snprintf(buf, sizeof buf, "%s", v->v.vboolean ? "TRUE" : "FALSE");
+	else IF_SET(v, INT32)
+		put = snprintf(buf, sizeof buf, "%d", v->v.vint32);
+	else IF_SET(v, UINT32)
+		put = snprintf(buf, sizeof buf, "%u", v->v.vuint32);
+	else IF_SET(v, REAL32)
+		put = snprintf(buf, sizeof buf, "%g", v->v.vreal32);
+	else IF_SET(v, REAL64)
+		put = snprintf(buf, sizeof buf, "%10g", v->v.vreal64);
+	else IF_SET(v, REAL32_VEC2)
+		put = snprintf(buf, sizeof buf, "[%g %g]", v->v.vreal32_vec2[0], v->v.vreal32_vec2[1]);
+	else IF_SET(v, REAL32_VEC3)
+		put = snprintf(buf, sizeof buf, "[%g %g %g]", v->v.vreal32_vec3[0], v->v.vreal32_vec3[1], v->v.vreal32_vec3[2]);
+	else IF_SET(v, REAL32_VEC4)
+		put = snprintf(buf, sizeof buf, "[%g %g %g %g]", v->v.vreal32_vec4[0], v->v.vreal32_vec4[1],
+			       v->v.vreal32_vec4[2], v->v.vreal32_vec4[3]);
+	else IF_SET(v, REAL32_MAT16)
+		put = snprintf(buf, sizeof buf, "[[%g %g %g %g][%g %g %g %g][%g %g %g %g][%g %g %g %g]]",
+			 v->v.vreal32_mat16[0], v->v.vreal32_mat16[1], v->v.vreal32_mat16[2], v->v.vreal32_mat16[3],
+			 v->v.vreal32_mat16[4], v->v.vreal32_mat16[5], v->v.vreal32_mat16[6], v->v.vreal32_mat16[7],
+			 v->v.vreal32_mat16[8], v->v.vreal32_mat16[9], v->v.vreal32_mat16[10], v->v.vreal32_mat16[11],
+			 v->v.vreal32_mat16[12], v->v.vreal32_mat16[13], v->v.vreal32_mat16[14], v->v.vreal32_mat16[15]);
+	else IF_SET(v, REAL64)
+		put = snprintf(buf, sizeof buf, "%.10g", v->v.vreal64);
+	else IF_SET(v, REAL64_VEC2)
+		put = snprintf(buf, sizeof buf, "[%.10g %.10g]", v->v.vreal64_vec2[0], v->v.vreal64_vec2[1]);
+	else IF_SET(v, REAL64_VEC3)
+		put = snprintf(buf, sizeof buf, "[%.10g %.10g %.10g]", v->v.vreal64_vec3[0], v->v.vreal64_vec3[1], v->v.vreal64_vec3[2]);
+	else IF_SET(v, REAL64_VEC4)
+		put = snprintf(buf, sizeof buf, "[%.10g %.10g %.10g %.10g]",
+			 v->v.vreal64_vec4[0], v->v.vreal64_vec4[1], v->v.vreal64_vec4[2], v->v.vreal64_vec4[3]);
+	else IF_SET(v, REAL64_MAT16)
+		put = snprintf(buf, sizeof buf, "[[%.10g %.10g %.10g %.10g][%.10g %.10g %.10g %.10g]"
+			 "[%.10g %.10g %.10g %.10g][%.10g %.10g %.10g %.10g]]",
+			 v->v.vreal64_mat16[0], v->v.vreal64_mat16[1], v->v.vreal64_mat16[2], v->v.vreal64_mat16[3],
+			 v->v.vreal64_mat16[4], v->v.vreal64_mat16[5], v->v.vreal64_mat16[6], v->v.vreal64_mat16[7],
+			 v->v.vreal64_mat16[8], v->v.vreal64_mat16[9], v->v.vreal64_mat16[10], v->v.vreal64_mat16[11],
+			 v->v.vreal64_mat16[12], v->v.vreal64_mat16[13], v->v.vreal64_mat16[14], v->v.vreal64_mat16[15]);
+	if(put > 0)
+	{
+		if(used != NULL)
+			*used = put + 1;
+		return buf;
 	}
 	return NULL;
 }
