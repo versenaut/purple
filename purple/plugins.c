@@ -98,6 +98,31 @@ static struct
 
 /* ----------------------------------------------------------------------------------------- */
 
+const char * plugin_input_type_to_name(PInputType t)
+{
+	switch(t)
+	{
+	case P_INPUT_BOOLEAN:		return "boolean";
+	case P_INPUT_INT32:		return "int32";
+	case P_INPUT_UINT32:		return "uint32";
+	case P_INPUT_REAL32:		return "real32";
+	case P_INPUT_REAL32_VEC2:	return "real32_vec2";
+	case P_INPUT_REAL32_VEC3:	return "real32_vec3";
+	case P_INPUT_REAL32_VEC4:	return "real32_vec4";
+	case P_INPUT_REAL32_MAT16:	return "real32_mat16";
+	case P_INPUT_REAL64:		return "real64";
+	case P_INPUT_REAL64_VEC2:	return "real64_vec2";
+	case P_INPUT_REAL64_VEC3:	return "real64_vec3";
+	case P_INPUT_REAL64_VEC4:	return "real64_vec4";
+	case P_INPUT_REAL64_MAT16:	return "real64_mat16";
+	case P_INPUT_STRING:		return "string";
+	case P_INPUT_NODE:		return "node";
+	}
+	return "!unknown!";
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 Plugin * plugin_new(const char *name)
 {
 	Plugin	*p;
@@ -257,7 +282,7 @@ static void append_value(DynStr *d, PInputType type, const PInputValue *v)
 		dynstr_append_printf(d, "%u", v->vuint32);
 		break;
 	case P_INPUT_REAL32:
-		dynstr_append_printf(d, "%f", v->vreal32);
+		dynstr_append_printf(d, "%g", v->vreal32);
 		break;
 	case P_INPUT_REAL32_VEC2:
 		dynstr_append_printf(d, "[%g %g]", v->vreal32_vec2[0], v->vreal32_vec2[1]);
@@ -481,26 +506,27 @@ boolean plugin_inputset_is_set(const PInputSet *is, unsigned int index)
 {
 	if(is == NULL || index >= is->size)
 		return 0;
-	return is->use[index / 32] & (1 << (index % 32)) != 0;
+	return (is->use[index / 32] & (1 << (index % 32))) != 0;
 }
 
-int plugin_inputset_describe(const PInputSet *is, char *buf, size_t max)
+void plugin_inputset_describe(const PInputSet *is, DynStr *d)
 {
-	size_t	used = 0, len = 0;
 	int	i;
 
-	if(is == NULL || buf == NULL || max < 10)
+	if(is == NULL || d == NULL)
 		return;
 
 	for(i = 0; i < is->size; i++)
 	{
 		if(is->use[i / 32] & (1 << (i % 32)))
 		{
-			len = snprintf(buf + used, max - used, " <set input=\"%u\" type=\"%s\">value</set>\n", i, "test");
-			used += len;
+			dynstr_append_printf(d, "  <set input=\"%u\" type=\"", i);
+			dynstr_append(d, plugin_input_type_to_name(is->type[i]));
+			dynstr_append_printf(d, "\">");
+			append_value(d, is->type[i], &is->value[i]);
+			dynstr_append(d, "</set>\n");
 		}
 	}
-	return used;
 }
 
 void plugin_inputset_destroy(PInputSet *is)
