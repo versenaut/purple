@@ -575,7 +575,7 @@ static void console_update(void)
 #endif		/* PURPLE_CONSOLE */
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	bintree_init();
 	cron_init();
@@ -586,16 +586,6 @@ int main(void)
 
 	graph_init();
 	
-/*	test_bintree();
-	return EXIT_SUCCESS;
-*/
-/*	test_chunk();
-	test_filelist();
-	test_textbuf();
-	test_xmlnode();
-	test_idset();
-	return EXIT_SUCCESS;
-*/
 	plugins_libraries_load();
 
 	plugin_input_init();
@@ -622,5 +612,5 @@ int main(void)
 			sync_update(1.0);
 		}
 	}
-	return 0;
+	return EXIT_SUCCESS;
 }
