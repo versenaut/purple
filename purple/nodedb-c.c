@@ -51,10 +51,7 @@ static void cb_copy_curve(void *d, const void *s, void *user)
 	dst->keys = dynarr_new_copy(src->keys, NULL, NULL);	/* Keys are trivially copyable. */
 	dst->curve = NULL;
 	for(i = 0; (key = dynarr_index(dst->keys, i)) != NULL; i++)
-	{
 		dst->curve = list_insert_sorted(dst->curve, key, cb_key_compare);
-	}
-	/* FIXME: List. */
 }
 
 void nodedb_c_copy(NodeCurve *n, const NodeCurve *src)
