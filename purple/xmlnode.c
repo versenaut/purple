@@ -457,7 +457,11 @@ static void do_print_outline(const XmlNode *root, int indent)
 		putchar(' ');
 	printf("%s", root->element);
 	if(root->text != NULL)
-		printf(" : \"%s\"", root->text);
+	{
+		if(root->element != NULL && root->element[0] != '\0')
+			printf(" : ");
+		printf("\"%s\"", root->text);
+	}
 	putchar('\n');
 	for(iter = root->children; iter != NULL; iter = list_next(iter))
 		do_print_outline(list_data(iter), indent + 1);
