@@ -138,6 +138,29 @@ uint8 nodedb_c_curve_dimensions_get(const NdbCCurve *curve)
 
 /* ----------------------------------------------------------------------------------------- */
 
+size_t nodedb_c_curve_key_get_count(const NdbCCurve *curve)
+{
+	if(curve == NULL)
+		return 0;
+	return list_length(curve->curve);
+}
+
+NdbCKey * nodedb_c_curve_key_get_nth(const NdbCCurve *curve, unsigned int n)
+{
+	List	*iter;
+
+	if(curve == NULL)
+		return NULL;
+	for(iter = curve->curve; iter != NULL; iter = list_next(iter), n--)
+	{
+		if(n == 0)
+			return list_data(iter);
+	}
+	return NULL;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 static void cb_c_curve_create(void *user, VNodeID node_id, VLayerID curve_id, const char *name, uint8 dimensions)
 {
 	NodeCurve	*node;
