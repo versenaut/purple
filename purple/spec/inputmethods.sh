@@ -4,7 +4,7 @@
 #
 
 TYPES="boolean int32 uint32 real32 real32_vec2 real32_vec3 real32_vec4 real32_mat16 \
-	real64 real64_vec2 real64_vec3 real64_vec4 real64_mat16 string module"
+	real64 real64_vec2 real64_vec3 real64_vec4 real64_mat16 module string"
 
 for t in $TYPES
 do
