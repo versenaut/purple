@@ -177,5 +177,70 @@ int main(void)
 	}
 	test_end();
 
+	test_begin("First/last accessors");
+	{
+		char	*a = "a", *b = "b", *c = "c";
+		int	ok = 0;
+
+		l = list_append(NULL, a);
+		l = list_append(l, b);
+		l = list_append(l, c);
+		if(list_length(l) == 3)
+		{
+			if(list_data(list_first(l)) == a && list_data(list_last(l)) == c)
+				ok = 1;
+		}
+		list_destroy(l);
+		test_result(ok);
+	}
+	test_end();
+
+	test_begin("Find");
+	{
+		int	ok = 0;
+
+		if(list_find(NULL, NULL, cmp_int) == NULL)
+		{
+			l = b = list_new((void *) 17);
+
+			if((a = list_find(l, (const void *) 17, cmp_int)) != NULL)
+			{
+				if(a == l)
+				{
+					l = list_prepend(l, (void *) 9);
+					l = list_prepend(l, (void *) 5);
+					l = list_prepend(l, (void *) 1);
+					l = list_append(l, (void *) 99);
+					l = list_append(l, (void *) 4);
+					if((a = list_find(l, (void *) 17, cmp_int)) != NULL)
+						ok = (a == b);
+				}
+			}
+		}
+		list_destroy(l);
+		test_result(ok);
+	}
+	test_end();
+
+	test_begin("Find in sorted list");
+	{
+		int	ok = 0;
+
+		l = list_append(NULL, (void *) 1);
+		l = list_append(l, (void *) 11);
+		l = list_append(l, (void *) 19);
+		l = list_append(l, (void *) 22);
+		l = list_append(l, (void *) 59);
+		if(list_find_sorted(l, (const void *) 22, cmp_int) != NULL)
+		{
+			l = list_reverse(l);	/* Reverse list, find should now fail. */
+			if(list_find_sorted(l, (const void *) 22, cmp_int) == NULL)
+				ok = 1;
+		}
+		list_destroy(l);
+		test_result(ok);
+	}
+	test_end();
+
 	return test_package_end();
 }
