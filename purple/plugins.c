@@ -151,7 +151,9 @@ void plugin_set_input(Plugin *p, int index, PValueType type, const char *name, v
 		stu_strncpy(i.name, sizeof i.name, name);
 		i.type = type;
 		i.spec.req = i.spec.def = i.spec.min = i.spec.max = 0;
-		i.spec.def_val.v.vstring = NULL;
+		value_init(&i.spec.min_val);
+		value_init(&i.spec.max_val);
+		value_init(&i.spec.def_val);
 		for(;;)
 		{
 			int	tag = va_arg(taglist, int);
@@ -395,7 +397,11 @@ PPInput * plugin_portset_ports(PPortSet *ps)
 	for(i = 0; i < ps->size; i++)
 	{
 		if(ps->use[i / 32] & (1 << (i % 32)))
-			ps->port[i] = (PPInput) (ps->input + i);
+		{
+/*			if(port_peek_module(ps->input + i, NULL))
+				printf("foo!\n");
+*/			ps->port[i] = (PPInput) (ps->input + i);
+		}
 		else
 			ps->port[i] = NULL;
 	}
