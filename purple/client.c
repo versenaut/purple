@@ -21,7 +21,7 @@
 
 /* ----------------------------------------------------------------------------------------- */
 
-#define METHOD_GROUP_CONTROL_NAME	"PurpleControl"
+#define METHOD_GROUP_CONTROL_NAME	"PurpleGraph"
 
 ClientInfo	client_info = { 0 };
 
@@ -171,23 +171,25 @@ static void cb_t_buffer_create(void *user, VNodeID node_id, VNMBufferID buffer_i
 
 static void cb_t_text_set(void *user, VNodeID node_id, VNMBufferID buffer_id, uint32 pos, uint32 len, const char *text)
 {
-	if(node_id != client_info.meta)
+/*	if(node_id != client_info.meta)
 		return;
-
-	if(buffer_id == client_info.plugins.buffer && client_info.plugins.text != NULL)
+*/
+	if(node_id == client_info.meta && buffer_id == client_info.plugins.buffer && client_info.plugins.text != NULL)
 	{
 		textbuf_delete(client_info.plugins.text, pos, len);
 		textbuf_insert(client_info.plugins.text, pos, text);
 		if(client_info.plugins.cron != 0)
 			cron_set(client_info.plugins.cron, 1.0, cb_plugins_refresh, NULL);
 	}
-	else if(buffer_id == client_info.graphs.buffer && client_info.graphs.text != NULL)
+	else if(node_id == client_info.meta && buffer_id == client_info.graphs.buffer && client_info.graphs.text != NULL)
 	{
 		textbuf_delete(client_info.graphs.text, pos, len);
 		textbuf_insert(client_info.graphs.text, pos, text);
 		if(client_info.graphs.cron == 0)
 			client_info.graphs.cron = cron_add(CRON_ONESHOT, 0.1, cb_graphs_refresh, NULL);
 	}
+	else
+		printf("Unknown text (at %u in %u.%u): \"%s\"\n", pos, node_id, buffer_id, text);
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -227,5 +229,5 @@ int cb_reconnect(void *data)
 
 void client_init(void)
 {
-	cron_add(CRON_PERIODIC, 5.0,  cb_reconnect, NULL);
+	cron_add(CRON_PERIODIC, 5.0, cb_reconnect, NULL);
 }
