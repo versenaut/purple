@@ -821,7 +821,16 @@ static int sync_curve(const NodeCurve *n, const NodeCurve *target)
 			sync = 0;
 		}
 	}
-	/* FIXME: Scan for destroyed curves, too. */
+	for(i = 0; (curve = dynarr_index(target->curves, i)) != NULL; i++)
+	{
+		if(curve->name[0] == '\0')
+			continue;
+		if(nodedb_c_curve_find(n, curve->name) == NULL)
+		{
+			printf("sync destroying target-only curve %u.%u (%s)\n", target->node.id, curve->id, curve->name);
+			verse_send_c_curve_destroy(target->node.id, curve->id);
+		}
+	}
 	return sync;
 }
 
