@@ -42,6 +42,8 @@ extern void		value_clear(PValue *v);
 
 /* Store a new value in the given value. Replaces any previous value of the same type. */
 extern int		value_set_va(PValue *v, PValueType type, va_list arg);
+/* Store a new value in the given value, with knowledge that is uses special default/min/max semantics. */
+extern int		value_set_defminmax_va(PValue *v, PValueType type, va_list arg);
 extern int		value_set(PValue *v, PValueType type, ...);
 
 /* Check if the indicated value is present in the value. A present value is never returned from cache. */

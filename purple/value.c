@@ -274,6 +274,28 @@ int value_set_va(PValue *v, PValueType type, va_list arg)
 	return do_set(v, type, arg);
 }
 
+int value_set_defminmax_va(PValue *v, PValueType type, va_list arg)
+{
+	if(type == P_VALUE_STRING)
+		return value_set_va(v, type, arg);
+	else
+	{
+		double	d = va_arg(arg, double);
+
+		switch(type)
+		{
+		case P_VALUE_BOOLEAN:		return value_set(v, type, (boolean) (d != 0.0));
+		case P_VALUE_INT32:		return value_set(v, type, (int32) d);
+		case P_VALUE_UINT32:		return value_set(v, type, (uint32) d);
+		case P_VALUE_REAL32:		return value_set(v, type, (real32) d);
+		case P_VALUE_REAL64:		return value_set(v, type, (real64) d);
+		default:
+			LOG_WARN(("Can't set default/min/max of type %d--not implemented", type));	/* FIXME */
+		}
+	}
+	return 0;
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 #define	DO_SET(v,t)	VALUE_SET(v, P_VALUE_ ##t)
