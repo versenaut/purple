@@ -57,6 +57,7 @@ extern void		nodedb_register_callbacks(VNodeID avatar, uint32 mask);
 extern Node *		nodedb_lookup(VNodeID node_id);
 extern Node *		nodedb_lookup_by_name(const char *name);
 extern Node *		nodedb_lookup_with_type(VNodeID node_id, VNodeType type);
+extern Node *		nodedb_lookup_by_name_with_type(const char *name, VNodeType type);
 extern NodeObject *	nodedb_lookup_object(VNodeID node_id);
 extern NodeText *	nodedb_lookup_text(VNodeID node_id);
 

@@ -84,7 +84,16 @@ Node * nodedb_lookup_with_type(VNodeID node_id, VNodeType type)
 		return n;
 	return NULL;
 }
-			       
+
+Node * nodedb_lookup_by_name_with_type(const char *name, VNodeType type)
+{
+	Node	*n;
+
+	if((n = nodedb_lookup_by_name(name)) != NULL && n->type == type)
+		return n;
+	return NULL;
+}
+
 NodeObject * nodedb_lookup_object(VNodeID node_id)
 {
 	Node	*n;
