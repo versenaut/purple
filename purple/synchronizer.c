@@ -57,7 +57,7 @@ void sync_init(void)
 
 /* ----------------------------------------------------------------------------------------- */
 
-void sync_node_add(const Node *node)
+void sync_node_add(Node *node)
 {
 	if(node == NULL)
 		return;
@@ -70,22 +70,25 @@ void sync_node_add(const Node *node)
 
 void sync_update(double slice)
 {
-	if(sync_info.queue_create != NULL)
-	{
-		List	*iter, *next;
-		Node	*n;
+	List	*iter, *next;
+	Node	*n;
 
-		printf("Checking create\n");
-		for(iter = sync_info.queue_create; iter != NULL; iter = next)
-		{
-			next = list_next(iter);
-			n = list_data(iter);
-			verse_send_node_create(~0, n->type, 0);
-			/* Move node from "to create" to "pending" list; no change in refcount. */
-			sync_info.queue_create = list_unlink(sync_info.queue_create, iter);
-			list_destroy(iter);
-			printf(" creating node of type %d\n", n->type);
-			sync_info.queue_create_pend = list_prepend(sync_info.queue_create_pend, n);
-		}
+	/* Create nodes that need to be created. */
+	for(iter = sync_info.queue_create; iter != NULL; iter = next)
+	{
+		next = list_next(iter);
+		n = list_data(iter);
+		verse_send_node_create(~0, n->type, 0);
+		/* Move node from "to create" to "pending" list; no change in refcount. */
+		sync_info.queue_create = list_unlink(sync_info.queue_create, iter);
+		list_destroy(iter);
+		printf(" creating node of type %d\n", n->type);
+		sync_info.queue_create_pend = list_prepend(sync_info.queue_create_pend, n);
+	}
+
+	/* Synchronize existing nodes. */
+	for(iter = sync_info.queue_sync; iter != NULL; iter = list_next(iter))
+	{
+		Node	*n = list_data(iter);
 	}
 }
