@@ -314,6 +314,11 @@ static void cb_t_text_set(void *user, VNodeID node_id, uint16 buffer_id, uint32 
 	gtk_text_insert(GTK_TEXT(buf->text), NULL, NULL, NULL, text, strlen(text));
 }
 
+static void evt_window_delete(GtkWidget *win, GdkEvent *evt, gpointer user)
+{
+	gtk_main_quit();
+}
+
 static gint evt_timeout(gpointer user)
 {
 	verse_callback_update(1000);
@@ -329,6 +334,7 @@ int main(int argc, char *argv[])
 
 	gtk_init(&argc, &argv);
 	min.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_signal_connect(GTK_OBJECT(min.window), "delete_event", GTK_SIGNAL_FUNC(evt_window_delete), &min);
 	gtk_window_set_title(GTK_WINDOW(min.window), "Verse Text Viewer");
 	gtk_widget_set_usize(min.window, 640, 480);
 
