@@ -66,12 +66,6 @@ void nodedb_g_destruct(NodeGeometry *n)
 		dynarr_destroy(n->bones);	/* Bones contain no pointers. */
 }
 
-/* Compare <out> against <in>, and generate up to <cmd_max> commands in <cmd> to alter it if it differs. */
-/*boolean nodedb_g_compare(PVCmd *cmd, size_t cmd_max, const NodeGeometry *in, const NodeGeometry *out)
-{
-	return FALSE;
-}
-*/
 /* ----------------------------------------------------------------------------------------- */
 
 void nodedb_g_layer_create(NodeGeometry *node, VLayerID layer_id, const char *name, VNGLayerType type)
