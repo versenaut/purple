@@ -17,10 +17,11 @@ typedef struct
 
 typedef struct
 {
-	uint16	id;
-	char	name[16];
-	real64	frequency;
-	BinTree	*blocks;
+	uint16		id;
+	char		name[16];
+	VNALayerType	type;
+	real64		frequency;
+	BinTree		*blocks;
 } NdbALayer;
 
 typedef struct
@@ -36,6 +37,11 @@ extern void		nodedb_a_destruct(NodeAudio *n);
 extern unsigned int	nodedb_a_layer_num(const NodeAudio *node);
 extern NdbALayer *	nodedb_a_layer_nth(const NodeAudio *node, unsigned int n);
 extern NdbALayer *	nodedb_a_layer_find(const NodeAudio *node, const char *name);
+
+extern int		nodedb_a_blocks_equal(VNALayerType type, const NdbABlk *blk1, const NdbABlk *blk2);
+
+extern unsigned int	nodedb_a_layer_read_samples(const NdbALayer *layer, unsigned int start, real64 *buffer, unsigned int length);
+extern void		nodedb_a_layer_write_samples(NdbALayer *layer, unsigned int start, const real64 *buffer, unsigned int length);
 
 extern NdbALayer *	nodedb_a_layer_create(NodeAudio *node, VLayerID layer_id, const char *name, VNALayerType type, real64 frequency);
 
