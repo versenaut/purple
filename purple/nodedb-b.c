@@ -194,6 +194,59 @@ void nodedb_b_dimensions_get(const NodeBitmap *node, uint16 *width, uint16 *heig
 		*depth = node->depth;
 }
 
+/* ----------------------------------------------------------------------------------------- */
+
+unsigned int nodedb_b_layer_num(const NodeBitmap *node)
+{
+	unsigned int	i, num;
+	const NdbBLayer	*layer;
+
+	if(node == NULL)
+		return 0;
+	for(i = num = 0; (layer = dynarr_index(node->layers, i)) != NULL; i++)
+	{
+		if(layer->name[0] == '\0')
+			continue;
+		num++;
+	}
+	return num;
+}
+
+NdbBLayer * nodedb_b_layer_nth(const NodeBitmap *node, unsigned int n)
+{
+	unsigned int	i;
+	NdbBLayer	*layer;
+
+	if(node == NULL)
+		return NULL;
+	for(i = 0; (layer = dynarr_index(node->layers, i)) != NULL; i++)
+	{
+		if(layer->name[0] == '\0')
+			continue;
+		if(n == 0)
+			return layer;
+		n--;
+	}
+	return NULL;
+}
+
+NdbBLayer * nodedb_b_layer_find(const NodeBitmap *node, const char *name)
+{
+	size_t		i;
+	NdbBLayer	*layer;
+
+	if(node == NULL || name == NULL || *name == '\0')
+		return NULL;
+	for(i = 0; (layer = dynarr_index(node->layers, i)) != NULL; i++)
+	{
+		if(layer->name[0] == '\0')
+			continue;
+		if(strcmp(layer->name, name) == 0)
+			return layer;
+	}
+	return NULL;
+}
+
 static void cb_def_layer(unsigned int index, void *element, void *user)
 {
 	NdbBLayer	*layer = element;
@@ -225,21 +278,6 @@ NdbBLayer * nodedb_b_layer_create(NodeBitmap *node, VLayerID layer_id, const cha
 		layer->framebuffer = NULL;
 	}
 	return layer;
-}
-
-NdbBLayer * nodedb_b_layer_lookup(const NodeBitmap *node, const char *name)
-{
-	size_t		i;
-	NdbBLayer	*layer;
-
-	if(node == NULL || name == NULL)
-		return NULL;
-	for(i = 0; (layer = dynarr_index(node->layers, i)) != NULL; i++)
-	{
-		if(strcmp(layer->name, name) == 0)
-			return layer;
-	}
-	return NULL;
 }
 
 void * nodedb_b_layer_access_begin(NodeBitmap *node, NdbBLayer *layer)
@@ -408,7 +446,7 @@ void * nodedb_b_layer_access_multi_begin(NodeBitmap *node, VNBLayerType format, 
 	va_copy(copy, layers);
 	for(num = 0; ((name = va_arg(copy, const char *)) != NULL); num++)
 	{
-		if((layer[num] = nodedb_b_layer_lookup(node, name)) == NULL)
+		if((layer[num] = nodedb_b_layer_find(node, name)) == NULL)
 			break;
 	}
 	va_end(copy);
