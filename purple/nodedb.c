@@ -745,6 +745,7 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 	nodedb_info.chunk_node[V_NT_BITMAP]   = memchunk_new("chunk-node-bitmap", sizeof (NodeBitmap), 16);
 	nodedb_info.chunk_node[V_NT_TEXT]     = memchunk_new("chunk-node-text",   sizeof (NodeText), 16);
 	nodedb_info.chunk_node[V_NT_CURVE]    = memchunk_new("chunk-node-curve",  sizeof (NodeCurve), 16);
+	nodedb_info.chunk_node[V_NT_AUDIO]    = memchunk_new("chunk-node-audio",  sizeof (NodeAudio), 16);
 
 	nodedb_info.nodes      = hash_new(node_hash, node_key_eq);
 	nodedb_info.nodes_mine = hash_new(node_hash, node_key_eq);
@@ -764,6 +765,7 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 	nodedb_b_register_callbacks();
 	nodedb_t_register_callbacks();
 	nodedb_c_register_callbacks();
+	nodedb_a_register_callbacks();
 
  	verse_send_node_list(mask);
 }
