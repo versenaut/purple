@@ -102,6 +102,8 @@ PINode *	p_input_node(PPInput input);	/* Inputs the "first" node, somehow. */
  * nodes, setting requires output.
 */
 
+VNodeType	p_node_type_get(const Node *node);
+
 const char *	p_node_name_get(const Node *node);
 void		p_node_name_set(PONode *node, const char *name);
 
@@ -113,28 +115,35 @@ PNTagGroup *	p_node_tag_group_find(const PONode *node, const char *name);
 void		p_node_tag_set(PNTagGroup *group, const char *name, VNTagType type, const VNTag *value);
 void		p_node_tag_destroy(PNTagGroup *group, const char *name);
 
-/* Geometry-node manipulation functions. */
-typedef struct PNGLayer	PNGLayer;
+void		p_node_o_link_set(PONode *node, const PONode *link, const char *label, uint32 target_id);
 
+/* Geometry-node manipulation functions. */
+typedef void	PNGLayer;
+
+PNGLayer *	p_node_g_layer_lookup(PONode *node, const char *name);
 PNGLayer *	p_node_g_layer_create(PONode *node, const char *name, VNGLayerType type,
 					     uint32 def_int, real32 def_real);
-void		p_node_g_layer_delete(PONode *node, const char *name);
+void		p_node_g_layer_delete(PNGLayer *node, const char *name);
+void		p_node_g_vertex_set_xyz(PONode *node, PNGLayer *layer, uint32 id, real64 x, real64 y, real64 z);
 void		p_node_g_vertex_set_real32_xyz(PNGLayer *layer, uint32 id, real32 x, real32 y, real32 z);
 void		p_node_g_vertex_set_real64_xyz(PNGLayer *layer, uint32 id, real64 x, real64 y, real64 z);
+void		p_node_g_polygon_set_corner_uint32(PONode *node, PNGLayer *layer, uint32 id, uint32 v0, uint32 v1, uint32 v2, uint32 v3);
 
 /* Bitmap-node manipulation functions. */
-void		p_node_b_set_init_dimensions(PONode *node, uint16 width, uint16 height, uint16 depth);
+void		p_node_b_dimensions_set(PONode *node, uint16 width, uint16 height, uint16 depth);
 uint16		p_node_b_layer_create(PONode *node, const char *name, VNBLayerType type);
-void		p_node_b_layer_set_tile(PONode *node, uint16 layer_id, uint16 tile_x,
-					uint16 tile_y, uint16 tile_z, const VNBTile *tile);
+void *		p_node_b_layer_access_begin(PONode *node, uint16 layer_id);
+void		p_node_b_layer_access_end(PONode *node, uint16 layer_id, void *framebuffer);
 void		p_node_b_layer_destroy(PONode *node, uint16 layer_id);
 
 
 /* Duplicates an input node, and returns something you can actually edit. */
 PONode *	p_output_node(PPOutput out, PINode *node);
 
+PONode *	p_output_node_create(PPOutput out, VNodeType type, uint32 label);
+
 /* Creates a new empty output node for editing/data creation. */
-PONode * 	p_output_node_create(PPOutput out, VNodeType type, const char *name);
+/*PONode * 	p_output_node_create(PPOutput out, VNodeType type, const char *name);*/
 
 /* Fills in the various single-value slots in the output. */
 void		p_output_int32(PPOutput out,  int32 value);
