@@ -11,10 +11,16 @@
 
 enum MemMode { MEM_NULL_RETURN, MEM_NULL_WARN, MEM_NULL_ERROR };
 
+/* What should happen when an allocation fails? */
 extern void	mem_mode_set(enum MemMode mode);
 
+/* Allocate <size> bytes of fresh storage. */
 extern void *	mem_alloc(size_t size);
+
+/* Reallocate buffer at <ptr>, growing it to <size> bytes. */
 extern void *	mem_realloc(void *ptr, size_t size);
+
+/* Free allocation at <ptr>, allowing memory to be re-used. */
 extern void	mem_free(void *ptr);
 
 #endif		/* MEM_H */
