@@ -284,6 +284,8 @@ static real64 layer_get_pixel(const NodeBitmap *node, NdbBLayer *layer, const un
 	}
 	else if(layer->type == VN_B_LAYER_UINT8)
 		return (real64) ((uint8 *) framebuffer)[z * node->width * node->height + y * node->width + x] / 255.0;
+	else if(layer->type == VN_B_LAYER_UINT16)
+		return (real64) ((uint16 *) framebuffer)[z * node->width * node->height + y * node->width + x] / 65535.0;
 	else if(layer->type == VN_B_LAYER_REAL32)
 		return ((real32 *) framebuffer)[z * node->width * node->height + y * node->width + x];
 	else if(layer->type == VN_B_LAYER_REAL64)
@@ -309,6 +311,8 @@ static void layer_put_pixel(const NodeBitmap *node, NdbBLayer *layer, unsigned c
 	}
 	else if(layer->type == VN_B_LAYER_UINT8)
 		((uint8 *) framebuffer)[z * node->width * node->height + y * node->width + x] = pixel * 255.0;
+	else if(layer->type == VN_B_LAYER_UINT16)
+		((uint16 *) framebuffer)[z * node->width * node->height + y * node->width + x] = pixel * 65535.0;
 	else if(layer->type == VN_B_LAYER_REAL32)
 		((real32 *) framebuffer)[z * node->width * node->height + y * node->width + x] = pixel;
 	else if(layer->type == VN_B_LAYER_REAL64)
@@ -346,6 +350,13 @@ static void multi_put_pixel(struct multi_info *mi, int x)
 			{
 			case VN_B_LAYER_UINT8:
 				*mi->put++ = pix * 255.0;
+				break;
+			case VN_B_LAYER_UINT16:
+				{
+					uint16	*p = (uint16 *) mi->put;
+					*p++ = pix;
+					mi->put = (unsigned char *) p;
+				}
 				break;
 			case VN_B_LAYER_REAL32:
 				{
@@ -451,8 +462,10 @@ void nodedb_b_layer_access_multi_end(NodeBitmap *node, void *framebuffer)
 					/* Read out pixel from multi-buffer. */
 					if(mi->format == VN_B_LAYER_UINT1)
 						pixel = (mi->put[off / 8] & (128 >> (off % x))) ? 1.0 : 0.0;
-					if(mi->format == VN_B_LAYER_UINT8)
+					else if(mi->format == VN_B_LAYER_UINT8)
 						pixel = mi->put[off] / 255.0;
+					else if(mi->format == VN_B_LAYER_UINT16)
+						pixel = ((const uint16 *) mi->put)[off];
 					else if(mi->format == VN_B_LAYER_REAL32)
 						pixel = ((const real32 *) mi->put)[off];
 					else if(mi->format == VN_B_LAYER_REAL64)
