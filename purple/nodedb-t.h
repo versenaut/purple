@@ -6,6 +6,8 @@
  * Text node databasing module.
 */
 
+#include "textbuf.h"
+
 typedef struct
 {
 	uint16	id;
