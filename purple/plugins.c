@@ -19,6 +19,7 @@
 #include "log.h"
 #include "mem.h"
 #include "memchunk.h"
+#include "nodeset.h"
 #include "strutil.h"
 #include "value.h"
 #include "port.h"
