@@ -19,6 +19,12 @@
 
 #define METHOD_GROUP_CONTROL_NAME	"PurpleControl"
 
+typedef struct {
+	VNodeID		node;
+	uint16		buffer;
+	unsigned int	cron_id;
+} PluginsDesc;
+
 static struct
 {
 	int		connected;
@@ -27,7 +33,8 @@ static struct
 	VSession	*connection;
 
 	VNodeID		avatar;
-	VNodeID		plugins;
+
+	PluginsDesc	plugins;
 
 	uint16		gid_control;
 } client_info = { 0 };
@@ -57,11 +64,13 @@ static void cb_connect_accept(void *user, uint32 avatar, void *address, void *co
 static void cb_node_create(void *user, VNodeID node_id, uint8 type, VNodeID owner_id)
 {
 	LOG_MSG(("There is a node of type %d called %u", type, node_id));
-	if(owner_id == client_info.avatar && type == V_NT_TEXT && client_info.plugins == 0)
+	if(owner_id == client_info.avatar && type == V_NT_TEXT && client_info.plugins.node == 0)
 	{
 		printf("It's the plugins text node!\n");
-		client_info.plugins = node_id;
-		verse_send_t_set_language(client_info.plugins, "xml/purple/methods");
+		client_info.plugins.node = node_id;
+		verse_send_t_set_language(client_info.plugins.node, "xml/purple/plugins");
+		verse_send_t_buffer_create(client_info.plugins.node, 0, 0, "plugins");
+		verse_send_node_subscribe(client_info.plugins.node);
 	}
 }
 
@@ -100,6 +109,20 @@ static void cb_o_method_call(void *user, VNodeID node_id, uint8 group_id, uint8 
 		LOG_WARN(("Got method call to unknown group %u, method %u", group_id, method_id));
 }
 
+static void cb_t_buffer_create(void *user, VNodeID node_id, VNMBufferID buffer_id, uint16 index, const char *name)
+{
+	printf("Text node %u has buffer named \"%s\", id=%u\n", node_id, name, buffer_id);
+	verse_send_t_buffer_subscribe(node_id, buffer_id);
+	verse_send_t_text_set(node_id, buffer_id, 0, 100, "<?xml version=\"1.0\" standalone=\"yes\"?>\n");
+}
+
+static void cb_t_text_set(void *user, VNodeID node_id, VNMBufferID buffer_id, uint32 pos, uint32 len, const char *text)
+{
+	printf("insert %u at %u: '%s'\n", len, pos, text);
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 int client_connect(const char *address)
 {
 	verse_callback_set(verse_send_connect_accept,		cb_connect_accept,		NULL);
@@ -107,6 +130,9 @@ int client_connect(const char *address)
 	verse_callback_set(verse_send_o_method_group_create,	cb_o_method_group_create,	NULL);
 	verse_callback_set(verse_send_o_method_create,		cb_o_method_create,		NULL);
 	verse_callback_set(verse_send_o_method_call,		cb_o_method_call,		NULL);
+
+	verse_callback_set(verse_send_t_buffer_create,		cb_t_buffer_create,		NULL);
+	verse_callback_set(verse_send_t_text_set,		cb_t_text_set,			NULL);
 
 	client_info.connected = 0;
 	client_info.address = stu_strdup(address);
@@ -127,7 +153,9 @@ void cb_reconnect(void)
 	}
 }
 
+/* ----------------------------------------------------------------------------------------- */
+
 void client_init(void)
 {
-	cron_add(CRON_PERIODIC, 5.0, cb_reconnect, NULL);
+	cron_add(CRON_PERIODIC, 5.0,  cb_reconnect, NULL);
 }
