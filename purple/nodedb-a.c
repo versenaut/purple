@@ -16,10 +16,39 @@
 #include "dynarr.h"
 #include "list.h"
 #include "log.h"
+#include "mem.h"
 #include "strutil.h"
 
 #include "nodedb.h"
 #include "nodedb-internal.h"
+
+/* ----------------------------------------------------------------------------------------- */
+
+/* Return length of a block in samples, given its type. */
+static size_t block_len(VNALayerType type)
+{
+	static const size_t	len[] = {
+		VN_A_BLOCK_SIZE_INT8, VN_A_BLOCK_SIZE_INT16, VN_A_BLOCK_SIZE_INT24,
+		VN_A_BLOCK_SIZE_INT32, VN_A_BLOCK_SIZE_REAL32, VN_A_BLOCK_SIZE_REAL64 
+	};
+
+	return len[type];
+}
+
+/* Return size of a block in bytes, given its type. */
+static size_t block_size(VNALayerType type)
+{
+	static const size_t	size[] = {
+		VN_A_BLOCK_SIZE_INT8   * sizeof (uint8),
+		VN_A_BLOCK_SIZE_INT16  * sizeof (uint16), 
+		VN_A_BLOCK_SIZE_INT24  * 3 * sizeof (uint8),
+		VN_A_BLOCK_SIZE_INT32  * sizeof (uint32),
+		VN_A_BLOCK_SIZE_REAL32 * sizeof (real32),
+		VN_A_BLOCK_SIZE_REAL64 * sizeof (real64)
+	};
+
+	return size[type];
+}
 
 /* ----------------------------------------------------------------------------------------- */
 
@@ -79,7 +108,7 @@ unsigned int nodedb_a_layer_num(const NodeAudio *node)
 	return num;
 }
 
-NdbALayer * nodedb_a_buffer_nth(const NodeAudio *node, unsigned int n)
+NdbALayer * nodedb_a_layer_nth(const NodeAudio *node, unsigned int n)
 {
 	unsigned int	i;
 	NdbALayer	*la;
@@ -178,22 +207,7 @@ static void cb_a_layer_create(void *user, VNodeID node_id, VLayerID layer_id, co
 	}
 }
 
-static void cb_a_layer_destroy(void *user, VNodeID node_id, VLayerID buffer_id)
-{
-	NodeAudio	*n;
-
-	if((n = (NodeAudio *) nodedb_lookup_with_type(node_id, V_NT_AUDIO)) != NULL)
-	{
-		NdbALayer	*al;
-
-		if((al = dynarr_index(n->layers, buffer_id)) != NULL)
-		{
-			NOTIFY(n, STRUCTURE);
-		}
-	}
-}
-
-static void cb_a_block_set(void *user, VNodeID node_id, VLayerID layer_id, uint32 block_index, VNALayerType type, const VNASample *data)
+static void cb_a_layer_destroy(void *user, VNodeID node_id, VLayerID layer_id)
 {
 	NodeAudio	*n;
 
@@ -203,7 +217,50 @@ static void cb_a_block_set(void *user, VNodeID node_id, VLayerID layer_id, uint3
 
 		if((al = dynarr_index(n->layers, layer_id)) != NULL)
 		{
-			printf("Setting audio block %u.%u.%u\n", node_id, layer_id, block_index);
+			NOTIFY(n, STRUCTURE);
+		}
+	}
+}
+
+static int block_compare(const void *key1, const void *key2)
+{
+	return key1 < key2 ? -1 : key1 > key2;
+}
+
+static void cb_a_block_set(void *user, VNodeID node_id, VLayerID layer_id, uint32 block_index,
+			   VNALayerType type, const VNASample *data)
+{
+	NodeAudio	*n;
+
+	if((n = (NodeAudio *) nodedb_lookup_with_type(node_id, V_NT_AUDIO)) != NULL)
+	{
+		NdbALayer	*al;
+
+		if((al = dynarr_index(n->layers, layer_id)) != NULL)
+		{
+			NdbABlk	*blk;
+
+			if(al->blocks == NULL)
+				al->blocks = bintree_new(block_compare);
+
+			/* Is there an existing block? */
+			if((blk = bintree_lookup(al->blocks, (void *) block_index)) != NULL)
+			{
+				if(blk->type != type)
+				{
+					printf("Got audio block set of type %d on known block of type %d\n", type, blk->type);
+					return;
+				}
+			}
+			else	/* Allocate and insert a new block. */
+			{
+				blk = mem_alloc(sizeof *blk + block_size(type));
+				blk->data = blk + 1;
+				bintree_insert(al->blocks, (void *) block_index, blk);
+				printf("Set audio block %u.%u.%u\n", node_id, layer_id, block_index);
+			}
+			/* Copy the data into the block, either replacing old or setting new. */
+			memcpy(blk->data, data, block_size(type));
 			NOTIFY(n, DATA);
 		}
 	}
@@ -219,8 +276,17 @@ static void cb_a_block_clear(void *user, VNodeID node_id, VLayerID layer_id, uin
 
 		if((al = dynarr_index(n->layers, layer_id)) != NULL)
 		{
+			NdbABlk	*blk;
+
 			printf("Clearing audio block %u.%u.%u\n", node_id, layer_id, block_index);
-			NOTIFY(n, DATA);
+			if((blk = bintree_lookup(al->blocks, (void *) block_index)) != NULL)
+			{
+				bintree_remove(al->blocks, (void *) block_index);
+				mem_free(blk);
+				NOTIFY(n, DATA);
+			}
+			else
+				printf("Can't clear unknown block %u\n", block_index);
 		}
 	}
 }
