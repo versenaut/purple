@@ -111,10 +111,36 @@ void p_node_tag_create_path(PONode *node, const char *path, VNTagType type, ...)
 		va_end(arg);
 		/* If tag exists, just (re)set the value, else create it. */
 		if((tag = nodedb_tag_lookup(tg, path)) != NULL)
-			nodedb_tag_set(tag, type, &value);
+			nodedb_tag_value_set(tag, type, &value);
 		else
 			nodedb_tag_create(tg, ~0, path, type, &value);
 	}
+}
+
+void p_node_tag_destroy_path(PONode *node, const char *path)
+{
+	char		group[32], *put;
+	NdbTagGroup	*g;
+
+	if(node == NULL || path == NULL || *path == '\0')
+		return;
+	for(put = group; *path != '\0' && *path != '/' && (put - group) < (sizeof group - 1);)
+		*put++ = *path++;
+	*put = '\0';
+	if(*path == '/')
+		path++;
+	if((g = nodedb_tag_group_lookup(node, group)) != NULL)
+	{
+		printf("group found, path='%s'\n", path);
+		if(*path == '\0')		/* If no second part, destroy group. */
+			nodedb_tag_group_destroy(g);
+		else if(*path == '*')		/* If asterisk, destroy all tags but leave group. */
+			nodedb_tag_destroy_all(g);
+		else				/* Else destroy named tag only. */
+			nodedb_tag_destroy(g, nodedb_tag_lookup(g, path));
+	}
+	else
+		printf("group not found\n");
 }
 
 /* ----------------------------------------------------------------------------------------- */
