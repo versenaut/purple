@@ -273,7 +273,7 @@ static DynStr * module_build_desc(const Module *m)
 	return d;
 }
 
-static void modules_desc_start_update(Graph *g)
+static void graph_modules_desc_start_update(Graph *g)
 {
 	unsigned int	id;
 	Module		*m;
@@ -320,7 +320,7 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 	LOG_MSG(("Instantiated plugin %u (%s) as module %u in graph %u (%s)", plugin_id, plugin_name(p), m->id, graph_id, g->name));
 	desc = module_build_desc(m);
 	m->length = dynstr_length(desc);
-	modules_desc_start_update(g);
+	graph_modules_desc_start_update(g);
 	verse_send_t_text_set(g->node, g->buffer, m->start, 0, dynstr_string(desc));
 	dynstr_destroy(desc, 1);
 }
@@ -344,7 +344,7 @@ static void module_destroy(uint32 graph_id, uint32 module_id)
 	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, NULL);
 	plugin_inputset_destroy(m->inputs);
 	memchunk_free(graph_info.chunk_module, m);
-	modules_desc_start_update(g);
+	graph_modules_desc_start_update(g);
 }
 
 static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_index, PInputType type, ...)
@@ -371,7 +371,7 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, dynstr_string(desc));
 	m->length = dynstr_length(desc);
 	dynstr_destroy(desc, 1);
-	modules_desc_start_update(g);
+	graph_modules_desc_start_update(g);
 }
 
 static void module_input_clear(uint32 graph_id, uint32 module_id, uint8 input_index)
@@ -390,13 +390,12 @@ static void module_input_clear(uint32 graph_id, uint32 module_id, uint8 input_in
 		LOG_WARN(("Attempted to clear module input in non-existant module %u.%u", graph_id, module_id));
 		return;
 	}
-
 	plugin_inputset_clear(m->inputs, input_index);
 	desc = module_build_desc(m);
 	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, dynstr_string(desc));
 	m->length = dynstr_length(desc);
 	dynstr_destroy(desc, 1);
-	modules_desc_start_update(g);
+	graph_modules_desc_start_update(g);
 }
 
 /* ----------------------------------------------------------------------------------------- */
