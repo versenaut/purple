@@ -50,7 +50,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	{
 		PNGLayer *inlayer, *outlayer;
 
-		if(p_node_type_get(in) != V_NT_OBJECT)
+		if(p_node_get_type(in) != V_NT_OBJECT)
 			continue;
 		if((ingeo = p_node_o_link_get(in, "geometry", 0)) == NULL)
 			continue;

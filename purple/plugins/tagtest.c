@@ -12,7 +12,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	static uint32	blob[8];
 
 	out = p_output_node_create(output, V_NT_OBJECT, 0);
-	p_node_name_set(out, "tag-test");
+	p_node_set_name(out, "tag-test");
 	if(mode == 0)
 		p_node_tag_create_path(out, "test/test1", VN_TAG_BOOLEAN, rand() > 0x80000000);
 	else if(mode == 1)

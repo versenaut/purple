@@ -27,7 +27,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	char	line[1024];
 
 	node = p_output_node_create(output, V_NT_TEXT, 0);
-	p_node_name_set(node, "textnum");
+	p_node_set_name(node, "textnum");
 /*	p_node_t_language_set(node, "English");*/		/* Yes, really. */
 	buf = p_node_t_buffer_create(node, "number");
 	if(number < 0)

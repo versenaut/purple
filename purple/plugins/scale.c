@@ -18,7 +18,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		PONode	*out;
 		PNGLayer *layer;
 
-		if(p_node_type_get(in) != V_NT_GEOMETRY)
+		if(p_node_get_type(in) != V_NT_GEOMETRY)
 			continue;
 		out   = p_output_node(output, in);
 		layer = p_node_g_layer_find(out, "vertex");
