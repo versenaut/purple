@@ -435,7 +435,6 @@ static void cb_a_block_set(void *user, VNodeID node_id, VLayerID layer_id, uint3
 			{
 				blk = block_new(al);
 				bintree_insert(al->blocks, (void *) block_index, blk);
-				printf("Set audio block %u.%u.%u\n", node_id, layer_id, block_index);
 			}
 			/* Copy the data into the block, either replacing old or setting new. */
 			memcpy(blk->data, data, block_size(type));
