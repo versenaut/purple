@@ -1,0 +1,31 @@
+
+
+Purple Node Synchronization
+
+A node is always in one of these states:
+
+1. Newly created. Purple DB has node ID ~0 for the node, and it
+   has not been sent to the Verse server yet.
+
+   Action: send create-call to Verse server, on notification
+   set the ID on the node and move it to "to be synced"-queue.
+
+2. Node modified. Placed in "to be synced"-queue, and *compared*
+   against input version of same ID. Commands are generated as
+   needed, and sent off to the server. Might involve sending a
+   destroy-command.
+
+3. Identical to input node; dropped from syncronizer's state.
+
+
+What If? -- Corner Case Paranoia
+
+1. Input node is destroyed?
+This would invalidate the node ID of the output node, and make
+any commands sent be misinterpreted at worst, and ignored at
+best. Not optimal. If a node is destroyed that there exists an
+active output version of, the output version must reset to the
+first state above, i.e. have its ID set to ~0.
+
+2. Self-Dependent Nodes?
+Highly problematic.
