@@ -29,6 +29,7 @@ extern const real32 *	port_input_real32_vec2(PPort *port);
 extern const real32 *	port_input_real32_vec3(PPort *port);
 extern const real32 *	port_input_real32_vec4(PPort *port);
 extern const real32 *	port_input_real32_mat16(PPort *port);
+extern real64		port_input_real64(PPort *port);
 extern const real64 *	port_input_real64_vec2(PPort *port);
 extern const real64 *	port_input_real64_vec3(PPort *port);
 extern const real64 *	port_input_real64_vec4(PPort *port);
