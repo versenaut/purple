@@ -26,9 +26,10 @@ extern void		nodedb_t_destruct(NodeText *n);
 
 extern const char *	nodedb_t_language_get(const NodeText *node);
 extern void		nodedb_t_language_set(NodeText *node, const char *language);
-extern size_t		nodedb_t_buffer_get_count(const NodeText *node);
-extern NdbTBuffer *	nodedb_t_buffer_get_nth(const NodeText *node, unsigned int n);
-extern NdbTBuffer *	nodedb_t_buffer_get_named(const NodeText *node, const char *name);
+
+extern unsigned int	nodedb_t_buffer_num(const NodeText *node);
+extern NdbTBuffer *	nodedb_t_buffer_nth(const NodeText *node, unsigned int n);
+extern NdbTBuffer *	nodedb_t_buffer_find(const NodeText *node, const char *name);
 
 extern NdbTBuffer *	nodedb_t_buffer_create(NodeText *node, VLayerID buffer_id, const char *name);
 extern char *		nodedb_t_buffer_read_line(NdbTBuffer *buffer, unsigned int line, char *put, size_t putmax);

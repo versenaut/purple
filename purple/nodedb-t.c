@@ -76,23 +76,23 @@ void nodedb_t_language_set(NodeText *node, const char *language)
 	stu_strncpy(node->language, sizeof node->language, language);
 }
 
-size_t nodedb_t_buffer_get_count(const NodeText *node)
+unsigned int nodedb_t_buffer_num(const NodeText *node)
 {
-	unsigned int	i, count = 0;
+	unsigned int	i, num;
 	NdbTBuffer	*b;
 
 	if(node == NULL || node->node.type != V_NT_TEXT)
 		return 0;
-	for(i = 0; (b = dynarr_index(node->buffers, i)) != NULL; i++)
+	for(i = num = 0; (b = dynarr_index(node->buffers, i)) != NULL; i++)
 	{
 		if(b->name[0] == '\0')
 			continue;
-		count++;
+		num++;
 	}
-	return count;
+	return num;
 }
 
-NdbTBuffer * nodedb_t_buffer_get_nth(const NodeText *node, unsigned int n)
+NdbTBuffer * nodedb_t_buffer_nth(const NodeText *node, unsigned int n)
 {
 	unsigned int	i;
 	NdbTBuffer	*b;
@@ -110,7 +110,7 @@ NdbTBuffer * nodedb_t_buffer_get_nth(const NodeText *node, unsigned int n)
 	return NULL;
 }
 
-NdbTBuffer * nodedb_t_buffer_get_named(const NodeText *node, const char *name)
+NdbTBuffer * nodedb_t_buffer_find(const NodeText *node, const char *name)
 {
 	unsigned int	i;
 	NdbTBuffer	*b;
