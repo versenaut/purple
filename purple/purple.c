@@ -410,7 +410,7 @@ static void console_parse_module_input_set(const char *line)
 	if(got == 1)
 		graph_method_send_call_mod_input_set(g, m, i, type, &value);
 	else
-		printf("mis couldn't parse %s as type %s literal\n", literal, tcode);
+		printf("mis couldn't parse %s as type %c literal\n", literal, tcode);
 }
 
 static void console_update(void)
@@ -565,6 +565,7 @@ int main(void)
 			verse_callback_update(100);
 			cron_update();
 			console_update();
+			sched_update();
 		}
 	}
 	return 0;
