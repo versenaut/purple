@@ -105,6 +105,15 @@ static void cb_b_layer_create(VNodeID node_id, VLayerID layer_id, const char *na
 		LOG_WARN(("Layer already exists--unhandled case"));
 		return;
 	}
+	if(node->layers == NULL)
+		node->layers = dynarr_new(sizeof *layer, 4);
+	if((layer = dynarr_set(node->layers, layer_id, NULL)) != NULL)
+	{
+		layer->id   = layer_id;
+		strncpy(layer->name, sizeof layer->name, name);
+		layer->type = type;
+		layer->framebuffer = NULL;
+	}
 }
 
 static void cb_b_layer_destroy(VNodeID node_id, VLayerID layer_id)
@@ -123,6 +132,18 @@ static void cb_b_layer_destroy(VNodeID node_id, VLayerID layer_id)
 
 static void cb_b_tile_set(VNodeID node_id, VLayerID layer_id, uint16 tile_x, uint16 tile_y, uint16 tile_z, VNBLayerType type, VNBTile *tile)
 {
+	NodeBitmap	*node;
+	NdbBLayer	*layer;
+
+	if((node = (NodeBitmap *) nodedb_lookup_with_type(node_id, V_NT_BITMAP)) == NULL)
+		return;
+	if((layer = dynarr_index(node->layers, layer_id)) == NULL || layer->name[0] == '\0')
+		return;
+	if(layer->type != type)
+	{
+		LOG_WARN(("Received type %d data for type %d layer--ignoring", type, layer->type));
+		return;
+	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
