@@ -397,21 +397,19 @@ XmlNode * xmlnode_new(const char *buffer)
 
 const char * xmlnode_attrib_get(const XmlNode *node, const char *name)
 {
-/*	const List	*iter;
+	int	i;
 
-	if(node == NULL || name == NULL || *name == '\0')
+	if(node == NULL || name == NULL)
 		return NULL;
-	for(iter = node->attribs; iter != NULL; iter = list_next(iter))
-	{
-		const Attrib	*a = list_data(iter);
-		int		rel;
 
-		if((rel = strcmp(a->name, name)) == NULL)
-			return a->value;
-		else if(rel > 0)
-			break;
+	for(i = 0; node->attrib[i] != NULL; i++)
+	{
+		int	rel = strcmp(name, node->attrib[i]->name);
+
+		if(rel == 0)
+			return node->attrib[i]->value;
 	}
-*/	return NULL;
+	return NULL;
 }
 
 static void do_print_outline(const XmlNode *root, int indent)
