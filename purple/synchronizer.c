@@ -334,6 +334,13 @@ static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
+{
+	return 0;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 static int sync_bitmap_dimensions(const NodeBitmap *n, const NodeBitmap *target)
 {
 	if(n->width != target->width || n->height != target->height || n->depth != target->depth)
@@ -405,7 +412,7 @@ static int sync_bitmap_layer(const NodeBitmap *n, const NdbBLayer *layer,
 	return sync;
 }
 
-static int sync_bitmap(NodeBitmap *n, const NodeBitmap *target)
+static int sync_bitmap(const NodeBitmap *n, const NodeBitmap *target)
 {
 	unsigned int	i, sync = 1;
 	const NdbBLayer	*layer, *tlayer;
@@ -495,7 +502,7 @@ static int sync_text_buffer(const NodeText *n, const NdbTBuffer *buffer,
 }
 
 /* Alter <target> so it becomes copy of <n>. */
-static int sync_text(NodeText *n, const NodeText *target)
+static int sync_text(const NodeText *n, const NodeText *target)
 {
 	unsigned int		i, sync = 1;
 	const NdbTBuffer	*buffer, *tbuffer;
@@ -555,7 +562,7 @@ static int sync_curve_curve(const NodeCurve *n, const NdbCCurve *curve,
 }
 
 /* Synchronize curve node <target> into copy of <n>. */
-static int sync_curve(NodeCurve *n, const NodeCurve *target)
+static int sync_curve(const NodeCurve *n, const NodeCurve *target)
 {
 	unsigned int	i, sync = 1;
 	const NdbCCurve	*curve, *tcurve;
@@ -598,6 +605,9 @@ static int sync_node(Node *n)
 		break;
 	case V_NT_GEOMETRY:
 		sync &= sync_geometry((NodeGeometry *) n, (NodeGeometry *) target);
+		break;
+	case V_NT_MATERIAL:
+		sync &= sync_material((NodeMaterial *) n, (NodeMaterial *) target);
 		break;
 	case V_NT_BITMAP:
 		sync &= sync_bitmap((NodeBitmap *) n, (NodeBitmap *) target);
