@@ -8,7 +8,7 @@
 
 #include "dynarr.h"
 
-static void cb_copy(void *dst, const void *src)
+static void cb_copy(void *dst, const void *src, void *user)
 {
 	const int	*s = src;
 	int		*d = dst;
@@ -73,7 +73,7 @@ int main(void)
 		a = dynarr_new(sizeof data, 4);
 		dynarr_set_default(a, &def);
 		dynarr_set(a, 5, &data);
-		b = dynarr_new_copy(a, NULL);
+		b = dynarr_new_copy(a, NULL, NULL);
 		dynarr_set(b, 7, &data);
 		for(ok = 0, i = 0; i < 8; i++)
 		{
@@ -92,7 +92,7 @@ int main(void)
 		a = dynarr_new(sizeof data, 4);
 		dynarr_set_default(a, &def);
 		dynarr_set(a, 5, &data);
-		b = dynarr_new_copy(a, cb_copy);
+		b = dynarr_new_copy(a, cb_copy, NULL);
 		dynarr_set(b, 7, &data);
 		for(ok = 0, i = 0; i < 8; i++)
 		{
@@ -120,7 +120,7 @@ int main(void)
 		a = dynarr_new(sizeof i, 4);
 		for(i = 0; i < 10; i++)
 			dynarr_set(a, i, &i);
-		b = dynarr_new_copy(a, NULL);
+		b = dynarr_new_copy(a, NULL, NULL);
 		for(ok = 0, i = 0; i < 10; i++)
 		{
 			if((test = dynarr_index(b, i)) != NULL)
