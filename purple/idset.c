@@ -50,7 +50,7 @@ unsigned int idset_insert(IdSet *is, void *object)
 		dynarr_set(is->arr, index, &object);
 	}
 	else
-		index = dynarr_append(is->arr, &object);
+		dynarr_append(is->arr, &object, &index);
 	is->size++;
 	is->max = index > is->max ? index : is->max;
 	return index + is->offset;

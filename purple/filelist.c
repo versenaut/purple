@@ -97,7 +97,7 @@ FileList * filelist_new(const char *path, const char *suffix)
 					if(fl->files == NULL)
 						fl->files = dynarr_new(sizeof name, 16);
 					if(fl->files != NULL)
-						dynarr_append(fl->files, &name);
+						dynarr_append(fl->files, &name, NULL);
 				}
 			}
 			closedir(dir);

@@ -170,7 +170,7 @@ void plugin_set_input(Plugin *p, int index, PValueType type, const char *name, v
 			else if(tag == P_INPUT_TAG_DEFAULT)
 				i.spec.def = value_set_defminmax_va(&i.spec.def_val, i.type, taglist);
 		}
-		dynarr_append(p->input, &i);
+		dynarr_append(p->input, &i, NULL);
 	}
 }
 
