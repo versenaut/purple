@@ -141,7 +141,7 @@ PONode * p_output_node_create(PPOutput out, VNodeType type, uint32 label)
 			s = dynarr_size(l->data);
 			for(i = 0; i < s; i++)
 				dynarr_set(l->data, i, gone);
-			printf("cleared %u vertex slots\n", i);
+/*			printf("cleared %u vertex slots\n", i);*/
 		}
 		if((l = nodedb_g_layer_find((NodeGeometry *) n, "polygon")) != NULL)
 		{
@@ -150,7 +150,7 @@ PONode * p_output_node_create(PPOutput out, VNodeType type, uint32 label)
 			s = dynarr_size(l->data);
 			for(i = 0; i < s; i++)
 				dynarr_set(l->data, i, gone);
-			printf("cleared %u polygon slots\n", i);
+/*			printf("cleared %u polygon slots\n", i);*/
 		}
 	}
 	else if(type == V_NT_MATERIAL)
