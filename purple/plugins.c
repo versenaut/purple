@@ -526,6 +526,7 @@ size_t plugins_amount(void)
 
 static int cb_build_xml(const void *data, void *user)
 {
+	dynstr_append_c(user, '\n');
 	plugin_describe_append(data, user);
 
 	return 1;
