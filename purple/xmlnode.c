@@ -48,9 +48,7 @@ static const char * append_entity(const char *buffer, DynStr *token)
 		char	*entity;
 		size_t	len;
 		char	replace;
-	} entity[] = {
-		{ "&lt;", 4, '<' }, { "&gt;", 4, '>' }, { "&amp;", 5, '&' }, { "&quot;", 6, '"' }
-	};
+	} entity[] = { { "&lt;", 4, '<' }, { "&gt;", 4, '>' }, { "&amp;", 5, '&' }, { "&quot;", 6, '"' } };
 	int	i;
 
 	for(i = 0; i < sizeof entity / sizeof *entity; i++)
