@@ -13,7 +13,7 @@ extern List *	list_new(void *data);
 extern List *	list_append(List *list, void *data);
 extern List *	list_prepend(List *list, void *data);
 
-extern List *	list_insert(List *list, List *before, void *data);
+extern List *	list_insert_before(List *list, List *before, void *data);
 extern List *	list_insert_sorted(List *list, void *data, int (*compare)(const void *data1, const void *data2));
 
 extern List *	list_concat(List *head, List *tail);
