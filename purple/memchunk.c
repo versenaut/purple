@@ -77,6 +77,11 @@ MemChunk * memchunk_new(const char *name, size_t chunk_size, size_t growth)
 	return c;
 }
 
+size_t memchunk_chunk_size(const MemChunk *chunk)
+{
+	return chunk != NULL ? chunk->size : 0;
+}
+
 void * memchunk_alloc(MemChunk *chunk)
 {
 	Block	*b;
