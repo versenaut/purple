@@ -171,7 +171,7 @@ void graph_init(void)
 
 void graph_method_send_creates(uint32 avatar, uint8 group_id)
 {
-	int	i;
+	unsigned int	i;
 
 	for(i = 0; i < sizeof method_info / sizeof *method_info; i++)
 	{
@@ -788,7 +788,7 @@ void send_method_call(int method, const VNOParam *param)
 	const MethodInfo *mi;
 	void *pack;
 
-	if(method < 0 || method >= sizeof method_info / sizeof *method_info)
+	if(method < 0 || (size_t) method >= sizeof method_info / sizeof *method_info)
 		return;
 	mi = method_info + method;
 	if(mi->id == (uint8) ~0)
@@ -960,7 +960,7 @@ void graph_method_send_call_mod_input_clear(uint32 graph_id, uint32 module_id, u
 void graph_method_receive_call(uint8 id, const void *param)
 {
 	VNOParam	arg[8];
-	int		i;
+	unsigned int	i;
 
 	for(i = 0; i < sizeof method_info / sizeof *method_info; i++)
 	{
