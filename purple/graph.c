@@ -56,11 +56,11 @@ typedef struct
 	const char	   *param_name[4];
 } MethodInfo;
 
-enum { CREATE, RENAME, DESTROY, MOD_CREATE, MOD_INPUT_SET_REAL32 };
+enum { CREATE, RENAME, DESTROY, MOD_CREATE, MOD_INPUT_CLEAR, MOD_INPUT_SET_REAL32 };
 
 #define	MI_INPUT(lct, uct)	\
 	{ 0, "m_i_set_" #lct, 4, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8, \
-		VN_O_METHOD_PTYPE_ ##uct }, { "graph_id", "plugin_id", "index", "value" } \
+		VN_O_METHOD_PTYPE_ ##uct }, { "graph_id", "plugin_id", "input", "value" } \
 	}
 
 static MethodInfo method_info[] = {
@@ -71,6 +71,8 @@ static MethodInfo method_info[] = {
 	{ 0, "destroy",	1, { VN_O_METHOD_PTYPE_UINT32 }, { "graph_id" } },
 	
 	{ 0, "mod_create",  2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "plugin_id" } },
+	{ 0, "mod_input_clear", 3, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8 },
+		{ "graph_id", "plugin_id", "input" }	},
 	MI_INPUT(real32, REAL32),
 /*	{ 0, "mod_destroy", 2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "module_id" } }
 */};
@@ -234,8 +236,11 @@ static void graph_destroy(uint32 id)
 
 static void module_build_desc(const Module *m, char *buf, size_t bufsize)
 {
-	snprintf(buf, bufsize, " <module id=\"%u\" plug-in=\"%u\">\n"
-		 		" </module>\n", m->id, plugin_id(m->plugin));
+	int	p;
+
+	p = snprintf(buf, bufsize, " <module id=\"%u\" plug-in=\"%u\">\n", m->id, plugin_id(m->plugin));
+	p += plugin_inputset_describe(m->inputs, buf + p, bufsize - p);
+	snprintf(buf + p, bufsize - p, " </module>\n");
 }
 
 static void module_create(uint32 graph_id, uint32 plugin_id)
@@ -280,6 +285,7 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 	va_list	arg;
 	Graph	*g;
 	Module	*m;
+	char	xml[1024];
 
 	if((g = idset_lookup(graph_info.graphs, graph_id)) == NULL)
 	{
@@ -295,6 +301,30 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 	va_start(arg, type);
 	plugin_inputset_set_va(m->inputs, input_index, type, arg);
 	va_end(arg);
+	module_build_desc(m, xml, sizeof xml);
+	printf("Desc with input set:\n%s", xml);
+}
+
+static void module_input_clear(uint32 graph_id, uint32 module_id, uint8 input_index)
+{
+	Graph	*g;
+	Module	*m;
+	char	xml[1024];
+
+	if((g = idset_lookup(graph_info.graphs, graph_id)) == NULL)
+	{
+		LOG_WARN(("Attempted to clear module input in non-existant graph %u", graph_id));
+		return;
+	}
+	if((m = idset_lookup(g->modules, module_id)) == NULL)
+	{
+		LOG_WARN(("Attempted to clear module input in non-existant module %u.%u", graph_id, module_id));
+		return;
+	}
+
+	plugin_inputset_clear(m->inputs, input_index);
+	module_build_desc(m, xml, sizeof xml);
+	printf("Desc with input cleared:\n%s", xml);
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -370,6 +400,16 @@ void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32
 		verse_send_o_method_call(client_info.avatar, client_info.gid_control, method_info[MOD_INPUT_SET_REAL32].id, 0, pack);
 }
 
+void graph_method_send_call_mod_input_clear(uint32 graph_id, uint32 module_id, uint32 input)
+{
+	VNOParam	param[3];
+
+	param[0].vuint32 = graph_id;
+	param[1].vuint32 = module_id;
+	param[2].vuint8  = input;
+	send_method_call(MOD_INPUT_CLEAR, param);
+}
+
 void graph_method_receive_call(uint8 id, const void *param)
 {
 	VNOParam	arg[8];
@@ -388,6 +428,9 @@ void graph_method_receive_call(uint8 id, const void *param)
 			case RENAME:	graph_rename(arg[0].vuint32, arg[1].vstring);			break;
 			case DESTROY:	graph_destroy(arg[0].vuint32);					break;
 			case MOD_CREATE: module_create(arg[0].vuint32, arg[1].vuint32);			break;
+			case MOD_INPUT_CLEAR:
+				module_input_clear(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8);
+				break;
 			case MOD_INPUT_SET_REAL32:
 				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32, arg[3].vreal32);
 				break;
