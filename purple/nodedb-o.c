@@ -160,11 +160,7 @@ static void cb_o_method_create(void *user, VNodeID node_id, uint16 group_id, uin
 				NOTIFY(n, STRUCTURE);
 			}
 		}
-		else
-			printf(" no group\n");
 	}
-	else
-		printf(" no node\n");
 }
 
 /* ----------------------------------------------------------------------------------------- */
