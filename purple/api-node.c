@@ -86,7 +86,7 @@ void p_node_tag_create_path(PONode *node, const char *path, VNTagType type, ...)
 			value.vreal64 = va_arg(arg, real64);
 			break;
 		case VN_TAG_STRING:
-			value.vstring = stu_strdup(va_arg(arg, const char *));
+			value.vstring = va_arg(arg, const char *);	/* Duplicated by nodedb. */
 			break;
 		default:
 			printf("not implemented\n");
