@@ -108,6 +108,42 @@ void nodedb_o_destruct(NodeObject *n)
 	dynarr_destroy(n->method_groups);
 }
 
+void nodedb_o_link_set(NodeObject *n, uint16 link_id, VNodeID link, const char *label, uint32 target_id)
+{
+	NdbOLink	*l;
+	unsigned int	i, nl;
+
+	if(n == NULL || n->node.type != V_NT_OBJECT)
+		return;
+	if(n->links == NULL)
+		n->links = dynarr_new(sizeof (NdbOLink), 1);
+
+	if(link_id == (uint16) ~0)	/* Local mode? */
+	{
+		unsigned int	index;
+
+		nl = dynarr_size(n->links);
+		for(i = 0; i < nl; i++)
+		{
+			if((l = dynarr_index(n->links, i)) != NULL)
+			{
+				if(l->target == target_id && l->link == link && strcmp(l->label, label) == 0)
+					return;
+			}
+		}
+		l = dynarr_append(n->links, NULL, &index);
+		link_id = (uint16) index;
+		printf(" appending, index=%u\n", index);
+	}
+	else				/* Server mirror mode. */
+		l = dynarr_set(n->links, link_id, NULL);
+	l->id = link_id;
+	l->link = link;
+	stu_strncpy(l->label, sizeof l->label, label);
+	l->target = target_id;
+	printf("link set, ID %u\n", l->id);
+}
+
 NdbOMethodGroup * nodedb_o_method_group_lookup(NodeObject *node, const char *name)
 {
 	unsigned int	i;
@@ -157,18 +193,8 @@ static void cb_o_link_set(void *user, VNodeID node_id, uint16 link_id, uint32 li
 
 	if((n = nodedb_lookup_object(node_id)) != NULL)
 	{
-		NdbOLink	*l;
-
-		if(n->links == NULL)
-			n->links = dynarr_new(sizeof (NdbOLink), 1);
-		if((l = dynarr_set(n->links, link_id, NULL)) != NULL)
-		{
-			l->id = link_id;
-			l->link = link;
-			stu_strncpy(l->name, sizeof l->name, name);
-			l->target = target_id;
-			NOTIFY(n, DATA);
-		}
+		nodedb_o_link_set(n, link_id, link, name, target_id);
+		NOTIFY(n, DATA);
 	}
 }
 
@@ -233,7 +259,7 @@ static void cb_o_method_group_destroy(void *user, VNodeID node_id, uint16 group_
 	}
 }
 
-static void cb_method_default(unsigned int index, void *element)
+static void cb_method_default(unsigned int index, void *element, void *user)
 {
 	NdbOMethod	*m = element;
 
