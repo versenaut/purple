@@ -163,32 +163,6 @@ static void cb_o_method_call(void *user, VNodeID node_id, uint8 group_id, uint8 
 		LOG_WARN(("Got method call to unknown group %u, method %u", group_id, method_id));
 }
 
-#if 0
-
-static void cb_t_text_set(void *user, VNodeID node_id, VNMBufferID buffer_id, uint32 pos, uint32 len, const char *text)
-{
-/*	if(node_id != client_info.meta)
-		return;
-*/
-	if(node_id == client_info.meta && buffer_id == client_info.plugins.buffer && client_info.plugins.text != NULL)
-	{
-		textbuf_delete(client_info.plugins.text, pos, len);
-		textbuf_insert(client_info.plugins.text, pos, text);
-		if(client_info.plugins.cron != 0)
-			cron_set(client_info.plugins.cron, 1.0, cb_plugins_refresh, NULL);
-	}
-	else if(node_id == client_info.meta && buffer_id == client_info.graphs.buffer && client_info.graphs.text != NULL)
-	{
-		textbuf_delete(client_info.graphs.text, pos, len);
-		textbuf_insert(client_info.graphs.text, pos, text);
-		if(client_info.graphs.cron == 0)
-			client_info.graphs.cron = cron_add(CRON_ONESHOT, 0.1, cb_graphs_refresh, NULL);
-	}
-	else
-		printf("Unknown text (at %u..%u in %u.%u, len %u): \"%s\"\n", pos, pos + len, node_id, buffer_id, strlen(text), text);
-}
-#endif
-
 /* ----------------------------------------------------------------------------------------- */
 
 int client_connect(const char *address)
