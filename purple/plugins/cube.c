@@ -32,9 +32,8 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	p_node_g_polygon_set_corner_uint32(geo, lay, 4,  0, 3, 7, 4);
 	p_node_g_polygon_set_corner_uint32(geo, lay, 5,  2, 1, 5, 6);
 
-	/* Loop and set eight scaled corners. */
 	lay = p_node_g_layer_lookup(geo, "vertex");
-	for(i = 0; i < 8; i++)
+	for(i = 0; i < 8; i++)	/* Loop and set eight scaled corners. */
 		p_node_g_vertex_set_xyz(geo, lay, i, size * corner[i][0], size * corner[i][1], size * corner[i][2]);
 
 	return P_COMPUTE_DONE;	/* Sleep until size changes. */
