@@ -121,6 +121,7 @@ void		p_node_tag_create(PNTagGroup *group, const char *name, VNTagType type, con
 /* Set from a "group/tag"-style path, with vararg for scalar values. */
 void		p_node_tag_create_path(PONode *node, const char *path, VNTagType type, ...);
 void		p_node_tag_destroy(PNTagGroup *group, const char *name);
+void		p_node_tag_destroy_path(PONode *node, const char *path);
 
 void		p_node_o_link_set(PONode *node, const PONode *link, const char *label, uint32 target_id);
 PINode *	p_node_o_link_get(const PONode *node, const char *label, uint32 target_id);
