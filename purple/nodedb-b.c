@@ -10,6 +10,7 @@
 
 #include "dynarr.h"
 #include "list.h"
+#include "log.h"
 #include "mem.h"
 #include "strutil.h"
 #include "textbuf.h"
@@ -39,8 +40,57 @@ void nodedb_b_destruct(NodeBitmap *n)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static size_t pixel_size(VNBLayerType type)
+{
+	switch(type)
+	{
+	case VN_B_LAYER_UINT1:	return 1;
+	case VN_B_LAYER_UINT8:	return sizeof (uint8);
+	case VN_B_LAYER_UINT16:	return sizeof (uint16);
+	case VN_B_LAYER_REAL32:	return sizeof (real32);
+	case VN_B_LAYER_REAL64:	return sizeof (real64);
+	}
+	return 0;
+}
+
 static void cb_b_dimensions_set(VNodeID node_id, uint16 width, uint16 height, uint16 depth)
 {
+	NodeBitmap	*node;
+	NdbBLayer	*layer;
+	size_t		i, y, z, ps, dss, sss;
+	unsigned char	*fb;
+
+	if((node = (NodeBitmap *) nodedb_lookup_with_type(node_id, V_NT_BITMAP)) == NULL)
+		return;
+	if(width == node->width && height == node->height && depth == node->depth)
+		return;
+	ps = pixel_size(layer->type);
+	for(i = 0; i < dynarr_size(node->layers); i++)
+	{
+		if((layer = dynarr_index(node->layers, i)) == NULL || layer->name[0] == '\0')
+			continue;
+		fb = mem_alloc(ps * width * height * depth);
+		if(fb == NULL)
+		{
+			LOG_WARN(("Couldn't allocate new framebuffer for layer %u.%u (%s)--out of memory",
+				  node_id, layer->id, layer->name));
+			continue;
+		}
+		/* Copy scanlines from old buffer into new. */
+		sss = ps * node->width;
+		dss = ps * width;
+		for(z = 0; z < depth; z++)
+		{
+			for(y = 0; y < height; y++)
+				memcpy(fb + z * (dss * height) + y * dss,
+				       layer->framebuffer + z * sss * height + y * sss, dss);
+		}
+		mem_free(layer->framebuffer);
+		layer->framebuffer = fb;
+	}
+	node->width  = width;
+	node->height = height;
+	node->depth  = depth;
 }
 
 static void cb_b_layer_create(VNodeID node_id, VLayerID layer_id, const char *name, VNBLayerType type)
