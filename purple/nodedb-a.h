@@ -32,6 +32,7 @@ typedef struct
 
 extern void		nodedb_a_construct(NodeAudio *n);
 extern void		nodedb_a_copy(NodeAudio *n, const NodeAudio *src);
+extern void		nodedb_a_set(NodeAudio *n, const NodeAudio *src);
 extern void		nodedb_a_destruct(NodeAudio *n);
 
 extern unsigned int	nodedb_a_layer_num(const NodeAudio *node);
