@@ -47,11 +47,23 @@ static PComputeStatus strcut_compute(PPInput *input, PPOutput output, void *stat
 		start  = p_input_uint32(input[1]);
 		length = p_input_uint32(input[2]);
 		slen = strlen(str);
-		if(start >= slen)
-			start = slen - 1;
-		if(length > slen - start)
-			length = slen - start;
-		printf("Cutting from %u and %u on in '%s'\n", start, length, str);
+		if(slen == 0)
+			p_output_string(output, "");
+		else
+		{
+			char	*buf;
+
+			if(start >= slen)
+				start = slen - 1;
+			if(length > slen - start)
+				length = slen - start;
+			buf = malloc(length + 1);
+			strncpy(buf, str + start, length);
+			buf[length] = '\0';
+			printf(" strcut output '%s'\n", buf);
+			p_output_string(output, buf);
+			free(buf);
+		}
 	}
 	return P_COMPUTE_DONE;
 }
