@@ -220,6 +220,20 @@ PNMFragment *	p_node_m_fragment_create_reflection(PONode *node, real64 normal_fa
 PNMFragment *	p_node_m_fragment_create_transparency(PONode *node, real64 normal_fallof, real64 refract);
 PNMFragment *	p_node_m_fragment_create_volume(PONode *node, real64 diffusion, real64 col_r, real64 col_g, real64 col_b,
 							const PNMFragment *color);
+PNMFragment *	p_m_fragment_create_geometry(PONode *node,
+					     const char *layer_r, const char *layer_g, const char *layer_b);
+PNMFragment *	p_m_fragment_create_texture(PONode *node, PINode *bitmap,
+					    const char *layer_r, const char *layer_g, const char *layer_b,
+					    const PNMFragment *mapping);
+PNMFragment *	p_m_fragment_create_noise(PONode *node, VNMNoiseType type, const PNMFragment *mapping);
+PNMFragment *	p_node_m_fragment_create_blender(PONode *node, VNMBlendType type,
+						 const PNMFragment *data_a, const PNMFragment *data_b, const PNMFragment *ctrl);
+PNMFragment *	p_node_m_fragment_create_matrix(PONode *node, const real64 *matrix, const PNMFragment *data);
+PNMFragment *	p_node_m_fragment_create_ramp(PONode *node, VNMRampType type, uint8 channel,
+					      const PNMFragment *mapping, uint8 point_count,
+					      const VNMRampPoint *ramp);
+PNMFragment *	p_node_m_fragment_create_animation(PONode *node, const char *label);
+PNMFragment *	p_node_m_fragment_create_alternative(PONode *node, const PNMFragment *alt_a, const PNMFragment *alt_b);
 PNMFragment *	p_node_m_fragment_create_output(PONode *node, const char *label,
 						const PNMFragment *front, const PNMFragment *back);
 
