@@ -80,8 +80,8 @@ struct Plugin
 struct PInputSet
 {
 	size_t		size;
-	uint32		*use;
-	PInputValue	*value;
+	uint32		*use;		/* Bitmask telling if a value is present. */
+	PInputValue	*value;		/* Actual value of each input. */
 	PPInput		*port;		/* Passed to plug-in compute(). NULL for unassigned inputs. */
 };
 
@@ -664,7 +664,7 @@ void plugin_inputset_destroy(PInputSet *is)
 	if(is == NULL)
 		return;
 	for(i = 0; i < is->size; i++)
-		plugin_inputset_clear(is, i);
+		plugin_inputset_clear(is, i);	/* A bit costly, but destroy is rather infrequent, so... */
 	mem_free(is);
 }
 
