@@ -403,6 +403,12 @@ PNMFragment * p_node_m_fragment_create_matrix(PONode *node, const real64 *matrix
 	return nodedb_m_fragment_create_matrix((NodeMaterial *) node, matrix, data);
 }
 
+PNMFragment * p_node_m_fragment_create_geometry(NodeMaterial *node,
+						const char *layer_r, const char *layer_g, const char *layer_b)
+{
+	return nodedb_m_fragment_create_geometry((NodeMaterial *) node, layer_r, layer_g, layer_b);
+}
+
 PNMFragment * p_node_m_fragment_create_output(PONode *node, const char *label, const PNMFragment *front, const PNMFragment *back)
 {
 	return nodedb_m_fragment_create_output((NodeMaterial *) node, label, front, back);
