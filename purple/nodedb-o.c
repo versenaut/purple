@@ -79,6 +79,23 @@ static void cb_o_method_group_create(void *user, VNodeID node_id, uint16 group_i
 	}
 }
 
+static void cb_o_method_group_destroy(void *user, VNodeID node_id, uint16 group_id, const char *name)
+{
+	NodeObject	*n;
+
+	if((n = nodedb_lookup_object(node_id)) != NULL)
+	{
+		NdbOMethodGroup	*g;
+
+		if((g = dynarr_index(n->method_groups, group_id)) != NULL)
+		{
+			g->id = 0;
+			g->name[0] = '\0';
+			dynarr_destroy(g->methods);
+		}
+	}
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 void nodedb_o_register_callbacks(void)
@@ -86,4 +103,5 @@ void nodedb_o_register_callbacks(void)
 	verse_callback_set(verse_send_o_link_set,		cb_o_link_set, NULL);
 	verse_callback_set(verse_send_o_light_set,		cb_o_light_set, NULL);
 	verse_callback_set(verse_send_o_method_group_create,	cb_o_method_group_create, NULL);
+	verse_callback_set(verse_send_o_method_group_destroy,	cb_o_method_group_destroy, NULL);
 }
