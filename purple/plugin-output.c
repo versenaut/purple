@@ -32,7 +32,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state_typel
 		PINode	*node;
 
 		if((node = p_input_node_nth(input[0], i)) != NULL)
-			sync_node_add(node);
+			sync_node_add((PONode *) node);
 		else
 			break;
 	}
