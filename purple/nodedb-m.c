@@ -46,40 +46,49 @@ static void cb_fragment_default(unsigned int indec, void *element, void *user)
 
 NdbMFragment * nodedb_m_fragment_create(NodeMaterial *node, VNMFragmentID fragment_id, VNMFragmentType type, const VMatFrag *fragment)
 {
-/*	NdbCCurve	*curve;
+	NdbMFragment	*f;
 
-	if(node == NULL || name == NULL || dimensions > 4)
+	if(node == NULL || fragment == NULL)
 		return NULL;
-	if(node->curves == NULL)
+	if(node->fragments == NULL)
 	{
-		node->curves = dynarr_new(sizeof (NdbCCurve), 4);
-		dynarr_set_default_func(node->curves, cb_curve_default, NULL);
+		node->fragments = dynarr_new(sizeof (NdbMFragment), 4);
+		dynarr_set_default_func(node->fragments, cb_fragment_default, NULL);
 	}
-	if(curve_id == (VLayerID) ~0)
-		curve = dynarr_append(node->curves, NULL, NULL);
+	if(fragment_id == (VLayerID) ~0)
+		f = dynarr_append(node->fragments, NULL, NULL);
 	else
-		curve = dynarr_set(node->curves, curve_id, NULL);
-	if(curve != NULL)
+		f = dynarr_set(node->fragments, fragment_id, NULL);
+	if(f != NULL)
 	{
-		curve->id = curve_id;
-		stu_strncpy(curve->name, sizeof curve->name, name);
-		curve->dimensions = dimensions;
-		curve->keys = NULL;
-		printf("Curve curve %u.%u %s created, dim=%u\n", node->node.id, curve_id, name, curve->dimensions);
+		f->id   = fragment_id;
+		f->type = type;
+		f->frag = *fragment;
+		printf("fragment %u.%u created, type=%u\n", node->node.id, fragment_id, f->type);
 	}
-	return curve;
-*/
-	return NULL;
+	return f;
 }
 
 /* ----------------------------------------------------------------------------------------- */
 
 static void cb_m_fragment_create(void *user, VNodeID node_id, VNMFragmentID fragment_id, VNMFragmentType type, VMatFrag *fragment)
 {
-	NodeMaterial	*n;
+	NodeMaterial	*node;
 
-	if((n = (NodeMaterial *) nodedb_lookup_with_type(node_id, V_NT_MATERIAL)) != NULL)
+	if((node = (NodeMaterial *) nodedb_lookup_with_type(node_id, V_NT_MATERIAL)) != NULL)
 	{
+		NdbMFragment	*frag;
+		int		old = 0;
+
+		if((frag = dynarr_index(node->fragments, fragment_id)) != NULL)
+			old = 1;
+		if((frag = nodedb_m_fragment_create(node, fragment_id, type, fragment)) != NULL)
+		{
+			if(old)
+				NOTIFY(node, DATA);
+			else
+				NOTIFY(node, STRUCTURE);
+		}
 	}
 }
 
