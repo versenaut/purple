@@ -89,6 +89,9 @@ static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeID 
 		n->tag_groups = NULL;
 		switch(n->type)
 		{
+		case V_NT_OBJECT:
+			nodedb_o_init((NodeObject *) n);
+			break;
 		case V_NT_TEXT:
 			nodedb_t_init((NodeText *) n);
 			break;
@@ -142,7 +145,8 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 
 	for(i = 0; i < sizeof nodedb_info.chunk_node / sizeof *nodedb_info.chunk_node; i++)
 		nodedb_info.chunk_node[i] = NULL;
-	nodedb_info.chunk_node[V_NT_TEXT] = memchunk_new("chunk-node-text", sizeof (NodeText), 16);
+	nodedb_info.chunk_node[V_NT_OBJECT] = memchunk_new("chunk-node-object", sizeof (NodeObject), 16);
+	nodedb_info.chunk_node[V_NT_TEXT]   = memchunk_new("chunk-node-text", sizeof (NodeText), 16);
 
 	nodedb_info.nodes      = hash_new(node_hash, node_has_key);
 	nodedb_info.nodes_mine = hash_new(node_hash, node_has_key);
@@ -150,6 +154,7 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 	verse_callback_set(verse_send_node_create,	cb_node_create,	NULL);
 	verse_callback_set(verse_send_node_name_set,	cb_node_name_set, NULL);
 
+	nodedb_o_register_callbacks();
 	nodedb_t_register_callbacks();
 
  	verse_send_node_list(mask);
