@@ -73,6 +73,12 @@ void nodedb_c_copy(NodeCurve *n, const NodeCurve *src)
 	n->curves = dynarr_new_copy(src->curves, cb_copy_curve, NULL);
 }
 
+void nodedb_c_set(NodeCurve *n, const NodeCurve *src)
+{
+	nodedb_c_destruct(n);
+	nodedb_c_copy(n, src);
+}
+
 void nodedb_c_destruct(NodeCurve *n)
 {
 	unsigned int	i, num;
@@ -90,6 +96,7 @@ void nodedb_c_destruct(NodeCurve *n)
 		}
 	}
 	dynarr_destroy(n->curves);
+	n->curves = NULL;
 }
 
 /* ----------------------------------------------------------------------------------------- */
