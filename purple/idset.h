@@ -21,7 +21,7 @@ extern size_t		idset_size(const IdSet *is);
 extern void *		idset_lookup(const IdSet *is, unsigned int id);
 
 /*
- * Foreach-functions, to travese over all members of an IdSet. Use as follows:
+ * Foreach-functions, to traverse over all members of an IdSet. Use as follows:
  * 
  * const IdSet *is;
  * unsigned int	id;
