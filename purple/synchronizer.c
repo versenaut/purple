@@ -13,6 +13,7 @@
 #include "dynarr.h"
 #include "list.h"
 #include "log.h"
+#include "mem.h"
 #include "plugins.h"
 #include "textbuf.h"
 #include "nodedb.h"
@@ -60,6 +61,56 @@ void sync_init(void)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static int object_link_exists(const NodeObject *n, VNodeID link, const char *label, uint32 target_id)
+{
+	unsigned int	i;
+	const NdbOLink	*l;
+
+	for(i = 0; (l = dynarr_index(n->links, i)) != NULL; i++)
+	{
+		if(l->link == link && l->target == target_id && strcmp(l->label, label) == 0)
+			return 1;
+	}
+	return 0;
+}
+
+static int sync_object(NodeObject *n, const NodeObject *target)
+{
+	int		sync = 1;
+	List		*iter, *next;
+
+	/* Synchronize light source information. */
+	if(n->light[0] != target->light[0] || n->light[1] != target->light[1] || n->light[2] != target->light[2])
+	{
+		verse_send_o_light_set(target->node.id, n->light[0], n->light[1], n->light[2]);
+		sync = 0;
+	}
+	/* Look through local (non-synced) links. */
+	for(iter = n->links_local; iter != NULL; iter = next)
+	{
+		NdbOLinkLocal	*link = list_data(iter);
+
+		next = list_next(iter);
+		if(link->link->id == ~0)
+		{
+			printf("can't sync link '%s', target not known yet\n", link->label);
+			sync = 0;
+		}
+		else
+		{
+			printf("can sync link '%s', target is %u\n", link->label, link->link->id);
+			if(!object_link_exists(n, link->link->id, link->label, link->target))
+				verse_send_o_link_set(target->node.id, ~0, link->link->id, link->label, link->target);
+			n->links_local = list_unlink(n->links_local, iter);
+			mem_free(link);
+			list_destroy(iter);
+		}
+	}
+	return sync;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 				const NodeGeometry *target, const NdbGLayer *tlayer)
 {
@@ -70,7 +121,7 @@ static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 	/* Basically break the dynarr abstraction, for speed. */
 	esize = dynarr_get_elem_size(layer->data);
 	size  = dynarr_size(layer->data);
-	tsize = dynarr_size(layer->data);
+	tsize = dynarr_size(tlayer->data);
 	data  = dynarr_index(layer->data, 0);
 	tdata = dynarr_index(tlayer->data, 0);
 	for(i = 0; i < size; i++)
@@ -164,6 +215,8 @@ static int sync_node(Node *n)
 		LOG_WARN(("Couldn't look up existing (target) node for %u--aborting sync", n->id));
 		return 0;
 	}
+	if(n->type == V_NT_OBJECT)
+		return sync_object((NodeObject *) n, (NodeObject *) target);
 	if(n->type == V_NT_GEOMETRY)
 		return sync_geometry((NodeGeometry *) n, (NodeGeometry *) target);
 	return 0;
