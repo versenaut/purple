@@ -45,14 +45,14 @@ static int cb_graphs_refresh(void *data)
 
 static void notify_mine_create(Node *node)
 {
-	if(node->type == V_NT_TEXT && client_info.meta == 0)
+	if(node->type == V_NT_TEXT && client_info.meta == ~0)
 	{
 		printf("It's the meta text node!\n");
 		client_info.meta = node->id;
 		verse_send_node_name_set(node->id, "PurpleMeta");
 		verse_send_t_set_language(node->id, "xml/purple/meta");
 		verse_send_t_buffer_create(node->id, ~0, 0, "plugins");
-		verse_send_t_buffer_create(node->id, ~1, 0, "graphs");
+		verse_send_t_buffer_create(node->id, ~0, 0, "graphs");
 		verse_send_node_subscribe(node->id);
 		verse_send_o_link_set(client_info.avatar, ~0, node->id, "meta", 0);
 	}
@@ -137,7 +137,7 @@ static void cb_node_notify_mine(Node *node, NodeNotifyEvent e)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_connect_accept(void *user, VNodeID avatar, void *address, void *connection)
+static void cb_connect_accept(void *user, VNodeID avatar, void *address, void *connection, uint8 *host_id)
 {
 	if(!client_info.connected)
 	{
@@ -147,10 +147,12 @@ static void cb_connect_accept(void *user, VNodeID avatar, void *address, void *c
 
 		LOG_MSG(("Connected to Verse server, as avatar %u", avatar));
 		nodedb_register_callbacks(avatar, (1 << V_NT_OBJECT) | (1 << V_NT_TEXT));
+/*		verse_send_node_list(1 << V_NT_OBJECT);*/
+		verse_send_node_subscribe(avatar);
 		verse_send_node_name_set(avatar, "PurpleEngine");
 		verse_send_o_method_group_create(avatar, 0, METHOD_GROUP_CONTROL_NAME);
 
-		verse_send_node_create(0, V_NT_TEXT, client_info.avatar);
+		verse_send_node_create(~0, V_NT_TEXT, VN_OWNER_MINE);
 	}
 	else
 		LOG_MSG(("Got redundant connect-accept command--ignoring"));
@@ -186,7 +188,7 @@ int cb_reconnect(void *data)
 			verse_session_destroy(client_info.connection);	/* Avoid socket leakage. */
 		}
 		LOG_MSG(("Connection attempt %d", client_info.conn_count++));
-		client_info.connection = verse_send_connect("purple", "purple-password", client_info.address);
+		client_info.connection = verse_send_connect("purple", "purple-password", client_info.address, NULL);
 	}
 	return 1;
 }
@@ -195,6 +197,8 @@ int cb_reconnect(void *data)
 
 void client_init(void)
 {
+	client_info.avatar = ~0;
+	client_info.meta   = ~0;
 	cron_add(CRON_PERIODIC, 5.0, cb_reconnect, NULL);
 	nodedb_notify_add(NODEDB_OWNERSHIP_MINE, cb_node_notify_mine);
 	client_info.gid_control = ~0;
