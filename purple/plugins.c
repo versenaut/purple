@@ -659,7 +659,6 @@ static void library_new(const char *name)
 
 		plugins_info.libraries = list_append(plugins_info.libraries, lib);
 		LOG_MSG(("Loaded and stored library from \"%s\"", name));
-		printf("there are now %u libs loaded\n", list_length(plugins_info.libraries));
 	}
 }
 
