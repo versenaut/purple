@@ -17,6 +17,7 @@
 #include "timeval.h"
 #include "plugins.h"
 #include "strutil.h"
+#include "value.h"
 #include "xmlnode.h"
 
 #include "nodedb.h"
