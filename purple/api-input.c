@@ -10,6 +10,7 @@
 
 #include "dynstr.h"
 #include "log.h"
+#include "nodeset.h"
 #include "strutil.h"
 #include "value.h"
 #include "port.h"
@@ -276,5 +277,14 @@ real32 p_input_real32(PPInput input)
 
 const char * p_input_string(PPInput input)
 {
-	return port_input_string(input);
+	const char	*str;
+
+	if((str = port_input_string(input)) == NULL)
+		str = nodeset_get_string(input->nodes);
+	return str;
+}
+
+PINode * p_input_node(PPInput input)
+{
+	return port_input_node(input);
 }
