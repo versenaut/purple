@@ -63,7 +63,7 @@ NodeText * nodedb_lookup_text(VNodeID node_id)
 
 void nodedb_internal_notify_mine_check(Node *n, NodeNotifyEvent ev)
 {
-	if(nodedb_info.notify_mine != NULL && n->owner == nodedb_info.avatar || n->id == nodedb_info.avatar)
+	if(nodedb_info.notify_mine != NULL && (n->owner == nodedb_info.avatar || n->id == nodedb_info.avatar))
 	{
 		const List	*iter;
 
