@@ -227,17 +227,23 @@ void nodedb_t_buffer_insert(NdbTBuffer *buffer, size_t pos, const char *text)
 	}
 }
 
+void nodedb_t_buffer_append(NdbTBuffer *buffer, const char *text)
+{
+	if(buffer == NULL || text == NULL || *text == '\0')
+		return;
+	nodedb_t_buffer_insert(buffer, textbuf_length(buffer->text), text);
+}
+
 void nodedb_t_buffer_delete(NdbTBuffer *buffer, size_t pos, size_t length)
 {
 	if(buffer != NULL)
 		textbuf_delete(buffer->text, pos, length);
 }
 
-void nodedb_t_buffer_append(NdbTBuffer *buffer, const char *text)
+void nodedb_t_buffer_clear(NdbTBuffer *buffer)
 {
-	if(buffer == NULL || text == NULL || *text == '\0')
-		return;
-	nodedb_t_buffer_insert(buffer, textbuf_length(buffer->text), text);
+	if(buffer != NULL)
+		textbuf_truncate(buffer->text, 0);
 }
 
 /* ----------------------------------------------------------------------------------------- */
