@@ -35,12 +35,14 @@ extern const void *	bintree_key_maximum(const BinTree *tree);
  * BinTree *tree;
  * BinTreeIter iter;	# NOT a pointer, an instance is needed.
  * void *key;
- * for(key = bintree_iter_first(tree, &iter); key != NULL; key = bintree_iter_next(tree, &iter)
- * { use bintree_iter_element(iter) to access key's element. }
+ * for(bintree_iter_init(tree, &iter); bintree_iter_valid(iter); bintree_iter_next(tree, &iter)
+ * { use bintree_iter_{key|element}(iter) to access tree data. }
 */
-extern const void *	bintree_iter_first(const BinTree *tree, BinTreeIter *iter);
+extern void		bintree_iter_init(const BinTree *tree, BinTreeIter *iter);
+extern int		bintree_iter_valid(const BinTreeIter iter);
+extern const void *	bintree_iter_key(const BinTreeIter iter);
 extern void *		bintree_iter_element(const BinTreeIter iter);
-extern const void *	bintree_iter_next(BinTreeIter *iter);
+extern void		bintree_iter_next(BinTreeIter *iter);
 
 extern void		bintree_print(const BinTree *tree);
 

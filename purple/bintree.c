@@ -260,16 +260,23 @@ const void * bintree_key_maximum(const BinTree *tree)
 
 /* ----------------------------------------------------------------------------------------- */
 
-const void * bintree_iter_first(const BinTree *tree, BinTreeIter *iter)
+void bintree_iter_init(const BinTree *tree, BinTreeIter *iter)
 {
-	const Node	*first;
-
 	if(tree == NULL || iter == NULL)
-		return NULL;
-	first = tree_minimum(tree->root);
-	*iter = first;
+		return;
+	*iter = tree_minimum(tree->root);
+}
 
-	return first->key;
+int bintree_iter_valid(const BinTreeIter iter)
+{
+	return iter != NULL;
+}
+
+const void * bintree_iter_key(const BinTreeIter iter)
+{
+	if(iter != NULL)
+		return ((Node *) iter)->key;
+	return NULL;
 }
 
 void * bintree_iter_element(const BinTreeIter iter)
@@ -279,20 +286,12 @@ void * bintree_iter_element(const BinTreeIter iter)
 	return NULL;
 }
 
-const void * bintree_iter_next(BinTreeIter *iter)
+void bintree_iter_next(BinTreeIter *iter)
 {
-	const Node	*next;
-
 	if(iter == NULL || *iter == NULL)
-		return NULL;
+		return;
 
-	next = tree_successor(*iter);
-	if(next != NULL)
-	{
-		*iter = next;
-		return next->key;
-	}
-	return NULL;
+	*iter = tree_successor(*iter);
 }
 
 /* ----------------------------------------------------------------------------------------- */
