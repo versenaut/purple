@@ -20,7 +20,8 @@ typedef struct {
 	uint16		id;
 	VNodeID		parent;
 	char		name[32];
-	GtkWidget	*text;
+	GtkWidget	*text;		/* GtkTextView visualizing the buffer contents. */
+	GtkWidget	*info;		/* Label showing size. */
 	gint		page_num;	/* In GtkNotebook. */
 } TextBuffer;
 
@@ -139,6 +140,7 @@ static TextBuffer * node_text_buffer_new(MainInfo *min, VNodeID node_id, uint16 
 	buf->parent = node_id;
 	g_snprintf(buf->name, sizeof buf->name, "[%u] %s", buffer_id, name);
 	buf->text = NULL;
+	buf->info = NULL;
 	buf->page_num = -1;
 	node->buffers = g_list_append(node->buffers, buf);
 
@@ -273,6 +275,7 @@ static void evt_buffer_close_clicked(GtkWidget *wid, gpointer user)
 		verse_send_t_buffer_unsubscribe(buf->parent, buf->id);
 		gtk_notebook_remove_page(GTK_NOTEBOOK(min->notebook), buf->page_num);
 		buf->text = NULL;
+		buf->info = NULL;
 
 		subscribe_set_sensitive(min);
 	}
@@ -286,15 +289,20 @@ static void evt_subscribe_clicked(GtkWidget *wid, gpointer user)
 	if((buf = buffer_lookup(min, min->cur_node, min->cur_buffer)) != NULL)
 	{
 		gchar		ltext[64], *nptr;
-		GtkWidget	*scwin, *hbox, *label, *cross;
+		GtkWidget	*vbox, *scwin, *hbox, *label, *cross;
 
 		if(buf->text != NULL)
 			return;
+		vbox = gtk_vbox_new(FALSE, 0);
 		scwin = gtk_scrolled_window_new(NULL, NULL);
 		gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scwin), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 		buf->text = gtk_text_view_new();
 /*		gtk_text_set_editable(GTK_TEXT(buf->text), FALSE);*/
 		gtk_container_add(GTK_CONTAINER(scwin), buf->text);
+		gtk_box_pack_start(GTK_BOX(vbox), scwin, TRUE, TRUE, 0);
+		buf->info = gtk_label_new("");
+		gtk_misc_set_alignment(GTK_MISC(buf->info), 0.0f, 0.5f);
+		gtk_box_pack_start(GTK_BOX(vbox), buf->info, FALSE, FALSE, 0);
 		nptr = strchr(buf->name, ' ') + 1;
 		g_snprintf(ltext, sizeof ltext, "[%u.%u] %s", min->cur_node, min->cur_buffer, nptr);
 		hbox = gtk_hbox_new(FALSE, 0);
@@ -306,9 +314,9 @@ static void evt_subscribe_clicked(GtkWidget *wid, gpointer user)
 		g_signal_connect(G_OBJECT(cross), "clicked", G_CALLBACK(evt_buffer_close_clicked), min);
 		gtk_box_pack_start(GTK_BOX(hbox), cross, FALSE, FALSE, 0);
 		gtk_widget_show_all(hbox);
-		gtk_notebook_append_page(GTK_NOTEBOOK(min->notebook), scwin, hbox);
-		buf->page_num = gtk_notebook_page_num(GTK_NOTEBOOK(min->notebook), scwin);
-		gtk_widget_show_all(scwin);
+		gtk_notebook_append_page(GTK_NOTEBOOK(min->notebook), vbox, hbox);
+		buf->page_num = gtk_notebook_page_num(GTK_NOTEBOOK(min->notebook), vbox);
+		gtk_widget_show_all(vbox);
 		gtk_notebook_set_current_page(GTK_NOTEBOOK(min->notebook), buf->page_num);
 		verse_send_t_buffer_subscribe(min->cur_node, min->cur_buffer);
 		subscribe_set_sensitive(min);
@@ -320,6 +328,7 @@ static void cb_t_text_set(void *user, VNodeID node_id, uint16 buffer_id, uint32 
 	TextBuffer	*buf;
 	GtkTextBuffer	*textbuf;
 	GtkTextIter	start, end;
+	gchar		info[32];
 
 	if((buf = buffer_lookup(user, node_id, buffer_id)) == NULL)
 		return;
@@ -334,6 +343,11 @@ static void cb_t_text_set(void *user, VNodeID node_id, uint16 buffer_id, uint32 
 	gtk_text_buffer_get_iter_at_offset(textbuf, &end, pos + len);
 	gtk_text_buffer_delete(textbuf, &start, &end);
 	gtk_text_buffer_insert(textbuf, &start, text, -1);
+
+	g_snprintf(info, sizeof info, "%u bytes, %u lines",
+		   gtk_text_buffer_get_char_count(textbuf),
+		   gtk_text_buffer_get_line_count(textbuf));
+	gtk_label_set_text(buf->info, info);
 }
 
 static gboolean evt_window_keypress(GtkWidget *win, GdkEventKey *evt, gpointer user)
