@@ -19,6 +19,7 @@
 #include "mem.h"
 #include "memchunk.h"
 #include "plugins.h"
+#include "scheduler.h"
 #include "strutil.h"
 #include "textbuf.h"
 #include "value.h"
@@ -329,10 +330,11 @@ void graph_port_output_set(PPOutput port, PValueType type, ...)
 	Module	*m = MODULE_FROM_PORT(port);
 	va_list	arg;
 
-	printf("This is module %u\n", m->id);
 	va_start(arg, type);
 	port_set_va(port, type, arg);
 	va_end(arg);
+
+	/* At this point, we need to care about dependants. */
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -467,6 +469,7 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 	}
 	m->plugin = p;
 	plugin_instance_init(m->plugin, &m->instance);
+	printf("instatiated %s, inputs at %p\n", plugin_name(p), m->instance.inputs);
 	plugin_instance_set_output(&m->instance, &m->out.port);
 	plugin_instance_set_link_resolver(&m->instance, cb_module_lookup, g);
 	idlist_construct(&m->out.dependants);
@@ -502,7 +505,7 @@ static void module_destroy(uint32 graph_id, uint32 module_id)
 	idset_remove(g->modules, module_id);
 	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, NULL);
 	idlist_destruct(&m->out.dependants);
-	plugin_instance_free(m->plugin, &m->instance);
+	plugin_instance_free(&m->instance);
 	memchunk_free(graph_info.chunk_module, m);
 	graph_modules_desc_start_update(g);
 }
@@ -542,8 +545,7 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 		plugin_portset_get_module(m->instance.inputs, input_index, &other);
 		module_dep_add(g, other, module_id);
 	}
-
-	plugin_instance_compute(m->plugin, &m->instance);
+	sched_add(&m->instance);
 }
 
 /* Clear a module input, i.e. remove any assigned value and leave it "floating" as after module creation. */
