@@ -50,6 +50,7 @@ NodeSet * nodeset_add(NodeSet *ns, PONode *n)
 	if(ns != NULL)
 	{
 		ns->nodes = list_prepend(ns->nodes, n);
+		nodedb_ref(n);
 	}
 	return ns;
 }
@@ -61,7 +62,7 @@ void nodeset_clear(NodeSet *ns)
 	if(ns == NULL)
 		return;
 	for(iter = ns->nodes; iter != NULL; iter = list_next(iter))
-		nodedb_destroy((Node *) list_data(iter));
+		nodedb_unref(list_data(iter));
 	list_destroy(ns->nodes);
 	ns->nodes = NULL;
 }
