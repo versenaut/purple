@@ -444,7 +444,7 @@ const char * xmlnode_attrib_get(const XmlNode *node, const char *name)
 	if(node == NULL || name == NULL)
 		return NULL;
 
-	for(lo = 0, hi = node->attrib_num; lo < hi;)
+	for(lo = 0, hi = node->attrib_num; lo <= hi;)
 	{
 		int	mid = (lo + hi) / 2, rel;
 
