@@ -8,6 +8,7 @@
 #include "verse.h"
 
 #include "dynarr.h"
+#include "list.h"
 #include "strutil.h"
 #include "textbuf.h"
 
