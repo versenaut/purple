@@ -9,9 +9,11 @@
 #
 
 import os
+import string
 import sys
 
-LICENSE=" * Copyright (C) 2004 COPYRIGHT-PLACEHOLDER. See COPYING for license details."
+LICENSE_TEMPLATE=" * Copyright (C) 2004 COPYRIGHT-PLACEHOLDER. See COPYING for license details."
+LICENSE=LICENSE_TEMPLATE
 
 # Insert comment blurb at the top, either creating new comment or extending existing.
 def insert(name, file, blurb):
@@ -44,6 +46,10 @@ def load(filename):
 	return lines[:len(lines) - 1]
 
 for a in sys.argv[1:]:
+	if a[0:7] == "--copy=":
+		copyright = a[7:]
+		LICENSE = string.replace(LICENSE_TEMPLATE, "COPYRIGHT-PLACEHOLDER", copyright)
+		continue
 	f = load(a)
 	if len(f) > 0:
 		# Insert blurb.
