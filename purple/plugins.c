@@ -345,6 +345,20 @@ Plugin * plugin_lookup(unsigned int id)
 	return idset_lookup(plugins_info.plugins, id);
 }
 
+Plugin * plugin_lookup_by_name(const char *name)
+{
+	unsigned int	id;
+	Plugin		*p;
+
+	for(id = idset_foreach_first(plugins_info.plugins); (p = idset_lookup(plugins_info.plugins, id)) != NULL;
+	    id = idset_foreach_next(plugins_info.plugins, id))
+	{
+		if(strcmp(p->name, name) == 0)
+			return p;
+	}
+	return NULL;
+}
+
 unsigned int plugin_id(const Plugin *p)
 {
 	return p != NULL ? p->id : 0;

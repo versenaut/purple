@@ -51,6 +51,7 @@ extern size_t	plugins_amount(void);
 extern char *	plugins_build_xml(void);
 
 extern Plugin *		plugin_lookup(unsigned int id);
+extern Plugin *		plugin_lookup_by_name(const char *name);
 extern unsigned int	plugin_id(const Plugin *p);
 extern const char *	plugin_name(const Plugin *p);
 
