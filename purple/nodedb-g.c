@@ -113,21 +113,16 @@ NdbGLayer * nodedb_g_layer_lookup(const NodeGeometry *node, const char *name)
 
 	if(node == NULL)
 		return NULL;
-	printf("looking up layer '%s' in node at %p\n", name, node);
 	for(i = 0; (layer = dynarr_index(node->layers, i)) != NULL; i++)
 	{
 		if(strcmp(layer->name, name) == 0)
-		{
-			printf(" that'd be %p\n", layer);
 			return layer;
-		}
 	}
 	return NULL;
 }
 
 size_t nodedb_g_layer_size(const NodeGeometry *node, const NdbGLayer *layer)
 {
-	printf("returning size of type %d layer at %p\n", layer->type, layer);
 	return dynarr_size(layer->data);
 }
 
@@ -204,7 +199,7 @@ void nodedb_g_vertex_set_xyz(NodeGeometry *node, NdbGLayer *layer, uint32 vertex
 		vtx[0] = x;
 		vtx[1] = y;
 		vtx[2] = z;
-		printf(" vertex set to (%g,%g,%g)\n", x, y, z);
+/*		printf(" vertex set to (%g,%g,%g)\n", x, y, z);*/
 	}
 }
 
