@@ -58,7 +58,7 @@ void sched_add(PInstance *inst)
 	sched_info.ready_iter = NULL;
 }
 
-#define	RUNTIME_LIMIT	1.0
+#define	RUNTIME_LIMIT	1.0	/* Lower bound on maximum time to spend running compute(). Merely co-operative. :/ */
 
 void sched_update(void)
 {
@@ -67,8 +67,6 @@ void sched_update(void)
 
 	timeval_now(&t);
 	iter = sched_info.ready_iter;
-	if(iter == NULL)
-		iter = sched_info.ready;
 	while(timeval_elapsed(&t, NULL) < RUNTIME_LIMIT)
 	{
 		PluginStatus	res;
@@ -82,8 +80,8 @@ void sched_update(void)
 		task = list_data(iter);
 		if(task->count == 0)
 			graph_port_output_begin(task->inst->output);
-		res = plugin_instance_compute(task->inst);
 		task->count++;
+		res = plugin_instance_compute(task->inst);
 		if(res >= PLUGIN_STOP)
 		{
 			PPOutput	out = task->inst->output;	/* Buffer across free(). */
