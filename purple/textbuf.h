@@ -5,7 +5,7 @@
 
 typedef struct TextBuf	TextBuf;
 
-/* Create a fresh empty text buffer. Preallocate <inital_size> bytes of space,
+/* Create a fresh empty text buffer. Preallocate <initial_size> bytes of space,
  * if non-zero.
 */
 extern TextBuf *	textbuf_new(size_t initial_size);
