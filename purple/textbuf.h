@@ -7,6 +7,9 @@
  * for a Verse text node buffer.
 */
 
+#if !defined TEXTBUF_H
+#define	TEXTBUF_H
+
 typedef struct TextBuf	TextBuf;
 
 /* Create a fresh empty text buffer. Preallocate <initial_size> bytes of space,
@@ -38,3 +41,5 @@ extern size_t		textbuf_length(const TextBuf *tb);
 
 /* Destroy a text buffer, losing the text of course. */
 extern void		textbuf_destroy(TextBuf *tb);
+
+#endif		/* TEXTBUF_H */
