@@ -32,7 +32,7 @@ typedef struct
 {
 	uint32		id;
 	const Plugin	*plugin;
-	PInputSet	*inputs;
+	PInstance	instance;
 
 	uint32		start, length;	/* Region in graph XML buffer used for this module. */
 } Module;
@@ -285,13 +285,13 @@ static boolean traverse_module(const Graph *g, uint32 module_id, uint32 source_i
 	{
 		unsigned int	i;
 
-		for(i = plugin_inputset_size(m->inputs); i-- > 0;)
+		for(i = plugin_inputset_size(m->instance.inputs); i-- > 0;)
 		{
 			uint32	link;
 
 			if(module_id == ti->module_id && i == ti->input)
 				link = ti->source;
-			else if(plugin_inputset_get_module(m->inputs, i, &link) && idset_lookup(g->modules, link))
+			else if(plugin_inputset_get_module(m->instance.inputs, i, &link) && idset_lookup(g->modules, link))
 				;
 			else
 				continue;
@@ -341,7 +341,7 @@ static DynStr * module_build_desc(const Module *m)
 
 	d = dynstr_new_sized(256);
 	dynstr_append_printf(d, " <module id=\"%u\" plug-in=\"%u\">\n", m->id, plugin_id(m->plugin));
-	plugin_inputset_describe(m->inputs, d);
+	plugin_inputset_describe(m->instance.inputs, d);
 	dynstr_append(d, " </module>\n");
 
 	return d;
@@ -388,7 +388,7 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 		return;
 	}
 	m->plugin = p;
-	m->inputs = plugin_inputset_new(m->plugin);
+	plugin_instance_init(m->plugin, &m->instance);
 	m->start = m->length = 0;
 	if(g->modules == NULL)
 		g->modules = idset_new(0);
@@ -419,7 +419,7 @@ static void module_destroy(uint32 graph_id, uint32 module_id)
 	}
 	idset_remove(g->modules, module_id);
 	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, NULL);
-	plugin_inputset_destroy(m->inputs);
+	plugin_instance_free(m->plugin, &m->instance);
 	memchunk_free(graph_info.chunk_module, m);
 	graph_modules_desc_start_update(g);
 }
@@ -444,14 +444,13 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 		return;
 	}
 	va_start(arg, type);
-	plugin_inputset_set_va(m->inputs, input_index, type, arg);
+	plugin_inputset_set_va(m->instance.inputs, input_index, type, arg);
 	va_end(arg);
 	desc = module_build_desc(m);
 	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, dynstr_string(desc));
 	m->length = dynstr_length(desc);
 	dynstr_destroy(desc, 1);
 	graph_modules_desc_start_update(g);
-
 /*	plugin_run_compute(m->plugin, m->inputs);*/
 }
 
@@ -472,7 +471,7 @@ static void module_input_clear(uint32 graph_id, uint32 module_id, uint8 input_in
 		LOG_WARN(("Attempted to clear module input in non-existant module %u.%u", graph_id, module_id));
 		return;
 	}
-	plugin_inputset_clear(m->inputs, input_index);
+	plugin_inputset_clear(m->instance.inputs, input_index);
 	desc = module_build_desc(m);
 	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, dynstr_string(desc));
 	m->length = dynstr_length(desc);
