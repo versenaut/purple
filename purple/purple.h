@@ -171,6 +171,7 @@ PNCKey *	p_node_c_curve_key_get_nth(const PNCCurve *curve, unsigned int n);
 typedef void	PNTBuffer;
 
 const char *	p_node_t_language_get(PINode *node);
+void		p_node_t_language_set(PONode *node, const char *language);
 size_t		p_node_t_buffer_get_count(PINode *node);
 PNTBuffer *	p_node_t_buffer_get_nth(PINode *node, unsigned int n);
 PNTBuffer *	p_node_t_buffer_lookup(PINode *node);

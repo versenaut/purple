@@ -204,6 +204,11 @@ const char * p_node_t_language_get(PINode *node)
 	return nodedb_t_language_get((NodeText *) node);
 }
 
+void p_node_t_langauge_set(PONode *node, const char *language)
+{
+	nodedb_t_language_set((NodeText *) node, language);
+}
+
 size_t p_node_t_buffer_get_count(PINode *node)
 {
 	return nodedb_t_buffer_get_count((NodeText *) node);
