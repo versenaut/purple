@@ -153,6 +153,14 @@ void		p_node_b_layer_foreach_set(PONode *node, PNBLayer *layer,
 void		p_node_b_layer_destroy(PONode *node, PNBLayer *layer);
 
 
+/* Curve-node manipulation functions. */
+typedef void	PNCCurve;
+
+PNCCurve *	p_node_c_curve_create(PONode *node, uint8 dimensions, const char *name);
+PNCCurve *	p_node_c_curve_lookup(PINode *node, const char *name);
+uint8		p_node_c_curve_dimensions_get(const PNCCurve *curve);
+
+
 /* Duplicates an input node, and returns something you can actually edit. */
 PONode *	p_output_node(PPOutput out, PINode *node);
 
