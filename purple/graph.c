@@ -537,19 +537,18 @@ void graph_method_send_call_mod_destroy(uint32 graph_id, uint32 module_id)
 	send_method_call(MOD_DESTROY, param);
 }
 
-void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32 index, const void *value)
+void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32 index, PValueType vtype, const PValue *value)
 {
 	VNOParam	param[4];
 	VNOParamType	type[4] = { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8 };
 	void		*pack;
 	int		method = 0, i;
-#if 0
-	
+
 	param[0].vuint32 = graph_id;
 	param[1].vuint32 = mod_id;
 	param[2].vuint8  = index;
 	/* Map module input type "down" to Verse method call parameter type. */
-	switch(value->type)
+	switch(vtype)
 	{
 	case P_VALUE_BOOLEAN:
 		type[3] = VN_O_METHOD_PTYPE_UINT8;
@@ -641,13 +640,12 @@ void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32
 		method = MOD_INPUT_SET_STRING;
 		break;
 	default:
-		LOG_WARN(("Can't prepare input setting, type %d", value->type));
+		LOG_WARN(("Can't prepare input setting, type %d", vtype));
 		return;
 	}
 	if((pack = verse_method_call_pack(4, type, param)) != NULL)
 		verse_send_o_method_call(client_info.avatar, client_info.gid_control,
 					 method_info[method].id, 0, pack);
-#endif
 }
 
 void graph_method_send_call_mod_input_clear(uint32 graph_id, uint32 module_id, uint32 input)
