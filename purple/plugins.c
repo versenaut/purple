@@ -294,7 +294,6 @@ char * plugin_describe(const Plugin *p)
 {
 	DynStr	*d;
 
-	/* Head. */
 	d = dynstr_new("<plug-in");
 
 	plugin_describe_append(p, d);
