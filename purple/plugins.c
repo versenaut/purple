@@ -137,7 +137,7 @@ void plugin_set_input(Plugin *p, int index, PValueType type, const char *name, v
 		LOG_ERR(("Plug-in \"%s\" attempted to set input with negative index--ignored", p->name));
 		return;
 	}
-	if((p->input == NULL && index != 0) || (p->input != NULL && index != dynarr_size(p->input)))
+	if((p->input == NULL && index != 0) || (p->input != NULL && (size_t) index != dynarr_size(p->input)))
 	{
 		LOG_ERR(("Plug-in \"%s\" attempted to set input \"%s\" with bad index %d--ignored", p->name, name, index));
 		return;
@@ -463,7 +463,7 @@ boolean plugin_portset_get_module(const PPortSet *ps, unsigned int index, uint32
 
 void plugin_portset_describe(const PPortSet *ps, DynStr *d)
 {
-	int	i;
+	unsigned int	i;
 
 	if(ps == NULL || d == NULL)
 		return;
@@ -680,7 +680,7 @@ void plugins_libraries_load(void)
 #endif
 		if((fl = filelist_new(plugins_info.paths[i], suffix)) != NULL)
 		{
-			int	j;
+			unsigned int	j;
 
 			for(j = 0; j < filelist_size(fl); j++)
 				library_new(filelist_filename_full(fl, j));
