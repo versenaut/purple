@@ -58,9 +58,14 @@ typedef struct
 	uint8		   id;			/* Filled-in once created. */ 
 } MethodInfo;
 
-enum { CREATE, DESTROY, MOD_CREATE, MOD_INPUT_CLEAR,
+enum
+{
+	CREATE, DESTROY, MOD_CREATE, MOD_INPUT_CLEAR,
 	MOD_INPUT_SET_BOOLEAN, MOD_INPUT_SET_INT32, MOD_INPUT_SET_UINT32,
-	MOD_INPUT_SET_REAL32 };
+	MOD_INPUT_SET_REAL32,
+	MOD_INPUT_SET_REAL64,
+	MOD_INPUT_SET_STRING
+};
 
 #define	MI_INPUT(lct, uct)	\
 	{ "m_i_set_" #lct, 4, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8, \
@@ -79,6 +84,8 @@ static MethodInfo method_info[] = {
 	MI_INPUT(int32, INT32),
 	MI_INPUT(uint32, UINT32),
 	MI_INPUT(real32, REAL32),
+	MI_INPUT(real64, REAL64),
+	MI_INPUT(string, STRING)
 /*	{ 0, "mod_destroy", 2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "module_id" } }
 */
 };
@@ -433,6 +440,16 @@ void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32
 		param[3].vreal32 = value->v.vreal32;
 		method = MOD_INPUT_SET_REAL32;
 		break;
+	case P_INPUT_REAL64:
+		type[3] = VN_O_METHOD_PTYPE_REAL64;
+		param[3].vreal64 = value->v.vreal64;
+		method = MOD_INPUT_SET_REAL64;
+		break;
+	case P_INPUT_STRING:
+		type[3] = VN_O_METHOD_PTYPE_STRING;
+		param[3].vstring = value->v.vstring;
+		method = MOD_INPUT_SET_STRING;
+		break;
 	default:
 		printf("Can't prepare input setting, type %d\n", value->type);
 		return;
@@ -483,6 +500,12 @@ void graph_method_receive_call(uint8 id, const void *param)
 				break;
 			case MOD_INPUT_SET_REAL32:
 				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32, arg[3].vreal32);
+				break;
+			case MOD_INPUT_SET_REAL64:
+				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64, arg[3].vreal64);
+				break;
+			case MOD_INPUT_SET_STRING:
+				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_STRING, arg[3].vstring);
 				break;
 			}
 			return;

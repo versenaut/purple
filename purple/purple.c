@@ -321,8 +321,12 @@ static void console_parse_module_input_set(const char *line)
 {
 	char		tcode;
 	const char	*literal,
-			tsel[] = "bdur", *tpos;
-	const PInputType tarr[] = { P_INPUT_BOOLEAN, P_INPUT_INT32, P_INPUT_UINT32, P_INPUT_REAL32 };
+			tsel[] = "bdurRs", *tpos;
+	const PInputType tarr[] = {
+		P_INPUT_BOOLEAN, P_INPUT_INT32, P_INPUT_UINT32, P_INPUT_REAL32, P_INPUT_REAL64,
+		P_INPUT_STRING
+	};
+	char		string[1024];
 	uint32		g, m, i, got;
 	PInputType	type;
 	PInputValue	value;
@@ -355,6 +359,13 @@ static void console_parse_module_input_set(const char *line)
 		break;
 	case P_INPUT_REAL32:
 		got = sscanf(literal, "%g", &value.v.vreal32);
+		break;
+	case P_INPUT_REAL64:
+		got = sscanf(literal, "%lg", &value.v.vreal64);
+		break;
+	case P_INPUT_STRING:
+		got = sscanf(literal, " \"%[^\"]\"", string);
+		value.v.vstring = string;
 		break;
 	default:
 		;
