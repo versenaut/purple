@@ -3,6 +3,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "verse.h"
@@ -10,6 +11,7 @@
 #include "dynarr.h"
 #include "dynstr.h"
 #include "hash.h"
+#include "idset.h"
 #include "list.h"
 #include "log.h"
 #include "mem.h"
@@ -24,12 +26,21 @@
 
 typedef struct
 {
+	uint32	id;
+	void	*plugin;	/* FIXME: Should be properly typed, of course. Placeholder. */
+
+	uint32	start, length;	/* Region in graph XML buffer used for this module. */
+} Module;
+
+typedef struct
+{
 	char	name[32];
+
+	uint32	index_start, index_length;
 
 	VNodeID	node;
 	uint16	buffer;
-
-	uint32	index_start, index_length;
+	uint32	desc_start;	/* Base location in graph XML buffer, first module starts here. */
 } Graph;
 
 static const VNOParamType	create_type[]   = { VN_O_METHOD_PTYPE_NODE, VN_O_METHOD_PTYPE_LAYER,
@@ -43,8 +54,7 @@ static char			*create_name[]  = { "node", "buffer", "name" },
 static struct
 {
 	uint8	mid_create, mid_rename, mid_destroy;
-	DynArr	*graphs;	/* Array holding graphs indexed on ID. */
-	List	*free_ids;
+	IdSet	*graphs;
 	Hash	*graphs_name;	/* Graphs hashed on name. */
 } graph_info = { 0 };
 
@@ -52,8 +62,7 @@ static struct
 
 void graph_init(void)
 {
-	graph_info.graphs = dynarr_new(sizeof (Graph), 8);
-	graph_info.free_ids = NULL;
+	graph_info.graphs = idset_new();
 	graph_info.graphs_name = hash_new_string();
 }
 
@@ -99,13 +108,12 @@ static void graph_index_build(uint32 id, const Graph *g, char *buf, size_t bufsi
 */
 static void graph_index_renumber(void)
 {
-	unsigned int	i, pos;
+	unsigned int	id, pos;
 	Graph		*g;
 
-	for(i = 0, pos = client_info.graphs.start; i < dynarr_size(graph_info.graphs); i++)
+	pos = client_info.graphs.start;
+	for(id = idset_foreach_first(graph_info.graphs); (g = idset_lookup(graph_info.graphs, id)) != NULL; id = idset_foreach_next(graph_info.graphs, id))
 	{
-		if((g = dynarr_index(graph_info.graphs, i)) == NULL || g->name[0] == '\0')
-			continue;
 		g->index_start = pos;
 		pos += g->index_length;
 	}
@@ -114,39 +122,32 @@ static void graph_index_renumber(void)
 static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 {
 	unsigned int	id, i, pos;
-	Graph		g, *gg;
+	Graph		*g, *me;
 	char		xml[256];
 
 	/* Make sure name is unique. */
 	if(hash_lookup(graph_info.graphs_name, name) != NULL)
 		return;	/* It wasn't. */
 
-	stu_strncpy(g.name, sizeof g.name, name);
-	g.node   = node_id;
-	g.buffer = buffer_id;
-	if(graph_info.free_ids != NULL)
-	{
-		id = (uint32) list_data(graph_info.free_ids);
-		graph_info.free_ids = list_tail(graph_info.free_ids);
-		dynarr_set(graph_info.graphs, id, &g);
-	}
-	else
-		id = dynarr_append(graph_info.graphs, &g);
+	me = g = mem_alloc(sizeof *g);
+	stu_strncpy(g->name, sizeof g->name, name);
+	g->node   = node_id;
+	g->buffer = buffer_id;
+	id = idset_insert(graph_info.graphs, g);
 
 	for(i = 0, pos = client_info.graphs.start; i < id; i++)
 	{
-		gg = dynarr_index(graph_info.graphs, i);
-		if(gg == NULL || gg->name[0] == '\0')
+		g = idset_lookup(graph_info.graphs, i);
+		if(g == NULL)
 			continue;
-		pos += gg->index_length;
+		pos += g->index_length;
 	}
-	gg = dynarr_index(graph_info.graphs, id);
-	gg->index_start = pos;
-	graph_index_build(id, gg, xml, sizeof xml);
-	gg->index_length = strlen(xml);
-	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, gg->index_start, 0, xml);
-	hash_insert(graph_info.graphs_name, gg->name, gg);
-	verse_send_t_text_set(gg->node, gg->buffer, 0, ~0, NULL);
+	me->index_start = pos;
+	graph_index_build(id, me, xml, sizeof xml);
+	me->index_length = strlen(xml);
+	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, me->index_start, 0, xml);
+	hash_insert(graph_info.graphs_name, me->name, me);
+	verse_send_t_text_set(me->node, me->buffer, 0, ~0, NULL);
 }
 
 static void graph_rename(uint32 id, const char *name)
@@ -179,14 +180,14 @@ static void graph_destroy(uint32 id)
 {
 	Graph	*g;
 
-	if((g = dynarr_index(graph_info.graphs, id)) == NULL || g->name[0] == '\0')
+	if((g = idset_lookup(graph_info.graphs, id)) == NULL)
 	{
 		LOG_WARN(("Couldn't destroy graph %u, not found", id));
 		return;
 	}
 	g->name[0] = '\0';
-	graph_info.free_ids = list_prepend(graph_info.free_ids, (void *) id);
 	hash_remove(graph_info.graphs_name, g->name);
+	idset_remove(graph_info.graphs, id);
 	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, g->index_start, g->index_length, NULL);
 	graph_index_renumber();
 }
