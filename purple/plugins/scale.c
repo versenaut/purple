@@ -20,10 +20,9 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 
 		if(p_node_type_get(in) != V_NT_GEOMETRY)
 			continue;
-		out = p_output_node(output, in);
-		if((layer = p_node_g_layer_lookup(out, "vertex")) == NULL)
-			continue;
-		size = p_node_g_layer_size(out, layer);
+		out   = p_output_node(output, in);
+		layer = p_node_g_layer_lookup(out, "vertex");
+		size  = p_node_g_layer_size(out, layer);	/* Safely handles NULL layer. */
 		for(j = 0; j < size; j++)
 		{
 			real64	x, y, z;
