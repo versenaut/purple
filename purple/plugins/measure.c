@@ -42,6 +42,6 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 void init(void)
 {
 	p_init_create("measure");
-	p_init_input(0, P_VALUE_MODULE, "data",  P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_MODULE, "data", P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_compute(compute);
 }
