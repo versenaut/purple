@@ -58,8 +58,9 @@ static unsigned int * plugins_mapping_create(const XmlNode *old)
 
 	pi  = xmlnode_nodeset_get(old, XMLNODE_AXIS_CHILD, XMLNODE_NAME("plug-in"), XMLNODE_DONE);
 	num = list_length(pi);
-	map = mem_alloc(num * sizeof *map);
-	for(i = 0, iter = pi; i < num && iter != NULL; i++, iter = list_next(iter))
+	map = mem_alloc((num + 1) * sizeof *map);	/* IDs are 1-based. */
+	printf("Building plug-in remap array, len=%u\n", num + 1);
+	for(i = 1, iter = pi; i <= num && iter != NULL; i++, iter = list_next(iter))
 	{
 		const Plugin	*p;
 
@@ -89,7 +90,8 @@ static int resume_update(void *data)
 	XmlNode		*plugins, *graphs;
 	NdbTBuffer	*buf;
 	unsigned int	*map;
-	const List	*gl, *iter;
+	List		*gl;
+	const List	*iter;
 
 	printf("Now in resume_update(), time to do stuff\n");
 	if((m = nodedb_lookup_by_name(resume_info.meta)) != NULL)
@@ -155,11 +157,17 @@ static int resume_update(void *data)
 		return 0;
 	}
 	printf("ready to iterate graphs\n");
-	
+
 	/* 2. For each graph: */
 	/* 2.1. Look up graph node & buffer. */
 	/* 2.2. Create Graph structure and populate, remapping plug-ins. */
 	/* 2.3. Clear text buffer, replace with new description. */
+	gl = xmlnode_nodeset_get(graphs, XMLNODE_AXIS_CHILD, XMLNODE_NAME("graph"), XMLNODE_DONE);
+	for(iter = gl; iter != NULL; iter = list_next(iter))
+	{
+		graph_create_resume(list_data(gl), map);
+	}
+	list_destroy(gl);
 	/* 3. Be happy. */
 	xmlnode_destroy(graphs);
 	mem_free(map);
