@@ -191,8 +191,56 @@ static int set_value(PInputValue *value, PInputType new_type, va_list *taglist)
 	case P_INPUT_REAL32:
 		value->v.vreal32 = (real32) va_arg(*taglist, double);
 		return 1;
+	case P_INPUT_REAL32_VEC2:
+		{
+			const real32 *data = (const real32 *) va_arg(*taglist, const real32 *);
+			value->v.vreal32_vec2[0] = data[0];
+			value->v.vreal32_vec2[1] = data[1];
+		}
+		return 1;
+	case P_INPUT_REAL32_VEC3:
+		{
+			const real32 *data = (const real32 *) va_arg(*taglist, const real32 *);
+			value->v.vreal32_vec3[0] = data[0];
+			value->v.vreal32_vec3[1] = data[1];
+			value->v.vreal32_vec3[2] = data[2];
+		}
+		return 1;
+	case P_INPUT_REAL32_VEC4:
+		{
+			const real32 *data = (const real32 *) va_arg(*taglist, const real32 *);
+			value->v.vreal32_vec4[0] = data[0];
+			value->v.vreal32_vec4[1] = data[1];
+			value->v.vreal32_vec4[2] = data[2];
+			value->v.vreal32_vec4[3] = data[3];
+		}
+		return 1;
 	case P_INPUT_REAL64:
 		value->v.vreal64 = (real64) va_arg(*taglist, double);
+		return 1;
+	case P_INPUT_REAL64_VEC2:
+		{
+			const real64 *data = (const real64 *) va_arg(*taglist, const real64 *);
+			value->v.vreal64_vec2[0] = data[0];
+			value->v.vreal64_vec2[1] = data[1];
+		}
+		return 1;
+	case P_INPUT_REAL64_VEC3:
+		{
+			const real64 *data = (const real64 *) va_arg(*taglist, const real64 *);
+			value->v.vreal64_vec3[0] = data[0];
+			value->v.vreal64_vec3[1] = data[1];
+			value->v.vreal64_vec3[2] = data[2];
+		}
+		return 1;
+	case P_INPUT_REAL64_VEC4:
+		{
+			const real64 *data = (const real64 *) va_arg(*taglist, const real64 *);
+			value->v.vreal64_vec4[0] = data[0];
+			value->v.vreal64_vec4[1] = data[1];
+			value->v.vreal64_vec4[2] = data[2];
+			value->v.vreal64_vec4[3] = data[3];
+		}
 		return 1;
 	case P_INPUT_STRING:
 		value->v.vstring = stu_strdup((const char *) va_arg(*taglist, const char *));
@@ -523,7 +571,8 @@ void plugin_inputset_set_va(PInputSet *is, unsigned int index, PInputType type, 
 	if(is == NULL || index >= is->size)
 		return;
 	is->use[index / 32] |= 1 << (index % 32);
-	set_value(is->value + index, type, &arg);
+	if(set_value(is->value + index, type, &arg) == 0)
+		LOG_WARN(("Input setting failed"));
 }
 
 void plugin_inputset_clear(PInputSet *is, unsigned int index)
