@@ -73,13 +73,84 @@ PINode * nodeset_retrieve(const NodeSet *ns)
 	return list_data(ns->nodes);
 }
 
-const char * nodeset_get_string(const NodeSet *ns)
+/* ----------------------------------------------------------------------------------------- */
+
+boolean nodeset_get_boolean(const NodeSet *ns, PValue *dest)
+{
+	return FALSE;
+}
+
+boolean nodeset_get_int32(const NodeSet *ns, PValue *dest)
+{
+	return FALSE;
+}
+
+boolean nodeset_get_uint32(const NodeSet *ns, PValue *dest)
+{
+	return FALSE;
+}
+
+boolean nodeset_get_real32(const NodeSet *ns, PValue *dest)
+{
+	return FALSE;
+}
+
+boolean nodeset_get_real32_vec2(const NodeSet *ns, PValue *dest)
+{
+	return FALSE;
+}
+
+boolean nodeset_get_real32_vec3(const NodeSet *ns, PValue *dest)
+{
+	return FALSE;
+}
+
+boolean nodeset_get_real32_vec4(const NodeSet *ns, PValue *dest)
+{
+	return FALSE;
+}
+
+boolean nodeset_get_real32_mat16(const NodeSet *ns, PValue *dest)
+{
+	return FALSE;
+}
+
+boolean nodeset_get_real64(const NodeSet *ns, PValue *dest)
+{
+	return FALSE;
+}
+
+boolean nodeset_get_real64_vec2(const NodeSet *ns, PValue *dest)
+{
+	return FALSE;
+}
+
+boolean nodeset_get_real64_vec3(const NodeSet *ns, PValue *dest)
+{
+	return FALSE;
+}
+
+boolean nodeset_get_real64_vec4(const NodeSet *ns, PValue *dest)
+{
+	return FALSE;
+}
+
+boolean nodeset_get_real64_mat16(const NodeSet *ns, PValue *dest)
+{
+	return FALSE;
+}
+
+/* String interpretation: name of first node. */
+boolean nodeset_get_string(const NodeSet *ns, PValue *dest)
 {
 	PINode	*n;
 
-	if(ns == NULL)
-		return "";
+	if(ns == NULL || dest == NULL)
+		return FALSE;
 	if((n = nodeset_retrieve(ns)) != NULL)
-		return p_node_name_get(n);
-	return NULL;
+	{
+		value_set(dest, P_VALUE_STRING, n);
+		return TRUE;
+	}
+	return FALSE;
 }
