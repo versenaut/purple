@@ -75,7 +75,7 @@ void dynstr_assign(DynStr *ds, const char *text)
 }
 
 /* Compute size needed for string formatting. A portability thing. If run on Linux
- * with a pre-2.0 C runtime, this is hella-expensive. :/
+ * with a pre-2.0 C runtime, this will fail horribly.
 */
 static size_t format_size(const char *fmt, va_list args)
 {
