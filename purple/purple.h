@@ -111,12 +111,19 @@ void		p_node_name_set(PONode *node, const char *name);
 /* Tag functions. */
 typedef void	PNTagGroup;
 
+unsigned int	p_node_tag_group_num(PINode *node);
+PNTagGroup *	p_node_tag_group_nth(PINode *node, unsigned int n);
+PNTagGroup *	p_node_tag_group_find(PINode *node, const char *name);
 PNTagGroup *	p_node_tag_group_create(PONode *node, const char *name);
-PNTagGroup *	p_node_tag_group_lookup(const PONode *node, const char *name);
-void		p_node_tag_create(PNTagGroup *group, const char *name, VNTagType type, const VNTag *value);
+void		p_node_tag_group_destroy(PONode *node, PNTagGroup *group);
+void		p_node_tag_group_tag_num(PNTagGroup *group);
+void		p_node_tag_group_tag_nth(PNTagGroup *group, unsigned int n);
+void		p_node_tag_group_tag_find(PNTagGroup *group, const char *name);
+void		p_node_tag_group_tag_create(PNTagGroup *group, const char *name, VNTagType type, const VNTag *value);
+void		p_node_tag_group_tag_destroy(PNTagGroup *group, const char *name);
+
 /* Set from a "group/tag"-style path, with vararg for scalar values. */
 void		p_node_tag_create_path(PONode *node, const char *path, VNTagType type, ...);
-void		p_node_tag_destroy(PNTagGroup *group, const char *name);
 void		p_node_tag_destroy_path(PONode *node, const char *path);
 
 void		p_node_o_light_set(PONode *node, real64 red, real64 green, real64 blue);
@@ -131,6 +138,7 @@ typedef void	PNGBone;
 
 PNGLayer *	p_node_g_layer_lookup(PINode *node, const char *name);
 size_t		p_node_g_layer_size(PINode *node, const PNGLayer *layer);
+const char *	p_node_g_layer_name(const PNGLayer *layer);
 PNGLayer *	p_node_g_layer_create(PONode *node, const char *name, VNGLayerType type,
 					     uint32 def_int, real32 def_real);
 void		p_node_g_layer_destroy(PNGLayer *node, const char *name);

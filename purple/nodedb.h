@@ -72,6 +72,10 @@ extern VNodeType	nodedb_type_get(const Node *node);
 
 #define	NODEDB_TAG_TYPE_SCALAR(t)	(((t) != VN_TAG_STRING) && ((t) != VN_TAG_BLOB))
 
+extern unsigned int	nodedb_tag_group_num(const Node *node);
+extern NdbTagGroup *	nodedb_tag_group_nth(const Node *node, unsigned int n);
+extern NdbTagGroup *	nodedb_tag_group_find(const Node *node, const char *name);
+
 extern NdbTagGroup *	nodedb_tag_group_create(Node *node, uint16 group_id, const char *name);
 extern NdbTagGroup *	nodedb_tag_group_lookup(const Node *node, const char *name);
 extern void		nodedb_tag_group_destroy(NdbTagGroup *group);

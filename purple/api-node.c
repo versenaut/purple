@@ -38,14 +38,24 @@ VNodeType p_node_type_get(PINode *node)
 
 /* ----------------------------------------------------------------------------------------- */
 
+unsigned int p_node_tag_group_num(PINode *node)
+{
+	return nodedb_tag_group_num(node);
+}
+
+PNTagGroup * p_node_tag_group_nth(PINode *node, unsigned int n)
+{
+	return nodedb_tag_group_nth(node, n);
+}
+
+PNTagGroup * p_node_tag_group_find(PINode *node, const char *name)
+{
+	return nodedb_tag_group_find(node, name);
+}
+
 PNTagGroup * p_node_tag_group_create(PONode *node, const char *name)
 {
 	return nodedb_tag_group_create(node, ~0, name);
-}
-
-PNTagGroup * p_node_tag_group_lookup(PINode *node, const char *name)
-{
-	return nodedb_tag_group_lookup(node, name);
 }
 
 void p_node_tag_create(PNTagGroup *group, const char *name, VNTagType type, const VNTag *value)
@@ -70,7 +80,7 @@ void p_node_tag_create_path(PONode *node, const char *path, VNTagType type, ...)
 		VNTag		value;
 		va_list		arg;
 
-		if((tg = nodedb_tag_group_lookup(node, group)) == NULL)
+		if((tg = nodedb_tag_group_find(node, group)) == NULL)
 			tg = nodedb_tag_group_create(node, ~0, group);
 		path++;
 		va_start(arg, type);
@@ -129,7 +139,7 @@ void p_node_tag_destroy_path(PONode *node, const char *path)
 	*put = '\0';
 	if(*path == '/')
 		path++;
-	if((g = nodedb_tag_group_lookup(node, group)) != NULL)
+	if((g = nodedb_tag_group_find(node, group)) != NULL)
 	{
 		if(*path == '\0')		/* If no second part, destroy group. */
 			nodedb_tag_group_destroy(g);
@@ -144,12 +154,12 @@ void p_node_tag_destroy_path(PONode *node, const char *path)
 
 void p_node_o_light_set(PONode *node, real64 red, real64 green, real64 blue)
 {
-	nodedb_o_light_set(node, red, green, blue);
+	nodedb_o_light_set((NodeObject *) node, red, green, blue);
 }
 
 void p_node_o_light_get(PINode *node, real64 *red, real64 *green, real64 *blue)
 {
-	nodedb_o_light_get(node, red, green, blue);
+	nodedb_o_light_get((NodeObject *) node, red, green, blue);
 }
 
 void p_node_o_link_set(PONode *node, const PONode *link, const char *label, uint32 target_id)

@@ -336,6 +336,57 @@ static void cb_default_tag_group(unsigned int index, void *element, void *user)
 	g->tags    = NULL;
 }
 
+unsigned int nodedb_tag_group_num(const Node *node)
+{
+	unsigned int		i, num;
+	const NdbTagGroup	*tg;
+
+	if(node == NULL)
+		return 0;
+	for(i = num = 0; (tg = dynarr_index(node->tag_groups, i)) != NULL; i++)
+	{
+		if(tg->name[0] == '\0')
+			continue;
+		num++;
+	}
+	return num;
+}
+
+NdbTagGroup * nodedb_tag_group_nth(const Node *node, unsigned int n)
+{
+	unsigned int	i;
+	NdbTagGroup	*tg;
+
+	if(node == NULL)
+		return NULL;
+	for(i = 0; (tg = dynarr_index(node->tag_groups, i)) != NULL; i++, n--)
+	{
+		if(tg->name[0] == '\0')
+			continue;
+		if(n == 0)
+			return tg;
+	}
+	return NULL;
+}
+
+NdbTagGroup * nodedb_tag_group_find(const Node *node, const char *name)
+{
+	unsigned int	i;
+	NdbTagGroup	*tg;
+
+	if(node == NULL || name == NULL || *name == '\0')
+		return NULL;
+	for(i = 0; (tg = dynarr_index(node->tag_groups, i)) != NULL; i++)
+	{
+		if(tg->name[0] == '\0')
+			continue;
+	
+		if(strcmp(tg->name, name) == 0)
+			return tg;
+	}
+	return NULL;
+}
+
 NdbTagGroup * nodedb_tag_group_create(Node *node, uint16 group_id, const char *name)
 {
 	NdbTagGroup	*group;
@@ -358,23 +409,6 @@ NdbTagGroup * nodedb_tag_group_create(Node *node, uint16 group_id, const char *n
 		group->tags = NULL;
 	}
 	return group;
-}
-
-NdbTagGroup * nodedb_tag_group_lookup(const Node *node, const char *name)
-{
-	unsigned int	i;
-	NdbTagGroup	*g;
-
-	if(node == NULL || name == NULL || *name == '\0')
-		return NULL;
-	for(i = 0; (g = dynarr_index(node->tag_groups, i)) != NULL; i++)
-	{
-		if(*g->name == '\0')
-			continue;
-		if(strcmp(g->name, name) == 0)
-			return g;
-	}
-	return NULL;
 }
 
 void nodedb_tag_group_destroy(NdbTagGroup *group)
