@@ -450,7 +450,8 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 	m->length = dynstr_length(desc);
 	dynstr_destroy(desc, 1);
 	graph_modules_desc_start_update(g);
-/*	plugin_run_compute(m->plugin, m->inputs);*/
+
+	plugin_instance_compute(m->plugin, &m->instance);
 }
 
 /* Clear a module input, i.e. remove any assigned value and leave it "floating" as after module creation. */
