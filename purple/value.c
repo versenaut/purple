@@ -14,9 +14,14 @@
 #include "strutil.h"
 #include "vecutil.h"
 
+#include "purple.h"
+
 #include "value.h"
 
 /* ----------------------------------------------------------------------------------------- */
+
+#define	VALUE_SET(v,t)	((v)->set |= (1 << t))
+#define	VALUE_SETS(v,t)	((v)->set & (1 << (t)))
 
 static struct TypeName
 {
@@ -89,25 +94,23 @@ void value_init(PValue *v)
 {
 	if(v == NULL)
 		return;
-	v->type = P_VALUE_NONE;
-	v->v.vstring = NULL;		/* Extra important? Naah. */
+	v->set = 0;		/* Indicates value is brand spanking new. */
 }
 
 void value_clear(PValue *v)
 {
-	if(v == NULL || v->type == P_VALUE_NONE)
+	if(v == NULL || v->set == 0)
 		return;
-	if(v->type == P_VALUE_STRING)
+	if(VALUE_SETS(v, P_VALUE_STRING))
 	{
 		mem_free(v->v.vstring);
-		v->v.vstring = NULL;
 	}
-	v->type = P_VALUE_NONE;
+	v->set = 0;
 }
 
-PValueType value_peek_type(const PValue *v)
+boolean value_type_present(const PValue *v, PValueType type)
 {
-	return v != NULL ? v->type : P_VALUE_NONE;
+	return v != NULL ? VALUE_SETS(v, type) : 0;
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -115,6 +118,7 @@ PValueType value_peek_type(const PValue *v)
 static int do_set(PValue *v, PValueType type, va_list arg)
 {
 	value_clear(v);
+	v->set |= (1 << type);
 	switch(type)
 	{
 	case P_VALUE_BOOLEAN:
@@ -210,25 +214,93 @@ static int do_set(PValue *v, PValueType type, va_list arg)
 	return 0;
 }
 
-void value_set(PValue *v, PValueType type, ...)
+int value_set(PValue *v, PValueType type, ...)
 {
 	va_list	arg;
+	int	ret;
 
 	if(v == NULL)
-		return;
+		return 0;
 	va_start(arg, type);
-	do_set(v, type, arg);
+	ret = do_set(v, type, arg);
 	va_end(arg);
+
+	return ret;
 }
 
-void value_set_va(PValue *v, PValueType type, va_list arg)
+int value_set_va(PValue *v, PValueType type, va_list arg)
 {
 	if(v == NULL)
-		return;
-	do_set(v, type, arg);
+		return 0;
+	return do_set(v, type, arg);
 }
 
 /* ----------------------------------------------------------------------------------------- */
+
+#define	DO_SET(v,t)	VALUE_SET(v, P_VALUE_ ##t)
+#define	IF_SET(v,t)	if(VALUE_SETS(v, P_VALUE_ ##t))
+
+#define	GET_FAIL(v,t,d)	LOG_WARN(("Failed to parse set %u as %s", (v)->set, t)); return d;
+
+static boolean get_as_boolean(const PValue *v)
+{
+	if(v == NULL)
+		return FALSE;
+	if(v->set == 0)
+		return FALSE;
+	else IF_SET(v, BOOLEAN)
+		return v->v.vboolean;
+	else IF_SET(v, UINT32)
+		return v->v.vuint32 > 0;
+	else IF_SET(v, INT32)
+		return v->v.vint32 != 0;
+	else IF_SET(v, REAL64)
+		return v->v.vreal64 > 0.0;
+	else IF_SET(v, REAL32)
+		return v->v.vreal32 > 0.0f;
+	else IF_SET(v, REAL64_VEC2)
+		return vec_real64_vec2_magnitude(v->v.vreal64_vec2) > 0.0;
+	else IF_SET(v, REAL64_VEC3)
+		return vec_real64_vec3_magnitude(v->v.vreal64_vec3) > 0.0;
+	else IF_SET(v, REAL64_VEC4)
+		return vec_real64_vec4_magnitude(v->v.vreal64_vec4) > 0.0;
+	else IF_SET(v, REAL32_VEC2)
+		return vec_real32_vec2_magnitude(v->v.vreal32_vec2) > 0.0;
+	else IF_SET(v, REAL32_VEC3)
+		return vec_real32_vec3_magnitude(v->v.vreal32_vec3) > 0.0;
+	else IF_SET(v, REAL32_VEC4)
+		return vec_real32_vec4_magnitude(v->v.vreal32_vec4) > 0.0;
+	else IF_SET(v, STRING)
+		return strcmp(v->v.vstring, "TRUE") == 0;
+	GET_FAIL(v, "boolean", FALSE);
+}
+
+boolean value_get_boolean(const PValue *v, PValue *cache)
+{
+	if(v == NULL)
+		return FALSE;
+	IF_SET(v, BOOLEAN)
+		return v->v.vboolean;
+	else if(cache != NULL)
+	{
+		IF_SET(cache, BOOLEAN)
+			return cache->v.vboolean;
+		DO_SET(cache, BOOLEAN);
+		return cache->v.vboolean = get_as_boolean(v);
+	}
+	return get_as_boolean(v);
+}
+
+
+int32 value_get_int32(const PValue *v, PValue *cache)
+{
+	return 0;	/* FIXME: Not implemented. */
+}
+
+uint32 value_get_uint32(const PValue *v, PValue *cache)
+{
+	return 0u;	/* FIXME: Not implemented. */
+}
 
 /* Get a value as the largest scalar type, real64. This is then used to implement
  * the other scalar getters. Will mash vectors and matrices down to a single scalar.
@@ -237,135 +309,131 @@ static real64 get_as_real64(const PValue *v)
 {
 	if(v == NULL)
 		return 0.0;
-	switch(v->type)
-	{
-	case P_VALUE_NONE:
+	if(v->set == 0)	/* This should probably not be possible due to checks higher up. */
 		return 0.0;
-	case P_VALUE_BOOLEAN:
-		return v->v.vboolean;
-	case P_VALUE_INT32:
-		return v->v.vint32;
-	case P_VALUE_UINT32:
-		return v->v.vuint32;
-	case P_VALUE_REAL32:
-		return v->v.vreal32;
-	case P_VALUE_REAL32_VEC2:
-		return vec_real32_vec2_magnitude(v->v.vreal32_vec2);
-	case P_VALUE_REAL32_VEC3:
-		return vec_real32_vec3_magnitude(v->v.vreal32_vec3);
-	case P_VALUE_REAL32_VEC4:
-		return vec_real32_vec3_magnitude(v->v.vreal32_vec4);
-	case P_VALUE_REAL32_MAT16:
-		return vec_real32_mat16_determinant(v->v.vreal32_mat16);
-	case P_VALUE_REAL64:
+	else IF_SET(v, REAL64)
 		return v->v.vreal64;
-	case P_VALUE_REAL64_VEC2:
+	else IF_SET(v, REAL64_VEC2)
 		return vec_real64_vec2_magnitude(v->v.vreal64_vec2);
-	case P_VALUE_REAL64_VEC3:
+	else IF_SET(v, REAL64_VEC3)
 		return vec_real64_vec3_magnitude(v->v.vreal64_vec3);
-	case P_VALUE_REAL64_VEC4:
-		return vec_real64_vec3_magnitude(v->v.vreal64_vec4);
-	case P_VALUE_REAL64_MAT16:
+	else IF_SET(v, REAL64_VEC4)
+		return vec_real64_vec4_magnitude(v->v.vreal64_vec4);
+	else IF_SET(v, REAL32)
+		return v->v.vreal32;
+	else IF_SET(v, REAL32_VEC2)
+		return vec_real32_vec2_magnitude(v->v.vreal32_vec2);
+	else IF_SET(v, REAL32_VEC3)
+		return vec_real32_vec3_magnitude(v->v.vreal32_vec3);
+	else IF_SET(v, REAL32_VEC4)
+		return vec_real32_vec4_magnitude(v->v.vreal32_vec4);
+	else IF_SET(v, INT32)
+		return v->v.vint32;
+	else IF_SET(v, UINT32)
+		return v->v.vuint32;
+	else IF_SET(v, REAL64_MAT16)
 		return vec_real64_mat16_determinant(v->v.vreal64_mat16);
-	case P_VALUE_STRING:
+	else IF_SET(v, REAL32_MAT16)
+		return vec_real32_mat16_determinant(v->v.vreal32_mat16);
+	else IF_SET(v, STRING)
 		return strtod(v->v.vstring, NULL);
-	default:
-		LOG_WARN(("This can't happen\n"));
+	GET_FAIL(v, "real64", 0.0);
+}
+
+real32 value_get_real32(const PValue *v, PValue *cache)
+{
+	if(v == NULL)
+		return 0.0;
+	IF_SET(v, REAL32)
+		return v->v.vreal32;
+	else if(cache != NULL)
+	{
+		IF_SET(cache, REAL32)
+			return cache->v.vreal32;
+		DO_SET(cache, REAL32);
+		return cache->v.vreal32 = get_as_real64(v);	/* Drop precision. */
 	}
-	return 0.0;
-}
-
-boolean value_get_boolean(const PValue *v)
-{
 	return get_as_real64(v);
 }
 
-int32 value_get_int32(const PValue *v)
+real64 value_get_real64(const PValue *v, PValue *cache)
 {
+	if(v == NULL)
+		return 0.0;
+	IF_SET(v, REAL64)
+		return v->v.vreal64;
+	else if(cache != NULL)
+	{
+		IF_SET(cache, REAL64)
+			return cache->v.vreal64;
+		DO_SET(cache, REAL64);
+		return cache->v.vreal64 = get_as_real64(v);
+	}
 	return get_as_real64(v);
 }
 
-uint32 value_get_uint32(const PValue *v)
+const char * value_get_string(const PValue *v, PValue *cache)
 {
-	return get_as_real64(v);
-}
-
-real32 value_get_real32(const PValue *v)
-{
-	return get_as_real64(v);
-}
-
-real64 value_get_real64(const PValue *v)
-{
-	return get_as_real64(v);
-}
-
-const char * value_get_string(const PValue *v, char *buf, size_t buf_max)
-{
-	int	put = -1;
-
 	if(v == NULL)
 		return "";
-	if(v->type == P_VALUE_STRING)
+	if(v->set == 0)
+		return NULL;
+	IF_SET(v, STRING)
 		return v->v.vstring;
-	if(buf == NULL || buf_max < 2)
-		return NULL;		/* Signals failure, might be handy? */
-	switch(v->type)
+	else if(cache != NULL)
 	{
-	case P_VALUE_BOOLEAN:
-		put = snprintf(buf, buf_max, "%s", v->v.vboolean ? "TRUE" : "FALSE");
-		break;
-	case P_VALUE_INT32:
-		put = snprintf(buf, buf_max, "%d", v->v.vint32);
-		break;
-	case P_VALUE_UINT32:
-		put = snprintf(buf, buf_max, "%u", v->v.vuint32);
-		break;
-	case P_VALUE_REAL32:
-		put = snprintf(buf, buf_max, "%g", v->v.vreal32);
-		break;
-	case P_VALUE_REAL32_VEC2:
-		put = snprintf(buf, buf_max, "[%g %g]", v->v.vreal32_vec2[0], v->v.vreal32_vec2[1]);
-		break;
-	case P_VALUE_REAL32_VEC3:
-		put = snprintf(buf, buf_max, "[%g %g %g]", v->v.vreal32_vec3[0], v->v.vreal32_vec3[1], v->v.vreal32_vec3[2]);
-		break;
-	case P_VALUE_REAL32_VEC4:
-		put = snprintf(buf, buf_max, "[%g %g %g %g]",
-			 v->v.vreal32_vec4[0], v->v.vreal32_vec4[1], v->v.vreal32_vec4[2], v->v.vreal32_vec4[3]);
-		break;
-	case P_VALUE_REAL32_MAT16:
-		put = snprintf(buf, buf_max, "[[%g %g %g %g][%g %g %g %g][%g %g %g %g][%g %g %g %g]]",
-			 v->v.vreal32_mat16[0], v->v.vreal32_mat16[1], v->v.vreal32_mat16[2], v->v.vreal32_mat16[3],
-			 v->v.vreal32_mat16[4], v->v.vreal32_mat16[5], v->v.vreal32_mat16[6], v->v.vreal32_mat16[7],
-			 v->v.vreal32_mat16[8], v->v.vreal32_mat16[9], v->v.vreal32_mat16[10], v->v.vreal32_mat16[11],
-			 v->v.vreal32_mat16[12], v->v.vreal32_mat16[13], v->v.vreal32_mat16[14], v->v.vreal32_mat16[15]);
-		break;
-	case P_VALUE_REAL64:
-		put = snprintf(buf, buf_max, "%.10g", v->v.vreal64);
-		break;
-	case P_VALUE_REAL64_VEC2:
-		put = snprintf(buf, buf_max, "[%.10g %.10g]", v->v.vreal64_vec2[0], v->v.vreal64_vec2[1]);
-		break;
-	case P_VALUE_REAL64_VEC3:
-		put = snprintf(buf, buf_max, "[%.10g %.10g %.10g]", v->v.vreal64_vec3[0], v->v.vreal64_vec3[1], v->v.vreal64_vec3[2]);
-		break;
-	case P_VALUE_REAL64_VEC4:
-		put = snprintf(buf, buf_max, "[%.10g %.10g %.10g %.10g]",
-			 v->v.vreal64_vec4[0], v->v.vreal64_vec4[1], v->v.vreal64_vec4[2], v->v.vreal64_vec4[3]);
-		break;
-	case P_VALUE_REAL64_MAT16:
-		put = snprintf(buf, buf_max, "[[%.10g %.10g %.10g %.10g][%.10g %.10g %.10g %.10g]"
-			 "[%.10g %.10g %.10g %.10g][%.10g %.10g %.10g %.10g]]",
-			 v->v.vreal64_mat16[0], v->v.vreal64_mat16[1], v->v.vreal64_mat16[2], v->v.vreal64_mat16[3],
-			 v->v.vreal64_mat16[4], v->v.vreal64_mat16[5], v->v.vreal64_mat16[6], v->v.vreal64_mat16[7],
-			 v->v.vreal64_mat16[8], v->v.vreal64_mat16[9], v->v.vreal64_mat16[10], v->v.vreal64_mat16[11],
-			 v->v.vreal64_mat16[12], v->v.vreal64_mat16[13], v->v.vreal64_mat16[14], v->v.vreal64_mat16[15]);
-		break;
-	default:
-		;
+		char	buf[1024];	/* Used for temporary formatting, then copied dynamically. Not free. */
+		int	put = -1;
+
+		IF_SET(cache, STRING)
+			return cache->v.vstring;
+		else IF_SET(v, BOOLEAN)
+			put = snprintf(buf, sizeof buf, "%s", v->v.vboolean ? "TRUE" : "FALSE");
+		else IF_SET(v, INT32)
+			put = snprintf(buf, sizeof buf, "%d", v->v.vint32);
+		else IF_SET(v, UINT32)
+			put = snprintf(buf, sizeof buf, "%u", v->v.vuint32);
+		else IF_SET(v, REAL32)
+			put = snprintf(buf, sizeof buf, "%g", v->v.vreal32);
+		else IF_SET(v, REAL64)
+			put = snprintf(buf, sizeof buf, "%10g", v->v.vreal64);
+		else IF_SET(v, REAL32_VEC2)
+			put = snprintf(buf, sizeof buf, "[%g %g]", v->v.vreal32_vec2[0], v->v.vreal32_vec2[1]);
+		else IF_SET(v, REAL32_VEC3)
+			put = snprintf(buf, sizeof buf, "[%g %g %g]", v->v.vreal32_vec3[0], v->v.vreal32_vec3[1], v->v.vreal32_vec3[2]);
+		else IF_SET(v, REAL32_VEC4)
+			put = snprintf(buf, sizeof buf, "[%g %g %g %g]", v->v.vreal32_vec4[0], v->v.vreal32_vec4[1],
+				       v->v.vreal32_vec4[2], v->v.vreal32_vec4[3]);
+		else IF_SET(v, REAL32_MAT16)
+			put = snprintf(buf, sizeof buf, "[[%g %g %g %g][%g %g %g %g][%g %g %g %g][%g %g %g %g]]",
+				 v->v.vreal32_mat16[0], v->v.vreal32_mat16[1], v->v.vreal32_mat16[2], v->v.vreal32_mat16[3],
+				 v->v.vreal32_mat16[4], v->v.vreal32_mat16[5], v->v.vreal32_mat16[6], v->v.vreal32_mat16[7],
+				 v->v.vreal32_mat16[8], v->v.vreal32_mat16[9], v->v.vreal32_mat16[10], v->v.vreal32_mat16[11],
+				 v->v.vreal32_mat16[12], v->v.vreal32_mat16[13], v->v.vreal32_mat16[14], v->v.vreal32_mat16[15]);
+		else IF_SET(v, REAL64)
+			put = snprintf(buf, sizeof buf, "%.10g", v->v.vreal64);
+		else IF_SET(v, REAL64_VEC2)
+			put = snprintf(buf, sizeof buf, "[%.10g %.10g]", v->v.vreal64_vec2[0], v->v.vreal64_vec2[1]);
+		else IF_SET(v, REAL64_VEC3)
+			put = snprintf(buf, sizeof buf, "[%.10g %.10g %.10g]", v->v.vreal64_vec3[0], v->v.vreal64_vec3[1], v->v.vreal64_vec3[2]);
+		else IF_SET(v, REAL64_VEC4)
+			put = snprintf(buf, sizeof buf, "[%.10g %.10g %.10g %.10g]",
+				 v->v.vreal64_vec4[0], v->v.vreal64_vec4[1], v->v.vreal64_vec4[2], v->v.vreal64_vec4[3]);
+		else IF_SET(v, REAL64_MAT16)
+			put = snprintf(buf, sizeof buf, "[[%.10g %.10g %.10g %.10g][%.10g %.10g %.10g %.10g]"
+				 "[%.10g %.10g %.10g %.10g][%.10g %.10g %.10g %.10g]]",
+				 v->v.vreal64_mat16[0], v->v.vreal64_mat16[1], v->v.vreal64_mat16[2], v->v.vreal64_mat16[3],
+				 v->v.vreal64_mat16[4], v->v.vreal64_mat16[5], v->v.vreal64_mat16[6], v->v.vreal64_mat16[7],
+				 v->v.vreal64_mat16[8], v->v.vreal64_mat16[9], v->v.vreal64_mat16[10], v->v.vreal64_mat16[11],
+				 v->v.vreal64_mat16[12], v->v.vreal64_mat16[13], v->v.vreal64_mat16[14], v->v.vreal64_mat16[15]);
+		if(put > 0)
+		{
+			cache->v.vstring = mem_alloc(put + 1);
+			strcpy(cache->v.vstring, buf);
+			DO_SET(cache, STRING);
+			return cache->v.vstring;
+		}
+		GET_FAIL(v, "string", "");
 	}
-	if(put > 0)
-		return buf;
-	return "";
+	return NULL;
 }
