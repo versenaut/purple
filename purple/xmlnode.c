@@ -16,7 +16,7 @@
 
 /* ----------------------------------------------------------------------------------------- */
 
-typedef enum { TAG, TEXT, END, ERROR } TokenStatus;
+typedef enum { TAG, TAGEMPTY, TEXT, END, ERROR } TokenStatus;
 
 typedef struct
 {
@@ -114,8 +114,14 @@ static const char * token_get(const char *buffer, DynStr **token, int skip_space
 			else if(in_str && (here == in_str))
 				in_str = 0;
 		}
+		if(last != '/')
+			*status = TAG;
+		else
+		{
+			dynstr_truncate(d, dynstr_length(d) - 1);
+			*status = TAGEMPTY;
+		}
 		*token  = d;
-		*status = TAG;
 		return buffer;
 	}
 	else
@@ -159,7 +165,6 @@ static XmlNode * node_new(const char *token)
 	{
 		XmlNode	*node;
 
-		printf("element name length from '%s' is %u\n", token, elen);
 		if((node = mem_alloc(sizeof *node + elen + 1)) != NULL)
 		{
 			char	*put = (char *) (node + 1);
@@ -172,7 +177,6 @@ static XmlNode * node_new(const char *token)
 			node->text     = NULL;
 			node->attribs  = NULL;
 			node->children = NULL;
-			printf("created element '%s'\n", node->element);
 			return node;
 		}
 	}
@@ -187,7 +191,6 @@ static int node_closes(const XmlNode *parent, const char *tag)
 		return 0;
 	src = parent->element;
 	tag++;		/* Skip the slash. */
-	printf("close-testing: '%s' vs '%s'\n", src, tag);
 	for(; *src && *tag && *src == *tag; src++, tag++)
 	{
 		if(isspace(*tag))
@@ -214,20 +217,17 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer)
 		*buffer = token_get(*buffer, &token, 0, &st);
 		if(token != NULL)
 		{
-			if(st == TAG)
+			if(st == TAG || st == TAGEMPTY)
 			{
 				const char	*tag = dynstr_string(token);
 
-				printf("got tag: '%s'\n", tag);
+				printf("got %s tag: '%s'\n", st == TAG ? "regular" : "empty", tag);
 				if(tag[0] == '?' || strncmp(tag, "!--", 3) == 0)
 					dynstr_truncate(token, 0);
 				else if(tag[0] == '/')
 				{
 					if(node_closes(parent, tag))
-					{
-						printf("match!\n");
 						return parent;
-					}
 					LOG_ERR(("Element nesting error in XML source, aborting"));
 					return parent;
 				}
@@ -237,9 +237,12 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer)
 					dynstr_destroy(token, 1);
 					token = NULL;
 
-					subtree = build_tree(child, buffer);
+					if(st != TAGEMPTY)
+						subtree = build_tree(child, buffer);
+					else
+						subtree = child;
 					if(parent != NULL)
-						node_child_add(parent, child);
+						node_child_add(parent, subtree);
 					else
 						parent = child;
 				}
