@@ -11,7 +11,7 @@ TARGETS=purple
 ALL:		$(TARGETS) all-plugins
 
 
-CFLAGS=-g -Wall -rdynamic -I$(VERSE) -L$(VERSE)
+CFLAGS=-g -Wall -rdynamic -I$(VERSE) -L$(VERSE) -Wsign-compare
 LDLIBS=-ldl -lverse -lm
 
 purple:		purple.c \
