@@ -56,7 +56,7 @@ typedef struct
 	const char	   *param_name[4];
 } MethodInfo;
 
-enum { CREATE, RENAME, DESTROY, MOD_CREATE, MOD_INPUT_CLEAR, MOD_INPUT_SET_REAL32 };
+enum { CREATE, DESTROY, MOD_CREATE, MOD_INPUT_CLEAR, MOD_INPUT_SET_REAL32 };
 
 #define	MI_INPUT(lct, uct)	\
 	{ 0, "m_i_set_" #lct, 4, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8, \
@@ -64,10 +64,8 @@ enum { CREATE, RENAME, DESTROY, MOD_CREATE, MOD_INPUT_CLEAR, MOD_INPUT_SET_REAL3
 	}
 
 static MethodInfo method_info[] = {
-	{ 0, "create",  3, { VN_O_METHOD_PTYPE_NODE, VN_O_METHOD_PTYPE_LAYER, VN_O_METHOD_PTYPE_STRING },
+	{ 0, "create",  3, { VN_O_METHOD_PTYPE_NODE, VN_O_METHOD_PTYPE_LAYER },
 			{ "node_id", "buffer_id", "name" }},
-	{ 0, "rename",  2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_STRING },
-			{ "graph_id", "name" } },
 	{ 0, "destroy",	1, { VN_O_METHOD_PTYPE_UINT32 }, { "graph_id" } },
 	
 	{ 0, "mod_create",  2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "plugin_id" } },
@@ -187,32 +185,6 @@ static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 	snprintf(xml, sizeof xml, "<graph>\n</graph>\n");
 	verse_send_t_text_set(me->node, me->buffer, 0, ~0, xml);
 	me->desc_start = strchr(xml, '/') - xml - 1;
-}
-
-static void graph_rename(uint32 id, const char *name)
-{
-	Graph	*g;
-	char	xml[256];
-
-	if((g = idset_lookup(graph_info.graphs, id)) == NULL)
-	{
-		LOG_WARN(("Couldn't rename graph %u, not found", id));
-		return;
-	}
-	if(strcmp(g->name, name) == 0)
-		return;
-	if(hash_lookup(graph_info.graphs_name, name) != NULL)
-	{
-		LOG_WARN(("Couldn't rename graph %u, \"%s\", into \"%s\"--name collision", id, g->name, name));
-		return;
-	}
-	hash_remove(graph_info.graphs_name, g->name);
-	stu_strncpy(g->name, sizeof g->name, name);
-	hash_insert(graph_info.graphs_name, g->name, g);
-	graph_index_build(id, g, xml, sizeof xml);
-	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, g->index_start, g->index_length, xml);
-	g->index_length = strlen(xml);
-	graph_index_renumber();
 }
 
 static void graph_destroy(uint32 id)
@@ -374,15 +346,6 @@ void graph_method_send_call_create(VNodeID node, VLayerID buffer, const char *na
 	send_method_call(CREATE, param);
 }
 
-void graph_method_send_call_rename(uint32 id, const char *name)
-{
-	VNOParam	param[2];
-
-	param[0].vuint32 = id;
-	param[1].vstring = name;
-	send_method_call(RENAME, param);
-}
-
 void graph_method_send_call_destroy(uint32 id)
 {
 	VNOParam	param[1];
@@ -448,7 +411,6 @@ void graph_method_receive_call(uint8 id, const void *param)
 			switch(i)
 			{
 			case CREATE:	graph_create(arg[0].vnode, arg[1].vlayer, arg[2].vstring);	break;
-			case RENAME:	graph_rename(arg[0].vuint32, arg[1].vstring);			break;
 			case DESTROY:	graph_destroy(arg[0].vuint32);					break;
 			case MOD_CREATE: module_create(arg[0].vuint32, arg[1].vuint32);			break;
 			case MOD_INPUT_CLEAR:
