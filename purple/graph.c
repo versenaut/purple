@@ -83,6 +83,7 @@ void graph_method_receive_create(uint8 id, const char *name)
 
 /* ----------------------------------------------------------------------------------------- */
 
+/* Build the XML description of a graph, for the index. */
 static void graph_build_xml(uint32 id, const Graph *g, char *buf, size_t bufsize)
 {
 	snprintf(buf, bufsize,	" <graph id=\"%u\" name=\"%s\">\n"
@@ -99,7 +100,6 @@ static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 	Graph		g, *gg;
 	char		xml[256];
 
-	printf("Create graph named '%s' in node %u, buffer %u\n", name, node_id, buffer_id);
 	/* Make sure name is unique. */
 	if(hash_lookup(graph_info.graphs_name, name) != NULL)
 		return;	/* It wasn't. */
@@ -193,9 +193,7 @@ void graph_method_send_call_create(VNodeID node, VLayerID buffer, const char *na
 	param[1].vlayer  = buffer;
 	param[2].vstring = name;
 	if((pack = verse_method_call_pack(sizeof create_type / sizeof *create_type, create_type, param)) != NULL)
-	{
 		verse_send_o_method_call(client_info.avatar, client_info.gid_control, graph_info.mid_create, 0, pack);
-	}
 }
 
 void graph_method_send_call_rename(uint32 id, const char *name)
@@ -216,9 +214,7 @@ void graph_method_send_call_destroy(uint32 id)
 
 	param[0].vuint32 = id;
 	if((pack = verse_method_call_pack(sizeof param / sizeof *param, destroy_type, param)) != NULL)
-	{
 		verse_send_o_method_call(client_info.avatar, client_info.gid_control, graph_info.mid_destroy, 0, pack);
-	}
 }
 
 void graph_method_receive_call(uint8 id, const void *param)
