@@ -359,6 +359,20 @@ static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 				tmp.color.green = f->frag.color.green;
 				tmp.color.blue  = f->frag.color.blue;
 				break;
+			case VN_M_FT_LIGHT:
+				break;
+			case VN_M_FT_REFLECTION:
+				break;
+			case VN_M_FT_TRANSPARENCY:
+				break;
+			case VN_M_FT_VOLUME:
+				break;
+			case VN_M_FT_GEOMETRY:
+				break;
+			case VN_M_FT_TEXTURE:
+				break;
+			case VN_M_FT_NOISE:
+				break;
 			case VN_M_FT_BLENDER:
 				{
 					printf("resolving blender fragment deps\n");
@@ -380,6 +394,12 @@ static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 						memcpy(tmp.matrix.matrix, f->frag.matrix.matrix, sizeof tmp.matrix.matrix);
 					}
 				}
+				break;
+			case VN_M_FT_RAMP:
+				break;
+			case VN_M_FT_ANIMATION:
+				break;
+			case VN_M_FT_ALTERNATIVE:
 				break;
 			case VN_M_FT_OUTPUT:
 				{
