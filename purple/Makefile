@@ -18,7 +18,7 @@ purple:		purple.c \
 		api-init.o api-input.o api-node.o api-output.o \
 		client.o cron.o dynarr.o dynlib.o dynstr.o graph.o \
 		filelist.o hash.o idlist.o idset.o list.o log.o mem.o memchunk.o \
-		nodedb.o nodedb-o.o nodedb-t.o \
+		nodedb.o nodedb-b.o nodedb-o.o nodedb-t.o \
 		nodeset.o plugins.o plugin-input.o \
 		port.o scheduler.o strutil.o textbuf.o timeval.o value.o vecutil.o xmlnode.o xmlutil.o \
 		$(VERSE)/libverse.a
@@ -60,6 +60,8 @@ mem.o:		mem.c mem.h
 memchunk.o:	memchunk.c memchunk.h mem.h
 
 nodedb.o:	nodedb.c nodedb.h nodedb-internal.h
+
+nodedb-o.o:	nodedb-b.c nodedb-b.h nodedb.h nodedb-internal.h
 
 nodedb-o.o:	nodedb-o.c nodedb-o.h nodedb.h nodedb-internal.h
 
