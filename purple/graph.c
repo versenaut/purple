@@ -15,6 +15,7 @@
 #include "list.h"
 #include "log.h"
 #include "mem.h"
+#include "memchunk.h"
 #include "plugins.h"
 #include "strutil.h"
 #include "textbuf.h"
@@ -27,10 +28,10 @@
 
 typedef struct
 {
-	uint32	id;
-	void	*plugin;	/* FIXME: Should be properly typed, of course. Placeholder. */
+	uint32		id;
+	const Plugin	*plugin;	/* FIXME: Should be properly typed, of course. Placeholder. */
 
-	uint32	start, length;	/* Region in graph XML buffer used for this module. */
+	uint32		start, length;	/* Region in graph XML buffer used for this module. */
 } Module;
 
 typedef struct
@@ -69,8 +70,10 @@ static MethodInfo method_info[] = {
 
 static struct
 {
-	IdSet	*graphs;
-	Hash	*graphs_name;	/* Graphs hashed on name. */
+	IdSet		*graphs;
+	Hash		*graphs_name;	/* Graphs hashed on name. */
+
+	MemChunk	*chunk_module;
 } graph_info = { 0 };
 
 /* ----------------------------------------------------------------------------------------- */
@@ -79,6 +82,7 @@ void graph_init(void)
 {
 	graph_info.graphs = idset_new(1);
 	graph_info.graphs_name = hash_new_string();
+	graph_info.chunk_module = memchunk_new("graph/module", sizeof (Module), 8);
 }
 
 void graph_method_send_creates(uint32 avatar, uint8 group_id)
@@ -221,11 +225,31 @@ static void graph_destroy(uint32 id)
 static void module_create(uint32 graph_id, uint32 plugin_id)
 {
 	const Plugin	*p;
+	Graph		*g;
+	Module		*m;
 
 	if((p = plugin_lookup(plugin_id)) == NULL)
 	{
+		LOG_WARN(("Attempted to instantiate plug-in %u; not found", plugin_id));
+		return;
 	}
-	printf("Adding instance of plugin %u, \"%s\", to graph %u\n", plugin_id, plugin_name(p), graph_id);
+	if((g = idset_lookup(graph_info.graphs, graph_id)) == NULL)
+	{
+		LOG_WARN(("Attempted to instantiate plug-in %u in unknown graph %u, aborting", plugin_id, graph_id));
+		return;
+	}
+	m = memchunk_alloc(graph_info.chunk_module);
+	if(m == NULL)
+	{
+		LOG_WARN(("Module allocation failed in graph %u, plug-in %u", graph_id, plugin_id));
+		return;
+	}
+	m->plugin = p;
+	m->start = m->length = 0;
+	if(g->modules == NULL)
+		g->modules = idset_new(0);
+	m->id = idset_insert(g->modules, m);
+	LOG_MSG(("Instantiated plugin %u (%s) as module %u in graph %u (%s)", plugin_id, plugin_name(p), m->id, graph_id, g->name));
 }
 
 /* ----------------------------------------------------------------------------------------- */
