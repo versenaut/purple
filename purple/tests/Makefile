@@ -2,14 +2,17 @@
 # Simplistic Makefile for building automated tests.
 #
 
-CFLAGS=-g -Wall -I..
+VERSE=../../verse
+CFLAGS=-g -Wall -I.. -I$(VERSE)
 
 # List individual module testers here.
-ALL=test-dynstr test-list test-strutil
+ALL=test-dynstr test-idlist test-list test-strutil
 
 ALL:		$(ALL)
 
 test-dynstr:	test-dynstr.c libtest.a
+
+test-idlist:	test-idlist.c libtest.a
 
 test-list:	test-list.c libtest.a
 
@@ -20,7 +23,7 @@ test-strutil:	test-strutil.c libtest.a
 test.o:		test.c test.h
 
 # Code to test, more or less the "utility" parts of the Purple codebase, as needed.
-libtest.a:	../dynstr.o ../list.o ../log.o ../memchunk.o ../mem.o ../strutil.o test.o
+libtest.a:	../dynstr.o ../idlist.o ../list.o ../log.o ../memchunk.o ../mem.o ../strutil.o test.o
 		ar cr $@ $^
 
 # -------------------------------------------------------------
