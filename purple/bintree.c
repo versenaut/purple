@@ -109,7 +109,6 @@ void bintree_insert(BinTree *tree, const void *key, void *element)
 		y->left = z;
 	else
 		y->right = z;
-	printf("%p (%p) inserted, children %p and %p\n", z, z->key, z->left, z->right);
 	tree->size++;
 }
 
