@@ -123,6 +123,59 @@ real32 p_input_real32(PPInput input)
 	return 0.0f;
 }
 
+/* Spread the value for the first component into the other three.
+ * Handy when making a 4-dimensional vector of a scalar.
+*/
+static const real32 * spread_real32_vec4(real32 *buffer)
+{
+	buffer[1] = buffer[2] = buffer[3] = buffer[0];
+	return buffer;
+}
+
+const real32 * p_input_real32_vec4(PPInput input, real32 *buffer)
+{
+	const PInputValue	*in = input;
+
+	if(in == NULL || buffer == NULL)
+		return NULL;
+	switch(in->type)
+	{
+	case P_INPUT_BOOLEAN:
+		buffer[0] = in->v.vboolean;
+		return spread_real32_vec4(buffer);
+	case P_INPUT_INT32:
+		buffer[0] = in->v.vint32;
+		return spread_real32_vec4(buffer);
+	case P_INPUT_UINT32:
+		buffer[0] = in->v.vuint32;
+		return spread_real32_vec4(buffer);
+	case P_INPUT_REAL32:
+		buffer[0] = in->v.vreal32;
+		return spread_real32_vec4(buffer);
+	case P_INPUT_REAL32_VEC2:
+		buffer[0] = in->v.vreal32_vec2[0];
+		buffer[1] = in->v.vreal32_vec2[1];
+		buffer[2] = buffer[3] = 0.0f;
+		return buffer;
+	case P_INPUT_REAL32_VEC3:
+		buffer[0] = in->v.vreal32_vec2[0];
+		buffer[1] = in->v.vreal32_vec2[1];
+		buffer[2] = in->v.vreal32_vec2[2];
+		buffer[3] = 0.0f;
+		return buffer;
+	case P_INPUT_REAL32_VEC4:
+		memcpy(buffer, in->v.vreal32_vec4, 4 * sizeof *buffer);
+		return buffer;
+	case P_INPUT_REAL64:
+		buffer[0] = in->v.vreal64;
+		return spread_real32_vec4(buffer);
+	case P_INPUT_STRING:
+		/* Complexity called for. */
+		break;
+	}
+	return NULL;
+}
+
 real64 p_input_real64(PPInput input)
 {
 	const PInputValue	*in = input;
