@@ -3,15 +3,8 @@
  * 
  * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
  * 
- * 
+ * Text node databasing module.
 */
-
-typedef struct
-{
-	Node	node;
-	char	language[32];
-	DynArr	*buffers;
-} NodeText;
 
 typedef struct
 {
@@ -19,6 +12,13 @@ typedef struct
 	char	name[16];
 	TextBuf	*text;
 } NdbTBuffer;
+
+typedef struct
+{
+	Node	node;
+	char	language[32];
+	DynArr	*buffers;
+} NodeText;
 
 extern void		nodedb_t_construct(NodeText *n);
 extern void		nodedb_t_copy(NodeText *n, const NodeText *src);
