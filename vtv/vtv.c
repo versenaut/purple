@@ -347,7 +347,7 @@ static void cb_t_text_set(void *user, VNodeID node_id, uint16 buffer_id, uint32 
 	g_snprintf(info, sizeof info, "%u bytes, %u lines",
 		   gtk_text_buffer_get_char_count(textbuf),
 		   gtk_text_buffer_get_line_count(textbuf));
-	gtk_label_set_text(buf->info, info);
+	gtk_label_set_text(GTK_LABEL(buf->info), info);
 }
 
 static gboolean evt_window_keypress(GtkWidget *win, GdkEventKey *evt, gpointer user)
