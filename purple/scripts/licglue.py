@@ -57,6 +57,8 @@ for a in sys.argv[1:]:
 	if len(f) > 0:
 		# Insert blurb.
 		f = insert(a, f, LICENSE)
+		if f == None:
+			continue
 		# Save it to temporary file.
 		outname = a + "-blurbed"
 		out = open(outname, "wt")
