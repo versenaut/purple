@@ -1,5 +1,4 @@
 
-
 Purple Node Synchronization
 
 A node is always in one of these states:
@@ -8,14 +7,14 @@ A node is always in one of these states:
    has not been sent to the Verse server yet.
 
    Action: send create-call to Verse server, on notification
-   set the ID on the node and move it to "to be synced"-queue.
+   set the ID on the node and move it to "to be synched"-queue.
 
-2. Node modified. Placed in "to be synced"-queue, and *compared*
+2. Node modified. Placed in "to be synched"-queue, and *compared*
    against input version of same ID. Commands are generated as
    needed, and sent off to the server. Might involve sending a
    destroy-command.
 
-3. Identical to input node; dropped from syncronizer's state.
+3. Identical to input node; dropped from synchronizer's state.
 
 
 What If? -- Corner Case Paranoia
