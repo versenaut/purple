@@ -28,9 +28,6 @@ void nodedb_g_construct(NodeGeometry *n)
 	n->crease_vertex.def = 0;
 	n->crease_edge.layer[0] = '\0';
 	n->crease_edge.def = 0;
-
-	nodedb_g_layer_create(n, ~0, "vertex", VN_G_LAYER_VERTEX_XYZ);
-	nodedb_g_layer_create(n, ~0, "polygon", VN_G_LAYER_POLYGON_CORNER_UINT32);
 }
 
 static void cb_copy_layer(void *d, const void *s, void *user)
@@ -107,7 +104,6 @@ void nodedb_g_layer_create(NodeGeometry *node, VLayerID layer_id, const char *na
 	layer->data = NULL;
 	layer->def_uint = 0;
 	layer->def_real = 0.0;
-	printf("layer '%s' created\n", layer->name);
 }
 
 NdbGLayer * nodedb_g_layer_lookup(const NodeGeometry *node, const char *name)
@@ -149,7 +145,6 @@ static void cb_g_layer_create(void *user, VNodeID node_id, VLayerID layer_id, co
 	NodeGeometry	*node;
 	NdbGLayer	*layer;
 
-	printf("now in g_layer_create\n");
 	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
 		return;
 	if((layer = nodedb_g_layer_lookup(node, name)) != NULL)
@@ -208,7 +203,6 @@ void nodedb_g_vertex_set_xyz(NodeGeometry *node, NdbGLayer *layer, uint32 vertex
 		vtx[0] = x;
 		vtx[1] = y;
 		vtx[2] = z;
-		printf("vertex %u.%u set: (%g,%g,%g)\n", layer->id, vertex_id, x, y, z);
 	}
 }
 
@@ -219,7 +213,7 @@ void nodedb_g_vertex_set_xyz(NodeGeometry *node, NdbGLayer *layer, uint32 vertex
 	{\
 		NodeGeometry	*node;\
 		NdbGLayer	*layer;\
-		real32		*vtx;\
+		t		*vtx;\
 		if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)\
 			return;\
 		if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL || layer->name[0] == '\0')\
