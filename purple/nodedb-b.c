@@ -1,4 +1,4 @@
-/*
+*
  * Bitmap node databasing. Bitmaps are stored by allocating contiguous blocks of memory for
  * the required layers, nothing very fancy at all. One-bit-per-pixel layers are stored using
  * 8-bit bytes as the smallest unit of allocation, and never using any single byte for pixels
@@ -258,7 +258,7 @@ void nodedb_b_layer_foreach_set(NodeBitmap *node, NdbBLayer *layer,
 					{
 						if(x > 0 && (x % 8) == 0)
 						{
-							printf(" x=%u, writing %02X\n", x, px);
+/*							printf(" x=%u, writing %02X\n", x, px);*/
 							*put8++ = px;
 							px = 0;
 						}
@@ -266,7 +266,7 @@ void nodedb_b_layer_foreach_set(NodeBitmap *node, NdbBLayer *layer,
 						px |= pixel(x, y, z, user) >= 0.5;
 					}
 					shift = (8 - (x % 8)) % 8;
-					printf("scanline done, x=%u, writing %02X << %u = %02X\n", x, px, shift, px << shift);
+/*					printf("scanline done, x=%u, writing %02X << %u = %02X\n", x, px, shift, px << shift);*/
 					*put8++ = px << shift;
 					frame += (node->width + 7) / 8;
 					break;
@@ -415,6 +415,32 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 	for(y = 0; y < th; y++, get += mod_src, put += mod_dst)
 		memcpy(put, get, mod_src);
 	NOTIFY(node, DATA);
+
+/*	if(layer->type == VN_B_LAYER_UINT1)
+	{
+		const uint8	*ptr = layer->framebuffer;
+		uint32		x, y;
+
+		for(y = 0; y < node->height; y++)
+		{
+			for(x = 0; x < mod_dst; x++)
+				printf(" %02X", *ptr++);
+			printf("\n");
+		}
+	}
+	else if(layer->type == VN_B_LAYER_REAL64)
+	{
+		const real64	*ptr = layer->framebuffer;
+		uint32		x, y;
+
+		for(y = 0; y < node->height; y++)
+		{
+			for(x = 0; x < node->width; x++)
+				printf(" %g", *ptr++);
+			printf("\n");
+		}
+	}
+*/
 }
 
 /* ----------------------------------------------------------------------------------------- */
