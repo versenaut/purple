@@ -86,6 +86,11 @@ static void * block_copy(const void *key, const void *element, void *user)
 	return blk;
 }
 
+static void block_destroy(NdbABlk *blk)
+{
+	mem_free(blk);
+}
+
 static void cb_copy_layer(void *d, const void *s, void *user)
 {
 	const NdbALayer	*src = s;
@@ -103,6 +108,19 @@ void nodedb_a_copy(NodeAudio *n, const NodeAudio *src)
 	n->layers = dynarr_new_copy(src->layers, cb_copy_layer, NULL);
 }
 
+/* Set <n> to equal contents of <src>. */
+void nodedb_a_set(NodeAudio *n, const NodeAudio *src)
+{
+	/* FIXME: This can't quite claim to be efficent. :/ */
+	nodedb_a_destruct(n);
+	nodedb_a_copy(n, src);
+}
+
+static void cb_block_destroy(const void *key, void *element)
+{
+	block_destroy(element);
+}
+
 void nodedb_a_destruct(NodeAudio *n)
 {
 	unsigned int	i, num;
@@ -114,10 +132,11 @@ void nodedb_a_destruct(NodeAudio *n)
 
 		if((la = dynarr_index(n->layers, i)) != NULL && la->name[0] != '\0')
 		{
-			printf("destroying layer %u\n", i);
+			bintree_destroy(la->blocks, cb_block_destroy);
 		}
 	}
 	dynarr_destroy(n->layers);
+	n->layers = NULL;
 }
 
 unsigned int nodedb_a_layer_num(const NodeAudio *node)
