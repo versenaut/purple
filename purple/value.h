@@ -36,14 +36,20 @@ extern void		value_init(PValue *v);
 extern void		value_clear(PValue *v);
 
 /* Store a new value in the given value. Replaces any previous value of the same type. */
+extern int		value_set_va(PValue *v, PValueType type, va_list arg);
 extern int		value_set(PValue *v, PValueType type, ...);
 
 /* Check if the indicated value is present in the value. A present value is never returned from cache. */
 extern boolean		value_type_present(const PValue *v, PValueType type);
 
+/* Return name of the type the value is set to. Only works if there is exactly one type set. */
+extern const char *	value_type_name(const PValue *v);
+
+extern void		value_append(const PValue *v, DynStr *d);
+
 /* Get a value, reading from (and updating) the optional cache if the source value does
  * not hold the desired type. Data ownership is always in the value or the cache.
- * */
+*/
 extern boolean		value_get_boolean(const PValue *v, PValue *cache);
 extern int32		value_get_int32(const PValue *v, PValue *cache);
 extern uint32		value_get_uint32(const PValue *v, PValue *cache);

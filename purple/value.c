@@ -8,6 +8,7 @@
 
 #include "verse.h"
 
+#include "dynstr.h"
 #include "mem.h"
 #include "list.h"
 #include "log.h"
@@ -111,6 +112,43 @@ void value_clear(PValue *v)
 boolean value_type_present(const PValue *v, PValueType type)
 {
 	return v != NULL ? VALUE_SETS(v, type) : 0;
+}
+
+const char * value_type_name(const PValue *v)
+{
+	PValueType	i;
+	uint16		mask = 1;
+
+	if(v == NULL)
+		return NULL;
+	for(i = P_VALUE_BOOLEAN; i <= P_VALUE_MODULE; i++, mask <<= 1)
+	{
+		if(v->set & mask)	/* Bit found? */
+		{
+			if(v->set & ~mask)	/* More bits set? */
+				return NULL;	/* Can't resolve ambiguity, give up. */
+			return value_type_to_name(i);
+		}
+	}
+	return NULL;
+}
+
+/* Append string representation of <v> to <d>. Only works if there is just a single type of value
+ * actually present in <v>. Only intended to be used for inputs, so that is not a problem.
+*/
+void value_append(const PValue *v, DynStr *d)
+{
+	PValueType	i;
+	uint16		mask;
+
+	for(i = P_VALUE_BOOLEAN, mask = 1; i <= P_VALUE_MODULE; i++, mask <<= 1)
+	{
+		if(v->set & mask)
+		{
+			dynstr_append(d, "some value");
+			return;
+		}
+	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -356,6 +394,26 @@ real32 value_get_real32(const PValue *v, PValue *cache)
 	return get_as_real64(v);
 }
 
+const real32 * value_get_real32_vec2(const PValue *v, PValue *cache)
+{
+	return NULL;	/* FIXME: Implement heuristics. */
+}
+
+const real32 * value_get_real32_vec3(const PValue *v, PValue *cache)
+{
+	return NULL;	/* FIXME: Implement heuristics. */
+}
+
+const real32 * value_get_real32_vec4(const PValue *v, PValue *cache)
+{
+	return NULL;	/* FIXME: Implement heuristics. */
+}
+
+const real32 * value_get_real32_mat16(const PValue *v, PValue *cache)
+{
+	return NULL;	/* FIXME: Implement heuristics. */
+}
+
 real64 value_get_real64(const PValue *v, PValue *cache)
 {
 	if(v == NULL)
@@ -370,6 +428,26 @@ real64 value_get_real64(const PValue *v, PValue *cache)
 		return cache->v.vreal64 = get_as_real64(v);
 	}
 	return get_as_real64(v);
+}
+
+const real64 * value_get_real64_vec2(const PValue *v, PValue *cache)
+{
+	return NULL;	/* FIXME: Implement heuristics. */
+}
+
+const real64 * value_get_real64_vec3(const PValue *v, PValue *cache)
+{
+	return NULL;	/* FIXME: Implement heuristics. */
+}
+
+const real64 * value_get_real64_vec4(const PValue *v, PValue *cache)
+{
+	return NULL;	/* FIXME: Implement heuristics. */
+}
+
+const real64 * value_get_real64_mat16(const PValue *v, PValue *cache)
+{
+	return NULL;	/* FIXME: Implement heuristics. */
 }
 
 const char * value_get_string(const PValue *v, PValue *cache)
@@ -429,7 +507,7 @@ const char * value_get_string(const PValue *v, PValue *cache)
 		if(put > 0)
 		{
 			cache->v.vstring = mem_alloc(put + 1);
-			strcpy(cache->v.vstring, buf);
+			memcpy(cache->v.vstring, buf, put + 1);
 			DO_SET(cache, STRING);
 			return cache->v.vstring;
 		}
