@@ -75,7 +75,7 @@ static void cb_node_notify_mine(Node *node, NodeNotifyEvent e)
 		{
 			if(client_info.plugins.buffer == (uint16) ~0)
 			{
- 				if((buf = nodedb_t_buffer_get_named((NodeText *) node, "plugins")) != NULL)
+ 				if((buf = nodedb_t_buffer_find((NodeText *) node, "plugins")) != NULL)
 				{
 					char	*text;
 
@@ -98,7 +98,7 @@ static void cb_node_notify_mine(Node *node, NodeNotifyEvent e)
 			}
 			if(client_info.graphs.buffer == (uint16) ~0)
 			{
-				if((buf = nodedb_t_buffer_get_named((NodeText *) node, "graphs")) != NULL)
+				if((buf = nodedb_t_buffer_find((NodeText *) node, "graphs")) != NULL)
 				{
 					const char	*header = "<?xml version=\"1.0\" standalone=\"yes\"?>\n\n"
 							      "<purple-graphs>\n"

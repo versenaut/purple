@@ -501,7 +501,7 @@ static int sync_text(NodeText *n, const NodeText *target)
 	{
 		if(buffer->name[0] == '\0')
 			continue;
-		if((tbuffer = nodedb_t_buffer_get_named(target, buffer->name)) != NULL)
+		if((tbuffer = nodedb_t_buffer_find(target, buffer->name)) != NULL)
 			sync &= sync_text_buffer(n, buffer, target, tbuffer);
 		else
 		{
