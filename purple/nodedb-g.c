@@ -135,48 +135,34 @@ static void cb_g_layer_destroy(void *user, VNodeID node_id, VLayerID layer_id)
 	NOTIFY(node, STRUCTURE);
 }
 
-static void cb_g_vertex_set_real32_xyz(void *user, VNodeID node_id, VLayerID layer_id, uint32 vertex_id, real32 x, real32 y, real32 z)
-{
-	NodeGeometry	*node;
-	NdbGLayer	*layer;
-	real32		*vtx;
-
-	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
-		return;
-	if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL || layer->name[0] == '\0')
-		return;
-	if(layer->data == NULL)
-		layer->data = dynarr_new(3 * sizeof *vtx, 16);	/* FIXME: Should care about defaults. */
-	if((vtx = dynarr_set(layer->data, vertex_id, NULL)) != NULL)
-	{
-		vtx[0] = x;
-		vtx[1] = y;
-		vtx[2] = z;
+/* Macro to define a vertex XYZ handler function. */
+#define	VERTEX_XYZ(t)	\
+	static void cb_g_vertex_set_##t ##_xyz(void *user, VNodeID node_id, VLayerID layer_id, uint32 vertex_id,\
+						       t x, t y, t z)\
+	{\
+		NodeGeometry	*node;\
+		NdbGLayer	*layer;\
+		real32		*vtx;\
+		if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)\
+			return;\
+		if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL || layer->name[0] == '\0')\
+			return;\
+		if(layer->data == NULL)\
+			layer->data = dynarr_new(3 * sizeof *vtx, 16);	/* FIXME: Should care about defaults. */\
+		if((vtx = dynarr_set(layer->data, vertex_id, NULL)) != NULL)\
+		{\
+			vtx[0] = x;\
+			vtx[1] = y;\
+			vtx[2] = z;\
+		}\
 	}
-}
 
-static void cb_g_vertex_set_real64_xyz(void *user, VNodeID node_id, VLayerID layer_id, uint32 vertex_id, real64 x, real64 y, real64 z)
-{
-	NodeGeometry	*node;
-	NdbGLayer	*layer;
-	real64		*vtx;
+/* Use macro to define the needed real32 and real64 varieties. */
+VERTEX_XYZ(real32)
+VERTEX_XYZ(real64)
 
-	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
-		return;
-	if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL || layer->name[0] == '\0')
-		return;
-	if(layer->data == NULL)
-		layer->data = dynarr_new(3 * sizeof *vtx, 16);	/* FIXME: Should care about defaults. */
-	if((vtx = dynarr_set(layer->data, vertex_id, NULL)) != NULL)
-	{
-		vtx[0] = x;
-		vtx[1] = y;
-		vtx[2] = z;
-	}
-}
-
-/* Macro to define a handler function for a single-valued (i.e. non-XYZ) vertex set. */
-#define	VERTEX_SINGLE(t)	\
+/* Macro to define a vertex scalar handler function. */
+#define	VERTEX_SCALAR(t)	\
 	static void cb_g_vertex_set_ ##t(void *user, VNodeID node_id, VLayerID layer_id, uint32 vertex_id, t value)\
 	{\
 		NodeGeometry	*node;\
@@ -188,14 +174,65 @@ static void cb_g_vertex_set_real64_xyz(void *user, VNodeID node_id, VLayerID lay
 		if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL || layer->name[0] == '\0')\
 			return;\
 		if(layer->data == NULL)\
-			layer->data = dynarr_new(3 * sizeof *v, 16);	/* FIXME: Should care about defaults. */\
+			layer->data = dynarr_new(sizeof *v, 16);	/* FIXME: Should care about defaults. */\
 		if((v = dynarr_set(layer->data, vertex_id, NULL)) != NULL)\
 			*v = value;\
 	}
 
-VERTEX_SINGLE(uint32)
-VERTEX_SINGLE(real32)
-VERTEX_SINGLE(real64)
+VERTEX_SCALAR(uint32)
+VERTEX_SCALAR(real32)
+VERTEX_SCALAR(real64)
+
+/* Macro to define a polygon corner value handler function. */
+#define POLYGON_CORNER(t)	\
+	static void cb_g_polygon_set_corner_ ##t(void *user, VNodeID node_id, VLayerID layer_id, uint32 polygon_id,\
+							 t v0, t v1, t v2, t v3)\
+	{\
+		NodeGeometry	*node;\
+		NdbGLayer	*layer;\
+		t		*v;\
+		\
+		if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)\
+			return;\
+		if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL || layer->name[0] == '\0')\
+			return;\
+		if(layer->data == NULL)\
+			layer->data = dynarr_new(4 * sizeof *v, 16);	/* FIXME: Should care about defaults. */\
+		if((v = dynarr_set(layer->data, polygon_id, NULL)) != NULL)\
+		{\
+			v[0] = v0;\
+			v[1] = v1;\
+			v[2] = v2;\
+			v[3] = v3;\
+		}\
+	}
+
+POLYGON_CORNER(uint32)
+POLYGON_CORNER(real32)
+POLYGON_CORNER(real64)
+
+/* Macro to define a polygon face value handler function. */
+#define POLYGON_FACE(t)	\
+	static void cb_g_polygon_set_face_ ##t(void *user, VNodeID node_id, VLayerID layer_id, uint32 polygon_id, t value)\
+	{\
+		NodeGeometry	*node;\
+		NdbGLayer	*layer;\
+		t		*v;\
+		\
+		if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)\
+			return;\
+		if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL || layer->name[0] == '\0')\
+			return;\
+		if(layer->data == NULL)\
+			layer->data = dynarr_new(sizeof *v, 16);	/* FIXME: Should care about defaults. */\
+		if((v = dynarr_set(layer->data, polygon_id, NULL)) != NULL)\
+			*v = value;\
+	}
+
+POLYGON_FACE(uint8)
+POLYGON_FACE(uint32)
+POLYGON_FACE(real32)
+POLYGON_FACE(real64)
 
 /* ----------------------------------------------------------------------------------------- */
 
@@ -209,4 +246,13 @@ void nodedb_g_register_callbacks(void)
 	verse_callback_set(verse_send_g_vertex_set_uint32,	cb_g_vertex_set_uint32,		NULL);
 	verse_callback_set(verse_send_g_vertex_set_real32,	cb_g_vertex_set_real32,		NULL);
 	verse_callback_set(verse_send_g_vertex_set_real64,	cb_g_vertex_set_real64,		NULL);
+
+	verse_callback_set(verse_send_g_polygon_set_corner_uint32,	cb_g_polygon_set_corner_uint32,	NULL);
+	verse_callback_set(verse_send_g_polygon_set_corner_real32,	cb_g_polygon_set_corner_real32,	NULL);
+	verse_callback_set(verse_send_g_polygon_set_corner_real64,	cb_g_polygon_set_corner_real64,	NULL);
+
+	verse_callback_set(verse_send_g_polygon_set_face_uint8,		cb_g_polygon_set_face_uint8,	NULL);
+	verse_callback_set(verse_send_g_polygon_set_face_uint32,	cb_g_polygon_set_face_uint32,	NULL);
+	verse_callback_set(verse_send_g_polygon_set_face_real32,	cb_g_polygon_set_face_real32,	NULL);
+	verse_callback_set(verse_send_g_polygon_set_face_real64,	cb_g_polygon_set_face_real64,	NULL);
 }
