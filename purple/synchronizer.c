@@ -750,7 +750,7 @@ static int sync_text(const NodeText *n, const NodeText *target)
 		else
 		{
 			printf(" sync sending create of text buffer '%s' in %u\n", buffer->name, target->node.id);
-			verse_send_t_buffer_create(target->node.id, ~0, 0, buffer->name);
+			verse_send_t_buffer_create(target->node.id, ~0, buffer->name);
 			sync = 0;
 		}
 	}
