@@ -39,6 +39,13 @@ NdbTBuffer * nodedb_t_buffer_lookup(const NodeText *node, const char *name)
 	return NULL;
 }
 
+NdbTBuffer * nodedb_t_buffer_lookup_id(const NodeText *node, uint16 buffer_id)
+{
+	if(node == NULL)
+		return NULL;
+	return dynarr_index(node->buffers, buffer_id);
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 static void cb_t_set_language(void *user, VNodeID node_id, const char *language)
@@ -100,6 +107,7 @@ static void cb_t_text_set(void *user, VNodeID node_id, uint16 buffer_id, uint32 
 
 		if((tb = dynarr_index(n->buffers, buffer_id)) != NULL)
 		{
+			printf("text set in buffer %u.%u\n", node_id, buffer_id);
 			textbuf_delete(tb->text, pos, len);
 			textbuf_insert(tb->text, pos, text);
 			NOTIFY(n, DATA);

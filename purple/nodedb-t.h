@@ -19,5 +19,6 @@ typedef struct
 extern void		nodedb_t_init(NodeText *n);
 
 extern NdbTBuffer *	nodedb_t_buffer_lookup(const NodeText *node, const char *name);
+extern NdbTBuffer *	nodedb_t_buffer_lookup_id(const NodeText *node, uint16 buffer_id);
 
 extern void		nodedb_t_register_callbacks(void);
