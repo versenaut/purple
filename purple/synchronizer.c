@@ -756,9 +756,9 @@ static int sync_curve_curve(const NodeCurve *n, const NdbCCurve *curve,
 			if(!nodedb_c_curve_key_equal(tcurve, key, tkey))
 			{
 				verse_send_c_key_set(target->node.id, tcurve->id, tkey->id, curve->dimensions,
-						     key->pre.value, key->pre.pos,
-						     key->value, key->pos,
-						     key->post.value, key->post.pos);
+						     (real64 *) key->pre.value, (uint32 *) key->pre.pos,
+						     (real64 *) key->value, key->pos,
+						     (real64 *) key->post.value, (uint32 *) key->post.pos);
 				sync = 0;
 			}
 		}
@@ -766,9 +766,9 @@ static int sync_curve_curve(const NodeCurve *n, const NdbCCurve *curve,
 		{
 			printf("sync sending create of key at %g\n", key->pos);
 			verse_send_c_key_set(target->node.id, tcurve->id, ~0, curve->dimensions,
-					     key->pre.value, key->pre.pos,
-					     key->value, key->pos,
-					     key->post.value, key->post.pos);
+					     (real64 *) key->pre.value, (uint32 *) key->pre.pos,
+					     (real64 *) key->value, key->pos,
+					     (real64 *) key->post.value, (uint32 *) key->post.pos);
 			sync = 0;
 		}
 	}
