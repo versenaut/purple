@@ -19,9 +19,9 @@
 #include "log.h"
 #include "mem.h"
 #include "memchunk.h"
+#include "value.h"
 #include "nodeset.h"
 #include "strutil.h"
-#include "value.h"
 #include "port.h"
 #include "xmlutil.h"
 

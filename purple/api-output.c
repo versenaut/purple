@@ -10,9 +10,9 @@
 #include "dynarr.h"
 #include "dynstr.h"
 #include "list.h"
+#include "value.h"
 #include "nodeset.h"
 #include "textbuf.h"
-#include "value.h"
 
 #include "nodedb.h"
 #include "graph.h"

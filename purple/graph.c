@@ -3,6 +3,7 @@
 */
 
 #include <stddef.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,12 +21,12 @@
 #include "log.h"
 #include "mem.h"
 #include "memchunk.h"
+#include "value.h"
 #include "nodeset.h"
 #include "plugins.h"
 #include "scheduler.h"
 #include "strutil.h"
 #include "textbuf.h"
-#include "value.h"
 #include "port.h"
 
 #include "nodedb.h"
