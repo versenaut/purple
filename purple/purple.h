@@ -174,11 +174,13 @@ const char *	p_node_t_language_get(PINode *node);
 size_t		p_node_t_buffer_get_count(PINode *node);
 PNTBuffer *	p_node_t_buffer_get_nth(PINode *node, unsigned int n);
 PNTBuffer *	p_node_t_buffer_lookup(PINode *node);
+PNTBuffer *	p_node_t_buffer_create(PONode *node, const char *name);
 const char *	p_node_t_buffer_read_begin(PNTBuffer *buffer);
 void		p_node_t_buffer_read_end(PNTBuffer *buffer, const char *text);
 char *		p_node_t_buffer_read_line(PNTBuffer *buffer, unsigned int line, char *put, size_t putmax);
 void		p_node_t_buffer_insert(PNTBuffer *buffer, size_t pos, const char *text);
 void		p_node_t_buffer_delete(PNTBuffer *buffer, size_t pos, size_t length);
+void		p_node_t_buffer_append(PNTBuffer *buffer, const char *text);
 
 /* Duplicates an input node, and returns something you can actually edit. */
 PONode *	p_output_node(PPOutput out, PINode *node);
