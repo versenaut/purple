@@ -5,8 +5,11 @@
 CC=gcc
 CFLAGS=-I.. -I../../verse/ -shared -Wstrict-prototypes -Wmissing-prototypes
 
-ALL:	libaudiotone.so libaudioscale.so libbbox.so libbmblend.so libchecker.so libcube.so libcurvetest.so libdisc.so \
-	libhello.so libfactors.so libmath.so libmattest.so libmeasure.so libscale.so libstringop.so \
+ALL:	libaudioecho.so libaudiotone.so libaudioscale.so libbbox.so libbmblend.so \
+	libchecker.so libcube.so libcurvetest.so libdisc.so \
+	libhello.so libfactors.so libmath.so libmattest.so libmeasure.so \
+	libnew-node.so \
+	libscale.so libstringop.so \
 	libtagtest.so libtextnum.so libwarp.so
 
 lib%.so : %.c
