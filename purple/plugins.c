@@ -47,33 +47,13 @@ typedef struct
 	char	*text;
 } MetaEntry;
 
-typedef union
-{
-	boolean	vboolean;
-	int32	vint32;
-	uint32	vuint32;
-	real32	vreal32;
-	real32	vreal32_vec2[2];
-	real32	vreal32_vec3[3];
-	real32	vreal32_vec4[4];
-	real32	vreal32_mat16[16];
-
-	real64	vreal64;
-	real64	vreal64_vec2[2];
-	real64	vreal64_vec3[3];
-	real64	vreal64_vec4[4];
-	real64	vreal64_mat16[16];
-
-	char	*vstring;
-} InputValue;
-
 typedef struct
 {
 	unsigned int	req : 1;
 	unsigned int	def : 1;
 	unsigned int	min : 1;
 	unsigned int	max : 1;
-	InputValue	def_val, min_val, max_val;
+	PInputValue	def_val, min_val, max_val;
 } InputSpec;
 
 typedef struct
@@ -128,7 +108,7 @@ Plugin * plugin_new(const char *name)
 	return p;
 }
 
-static int set_value(PInputType type, InputValue *value, va_list *taglist)
+static int set_value(PInputType type, PInputValue *value, va_list *taglist)
 {
 	switch(type)
 	{
@@ -254,7 +234,7 @@ void plugin_set_compute(Plugin *p, void (*compute)(PPInput *input, PPOutput outp
 	}
 }
 
-static void append_value(DynStr *d, PInputType type, const InputValue *v)
+static void append_value(DynStr *d, PInputType type, const PInputValue *v)
 {
 	switch(type)
 	{

@@ -29,6 +29,26 @@ typedef enum
 	P_INPUT_NODE
 } PInputType;
 
+typedef union
+{
+	boolean	vboolean;
+	int32	vint32;
+	uint32	vuint32;
+	real32	vreal32;
+	real32	vreal32_vec2[2];
+	real32	vreal32_vec3[3];
+	real32	vreal32_vec4[4];
+	real32	vreal32_mat16[16];
+
+	real64	vreal64;
+	real64	vreal64_vec2[2];
+	real64	vreal64_vec3[3];
+	real64	vreal64_vec4[4];
+	real64	vreal64_mat16[16];
+
+	char	*vstring;
+} PInputValue;
+
 typedef enum
 {
 	P_INPUT_TAG_DONE = 0,
