@@ -60,7 +60,7 @@ typedef struct
 
 enum
 {
-	CREATE, DESTROY, MOD_CREATE, MOD_INPUT_CLEAR,
+	CREATE, DESTROY, MOD_CREATE, MOD_DESTROY, MOD_INPUT_CLEAR,
 	MOD_INPUT_SET_BOOLEAN, MOD_INPUT_SET_INT32, MOD_INPUT_SET_UINT32,
 	MOD_INPUT_SET_REAL32, MOD_INPUT_SET_REAL32_VEC2, MOD_INPUT_SET_REAL32_VEC3, MOD_INPUT_SET_REAL32_VEC4,
 	MOD_INPUT_SET_REAL64, MOD_INPUT_SET_REAL64_VEC2, MOD_INPUT_SET_REAL64_VEC3, MOD_INPUT_SET_REAL64_VEC4,
@@ -83,6 +83,7 @@ static MethodInfo method_info[] = {
 	{ "destroy",	1, { VN_O_METHOD_PTYPE_UINT32 }, { "graph_id" } },
 	
 	{ "mod_create",  2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "plugin_id" } },
+	{ "mod_destroy", 2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "module_id" } },
 	{ "mod_input_clear", 3, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8 },
 			{ "graph_id", "module_id", "input" } },
 	MI_INPUT(boolean, UINT8),
@@ -97,7 +98,6 @@ static MethodInfo method_info[] = {
 	MI_INPUT_VEC(r64, REAL64, 3),
 	MI_INPUT_VEC(r64, REAL64, 4),
 	MI_INPUT(string, STRING)
-/*	{ "mod_destroy", 2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "module_id" } }*/
 };
 
 static struct
@@ -320,6 +320,28 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 	dynstr_destroy(desc, 1);
 }
 
+static void module_destroy(uint32 graph_id, uint32 module_id)
+{
+	Graph	*g;
+	Module	*m;
+
+	if((g = idset_lookup(graph_info.graphs, graph_id)) == NULL)
+	{
+		LOG_WARN(("Attempted to destroy module %u in unknown graph %u, aborting", module_id, graph_id));
+		return;
+	}
+	if((m = idset_lookup(g->modules, module_id)) == NULL)
+	{
+		LOG_WARN(("Attempted to destroy unknown module %u in graph %, aborting", module_id, graph_id));
+		return;
+	}
+	idset_remove(g->modules, module_id);
+	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, NULL);
+	plugin_inputset_destroy(m->inputs);
+	memchunk_free(graph_info.chunk_module, m);
+	modules_desc_start_update(g);
+}
+
 static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_index, PInputType type, ...)
 {
 	va_list	arg;
@@ -416,6 +438,15 @@ void graph_method_send_call_mod_create(uint32 graph_id, uint32 plugin_id)
 	param[0].vuint32 = graph_id;
 	param[1].vuint32 = plugin_id;
 	send_method_call(MOD_CREATE, param);
+}
+
+void graph_method_send_call_mod_destroy(uint32 graph_id, uint32 module_id)
+{
+	VNOParam	param[2];
+
+	param[0].vuint32 = graph_id;
+	param[1].vuint32 = module_id;
+	send_method_call(MOD_DESTROY, param);
 }
 
 void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32 index, const PInputValue *value)
@@ -540,6 +571,7 @@ void graph_method_receive_call(uint8 id, const void *param)
 			case CREATE:	graph_create(arg[0].vnode, arg[1].vlayer, arg[2].vstring);	break;
 			case DESTROY:	graph_destroy(arg[0].vuint32);					break;
 			case MOD_CREATE: module_create(arg[0].vuint32, arg[1].vuint32);			break;
+			case MOD_DESTROY: module_destroy(arg[0].vuint32, arg[1].vuint32);		break;
 			case MOD_INPUT_CLEAR:
 				module_input_clear(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8);
 				break;
