@@ -15,7 +15,7 @@ typedef struct
 {
 	uint16	id;
 	VNodeID	link;
-	char	name[16];
+	char	label[16];
 	uint32	target;
 } NdbOLink;
 
@@ -38,6 +38,8 @@ typedef struct
 extern void		nodedb_o_construct(NodeObject *n);
 extern void		nodedb_o_copy(NodeObject *n, const NodeObject *src);
 extern void		nodedb_o_destruct(NodeObject *n);
+
+extern void		nodedb_o_link_set(NodeObject *n, uint16 link_id, VNodeID link, const char *label, uint32 target_id);
 
 extern NdbOMethodGroup*	nodedb_o_method_group_lookup(NodeObject *n, const char *name);
 extern const NdbOMethod*nodedb_o_method_lookup(const NdbOMethodGroup *group, const char *name);
