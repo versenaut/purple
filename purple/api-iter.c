@@ -28,10 +28,11 @@
 #define	ITER_DYNARR	(1 << 0)
 #define	ITER_LIST	(1 << 1)
 #define	ITER_STRING	(1 << 15)
+#define	ITER_ENUM_NEG	(1 << 14)
 
 /* ----------------------------------------------------------------------------------------- */
 
-/* Return next valid index, which will be <index> or higher if there are (string-mode) gaps. */
+/* Return next valid index, which will be <index> or higher if there are gaps. */
 static unsigned int validate_dynarr_index(PIter *iter, unsigned int index)
 {
 	if(iter->flags & ITER_STRING)	/* In string mode, skip array elements with '\0' at [offset]. */
@@ -44,11 +45,23 @@ static unsigned int validate_dynarr_index(PIter *iter, unsigned int index)
 				break;
 		}
 	}
+	else if(iter->flags & ITER_ENUM_NEG)
+	{
+		const char	*el;
+		const int	*e;		/* Enums are ints, really. */
+
+		for(; (el = dynarr_index(iter->data.dynarr.arr, index)) != NULL; index++)
+		{
+			e = (const int *) (el + iter->offset);
+			if(e >= 0)
+				break;
+		}
+	}
 	return index;
 }
 
 /* Initialize iterator over dynamic array (dynarr.h). Rather pointless, included for completeness. */
-void iter_init_dynarr(PIter *iter, DynArr *arr)
+void iter_init_dynarr(PIter *iter, const DynArr *arr)
 {
 	iter->flags = ITER_DYNARR;
 	iter->index = 0;
@@ -61,12 +74,23 @@ void iter_init_dynarr(PIter *iter, DynArr *arr)
  * zero-length string. Elements with zero-length strings are considered invalid, and are never
  * returned by iter_get(). Typically used to exclude destroyed layers/tag groups/curves etc.
 */
-void iter_init_dynarr_string(PIter *iter, DynArr *arr, size_t offset)
+void iter_init_dynarr_string(PIter *iter, const DynArr *arr, size_t offset)
 {
 	if(iter == NULL)
 		return;
 	iter_init_dynarr(iter, arr);
 	iter->flags |= ITER_STRING;
+	iter->offset = offset;
+	iter->data.dynarr.index = validate_dynarr_index(iter, 0);
+}
+
+/* Initialize iter that tests for legal dynarr elements by checking the sign of an enum field. */
+void iter_init_dynarr_enum_negative(PIter *iter, const DynArr *arr, size_t offset)
+{
+	if(iter == NULL)
+		return;
+	iter_init_dynarr(iter, arr);
+	iter->flags |= ITER_ENUM_NEG;
 	iter->offset = offset;
 	iter->data.dynarr.index = validate_dynarr_index(iter, 0);
 }
@@ -105,7 +129,7 @@ void p_iter_next(PIter *iter)
 		return;
 	if(iter->flags & ITER_DYNARR)
 	{
-		if(iter->flags & ITER_STRING)
+		if(iter->flags & ITER_STRING || iter->flags & ITER_ENUM_NEG)
 			iter->data.dynarr.index = validate_dynarr_index(iter, iter->data.dynarr.index + 1);
 		else
 			iter->data.dynarr.index++;
