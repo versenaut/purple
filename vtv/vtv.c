@@ -1,7 +1,9 @@
 /*
  * A quick hack to visualize text buffer contents. Handy while developing Purple, with its
- * various XML-based interfaces. Written against GTK+ 1.2.10, because I didn't have the time
- * and energy to get 2.4.x up on my work machine. Oops.
+ * various XML-based interfaces.
+ * 
+ * This program requires a version of GTK+ 2.0 that is recent enough to include the GtkComboBox
+ * widget. This means version 2.4.0 or greater, I think.
 */
 
 #include <stdio.h>
@@ -147,29 +149,27 @@ static TextBuffer * node_text_buffer_new(MainInfo *min, VNodeID node_id, uint16 
 
 static void combo_nodes_refresh(MainInfo *min)
 {
-	GList	*iter, *names = NULL;
-
+	GList	*iter;
+	
 	for(iter = min->nodes; iter != NULL; iter = g_list_next(iter))
-		names = g_list_append(names, ((NodeText *) iter->data)->name);
-	gtk_combo_set_popdown_strings(GTK_COMBO(min->combo_nodes), names);
+		gtk_combo_box_append_text(GTK_COMBO_BOX(min->combo_nodes), ((NodeText *) iter->data)->name);
 }
 
 static void combo_buffers_refresh(MainInfo *min)
 {
 	NodeText	*node;
-	GList		*iter, *names = NULL;
+	GList		*iter;
 
 	if((node = node_lookup(min, min->cur_node)) == NULL)
 		return;
+	printf("refreshing\n");
 	for(iter = node->buffers; iter != NULL; iter = g_list_next(iter))
-		names = g_list_append(names, ((TextBuffer *) iter->data)->name);
-	if(names != NULL)
-		gtk_combo_set_popdown_strings(GTK_COMBO(min->combo_buffers), names);
-	else
-	{
+		gtk_combo_box_append_text(GTK_COMBO_BOX(min->combo_buffers), ((TextBuffer *) iter->data)->name);
+/*	{
 		gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(min->combo_buffers)->entry), "");
 		gtk_list_clear_items(GTK_LIST(GTK_COMBO(min->combo_buffers)->list), 0, 1 << 30);
 	}
+*/
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -199,42 +199,46 @@ static void cb_node_t_buffer_create(void *user, VNodeID node_id, uint16 buffer_i
 		combo_buffers_refresh(user);
 }
 
-static void evt_node_select(GtkWidget *wid, GtkWidget *child, gpointer user)
+static void evt_node_changed(GtkWidget *wid, gpointer user)
 {
 	MainInfo	*min = user;
-	GtkWidget	*cwid;
+	GtkTreeIter	iter;
 
-	cwid = GTK_BIN(child)->child;
-	if(GTK_IS_LABEL(cwid))
+	if(gtk_combo_box_get_active_iter(GTK_COMBO_BOX(wid), &iter))
 	{
-		gchar	*text;
+		GtkTreeModel	*tm;
+		gchar 		*v;
+		VNodeID		cur = min->cur_node;
 
-		gtk_label_get(GTK_LABEL(cwid), &text);
-		if(text)
-		{
-			VNodeID	cur = min->cur_node;
+		tm = gtk_combo_box_get_model(GTK_COMBO_BOX(wid));
+		gtk_tree_model_get(tm, &iter, 0, &v, -1);
 
-			node_select(min, text);
-			if(min->cur_node != cur)
-				combo_buffers_refresh(min);
-		}
+		cur = min->cur_node;
+		node_select(min, v);
+		if(min->cur_node != cur)
+			combo_buffers_refresh(min);
 	}
 }
 
-static void evt_buffer_select(GtkWidget *wid, GtkWidget *child, gpointer user)
+static void evt_buffer_changed(GtkWidget *wid, gpointer user)
 {
 	MainInfo	*min = user;
-	GtkWidget	*cwid;
-	gchar		*text;
-	TextBuffer	*buf;
+	GtkTreeIter	iter;
 
-	if((cwid = GTK_BIN(child)->child) == NULL || !GTK_IS_LABEL(cwid))
-		return;
-	gtk_label_get(GTK_LABEL(cwid), &text);
-	if(text != NULL && (buf = buffer_select(min, text)) != NULL)
-		gtk_widget_set_sensitive(min->subscribe, buf->text == NULL);
-	else
-		gtk_widget_set_sensitive(min->subscribe, FALSE);
+	if(gtk_combo_box_get_active_iter(GTK_COMBO_BOX(wid), &iter))
+	{
+		GtkTreeModel	*tm;
+		gchar		*bufname;
+		TextBuffer	*buf;
+	
+		if((tm = gtk_combo_box_get_model(GTK_COMBO_BOX(wid))) == NULL)
+			return;
+		gtk_tree_model_get(tm, &iter, 0, &bufname, -1);
+		if(bufname != NULL && (buf = buffer_select(min, bufname)) != NULL)
+			gtk_widget_set_sensitive(min->subscribe, buf->text == NULL);
+		else
+			gtk_widget_set_sensitive(min->subscribe, FALSE);
+	}
 }
 
 static void subscribe_set_sensitive(MainInfo *min)
@@ -249,7 +253,7 @@ static void subscribe_set_sensitive(MainInfo *min)
 static void evt_buffer_close_clicked(GtkWidget *wid, gpointer user)
 {
 	MainInfo	*min = user;
-	TextBuffer	*buf = gtk_object_get_data(GTK_OBJECT(wid), "buf");
+	TextBuffer	*buf = g_object_get_data(G_OBJECT(wid), "buf");
 
 	if(buf != NULL)
 	{
@@ -275,9 +279,8 @@ static void evt_subscribe_clicked(GtkWidget *wid, gpointer user)
 			return;
 		scwin = gtk_scrolled_window_new(NULL, NULL);
 		gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scwin), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-		buf->text = gtk_text_new(gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(scwin)),
-					 gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scwin)));
-		gtk_text_set_editable(GTK_TEXT(buf->text), FALSE);
+		buf->text = gtk_text_view_new();
+/*		gtk_text_set_editable(GTK_TEXT(buf->text), FALSE);*/
 		gtk_container_add(GTK_CONTAINER(scwin), buf->text);
 		nptr = strchr(buf->name, ' ') + 1;
 		g_snprintf(ltext, sizeof ltext, "[%u.%u] %s", min->cur_node, min->cur_buffer, nptr);
@@ -286,14 +289,14 @@ static void evt_subscribe_clicked(GtkWidget *wid, gpointer user)
 		gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
 		cross = gtk_button_new_with_label("X");
 		gtk_button_set_relief(GTK_BUTTON(cross), GTK_RELIEF_NONE);
-		gtk_object_set_data(GTK_OBJECT(cross), "buf", buf);
-		gtk_signal_connect(GTK_OBJECT(cross), "clicked", GTK_SIGNAL_FUNC(evt_buffer_close_clicked), min);
+		g_object_set_data(G_OBJECT(cross), "buf", buf);
+		g_signal_connect(G_OBJECT(cross), "clicked", G_CALLBACK(evt_buffer_close_clicked), min);
 		gtk_box_pack_start(GTK_BOX(hbox), cross, FALSE, FALSE, 0);
 		gtk_widget_show_all(hbox);
 		gtk_notebook_append_page(GTK_NOTEBOOK(min->notebook), scwin, hbox);
 		buf->page_num = gtk_notebook_page_num(GTK_NOTEBOOK(min->notebook), scwin);
 		gtk_widget_show_all(scwin);
-		gtk_notebook_set_page(GTK_NOTEBOOK(min->notebook), buf->page_num);
+		gtk_notebook_set_current_page(GTK_NOTEBOOK(min->notebook), buf->page_num);
 		verse_send_t_buffer_subscribe(min->cur_node, min->cur_buffer);
 		subscribe_set_sensitive(min);
 	}
@@ -302,6 +305,8 @@ static void evt_subscribe_clicked(GtkWidget *wid, gpointer user)
 static void cb_t_text_set(void *user, VNodeID node_id, uint16 buffer_id, uint32 pos, uint32 len, const char *text)
 {
 	TextBuffer	*buf;
+	GtkTextBuffer	*textbuf;
+	GtkTextIter	start, end;
 
 	if((buf = buffer_lookup(user, node_id, buffer_id)) == NULL)
 		return;
@@ -310,9 +315,12 @@ static void cb_t_text_set(void *user, VNodeID node_id, uint16 buffer_id, uint32 
 		verse_send_t_buffer_unsubscribe(node_id, buffer_id);
 		return;
 	}
-	gtk_text_set_point(GTK_TEXT(buf->text), pos);
-	gtk_text_forward_delete(GTK_TEXT(buf->text), len);
-	gtk_text_insert(GTK_TEXT(buf->text), NULL, NULL, NULL, text, strlen(text));
+	if((textbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(buf->text))) == NULL)
+		return;
+	gtk_text_buffer_get_iter_at_offset(textbuf, &start, pos);
+	gtk_text_buffer_get_iter_at_offset(textbuf, &end, pos + len);
+	gtk_text_buffer_delete(textbuf, &start, &end);
+	gtk_text_buffer_insert(textbuf, &start, text, -1);
 }
 
 static gboolean evt_window_keypress(GtkWidget *win, GdkEventKey *evt, gpointer user)
@@ -324,7 +332,7 @@ static gboolean evt_window_keypress(GtkWidget *win, GdkEventKey *evt, gpointer u
 		if(evt->keyval == GDK_q)
 			gtk_main_quit();
 		else if(evt->keyval >= GDK_1 && evt->keyval <= GDK_9)
-			gtk_notebook_set_page(GTK_NOTEBOOK(min->notebook), evt->keyval - GDK_1);
+			gtk_notebook_set_current_page(GTK_NOTEBOOK(min->notebook), evt->keyval - GDK_1);
 	}
 	return TRUE;
 }
@@ -334,7 +342,7 @@ static void evt_window_delete(GtkWidget *win, GdkEvent *evt, gpointer user)
 	gtk_main_quit();
 }
 
-static gint evt_timeout(gpointer user)
+static gboolean evt_timeout(gpointer user)
 {
 	verse_callback_update(1000);
 	return TRUE;
@@ -349,33 +357,32 @@ int main(int argc, char *argv[])
 
 	gtk_init(&argc, &argv);
 	min.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_signal_connect(GTK_OBJECT(min.window), "key_press_event", GTK_SIGNAL_FUNC(evt_window_keypress), &min);
-	gtk_signal_connect(GTK_OBJECT(min.window), "delete_event", GTK_SIGNAL_FUNC(evt_window_delete), &min);
+	g_signal_connect(G_OBJECT(min.window), "key_press_event", G_CALLBACK(evt_window_keypress), &min);
+	g_signal_connect(G_OBJECT(min.window), "delete_event", G_CALLBACK(evt_window_delete), &min);
 	gtk_window_set_title(GTK_WINDOW(min.window), "Verse Text Viewer");
-	gtk_widget_set_usize(min.window, 640, 480);
+	gtk_widget_set_size_request(min.window, 640, 480);
 
 	vbox = gtk_vbox_new(FALSE, 0);
 
 	hbox = gtk_hbox_new(FALSE, 0);
 	label = gtk_label_new("Nodes:");
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
-	min.combo_nodes = gtk_combo_new();
-	gtk_combo_set_value_in_list(GTK_COMBO(min.combo_nodes), TRUE, TRUE);
-	gtk_signal_connect(GTK_OBJECT(GTK_COMBO(min.combo_nodes)->list), "select_child", GTK_SIGNAL_FUNC(evt_node_select), &min);
+	min.combo_nodes = gtk_combo_box_new_text();
+	g_signal_connect(G_OBJECT(min.combo_nodes), "changed", G_CALLBACK(evt_node_changed), &min);
 	gtk_box_pack_start(GTK_BOX(hbox), min.combo_nodes, FALSE, FALSE, 0);
 
 	label = gtk_label_new("Buffers:");
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
-	min.combo_buffers = gtk_combo_new();
-	gtk_signal_connect(GTK_OBJECT(GTK_COMBO(min.combo_buffers)->list), "select_child", GTK_SIGNAL_FUNC(evt_buffer_select), &min);
+	min.combo_buffers = gtk_combo_box_new_text();
+	g_signal_connect(G_OBJECT(min.combo_buffers), "changed", GTK_SIGNAL_FUNC(evt_buffer_changed), &min);
 	gtk_box_pack_start(GTK_BOX(hbox), min.combo_buffers, FALSE, FALSE, 0);
 
 	min.subscribe = gtk_button_new_with_label("Subscribe");
-	gtk_signal_connect(GTK_OBJECT(min.subscribe), "clicked", GTK_SIGNAL_FUNC(evt_subscribe_clicked), &min);
+	g_signal_connect(G_OBJECT(min.subscribe), "clicked", G_CALLBACK(evt_subscribe_clicked), &min);
 	gtk_box_pack_start(GTK_BOX(hbox), min.subscribe, FALSE, FALSE, 0);
 
 	btn = gtk_button_new_with_label("Quit");
-	gtk_signal_connect(GTK_OBJECT(btn), "clicked", GTK_SIGNAL_FUNC(evt_window_delete), &min);
+	g_signal_connect(G_OBJECT(btn), "clicked", G_CALLBACK(evt_window_delete), &min);
 	gtk_box_pack_end(GTK_BOX(hbox), btn, FALSE, FALSE, 0);
 
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
@@ -386,7 +393,7 @@ int main(int argc, char *argv[])
 
 	gtk_widget_show_all(min.window);
 
-	gtk_timeout_add(50, (GtkFunction) evt_timeout, &min);
+	g_timeout_add(50, (GSourceFunc) evt_timeout, &min);
 
 	verse_callback_set(verse_send_connect_accept,	cb_connect_accept, &min);
 	verse_callback_set(verse_send_node_create,	cb_node_create,	&min);
