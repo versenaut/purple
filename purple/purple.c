@@ -47,7 +47,6 @@
 #include "nodedb.h"
 #include "client.h"
 #include "graph.h"
-#include "plugin-input.h"
 
 /*#include "command-structs.h"*/
 
@@ -588,8 +587,6 @@ int main(int argc, char *argv[])
 	
 	plugins_libraries_load();
 
-	plugin_input_init();
-	plugin_output_init();
 	plugins_libraries_init();
 
 	plugins_build_xml();
