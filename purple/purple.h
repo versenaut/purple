@@ -122,8 +122,8 @@ void		p_node_o_link_set(PONode *node, const PONode *link, const char *label, uin
 typedef void	PNGLayer;
 typedef void	PNGBone;
 
-PNGLayer *	p_node_g_layer_lookup(PONode *node, const char *name);
-size_t		p_node_g_layer_size(const PONode *node, const PNGLayer *layer);
+PNGLayer *	p_node_g_layer_lookup(PINode *node, const char *name);
+size_t		p_node_g_layer_size(PINode *node, const PNGLayer *layer);
 PNGLayer *	p_node_g_layer_create(PONode *node, const char *name, VNGLayerType type,
 					     uint32 def_int, real32 def_real);
 void		p_node_g_layer_delete(PNGLayer *node, const char *name);

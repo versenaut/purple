@@ -39,7 +39,7 @@ void p_node_o_link_set(PONode *node, const PONode *link, const char *label, uint
 
 /* ----------------------------------------------------------------------------------------- */
 
-PNGLayer * p_node_g_layer_lookup(PONode *node, const char *name)
+PNGLayer * p_node_g_layer_lookup(PINode *node, const char *name)
 {
 	if(node == NULL || name == NULL)
 		return NULL;
@@ -48,7 +48,7 @@ PNGLayer * p_node_g_layer_lookup(PONode *node, const char *name)
 	return nodedb_g_layer_lookup((NodeGeometry *) node, name);
 }
 
-size_t p_node_g_layer_size(const PONode *node, const PNGLayer *layer)
+size_t p_node_g_layer_size(PINode *node, const PNGLayer *layer)
 {
 	if(node == NULL || layer == NULL)
 		return 0;
