@@ -1,5 +1,5 @@
 /*
- * The Vrse magic happens mainly in here.
+ * The Verse magic happens mainly in here.
 */
 
 #include <stdio.h>
@@ -55,12 +55,18 @@ static void cb_node_create(void *user, VNodeID node_id, uint8 type, VNodeID owne
 	{
 		printf("It's the meta text node!\n");
 		client_info.meta = node_id;
+		verse_send_node_name_set(client_info.meta, "PurpleMeta");
 		verse_send_t_set_language(client_info.meta, "xml/purple/meta");
 		verse_send_t_buffer_create(client_info.meta, ~0, 0, "plugins");
 		verse_send_t_buffer_create(client_info.meta, ~1, 0, "graphs");
 		verse_send_node_subscribe(client_info.meta);
 		verse_send_o_link_set(client_info.meta, ~0, client_info.meta, "meta", 0);
 	}
+}
+
+static void cb_node_name_set(void *user, VNodeID node_id, const char *name)
+{
+	printf("Node %u is named \"%s\"\n", node_id, name);
 }
 
 static void cb_o_method_group_create(void *user, VNodeID node_id, uint8 group_id, const char *name)
@@ -185,7 +191,7 @@ static void cb_t_text_set(void *user, VNodeID node_id, VNMBufferID buffer_id, ui
 			client_info.graphs.cron = cron_add(CRON_ONESHOT, 0.1, cb_graphs_refresh, NULL);
 	}
 	else
-		printf("Unknown text (at %u in %u.%u): \"%s\"\n", pos, node_id, buffer_id, text);
+		printf("Unknown text (at %u..%u in %u.%u, len %u): \"%s\"\n", pos, pos + len, node_id, buffer_id, strlen(text), text);
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -194,6 +200,7 @@ int client_connect(const char *address)
 {
 	verse_callback_set(verse_send_connect_accept,		cb_connect_accept,		NULL);
 	verse_callback_set(verse_send_node_create,		cb_node_create,			NULL);
+	verse_callback_set(verse_send_node_name_set,		cb_node_name_set,		NULL);
 	verse_callback_set(verse_send_o_method_group_create,	cb_o_method_group_create,	NULL);
 	verse_callback_set(verse_send_o_method_create,		cb_o_method_create,		NULL);
 	verse_callback_set(verse_send_o_method_call,		cb_o_method_call,		NULL);
