@@ -71,11 +71,11 @@ enum
 
 #define	MI_INPUT(lct, uct)	\
 	{ MI_INPUT_NAME(lct), 4, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8, \
-		VN_O_METHOD_PTYPE_ ##uct }, { "graph_id", "plugin_id", "input", "value" } \
+		VN_O_METHOD_PTYPE_ ##uct }, { "graph_id", "module_id", "input", "value" } \
 	}
 #define MI_INPUT_VEC(lct, uct, len)	\
 	{ MI_INPUT_NAME(lct) "v" #len, 4, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8, \
-	VN_O_METHOD_PTYPE_ ## uct ##_VEC ## len }, { "graph_id", "plugin_id", "input", "value" } }
+	VN_O_METHOD_PTYPE_ ## uct ##_VEC ## len }, { "graph_id", "module_id", "input", "value" } }
 
 static MethodInfo method_info[] = {
 	{ "create",  3, { VN_O_METHOD_PTYPE_NODE, VN_O_METHOD_PTYPE_LAYER, VN_O_METHOD_PTYPE_STRING },
@@ -84,7 +84,7 @@ static MethodInfo method_info[] = {
 	
 	{ "mod_create",  2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "plugin_id" } },
 	{ "mod_input_clear", 3, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8 },
-			{ "graph_id", "plugin_id", "input" } },
+			{ "graph_id", "module_id", "input" } },
 	MI_INPUT(boolean, UINT8),
 	MI_INPUT(int32, INT32),
 	MI_INPUT(uint32, UINT32),
@@ -97,8 +97,7 @@ static MethodInfo method_info[] = {
 	MI_INPUT_VEC(r64, REAL64, 3),
 	MI_INPUT_VEC(r64, REAL64, 4),
 	MI_INPUT(string, STRING)
-/*	{ 0, "mod_destroy", 2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "module_id" } }
-*/
+/*	{ "mod_destroy", 2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "module_id" } }*/
 };
 
 static struct
