@@ -203,6 +203,14 @@ real64		p_node_g_polygon_get_face_real64(const PNGLayer *layer, uint32 id);
 void		p_node_g_crease_set_vertex(PONode *node, const char *layer, uint32 def);
 void		p_node_g_crease_set_edge(PONode *node, const char *layer, uint32 def);
 
+/* Material-node manipulation functions. */
+
+typedef void	PNMFragment;
+
+unsigned int	p_node_m_fragment_num(PINode *node);
+PNMFragment *	p_node_m_fragment_nth(PINode *node, unsigned int n);
+void		p_node_m_fragment_iter(PINode *node, PIter *iter);
+VNMFragmentType	p_node_m_fragment_get_type(const PNMFragment *f);
 
 /* Bitmap-node manipulation functions. */
 typedef void	PNBLayer;
