@@ -80,10 +80,7 @@ static int v_get(Context *ctx, int k, int r)
 	return *((int *) dynarr_index(ctx->buf, j));
 }
 
-static int find_middle_snake(const void *a, int aoff, int n,
-		const void *b, int boff, int m,
-		Context *ctx,
-		Snake *ms)
+static int find_middle_snake(const void *a, int aoff, int n, const void *b, int boff, int m, Context *ctx, Snake *ms)
 {
 	int			delta, odd, mid, d;
 	const unsigned char	*a0, *b0;
