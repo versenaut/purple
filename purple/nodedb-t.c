@@ -160,7 +160,8 @@ char * nodedb_t_buffer_read_line(NdbTBuffer *buffer, unsigned int line, char *pu
 			*p = '\0';
 		}
 		nodedb_t_buffer_read_end(buffer);
-		return put;
+		if(line == 0)
+			return put;
 	}
 	return NULL;
 }
