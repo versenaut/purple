@@ -113,6 +113,70 @@ NdbTBuffer * nodedb_t_buffer_get_named(const NodeText *node, const char *name)
 	return NULL;
 }
 
+const char * nodedb_t_buffer_read_begin(NdbTBuffer *buffer)
+{
+	if(buffer != NULL)
+		return textbuf_text(buffer->text);
+	return NULL;
+}
+
+void nodedb_t_buffer_read_end(NdbTBuffer *buffer)
+{
+	/* Not much to do, here. */
+}
+
+char * nodedb_t_buffer_read_line(NdbTBuffer *buffer, unsigned int line, char *put, size_t putmax)
+{
+	const char	*text;
+
+	/* Fast forward to line <line>, with a wide understanding idea of what is a line break:
+	 * a lone CR (Mac), lone LF (Unix), CR followed by any number of LFs, and LF followed
+	 * by any number of CRs all work as a single line break.
+	*/
+	if((text = nodedb_t_buffer_read_begin(buffer)) != NULL)
+	{
+		while(*text != '\0')
+		{
+			if(line == 0)
+				break;
+			if(*text == '\n' || *text == '\r')
+			{
+				const char	other = *text == '\n' ? '\r' : '\n';
+				text++;
+				while(*text == other)
+					text++;
+				line--;
+			}
+			else
+				text++;
+		}
+		if(*text != '\0')
+		{
+			char	*p = put;
+
+			putmax--;
+			while(*text != '\0' && *text != '\n' && *text != '\r' && putmax > 0)
+				*p++ = *text++;
+			*p = '\0';
+		}
+		nodedb_t_buffer_read_end(buffer);
+		return put;
+	}
+	return NULL;
+}
+
+void nodedb_t_buffer_insert(NdbTBuffer *buffer, size_t pos, const char *text)
+{
+	if(buffer != NULL)
+		textbuf_insert(buffer->text, pos, text);
+}
+
+void nodedb_t_buffer_delete(NdbTBuffer *buffer, size_t pos, size_t length)
+{
+	if(buffer != NULL)
+		textbuf_delete(buffer->text, pos, length);
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 static void cb_t_set_language(void *user, VNodeID node_id, const char *language)
