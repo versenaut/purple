@@ -69,7 +69,10 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state_typel
 			/* De-register current. */
 			nodedb_notify_node_remove(state->notify, state->notify_handle);
 			if(node != NULL)	/* Register new. */
+			{
 				state->notify_handle = nodedb_notify_node_add(node, cb_notify, state);
+				cb_notify(node, NODEDB_NOTIFY_DATA, state);
+			}
 			else
 				state->notify_handle = NULL;
 			state->notify = node;
