@@ -9,6 +9,7 @@
  * them go away. :)
 */
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -189,6 +190,16 @@ static int sync_object(NodeObject *n, const NodeObject *target)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static int vertex_deleted(const real64 *data)
+{
+	return fabs(data[0]) > 1e300;
+}
+
+static int polygon_deleted(const uint32 *data)
+{
+	return data != NULL && *data == ~0u;
+}
+
 static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 				const NodeGeometry *target, const NdbGLayer *tlayer)
 {
@@ -196,6 +207,7 @@ static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 	size_t		i, size, tsize, esize;
 	int		send = 0;
 
+/*	printf("synchronizing geometry layer '%s' against '%s'\n", layer->name, tlayer->name);*/
 	/* Basically break the dynarr abstraction, for speed. */
 	esize = dynarr_get_elem_size(layer->data);
 	size  = dynarr_size(layer->data);
@@ -207,7 +219,23 @@ static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 		if(i >= tsize)					/* If data is not even in target, we must send it. */
 			send = TRUE;
 		else
+		{
 			send = memcmp(data, tdata, esize) != 0;	/* If it fits, compare to see if send needed. */
+			/* If vertex layer, do more intelligent comparison for deleted vertices. */
+			if(tlayer->id == 0 && tlayer->type == VN_G_LAYER_VERTEX_XYZ && tdata != NULL)
+			{
+				if(vertex_deleted((real64 *) data))
+				{
+					if(vertex_deleted((real64 *) tdata))
+						send = 0;
+				}
+			}
+			else if(tlayer->id == 1 && tlayer->type == VN_G_LAYER_POLYGON_CORNER_UINT32 && tdata != NULL)	/* And for polygon layers, too. */
+			{
+				if(polygon_deleted((uint32 *) data))
+					send = 0;
+			}
+		}
 /*		if(send)
 			printf(" send %s %u in %u is %d\n", layer->name, i, node->node.id, send);
 */		if(send)
@@ -259,11 +287,10 @@ static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 		data  += esize;
 		tdata += esize;
 	}
-
 	if(size < tsize)	/* We have less data than the target, so delete remainder. */
 	{
-		send = 1;
-		printf(" target is too large, deleting\n");
+/*		send = 1;
+		printf("** Target is too large, deleting -------------------------------------------------------\n");
 		if(layer->type >= VN_G_LAYER_VERTEX_XYZ && layer->type < VN_G_LAYER_POLYGON_CORNER_UINT32)
 		{
 			for(i = size; i < tsize; i++)
@@ -274,7 +301,8 @@ static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 			for(i = size; i < tsize; i++)
 				verse_send_g_polygon_delete(target->node.id, i);
 		}
-	}
+*/	}
+/*	printf("done, returning %d\n", send);*/
 	return send;
 }
 
