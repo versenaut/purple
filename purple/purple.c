@@ -35,7 +35,7 @@
 #include "client.h"
 #include "graph.h"
 
-#include "command-structs.h"
+/*#include "command-structs.h"*/
 
 static void test_chunk(void)
 {
@@ -181,8 +181,8 @@ static void test_hash(void)
 
 	if((h = hash_new_string()) != NULL)
 	{
-		const char	*object = "raj raj\0monster", *obj2 = "monster";
-		void		*p;
+		char	*object = "raj raj\0monster", *obj2 = "monster";
+		void	*p;
 
 		hash_insert(h, object, object);
 		hash_insert(h, obj2, obj2);
