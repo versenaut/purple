@@ -20,6 +20,7 @@ extern const char *	port_get_type_name(const PPort *port);
 extern void		port_append_value(const PPort *port, DynStr *d);
 
 extern int		port_set_va(PPort *port, PValueType type, va_list arg);
+extern int		port_set(PPort *port, PValueType type, ...);
 
 extern boolean		port_input_boolean(PPort *port);
 extern int32		port_input_int32(PPort *port);

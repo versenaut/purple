@@ -39,7 +39,8 @@ boolean port_peek_module(const PPort *port, uint32 *module_id)
 {
 	if(port->value.set & (1 << P_VALUE_MODULE))
 	{
-		*module_id = port->value.v.vmodule;
+		if(module_id != NULL)
+			*module_id = port->value.v.vmodule;
 		return TRUE;
 	}
 	return FALSE;
@@ -57,6 +58,18 @@ void port_append_value(const PPort *port, DynStr *d)
 int port_set_va(PPort *port, PValueType type, va_list arg)
 {
 	return value_set_va(&port->value, type, arg);
+}
+
+int port_set(PPort *port, PValueType type, ...)
+{
+	va_list	arg;
+	int	ret;
+
+	va_start(arg, type);
+	ret = value_set_va(&port->value, type, arg);
+	va_end(arg);
+
+	return ret;
 }
 
 /* Save some typing in these (inelegant?) accessor function definitions. Trampolines. */
