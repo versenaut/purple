@@ -154,6 +154,7 @@ static void cb_g_layer_destroy(void *user, VNodeID node_id, VLayerID layer_id)
 			vtx[0] = x;\
 			vtx[1] = y;\
 			vtx[2] = z;\
+			NOTIFY(node, DATA);\
 		}\
 	}
 
@@ -176,7 +177,10 @@ VERTEX_XYZ(real64)
 		if(layer->data == NULL)\
 			layer->data = dynarr_new(sizeof *v, 16);	/* FIXME: Should care about defaults. */\
 		if((v = dynarr_set(layer->data, vertex_id, NULL)) != NULL)\
+		{\
 			*v = value;\
+			NOTIFY(node, DATA);\
+		}\
 	}
 
 VERTEX_SCALAR(uint32)
@@ -204,6 +208,7 @@ VERTEX_SCALAR(real64)
 			v[1] = v1;\
 			v[2] = v2;\
 			v[3] = v3;\
+			NOTIFY(node, DATA);\
 		}\
 	}
 
@@ -226,7 +231,10 @@ POLYGON_CORNER(real64)
 		if(layer->data == NULL)\
 			layer->data = dynarr_new(sizeof *v, 16);	/* FIXME: Should care about defaults. */\
 		if((v = dynarr_set(layer->data, polygon_id, NULL)) != NULL)\
+		{\
 			*v = value;\
+			NOTIFY(node, DATA);\
+		}\
 	}
 
 POLYGON_FACE(uint8)
