@@ -3,6 +3,7 @@
 */
 
 #include <limits.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -19,6 +20,8 @@
 #include "mem.h"
 #include "memchunk.h"
 #include "strutil.h"
+#include "value.h"
+#include "port.h"
 #include "xmlutil.h"
 
 #include "plugins.h"
@@ -54,13 +57,13 @@ typedef struct
 	unsigned int	def : 1;
 	unsigned int	min : 1;
 	unsigned int	max : 1;
-	PInputValue	def_val, min_val, max_val;
+	PValue		def_val, min_val, max_val;
 } InputSpec;
 
 typedef struct
 {
 	char		name[16];
-	PInputType	type;
+	PValueType	type;
 	InputSpec	spec;
 } Input;
 
@@ -79,12 +82,12 @@ struct Plugin
 	MemChunk	*state;		/* Instance state blocks allocated from here. */
 };
 
-struct PInputSet
+struct PPortSet
 {
-	size_t		size;
+	size_t		size;		/* Number of inputs in set. */
 	uint32		*use;		/* Bitmask telling if a value is present. */
-	PInputValue	*value;		/* Actual value of each input. */
-	PPInput		*port;		/* Passed to plug-in compute(). NULL for unassigned inputs. */
+	PPort		*input;		/* Array of storage for inputs. */
+	PPInput		*port;		/* Array of pointers to storage, presented to plug-in code. */
 };
 
 static struct
@@ -97,59 +100,6 @@ static struct
 	IdSet		*plugins;
 	Hash		*plugins_name;		/* All currently loaded, available plugins. */
 } plugins_info = { NULL };
-
-static struct TypeName
-{
-	PInputType	type;
-	const char	*name;
-} type_map_by_value[] = {
-	{ P_INPUT_BOOLEAN,	"boolean" },
-	{ P_INPUT_INT32,	"int32" },
-	{ P_INPUT_UINT32,	"uint32" },
-	{ P_INPUT_REAL32,	"real32" },
-	{ P_INPUT_REAL32_VEC2,	"real32_vec2" },
-	{ P_INPUT_REAL32_VEC3,	"real32_vec3" },
-	{ P_INPUT_REAL32_VEC4,	"real32_vec4" },
-	{ P_INPUT_REAL32_MAT16,	"real32_mat16" },
-	{ P_INPUT_REAL64,	"real64" },
-	{ P_INPUT_REAL64_VEC2,	"real64_vec2" },
-	{ P_INPUT_REAL64_VEC3,	"real64_vec3" },
-	{ P_INPUT_REAL64_VEC4,	"real64_vec4" },
-	{ P_INPUT_REAL64_MAT16,	"real64_mat16" },
-	{ P_INPUT_STRING,	"string" },
-	{ P_INPUT_MODULE,	"module" },
-	}, type_map_by_name[sizeof type_map_by_value / sizeof *type_map_by_value];
-
-/* ----------------------------------------------------------------------------------------- */
-
-const char * plugin_input_type_to_name(PInputType t)
-{
-	return type_map_by_value[t].name;
-}
-
-/* bsearch() callback for comparing a string, <key>, with a struct TypeName. */
-static int srch_type_name(const void *key, const void *t)
-{
-	return strcmp(key, ((const struct TypeName *) t)->name);
-}
-
-PInputType plugin_input_type_from_name(const char *name)
-{
-	struct TypeName	*m = bsearch(name, type_map_by_name,
-			     sizeof type_map_by_name / sizeof *type_map_by_name,
-			     sizeof type_map_by_name, srch_type_name);
-	if(m != NULL)
-		return m->type;
-	return -1;
-}
-
-/* qsort() callback for sorting the by-name mapping. */
-static int cmp_type_name(const void *a, const void *b)
-{
-	const struct TypeName	*na = a, *nb = b;
-
-	return strcmp(na->name, nb->name);
-}
 
 /* ----------------------------------------------------------------------------------------- */
 
@@ -173,6 +123,7 @@ Plugin * plugin_new(const char *name)
 	return p;
 }
 
+#if 0
 static int set_value(PInputValue *value, PInputType new_type, va_list *taglist)
 {
 	if(value->type == P_INPUT_STRING)
@@ -277,8 +228,9 @@ static int set_value(PInputValue *value, PInputType new_type, va_list *taglist)
 	value->v.vboolean = 0;
 	return 0;
 }
+#endif
 
-void plugin_set_input(Plugin *p, int index, PInputType type, const char *name, va_list taglist)
+void plugin_set_input(Plugin *p, int index, PValueType type, const char *name, va_list taglist)
 {
 	if(p == NULL)
 		return;
@@ -292,7 +244,7 @@ void plugin_set_input(Plugin *p, int index, PInputType type, const char *name, v
 		LOG_ERR(("Plug-in \"%s\" attempted to set input \"%s\" with bad index %d--ignored", p->name, name, index));
 		return;
 	}
-	if(type < P_INPUT_BOOLEAN || type > P_INPUT_STRING)
+	if(type < P_VALUE_BOOLEAN || type > P_VALUE_STRING)
 	{
 		LOG_ERR(("Plug-in \"%s\" attempted to set input %d with bad type %d--ignored", p->name, index, type));
 		return;
@@ -316,11 +268,11 @@ void plugin_set_input(Plugin *p, int index, PInputType type, const char *name, v
 			else if(tag == P_INPUT_TAG_REQUIRED)
 				i.spec.req = 1;
 			else if(tag == P_INPUT_TAG_MIN)
-				i.spec.min = set_value(&i.spec.min_val, i.type, &taglist);
+				i.spec.min = value_set(&i.spec.min_val, i.type, &taglist);
 			else if(tag == P_INPUT_TAG_MAX)
-				i.spec.max = set_value(&i.spec.max_val, i.type, &taglist);
+				i.spec.max = value_set(&i.spec.max_val, i.type, &taglist);
 			else if(tag == P_INPUT_TAG_DEFAULT)
-				i.spec.def = set_value(&i.spec.def_val, i.type, &taglist);
+				i.spec.def = value_set(&i.spec.def_val, i.type, &taglist);
 		}
 		dynarr_append(p->input, &i);
 	}
@@ -390,8 +342,9 @@ void plugin_set_compute(Plugin *p, void (*compute)(PPInput *input, PPOutput outp
 	}
 }
 
-static void append_value(DynStr *d, const PInputValue *v)
+static void append_value(DynStr *d, const PValue *v)
 {
+#if 0
 	switch(v->type)
 	{
 	case P_INPUT_BOOLEAN:
@@ -464,6 +417,7 @@ static void append_value(DynStr *d, const PInputValue *v)
 		xml_dynstr_append(d, v->v.vstring);
 		break;
 	}
+#endif
 }
 
 static int cb_describe_meta(const void *data, void *user)
@@ -512,7 +466,7 @@ void plugin_describe_append(const Plugin *p, DynStr *d)
 		for(i = 0; i < num; i++)
 		{
 			in = dynarr_index(p->input, i);
-			dynstr_append_printf(d, "  <input type=\"%s\">\n", plugin_input_type_to_name(in->type));
+			dynstr_append_printf(d, "  <input type=\"%s\">\n", value_type_to_name(in->type));
 			if(in->name[0] != '\0')
 				dynstr_append_printf(d, "   <name>%s</name>\n", in->name);
 			if(in->spec.req)
@@ -586,10 +540,10 @@ void plugin_destroy(Plugin *p)
 
 /* ----------------------------------------------------------------------------------------- */
 
-PInputSet * plugin_inputset_new(const Plugin *p)
+PPortSet * plugin_portset_new(const Plugin *p)
 {
-	PInputSet	*is;
-	size_t		size, num;
+	PPortSet	*is;
+	size_t		size, num, i;
 
 	if(p == NULL)
 		return NULL;
@@ -597,16 +551,21 @@ PInputSet * plugin_inputset_new(const Plugin *p)
 	if(size == 0)
 		return NULL;
 	num = (size + 31) / 32;
-	is = mem_alloc(sizeof *is + num * sizeof *is->use + size * (sizeof *is->value + sizeof *is->port));
+	is = mem_alloc(sizeof *is + num * sizeof *is->use + size * (sizeof *is->input + sizeof *is->port));
 	is->size  = size;
 	is->use   = (uint32 *) (is + 1);
-	is->value = (PInputValue *) (is->use + num);
-	is->port  = (PPInput *) (is->value + size);
+	is->input = (PPort *) (is->use + num);
+	is->port  = (PPInput *) (is->input + size);
 	memset(is->use, 0, num * sizeof *is->use);
+	for(i = 0;i < is->size; i++)
+	{
+		port_init(&is->input[i]);
+		is->port[i] = NULL;
+	}
 	return is;
 }
 
-PPInput * plugin_inputset_ports(PInputSet *is)
+PPInput * plugin_portset_ports(PPortSet *is)
 {
 	size_t	i;
 
@@ -615,23 +574,24 @@ PPInput * plugin_inputset_ports(PInputSet *is)
 	for(i = 0; i < is->size; i++)
 	{
 		if(is->use[i / 32] & (1 << (i % 32)))
-			is->port[i] = is->value + i;
+			is->port[i] = (PPInput) (is->input + i);
 		else
 			is->port[i] = NULL;
 	}
 	return is->port;
 }
 
-void plugin_inputset_set_va(PInputSet *is, unsigned int index, PInputType type, va_list arg)
+void plugin_portset_set_va(PPortSet *is, unsigned int index, PValueType type, va_list arg)
 {
 	if(is == NULL || index >= is->size)
 		return;
-	is->use[index / 32] |= 1 << (index % 32);
-	if(set_value(is->value + index, type, &arg) == 0)
+	if(port_set_va(is->input + index, type, arg) == 0)
 		LOG_WARN(("Input setting failed"));
+	else
+		is->use[index / 32] |= 1 << (index % 32);
 }
 
-void plugin_inputset_clear(PInputSet *is, unsigned int index)
+void plugin_portset_clear(PPortSet *is, unsigned int index)
 {
 	uint32	pos, mask;
 	if(is == NULL || index >= is->size)
@@ -640,41 +600,36 @@ void plugin_inputset_clear(PInputSet *is, unsigned int index)
 	mask = 1 << (index % 32);
 	if(is->use[pos] & mask)
 	{
-		if(is->value[index].type == P_INPUT_STRING)
-			mem_free(is->value[index].v.vstring);
+		port_clear(is->input + index);
 		is->use[pos] &= ~mask;
 	}
 }
 
-boolean plugin_inputset_is_set(const PInputSet *is, unsigned int index)
+boolean plugin_portset_is_set(const PPortSet *is, unsigned int index)
 {
 	if(is == NULL || index >= is->size)
 		return 0;
 	return (is->use[index / 32] & (1 << (index % 32))) != 0;
 }
 
-size_t plugin_inputset_size(const PInputSet *is)
+size_t plugin_portset_size(const PPortSet *is)
 {
 	return is != NULL ? is->size : 0;
 }
 
-boolean plugin_inputset_get_module(const PInputSet *is, unsigned int index, uint32 *module_id)
+boolean plugin_portset_get_module(const PPortSet *is, unsigned int index, uint32 *module_id)
 {
 	if(is == NULL || index >= is->size)
 		return FALSE;
 	if(is->use[index / 32] & (1 << (index % 32)))
 	{
-		if(is->value[index].type == P_INPUT_MODULE)
-		{
-			if(module_id != NULL)
-				*module_id = is->value[index].v.vmodule;
+		if(port_peek_module(is->input + index, module_id))
 			return TRUE;
-		}
 	}
 	return FALSE;
 }
 
-void plugin_inputset_describe(const PInputSet *is, DynStr *d)
+void plugin_portset_describe(const PPortSet *is, DynStr *d)
 {
 	int	i;
 
@@ -686,32 +641,32 @@ void plugin_inputset_describe(const PInputSet *is, DynStr *d)
 		if(is->use[i / 32] & (1 << (i % 32)))
 		{
 			dynstr_append_printf(d, "  <set input=\"%u\" type=\"", i);
-			dynstr_append(d, plugin_input_type_to_name(is->value[i].type));
+			dynstr_append(d, port_get_type_name(is->port + i));
 			dynstr_append_printf(d, "\">");
-			append_value(d, &is->value[i]);
+			port_append_value(is->port + i, d);
 			dynstr_append(d, "</set>\n");
 		}
 	}
 }
 
-void plugin_inputset_destroy(PInputSet *is)
+void plugin_portset_destroy(PPortSet *is)
 {
 	size_t	i;
 
 	if(is == NULL)
 		return;
 	for(i = 0; i < is->size; i++)
-		plugin_inputset_clear(is, i);	/* A bit costly, but destroy is rather infrequent, so... */
+		plugin_portset_clear(is, i);	/* A bit costly, but destroy is rather infrequent, so... */
 	mem_free(is);
 }
 
-void plugin_run_compute(Plugin *p, PInputSet *is, void *state)
+void plugin_run_compute(Plugin *p, PPortSet *is, void *state)
 {
 	PPInput	*port;
 
 	if(p == NULL || is == NULL)
 		return;
-	if((port = plugin_inputset_ports(is)) != NULL)
+	if((port = plugin_portset_ports(is)) != NULL)
 	{
 		size_t		i;
 		const Input	*in;
@@ -719,7 +674,7 @@ void plugin_run_compute(Plugin *p, PInputSet *is, void *state)
 		/* Check that all required inputs have values. */
 		for(i = 0; (in = dynarr_index(p->input, i)) != NULL; i++)
 		{
-			if(port[i] == NULL && in->spec.req)
+			if(in->spec.req && port_is_unset(is->input +i))
 			{
 				LOG_MSG(("Can't run compute() in %s, missing required input %u", p->name, i));
 				return;
@@ -735,7 +690,7 @@ int plugin_instance_init(Plugin *p, PInstance *inst)
 {
 	if(p == NULL || inst == NULL)
 		return 0;
-	if((inst->inputs = plugin_inputset_new(p)) == NULL)
+	if((inst->inputs = plugin_portset_new(p)) == NULL)
 		return 0;
 	if(p->state != NULL)
 	{
@@ -745,7 +700,7 @@ int plugin_instance_init(Plugin *p, PInstance *inst)
 				p->ctor(inst->state);
 			return 1;
 		}
-		plugin_inputset_destroy(inst->inputs);
+		plugin_portset_destroy(inst->inputs);
 		inst->inputs = NULL;
 		return 0;
 	}
@@ -764,7 +719,7 @@ void plugin_instance_free(Plugin *p, PInstance *inst)
 		return;
 	if(inst->inputs != NULL)
 	{
-		plugin_inputset_destroy(inst->inputs);
+		plugin_portset_destroy(inst->inputs);
 		inst->inputs = NULL;
 	}
 	if(inst->state != NULL)
@@ -794,9 +749,6 @@ void plugins_init(const char *paths)
 	plugins_info.plugins = idset_new(1);
 	plugins_info.plugins_name = hash_new_string();
 	plugins_info.chunk_meta  = memchunk_new("Meta", sizeof (MetaEntry), 4);
-
-	memcpy(type_map_by_name, type_map_by_value, sizeof type_map_by_name);
-	qsort(type_map_by_name, sizeof type_map_by_name / sizeof *type_map_by_name, sizeof *type_map_by_name, cmp_type_name);
 }
 
 static int library_known(const char *name)
