@@ -307,7 +307,7 @@ unsigned int nodedb_a_layer_read_samples(const NdbALayer *layer, unsigned int st
 	{\
 		int ## bits	*put = blk->data;\
 		for(i = 0, put += offset; i < chunk; i++)\
-			*put++ = *buffer * (real64) (1 << (bits - 1));\
+			*put++ = *buffer++ * (real64) (1 << (bits - 1));\
 	}\
 	break
 
@@ -315,7 +315,7 @@ unsigned int nodedb_a_layer_read_samples(const NdbALayer *layer, unsigned int st
 	{\
 		real ## bits	*put = blk->data;\
 		for(i = 0, put += offset; i < chunk; i++)\
-			*put++ = *buffer;\
+			*put++ = *buffer++;\
 	}\
 	break
 
