@@ -20,6 +20,7 @@
 #include "textbuf.h"
 #include "timeval.h"
 #include "plugins.h"
+#include "resume.h"
 #include "strutil.h"
 #include "value.h"
 #include "xmlnode.h"
@@ -146,6 +147,12 @@ static void cb_node_notify_mine(Node *node, NodeNotifyEvent e)
 
 /* ----------------------------------------------------------------------------------------- */
 
+void client_post_connect(void)
+{
+	verse_send_o_method_group_create(client_info.avatar, ~0, METHOD_GROUP_CONTROL_NAME);
+	verse_send_node_create(~0, V_NT_TEXT, VN_OWNER_MINE);
+}
+
 static void cb_connect_accept(void *user, VNodeID avatar, void *address, void *connection, uint8 *host_id)
 {
 	if(!client_info.connected)
@@ -162,9 +169,8 @@ static void cb_connect_accept(void *user, VNodeID avatar, void *address, void *c
 					  (1 << V_NT_AUDIO));
 		verse_send_node_subscribe(avatar);
 		verse_send_node_name_set(avatar, "PurpleEngine");
-		verse_send_o_method_group_create(avatar, ~0, METHOD_GROUP_CONTROL_NAME);
-
-		verse_send_node_create(~0, V_NT_TEXT, VN_OWNER_MINE);
+		if(!resume_enabled())
+			client_post_connect();
 	}
 	else
 		LOG_MSG(("Got redundant connect-accept command--ignoring"));
