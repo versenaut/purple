@@ -26,11 +26,12 @@ Todo:
 
 * Start designing and implementing node storage system, with event
   handling and comparison. Scary.
-* Implement corresponding plug-in APIs for dealing with node data.
+* Design and implement corresponding plug-in APIs for dealing with
+  node data.
 * Implement general purpose data structure to hold the "value" of
   a module input or output (node set, and scalars).
 * Implement scheduler for actually running plug-in code, and pass
   data between them.
 * Implement node comparison capability to find changes in outputs.
-* Send changes in geometry back to Verse server.
+* Send changes in nodes back to Verse server.
 * Automatically resolve circularities by referencing a copy.
