@@ -34,13 +34,19 @@ static void cb_copy_layer(void *d, const void *s, void *user)
 {
 	const NdbGLayer		*src = s;
 	NdbGLayer		*dst = d;
-	const NodeGeometry	*node = user;
+
+	dst->id = src->id;
+	strcpy(dst->name, src->name);
+	dst->type = src->type;
+	dst->data = dynarr_new_copy(src->data, NULL, NULL);
+	dst->def_uint = src->def_uint;
+	dst->def_real = src->def_real;
 }
 
 void nodedb_g_copy(NodeGeometry *n, const NodeGeometry *src)
 {
 	if(src->layers != NULL)
-		n->layers = dynarr_new_copy(src->layers, cb_copy_layer, n);
+		n->layers = dynarr_new_copy(src->layers, cb_copy_layer, NULL);
 	if(src->bones != NULL)
 		n->bones = dynarr_new_copy(src->bones, NULL, NULL);	/* Self-contained. */
 	n->crease_vertex = src->crease_vertex;
@@ -54,9 +60,9 @@ void nodedb_g_destruct(NodeGeometry *n)
 		unsigned int	i;
 		NdbGLayer	*layer;
 
-		for(i = 0; i < dynarr_size(n->layers); i++)
+		for(i = 0; (layer = dynarr_index(n->layers, i)) != NULL; i++)
 		{
-			if((layer = dynarr_index(n->layers, i)) == NULL || layer->name[0] == '\0')
+			if(layer->name[0] == '\0' || layer->data == NULL)
 				continue;
 			dynarr_destroy(layer->data);
 		}
@@ -107,12 +113,22 @@ NdbGLayer * nodedb_g_layer_lookup(const NodeGeometry *node, const char *name)
 
 	if(node == NULL)
 		return NULL;
+	printf("looking up layer '%s' in node at %p\n", name, node);
 	for(i = 0; (layer = dynarr_index(node->layers, i)) != NULL; i++)
 	{
 		if(strcmp(layer->name, name) == 0)
+		{
+			printf(" that'd be %p\n", layer);
 			return layer;
+		}
 	}
 	return NULL;
+}
+
+size_t nodedb_g_layer_size(const NodeGeometry *node, const NdbGLayer *layer)
+{
+	printf("returning size of type %d layer at %p\n", layer->type, layer);
+	return dynarr_size(layer->data);
 }
 
 NdbGLayer * nodedb_g_layer_lookup_id(const NodeGeometry *node, VLayerID layer_id)
@@ -123,15 +139,6 @@ NdbGLayer * nodedb_g_layer_lookup_id(const NodeGeometry *node, VLayerID layer_id
 }
 
 /* ----------------------------------------------------------------------------------------- */
-
-static void cb_layer_default(unsigned int index, void *element)
-{
-	NdbGLayer	*layer = element;
-
-	layer->id = -1;
-	layer->name[0] = '\0';
-	layer->data = NULL;
-}
 
 static void cb_g_layer_create(void *user, VNodeID node_id, VLayerID layer_id, const char *name,
 			      VNGLayerType type, uint32 def_uint, real64 def_real)
@@ -197,6 +204,21 @@ void nodedb_g_vertex_set_xyz(NodeGeometry *node, NdbGLayer *layer, uint32 vertex
 		vtx[0] = x;
 		vtx[1] = y;
 		vtx[2] = z;
+		printf(" vertex set to (%g,%g,%g)\n", x, y, z);
+	}
+}
+
+void nodedb_g_vertex_get_xyz(const NodeGeometry *node, const NdbGLayer *layer, uint32 vertex_id, real64 *x, real64 *y, real64 *z)
+{
+	real64	*vtx;
+
+	if(layer->type != VN_G_LAYER_VERTEX_XYZ || layer->data == NULL)
+		return;
+	if((vtx = dynarr_index(layer->data, vertex_id)) != NULL)
+	{
+		*x = vtx[0];
+		*y = vtx[1];
+		*z = vtx[2];
 	}
 }
 
