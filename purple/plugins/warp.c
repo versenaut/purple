@@ -85,6 +85,7 @@ void init(void)
 	p_init_create("warp");
 	p_init_input(0, P_VALUE_MODULE, "data",  P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_input(1, P_VALUE_MODULE, "bbox",  P_INPUT_REQUIRED, P_INPUT_DONE);
-	p_init_input(2, P_VALUE_REAL32, "twist", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(2, P_VALUE_REAL32, "twist", P_INPUT_REQUIRED, P_INPUT_DEFAULT(0.0),
+		     P_INPUT_MIN(-180.0), P_INPUT_MAX(180.0), P_INPUT_DONE);
 	p_init_compute(compute);
 }
