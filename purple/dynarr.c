@@ -52,6 +52,31 @@ DynArr * dynarr_new(size_t elem_size, size_t page_size)
 	return da;
 }
 
+DynArr * dynarr_new_copy(const DynArr *src, void (*element_copy)(void *dst, const void *src))
+{
+	DynArr		*da;
+	unsigned int	i;
+
+	if(src == NULL)
+		return NULL;
+	da = dynarr_new(src->elem_size, src->page_size);
+	if(src->next > 0)		/* Sneakily "pre-warm" the array, to minimize allocations in loop below. */
+		dynarr_set(da, src->next - 1, NULL);
+	for(i = 0; i < src->next; i++)
+	{
+		void	*dst;
+
+		if(element_copy != NULL)
+		{
+			if((dst = dynarr_set(da, i, NULL)) != NULL)
+				element_copy(dst, dynarr_index(src, i));
+		}
+		else
+			dynarr_set(da, i, dynarr_index(src, i));
+	}
+	return da;
+}
+
 void dynarr_set_default(DynArr *da, const void *def)
 {
 	if(da != NULL)
