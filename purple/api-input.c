@@ -285,6 +285,51 @@ real32 p_input_real32(PPInput input)
 	return port_input_real32(input);
 }
 
+const real32 * p_input_real32_vec2(PPInput input)
+{
+	return port_input_real32_vec2(input);
+}
+
+const real32 * p_input_real32_vec3(PPInput input)
+{
+	return port_input_real32_vec3(input);
+}
+
+const real32 * p_input_real32_vec4(PPInput input)
+{
+	return port_input_real32_vec4(input);
+}
+
+const real32 * p_input_real32_mat16(PPInput input)
+{
+	return port_input_real32_mat16(input);
+}
+
+real64 p_input_real64(PPInput input)
+{
+	return port_input_real64(input);
+}
+
+const real64 * p_input_real64_vec2(PPInput input)
+{
+	return port_input_real64_vec2(input);
+}
+
+const real64 * p_input_real64_vec3(PPInput input)
+{
+	return port_input_real64_vec3(input);
+}
+
+const real64 * p_input_real64_vec4(PPInput input)
+{
+	return port_input_real64_vec4(input);
+}
+
+const real64 * p_input_real64_mat16(PPInput input)
+{
+	return port_input_real64_mat16(input);
+}
+
 const char * p_input_string(PPInput input)
 {
 	return port_input_string(input);
