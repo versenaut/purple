@@ -189,7 +189,7 @@ static int find_middle_snake(const void *a, int aoff, int n,
 
 static void edit(Context *ctx, int op, int off, int len)
 {
-	DiffOp *e;
+	DiffEdit *e;
 
 	if(len == 0 || ctx->ses == NULL)
 		return;
@@ -290,7 +290,7 @@ int diff_compare(const void *a, int aoff, int n,
 {
 	Context	ctx;
 	int	d = 0, x, y;
-	DiffOp *e = NULL;
+	DiffEdit *e = NULL;
 	DynArr	*tmp;
 
 	if(!idx != !cmp)	/* Ensure both NULL or both non-NULL. */
