@@ -196,7 +196,7 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 	if(layer->framebuffer == NULL)
 	{
 		size_t	layer_size = ((node->width * ps + 7) / 8) * node->height * node->depth;
-		printf("Allocating layer, %u bytes\n", layer_size);
+
 		layer->framebuffer = mem_alloc(layer_size);
 		memset(layer->framebuffer, layer_size, 0);
 	}
