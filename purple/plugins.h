@@ -18,7 +18,10 @@ typedef struct PPortSet	PPortSet;
 typedef struct
 {
 	PPortSet	*inputs;
+	PPOutput	output;
 	void		*state;
+	PPOutput	(*resolver)(uint32 module_id, void *data);
+	void		*resolver_data;
 } PInstance;
 
 /* ----------------------------------------------------------------------------------------- */
@@ -64,5 +67,8 @@ extern void		plugin_portset_destroy(PPortSet *ps);
  * transparent structure holding an inputset and a state pointer, basically.
 */
 extern int		plugin_instance_init(Plugin *p, PInstance *inst);
-extern void		plugin_instance_compute(Plugin *p, const PInstance *inst);
+extern void		plugin_instance_set_output(PInstance *inst, PPOutput output);
+extern void		plugin_instance_set_link_resolver(PInstance *inst,
+							  PPOutput (*get_output)(uint32 module_id, void *data), void *data);
+extern void		plugin_instance_compute(Plugin *p, PInstance *inst);
 extern void		plugin_instance_free(Plugin *p, PInstance *inst);
