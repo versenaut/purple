@@ -90,7 +90,7 @@ static void cb_g_layer_create(void *user, VNodeID node_id, VLayerID layer_id, co
 	NodeGeometry	*node;
 	NdbGLayer	*layer;
 
-	if((node = nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
+	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
 		return;
 	if(node->layers == NULL)
 		node->layers = dynarr_new(sizeof *layer, 2);
@@ -112,6 +112,7 @@ static void cb_g_layer_create(void *user, VNodeID node_id, VLayerID layer_id, co
 			layer->data = NULL;
 			layer->def_uint = def_uint;
 			layer->def_real = def_real;
+			NOTIFY(node, STRUCTURE);
 		}
 	}
 }
@@ -121,13 +122,14 @@ static void cb_g_layer_destroy(void *user, VNodeID node_id, VLayerID layer_id)
 	NodeGeometry	*node;
 	NdbGLayer	*layer;
 
-	if((node = nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
+	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
 		return;
 	if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL)
 		return;
 	layer->name[0] = '\0';
 	if(layer->data != NULL)
 		dynarr_destroy(layer->data);
+	NOTIFY(node, STRUCTURE);
 }
 
 /* ----------------------------------------------------------------------------------------- */
