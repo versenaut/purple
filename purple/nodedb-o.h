@@ -37,4 +37,6 @@ typedef struct
 
 extern void		nodedb_o_init(NodeObject *n);
 
+extern NdbOMethodGroup*	nodedb_o_method_group_lookup(NodeObject *n, const char *name);
+
 extern void		nodedb_o_register_callbacks(void);

@@ -23,6 +23,21 @@ void nodedb_o_init(NodeObject *n)
 	n->method_groups = NULL;
 }
 
+NdbOMethodGroup * nodedb_o_buffer_lookup(const NodeObject *node, const char *name)
+{
+	unsigned int	i;
+	NdbOMethodGroup	*g;
+
+	if(node == NULL || name == NULL || *name == '\0')
+		return NULL;
+	for(i = 0; (g = dynarr_index(node->method_groups, i)) != NULL; i++)
+	{
+		if(strcmp(g->name, name) == 0)
+			return g;
+	}
+	return NULL;
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 static void cb_o_link_set(void *user, VNodeID node_id, uint16 link_id, uint32 link, const char *name, uint32 target_id)
