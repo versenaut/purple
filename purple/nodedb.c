@@ -181,6 +181,9 @@ void nodedb_destroy(Node *n)
 	{
 		switch(n->type)
 		{
+		case V_NT_OBJECT:
+			nodedb_o_destruct((NodeObject *) n);
+			break;
 		case V_NT_TEXT:
 			nodedb_t_destruct((NodeText *) n);
 			break;
