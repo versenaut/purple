@@ -169,15 +169,8 @@ static void cb_o_method_call(void *user, VNodeID node_id, uint8 group_id, uint8 
 int client_connect(const char *address)
 {
 	verse_callback_set(verse_send_connect_accept,		cb_connect_accept,		NULL);
-/*	verse_callback_set(verse_send_node_create,		cb_node_create,			NULL);
-	verse_callback_set(verse_send_node_name_set,		cb_node_name_set,		NULL);
-	verse_callback_set(verse_send_o_method_group_create,	cb_o_method_group_create,	NULL);
-	verse_callback_set(verse_send_o_method_create,		cb_o_method_create,		NULL);
-*/	verse_callback_set(verse_send_o_method_call,		cb_o_method_call,		NULL);
+	verse_callback_set(verse_send_o_method_call,		cb_o_method_call,		NULL);
 
-/*	verse_callback_set(verse_send_t_buffer_create,		cb_t_buffer_create,		NULL);
-	verse_callback_set(verse_send_t_text_set,		cb_t_text_set,			NULL);
-*/
 	client_info.connected = 0;
 	client_info.address = stu_strdup(address);
 
@@ -195,7 +188,7 @@ int cb_reconnect(void *data)
 		LOG_MSG(("Connection attempt %d", client_info.conn_count++));
 		client_info.connection = verse_send_connect("purple", "purple-password", client_info.address);
 	}
-	return 0;
+	return 1;
 }
 
 /* ----------------------------------------------------------------------------------------- */
