@@ -137,7 +137,6 @@ const char * value_type_name(const PValue *v)
 
 static int do_set(PValue *v, PValueType type, va_list arg)
 {
-	value_clear(v);
 	v->set |= (1 << type);
 	switch(type)
 	{
@@ -226,7 +225,23 @@ static int do_set(PValue *v, PValueType type, va_list arg)
 		v->v.vmodule = (uint32) va_arg(arg, uint32);
 		return 1;
 	case P_VALUE_STRING:
-		v->v.vstring = stu_strdup((const char *) va_arg(arg, const char *));
+		if(VALUE_SETS(v, P_VALUE_STRING))
+		{
+			size_t		ol, nl;
+			const char	*ns = (const char *) va_arg(arg, const char *);
+
+			ol = strlen(v->v.vstring);
+			nl = strlen(ns);
+			if(nl <= ol)
+				strcpy(v->v.vstring, ns);
+			else
+			{
+				mem_free(v->v.vstring);
+				v->v.vstring = stu_strdup(ns);
+			}
+		}
+		else
+			v->v.vstring = stu_strdup((const char *) va_arg(arg, const char *));
 		return 1;
 	default:
 		LOG_WARN(("Problem in do_set(): type %d unhandled", type));
