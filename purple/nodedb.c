@@ -143,6 +143,9 @@ Node * nodedb_new(VNodeType type)
 		case V_NT_BITMAP:
 			nodedb_b_construct((NodeBitmap *) n);
 			break;
+		case V_NT_GEOMETRY:
+			nodedb_g_construct((NodeGeometry *) n);
+			break;
 		case V_NT_OBJECT:
 			nodedb_o_construct((NodeObject *) n);
 			break;
@@ -185,6 +188,9 @@ Node * nodedb_new_copy(const Node *src)
 		case V_NT_BITMAP:
 			nodedb_b_copy((NodeBitmap *) n, (const NodeBitmap *) src);
 			break;
+		case V_NT_GEOMETRY:
+			nodedb_g_copy((NodeGeometry *) n, (const NodeGeometry *) src);
+			break;
 		case V_NT_OBJECT:
 			nodedb_o_copy((NodeObject *) n, (const NodeObject *) src);
 			break;
@@ -213,6 +219,9 @@ void nodedb_destroy(Node *n)
 		{
 		case V_NT_BITMAP:
 			nodedb_b_destruct((NodeBitmap *) n);
+			break;
+		case V_NT_GEOMETRY:
+			nodedb_g_destruct((NodeGeometry *) n);
 			break;
 		case V_NT_OBJECT:
 			nodedb_o_destruct((NodeObject *) n);
@@ -302,8 +311,10 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 
 	for(i = 0; i < sizeof nodedb_info.chunk_node / sizeof *nodedb_info.chunk_node; i++)
 		nodedb_info.chunk_node[i] = NULL;
-	nodedb_info.chunk_node[V_NT_OBJECT] = memchunk_new("chunk-node-object", sizeof (NodeObject), 16);
-	nodedb_info.chunk_node[V_NT_TEXT]   = memchunk_new("chunk-node-text", sizeof (NodeText), 16);
+	nodedb_info.chunk_node[V_NT_BITMAP]   =  memchunk_new("chunk-node-bitmap", sizeof (NodeBitmap), 16);
+	nodedb_info.chunk_node[V_NT_GEOMETRY] = memchunk_new("chunk-node-geometry", sizeof (NodeGeometry), 16);
+	nodedb_info.chunk_node[V_NT_OBJECT]   = memchunk_new("chunk-node-object", sizeof (NodeObject), 16);
+	nodedb_info.chunk_node[V_NT_TEXT]     = memchunk_new("chunk-node-text",   sizeof (NodeText), 16);
 
 	nodedb_info.nodes      = hash_new(node_hash, node_key_eq);
 	nodedb_info.nodes_mine = hash_new(node_hash, node_key_eq);
@@ -314,6 +325,7 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 	verse_callback_set(verse_send_node_name_set,	cb_node_name_set, NULL);
 
 	nodedb_b_register_callbacks();
+	nodedb_g_register_callbacks();
 	nodedb_o_register_callbacks();
 	nodedb_t_register_callbacks();
 
