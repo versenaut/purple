@@ -59,6 +59,10 @@ extern void		nodedb_g_polygon_set_corner_real32(NdbGLayer *layer, uint32 polygon
 							   real32 v0, real32 v1, real32 v2, real32 v3);
 extern void		nodedb_g_polygon_get_corner_real32(const NdbGLayer *layer, uint32 polygon_id,
 							   real32 *v0, real32 *v1, real32 *v2, real32 *v3);
+extern void		nodedb_g_polygon_set_corner_real64(NdbGLayer *layer, uint32 polygon_id,
+							   real64 v0, real64 v1, real64 v2, real64 v3);
+extern void		nodedb_g_polygon_get_corner_real64(const NdbGLayer *layer, uint32 polygon_id,
+							   real64 *v0, real64 *v1, real64 *v2, real64 *v3);
 extern void		nodedb_g_polygon_set_face_uint8(NdbGLayer *layer, uint32 polygon_id, uint8 value);
 extern uint8		nodedb_g_polygon_get_face_uint8(const NdbGLayer *layer, uint32 polygon_id);
 extern void		nodedb_g_polygon_set_face_uint32(NdbGLayer *layer, uint32 polygon_id, uint32 value);
