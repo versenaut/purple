@@ -2,6 +2,8 @@
  *
 */
 
+#include <string.h>
+
 #include "verse.h"
 
 #include <stdio.h>
@@ -30,7 +32,9 @@ int main(void)
 
 	test_begin("insert");
 	{
+		char	buf[256];
 		IdList	*il;
+		int	ok = 0;
 
 		il = idlist_new();
 		idlist_insert(il, 3);
@@ -41,13 +45,17 @@ int main(void)
 		idlist_insert(il, 22);
 		idlist_insert(il, 22);
 		idlist_insert(il, 11);
-		idlist_test_as_string(il, NULL, 0);
-		idlist_remove(il, 22);
-		idlist_remove(il, 18);
-		idlist_remove(il, 22);
-		idlist_remove(il, 22);
-		idlist_test_as_string(il, NULL, 0);
-		test_result(1);		/* FIXME: Crap, obviously. */
+		idlist_test_as_string(il, buf, sizeof buf);
+		if(strcmp(buf, "[(3;2) (11;2) (18;1) (22;3)]") == 0)
+		{
+			idlist_remove(il, 22);
+			idlist_remove(il, 18);
+			idlist_remove(il, 22);
+			idlist_remove(il, 22);
+			idlist_test_as_string(il, buf, sizeof buf);
+			ok = strcmp(buf, "[(3;2) (11;2)]") == 0;
+		}
+		test_result(ok);
 		idlist_destroy(il);
 	}
 	test_end();
