@@ -834,7 +834,7 @@ self-contained; modules in a graph can not exchange information directly with mo
 </funcsynopsis>
 </term>
 <listitem>
-<para>Create a new graph with the given name.</para>
+<para>Create a new graph with the given name. The name must be unique.</para>
 </listitem>
 </varlistentry>
 
@@ -977,14 +977,15 @@ re-use the motivation stated there and simply postulate that XML is a suitable f
 Initially, I will do this by example. To start of easily, here is the simplest legal graph:
 <example>
 <title>The Empty Graph</title>
-<programlisting>&lt;graph id="0">
+<programlisting>&lt;graph id="0" name="foo">
 &lt;/graph>
 </programlisting>
 </example>
 </para>
 <para>
 This description establishes that there exists a graph, known by the numerical ID of zero. The graph is empty, i.e.
-it contains no modules, and was not given a name when it was created.
+it contains no modules, and is named <literal>foo</literal>. Graphs are always named, and names are always
+unique for the instance of the Purple engine.
 </para>
 
 <para>
