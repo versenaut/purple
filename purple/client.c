@@ -185,7 +185,8 @@ int client_connect(const char *address)
 	verse_callback_set(verse_send_connect_accept,		cb_connect_accept,		NULL);
 	verse_callback_set(verse_send_o_method_call,		cb_o_method_call,		NULL);
 
-	client_info.connected = 0;
+	client_info.connected  = 0;
+	client_info.conn_count = 0;
 	client_info.address = stu_strdup(address);
 
 	return 1;
@@ -195,6 +196,11 @@ int cb_reconnect(void *data)
 {
 	if(!client_info.connected)
 	{
+		if(client_info.conn_count != 0)
+		{
+			printf("Still not connected, waiting for Verse to retry...\n");
+			return 1;
+		}
 		if(client_info.connection != NULL)
 		{
 			verse_session_destroy(client_info.connection);	/* Avoid socket leakage. */
@@ -211,7 +217,7 @@ void client_init(void)
 {
 	client_info.avatar = ~0;
 	client_info.meta   = ~0;
-	cron_add(CRON_PERIODIC, 5.0, cb_reconnect, NULL);
+	cron_add(CRON_PERIODIC_SOON, 8.0, cb_reconnect, NULL);
 	nodedb_notify_add(NODEDB_OWNERSHIP_MINE, cb_node_notify_mine);
 	client_info.gid_control = ~0;
 	client_info.plugins.buffer = ~0;
