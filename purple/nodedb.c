@@ -17,6 +17,7 @@
 #include "dynarr.h"
 #include "hash.h"
 #include "list.h"
+#include "iter.h"
 #include "log.h"
 #include "mem.h"
 #include "memchunk.h"
@@ -427,6 +428,40 @@ static void cb_default_tag(unsigned int index, void *element, void *user)
 
 	tag->name[0] = '\0';
 	tag->type = -1;
+}
+
+unsigned int nodedb_tag_group_tag_num(const NdbTagGroup *group)
+{
+	unsigned int	i, num;
+	const NdbTag	*tag;
+
+	if(group == NULL)
+		return 0;
+	for(i = num = 0; (tag = dynarr_index(group->tags, i)) != NULL; i++)
+	{
+		if(tag->name[0] == '\0')
+			continue;
+		num++;
+	}
+	return num;
+}
+
+NdbTag * nodedb_tag_group_tag_nth(const NdbTagGroup *group, unsigned int n)
+{
+	unsigned int	i;
+	NdbTag		*tag;
+
+	if(group == NULL)
+		return NULL;
+	for(i = 0; (tag = dynarr_index(group->tags, i)) != NULL; i++)
+	{
+		if(tag->name[0] == '\0')
+			continue;
+		if(n == 0)
+			return tag;
+		n--;
+	}
+	return NULL;
 }
 
 void nodedb_tag_create(NdbTagGroup *group, uint16 tag_id, const char *name, VNTagType type, const VNTag *value)

@@ -79,7 +79,10 @@ extern NdbTagGroup *	nodedb_tag_group_find(const Node *node, const char *name);
 extern NdbTagGroup *	nodedb_tag_group_create(Node *node, uint16 group_id, const char *name);
 extern NdbTagGroup *	nodedb_tag_group_lookup(const Node *node, const char *name);
 extern void		nodedb_tag_group_destroy(NdbTagGroup *group);
-extern NdbTag *		nodedb_tag_lookup(NdbTagGroup *group, const char *name);
+
+extern unsigned int	nodedb_tag_group_tag_num(const NdbTagGroup *group);
+extern NdbTag *		nodedb_tag_group_tag_nth(const NdbTagGroup *group, unsigned int n);
+extern NdbTag *		nodedb_tag_group_tag_find(NdbTagGroup *group, const char *name);
 extern void		nodedb_tag_create(NdbTagGroup *group, uint16 tag_id, const char *name, VNTagType type, const VNTag *value);
 extern void		nodedb_tag_destroy(NdbTagGroup *group, NdbTag *tag);
 extern void		nodedb_tag_destroy_all(NdbTagGroup *group);
