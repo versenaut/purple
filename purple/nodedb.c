@@ -18,6 +18,7 @@
 #include "hash.h"
 #include "list.h"
 #include "log.h"
+#include "mem.h"
 #include "memchunk.h"
 #include "strutil.h"
 #include "textbuf.h"
@@ -382,12 +383,39 @@ void nodedb_tag_create(NdbTagGroup *group, uint16 tag_id, const char *name, VNTa
 	}
 }
 
+void nodedb_tag_clear(NdbTag *tag)
+{
+	/* Throw out any old non-scalar value. */
+	if(!NODEDB_TAG_TYPE_SCALAR(tag->type))
+	{
+		if(tag->type == VN_TAG_STRING)
+			mem_free(tag->value.vstring);
+		else if(tag->type == VN_TAG_BLOB)
+			mem_free(tag->value.vblob.blob);
+	}
+	tag->type = -1;
+}
+
 void nodedb_tag_set(NdbTag *tag, VNTagType type, const VNTag *value)
 {
 	if(tag == NULL || value == NULL)
 		return;
+	nodedb_tag_clear(tag);
 	tag->type  = type;
-	tag->value = *value;	/* FIXME: Memory management for non-scalar types. */
+	if(NODEDB_TAG_TYPE_SCALAR(type))
+		tag->value = *value;
+	else
+	{
+		if(type == VN_TAG_STRING)
+			tag->value.vstring = stu_strdup(value->vstring);
+		else if(type == VN_TAG_BLOB)
+		{
+			tag->value.vblob.size = value->vblob.size;
+			tag->value.vblob.blob = mem_alloc(tag->value.vblob.size);
+			if(tag->value.vblob.blob != NULL)
+				memcpy(tag->value.vblob.blob, value->vblob.blob, tag->value.vblob.size);
+		}
+	}
 }
 
 NdbTag * nodedb_tag_lookup(NdbTagGroup *group, const char *name)
@@ -543,9 +571,8 @@ static void cb_tag_destroy(void *user, VNodeID node_id, uint16 group_id, uint16 
 		return;
 	if((tag = dynarr_index(tg->tags, tag_id)) != NULL)
 	{
+		nodedb_tag_clear(tag);
 		tag->name[0] = '\0';
-		tag->type = -1;
-		/* FIXME: Memory management for non-scalar types. */
 		NOTIFY(n, DATA);
 	}
 }
