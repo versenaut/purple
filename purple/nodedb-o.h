@@ -8,6 +8,7 @@ typedef struct
 	real64	xform[3][3];
 	real64	light[3];
 	DynArr	*links;
+	List	*links_local;
 	DynArr	*method_groups;
 } NodeObject;
 
@@ -18,6 +19,13 @@ typedef struct
 	char	label[16];
 	uint32	target;
 } NdbOLink;
+
+/* Used for local links, before syncing. */
+typedef struct {
+	const Node	*link;
+	char		label[16];
+	uint32		target;
+} NdbOLinkLocal;
 
 typedef struct
 {
@@ -40,6 +48,7 @@ extern void		nodedb_o_copy(NodeObject *n, const NodeObject *src);
 extern void		nodedb_o_destruct(NodeObject *n);
 
 extern void		nodedb_o_link_set(NodeObject *n, uint16 link_id, VNodeID link, const char *label, uint32 target_id);
+extern void		nodedb_o_link_set_local(NodeObject *n, const PONode *link, const char *label, uint32 target_id);
 
 extern NdbOMethodGroup*	nodedb_o_method_group_lookup(NodeObject *n, const char *name);
 extern const NdbOMethod*nodedb_o_method_lookup(const NdbOMethodGroup *group, const char *name);

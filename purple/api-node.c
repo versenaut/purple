@@ -29,7 +29,7 @@ void p_node_name_set(PONode *node, const char *name)
 void p_node_o_link_set(PONode *node, const PONode *link, const char *label, uint32 target_id)
 {
 	if(node != NULL && link != NULL && label != NULL)
-		nodedb_o_link_set((NodeObject *) node, ~0, link->id, label, target_id);
+		nodedb_o_link_set_local((NodeObject *) node, link, label, target_id);
 }
 
 /* ----------------------------------------------------------------------------------------- */

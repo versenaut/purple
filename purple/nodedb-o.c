@@ -10,6 +10,7 @@
 
 #include "dynarr.h"
 #include "list.h"
+#include "log.h"
 #include "mem.h"
 #include "strutil.h"
 #include "textbuf.h"
@@ -22,7 +23,8 @@
 void nodedb_o_construct(NodeObject *n)
 {
 	n->light[0] = n->light[1] = n->light[2] = 0.0;
-	n->links = NULL;
+	n->links	 = NULL;
+	n->links_local   = NULL;
 	n->method_groups = NULL;
 }
 
@@ -79,15 +81,21 @@ void nodedb_o_copy(NodeObject *n, const NodeObject *src)
 	memcpy(n->light, src->light, sizeof *n->light);
 
 	n->links = dynarr_new_copy(src->links, NULL, NULL);	/* Link data structure is monolithic. */
+	if(n->links_local)	/* FIXME: Do we need to copy local links? */
+		LOG_WARN(("Local links not copied"));
 	n->method_groups = dynarr_new_copy(src->method_groups, cb_copy_method_group, NULL);
 }
 
 void nodedb_o_destruct(NodeObject *n)
 {
+	List		*iter;
 	unsigned int	i;
 	NdbOMethodGroup	*g;
 
 	dynarr_destroy(n->links);
+	for(iter = n->links_local; iter != NULL; iter = list_next(iter))
+		mem_free(list_data(iter));
+	list_destroy(n->links_local);
 	for(i = 0; i < dynarr_size(n->method_groups); i++)
 	{
 		if((g = dynarr_index(n->method_groups, i)) && g->name[0] != '\0')
@@ -111,37 +119,32 @@ void nodedb_o_destruct(NodeObject *n)
 void nodedb_o_link_set(NodeObject *n, uint16 link_id, VNodeID link, const char *label, uint32 target_id)
 {
 	NdbOLink	*l;
-	unsigned int	i, nl;
 
 	if(n == NULL || n->node.type != V_NT_OBJECT)
 		return;
 	if(n->links == NULL)
 		n->links = dynarr_new(sizeof (NdbOLink), 1);
 
-	if(link_id == (uint16) ~0)	/* Local mode? */
-	{
-		unsigned int	index;
-
-		nl = dynarr_size(n->links);
-		for(i = 0; i < nl; i++)
-		{
-			if((l = dynarr_index(n->links, i)) != NULL)
-			{
-				if(l->target == target_id && l->link == link && strcmp(l->label, label) == 0)
-					return;
-			}
-		}
-		l = dynarr_append(n->links, NULL, &index);
-		link_id = (uint16) index;
-		printf(" appending, index=%u\n", index);
-	}
-	else				/* Server mirror mode. */
-		l = dynarr_set(n->links, link_id, NULL);
+	l = dynarr_set(n->links, link_id, NULL);
 	l->id = link_id;
 	l->link = link;
 	stu_strncpy(l->label, sizeof l->label, label);
 	l->target = target_id;
-	printf("link set, ID %u\n", l->id);
+	printf("link set %u->%u, ID %u, label '%s' target %u\n", n->node.id, link, link_id, label, target_id);
+}
+
+void nodedb_o_link_set_local(NodeObject *n, const PONode *link, const char *label, uint32 target_id)
+{
+	NdbOLinkLocal	*l;
+
+	if(n == NULL || n->node.type != V_NT_OBJECT)
+		return;
+	l = mem_alloc(sizeof *l);
+	l->link = link;
+	stu_strncpy(l->label, sizeof l->label, label);
+	l->target = target_id;
+	n->links_local = list_prepend(n->links_local, l);
+	printf("local link created\n");
 }
 
 NdbOMethodGroup * nodedb_o_method_group_lookup(NodeObject *node, const char *name)
@@ -187,13 +190,13 @@ const NdbOMethod * nodedb_o_method_lookup_id(const NdbOMethodGroup *group, uint8
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_o_link_set(void *user, VNodeID node_id, uint16 link_id, uint32 link, const char *name, uint32 target_id)
+static void cb_o_link_set(void *user, VNodeID node_id, uint16 link_id, VNodeID link, const char *label, uint32 target_id)
 {
 	NodeObject	*n;
 
 	if((n = nodedb_lookup_object(node_id)) != NULL)
 	{
-		nodedb_o_link_set(n, link_id, link, name, target_id);
+		nodedb_o_link_set(n, link_id, link, label, target_id);
 		NOTIFY(n, DATA);
 	}
 }
