@@ -156,7 +156,7 @@ static void cb_connect_accept(void *user, VNodeID avatar, void *address, void *c
 					  (1 << V_NT_CURVE)  | (1 << V_NT_MATERIAL));
 		verse_send_node_subscribe(avatar);
 		verse_send_node_name_set(avatar, "PurpleEngine");
-		verse_send_o_method_group_create(avatar, 0, METHOD_GROUP_CONTROL_NAME);
+		verse_send_o_method_group_create(avatar, ~0, METHOD_GROUP_CONTROL_NAME);
 
 		verse_send_node_create(~0, V_NT_TEXT, VN_OWNER_MINE);
 	}
