@@ -638,7 +638,7 @@ mapping becomes:
 </thead>
 <tbody>
  <row><entry><link linkend='comms-plugins'>Plug-in Descriptions</link></entry><entry>Text Buffer</entry></row>
- <row><entry><link linkend='comms-graph-dir'>Graph Directory</link></entry><entry>Text Buffer</entry></row>
+ <row><entry><link linkend='comms-graph-dir'>Graph Index</link></entry><entry>Text Buffer</entry></row>
  <row><entry><link linkend='comms-methods'>Graph Editing</link></entry><entry>Method Calls</entry></row>
  <row><entry><link linkend='comms-graphs'>Graph Description</link></entry><entry>Text Buffer</entry></row>
 </tbody>
@@ -814,12 +814,40 @@ into <emphasis>modules</emphasis>.
 </sect2>
 
 <sect2 id='comms-graph-dir'>
-<title>Details: Graph Directory</title>
+<title>Details: Graph Index</title>
 <para>
 This section describes the directory of existing graphs that is maintained by the Purple engine. This directory
 is needed, because (as is shown below) graphs reside in various places that are chosen by clients. A central
 location that contains an up to date listing of which graphs exist is necessary to allow interface clients to
 present e.g. a list of graphs from which a user can pick one to edit.
+</para>
+<para>
+Here's an example of a (very small) such a graph directory:
+<example>
+<title>Graph Index Example</title>
+<programlisting>&lt;?xml version="1.0" standalone="yes"?>
+
+&lt;purple-graphs>
+ &lt;graph id="1" name="test">
+  &lt;at>
+   &lt;node>foo&lt;/node>
+   &lt;buffer>0&lt;/buffer>
+  &lt;/at>
+ &lt;/graph>
+&lt;/purple-graphs>
+</programlisting>
+<para>
+Here, the graph <literal>1</literal>, named <literal>test</literal>, is described. The <literal>at</literal>
+element specifies where on the server the actual graph description is to be found, by giving a node name
+(<quote><literal>foo</literal></quote>) and buffer ID (<quote><literal>0</literal></quote>).
+</para>
+<para>
+Nodes are identified by name rather than numerical ID, since this data is shared and read by multiple clients.
+Since Verse's numerical node IDs are session-local, the Purple engine (itself just another Verse client)
+cannot publish the node IDs it knows about and assume that they mean the same for other clients. Names, however,
+are sharable.
+</para>
+</example>
 </para>
 </sect2>
 
@@ -985,7 +1013,7 @@ it any particular value. This is done by the following method:
  <funcdef><function>mod_input_clear</function></funcdef>
  <paramdef>uint32 <parameter>graph</parameter></paramdef>
  <paramdef>uint32 <parameter>plugin</parameter></paramdef>
- <paramdef>uint8 <parameter>inputa</parameter></paramdef>
+ <paramdef>uint8 <parameter>input</parameter></paramdef>
 </funcprototype>
 </funcsynopsis>
 </term>
@@ -1041,25 +1069,25 @@ it contains no modules.
 <example>
 <title>Hello, World</title>
 <programlisting>&lt;graph id="55">
- &lt;module id="0" plug-in="hello"/>
+ &lt;module id="0" plug-in="11"/>
 &lt;/graph>
 </programlisting>
 </example>
 </para>
 <para>
-This graph contains a single module, the one named <literal>hello</literal> from the example
-<link linkend='ex-module-hello'>above</link>. Both the <symbol>id</symbol> and <symbol>plug-in</symbol>
-attributes of the <symbol>module</symbol> element are required. IDs are numerical and must be unique
-within the graph. Specifying a non-existing plug-in name is legal.
+This graph contains a single module, the one named <literal>hello</literal> (with ID <literal>11</literal>)
+from the example <link linkend='ex-module-hello'>above</link>. Both the <symbol>id</symbol> and
+<symbol>plug-in</symbol> attributes of the <symbol>module</symbol> element are required. IDs are
+numerical and must be unique within the graph. Specifying a non-existing plug-in name is legal.
 </para>
 
 <example>
 <title>Forty-Two</title>
 <para>
-This example uses the <literal>multiply</literal> plug-in from <link linkend='ex-module-multiply'>above</link>
- to compute the number <literal>42</literal>:
+This example uses the <literal>multiply</literal> (with ID <literal>42</literal>) plug-in from
+<link linkend='ex-module-multiply'>above</link> to compute the number <literal>42</literal>:
 <programlisting>&lt;graph id="37">
- &lt;module id="0" plug-in="multiply">
+ &lt;module id="0" plug-in="42">
   &lt;set input="0" type="real32">6&lt;/assign>
   &lt;set input="1" type="real32">7&lt;/assign>
  &lt;/module>
@@ -1082,15 +1110,15 @@ This example uses the <literal>multiply</literal> plug-in three times, to comput
 42<superscript>2</superscript>. The point of the example is to show how module outputs are connected
 to module inputs.
 <programlisting>&lt;graph id="19">
- &lt;module id="0" plug-in="multiply">
+ &lt;module id="0" plug-in="42">
   &lt;set input="0" type="real32">6&lt;/assign>
   &lt;set input="1" type="real32">7&lt;/assign>
  &lt;/module>
- &lt;module id="1" plug-in="multiply">
+ &lt;module id="1" plug-in="42">
   &lt;set input="0" type="real32">6&lt;/assign>
   &lt;set input="1" type="real32">7&lt;/assign>
  &lt;/module>
- &lt;module id="2" plug-in="multiply">
+ &lt;module id="2" plug-in="42">
   &lt;set input="0" type="module">0&lt;/assign>
   &lt;set input="1" type="module">1&lt;/assign>
  &lt;/module>
