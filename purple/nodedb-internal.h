@@ -9,3 +9,4 @@
 			} while(0)
 
 extern void	nodedb_internal_notify_mine_check(Node *n, NodeNotifyEvent ev);
+extern void	nodedb_internal_notify_node_check(Node *n, NodeNotifyEvent ev);
