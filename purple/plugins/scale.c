@@ -22,7 +22,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 			continue;
 		out   = p_output_node(output, in);
 		layer = p_node_g_layer_find(out, "vertex");
-		size  = p_node_g_layer_size(layer);	/* Safely handles NULL layer. */
+		size  = p_node_g_layer_get_size(layer);	/* Safely handles NULL layer. */
 		for(j = 0; j < size; j++)
 		{
 			real64	x, y, z;

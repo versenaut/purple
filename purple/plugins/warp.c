@@ -63,7 +63,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		inlayer  = p_node_g_layer_find(ingeo, "vertex");
 		printf(" input layer at %p\n", inlayer);
 		outlayer = p_node_g_layer_find(geo, "vertex");
-		size  = p_node_g_layer_size(inlayer);		/* Safely handles NULL layer. */
+		size  = p_node_g_layer_get_size(inlayer);		/* Safely handles NULL layer. */
 		for(j = 0, yrelprev = -1E20; j < size; j++, yrelprev = yrel)
 		{
 			p_node_g_vertex_get_xyz(inlayer, j, point, point + 1, point + 2);
