@@ -34,10 +34,10 @@ typedef struct
 
 static const VNOParamType	create_type[]   = { VN_O_METHOD_PTYPE_NODE, VN_O_METHOD_PTYPE_LAYER,
 							VN_O_METHOD_PTYPE_STRING },
-				rename_type[]   = { VN_O_METHOD_PTYPE_UINT32 },
+				rename_type[]   = { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_STRING },
 				destroy_type[]  = { VN_O_METHOD_PTYPE_UINT32 };
 static char			*create_name[]  = { "node", "buffer", "name" },
-				*rename_name[]  = { "graph" },
+				*rename_name[]  = { "graph", "name" },
 				*destroy_name[] = { "graph" };
 
 static struct
@@ -83,6 +83,16 @@ void graph_method_receive_create(uint8 id, const char *name)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static void graph_build_xml(uint32 id, const Graph *g, char *buf, size_t bufsize)
+{
+	snprintf(buf, bufsize,	" <graph id=\"%u\" name=\"%s\">\n"
+				"  <at>\n"
+				"   <node>%u</node>\n"
+				"   <buffer>%u</buffer>\n"
+				"  </at>\n"
+				" </graph>\n", id, g->name, g->node, g->buffer);
+}
+
 static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 {
 	unsigned int	id, i, pos;
@@ -115,15 +125,37 @@ static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 	}
 	gg = dynarr_index(graph_info.graphs, id);
 	gg->xml_start = pos;
-	snprintf(xml, sizeof xml, "<graph id=\"%u\" name=\"%s\">\n"
-					  " <at>\n"
-					  "  <node>%u</node>\n"
-					  "  <buffer>%u</buffer>\n"
-					  " </at>\n"
-					  "</graph>\n", id, gg->name, gg->node, gg->buffer);
+	graph_build_xml(id, gg, xml, sizeof xml);
 	gg->xml_length = strlen(xml);
 	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, gg->xml_start, 0, xml);
 	hash_insert(graph_info.graphs_name, gg->name, gg);
+}
+
+static void graph_rename(uint32 id, const char *name)
+{
+	Graph		*g;
+	unsigned int	i, pos;
+	char		xml[256];
+
+	if((g = dynarr_index(graph_info.graphs, id)) == NULL || g->name[0] == '\0')
+	{
+		LOG_WARN(("Couldn't rename graph %u, not found", id));
+		return;
+	}
+	hash_remove(graph_info.graphs_name, g->name);
+	stu_strncpy(g->name, sizeof g->name, name);
+	hash_insert(graph_info.graphs_name, g->name, g);
+	graph_build_xml(id, g, xml, sizeof xml);
+	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, g->xml_start, g->xml_length, xml);
+	g->xml_length = strlen(xml);
+
+	for(i = 0, pos = client_info.graphs.start; i < dynarr_size(graph_info.graphs); i++)
+	{
+		if((g = dynarr_index(graph_info.graphs, i)) == NULL || g->name[0] == '\0')
+			continue;
+		g->xml_start = pos;
+		pos += g->xml_length;
+	}
 }
 
 static void graph_destroy(uint32 id)
@@ -199,7 +231,10 @@ void graph_method_receive_call(uint8 id, const void *param)
 			graph_create(arg[0].vnode, arg[1].vlayer, arg[2].vstring);
 	}
 	else if(id == graph_info.mid_rename)
-		;
+	{
+		if(verse_method_call_unpack(param, sizeof rename_type / sizeof *rename_type, rename_type, arg))
+			graph_rename(arg[0].vuint32, arg[1].vstring);
+	}
 	else if(id == graph_info.mid_destroy)
 	{
 		if(verse_method_call_unpack(param, sizeof destroy_type / sizeof *destroy_type, destroy_type, arg))
