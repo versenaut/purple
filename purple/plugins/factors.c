@@ -25,6 +25,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state_typel
 	}
 	if(state->index >= state->number)	/* Done? */
 	{
+		printf("factors done, %u has %u\n", state->number, state->factors);
 		p_output_int32(output, state->factors);
 		state->factors = -1;
 		return P_COMPUTE_DONE;
