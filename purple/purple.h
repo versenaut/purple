@@ -12,6 +12,31 @@ typedef struct PONode PONode;	/* Output node, read-write. */
 
 typedef enum
 {
+	P_VALUE_NONE = -1,
+	P_VALUE_BOOLEAN = 0,
+	P_VALUE_INT32,
+	P_VALUE_UINT32,
+	P_VALUE_REAL32,
+	P_VALUE_REAL32_VEC2,
+	P_VALUE_REAL32_VEC3,
+	P_VALUE_REAL32_VEC4,
+	P_VALUE_REAL32_MAT16,
+	P_VALUE_REAL64,
+	P_VALUE_REAL64_VEC2,
+	P_VALUE_REAL64_VEC3,
+	P_VALUE_REAL64_VEC4,
+	P_VALUE_REAL64_MAT16,
+	P_VALUE_STRING,
+	P_VALUE_MODULE
+} PValueType;
+
+/* These are Purple-internal, you will know them only as pointers. */
+typedef struct PPort	*PPInput;	/* An input is a pointer to a port. */
+typedef struct PPort	*PPOutput;	/* So is an output. Simplicity. */
+
+#if 0
+typedef enum
+{
 	P_INPUT_BOOLEAN = 0,
 	P_INPUT_INT32,
 	P_INPUT_UINT32,
@@ -53,6 +78,12 @@ typedef struct
 	}	v;
 } PInputValue;
 
+/* "Ports" are used to model inputs and outputs. */
+typedef void 		PPort;
+typedef const PPort *	PPInput;
+typedef PPort *		PPOutput;
+#endif
+
 typedef enum
 {
 	P_INPUT_TAG_DONE = 0,
@@ -72,7 +103,7 @@ typedef enum
 
 void		p_init_create(const char *name);
 
-void		p_init_input(int index, PInputType type, const char *name, ...);
+void		p_init_input(int index, PValueType type, const char *name, ...);
 
 void		p_init_meta(const char *category, const char *text);
 
@@ -83,11 +114,6 @@ void		p_init_state(size_t size,
 			     void (*constructor)(void *state),
 			     void (*destructor)(void *state));
 
-/* "Ports" are used to model inputs and outputs. */
-typedef void 		PPort;
-typedef const PPort *	PPInput;
-typedef PPort *		PPOutput;
-
 void		p_init_compute(void (*compute)(PPInput *input, PPOutput output, void *state));
 
 /* Read out inputs, registered earlier. One for each type. :/ If this wasn't in C, we could use meta
@@ -97,19 +123,21 @@ boolean		p_input_boolean(PPInput input);
 int32		p_input_int32(PPInput input);
 uint32		p_input_uint32(PPInput input);
 real32		p_input_real32(PPInput input);
-const real32 *	p_input_real32_vec2(PPInput input, real32 *buf);
-const real32 *	p_input_real32_vec3(PPInput input, real32 *buf);
-const real32 *	p_input_real32_vec4(PPInput input, real32 *buf);
-const real32 *	p_input_real32_mat16(PPInput input, real32 *buf);
+const real32 *	p_input_real32_vec2(PPInput input);
+const real32 *	p_input_real32_vec3(PPInput input);
+const real32 *	p_input_real32_vec4(PPInput input);
+const real32 *	p_input_real32_mat16(PPInput input);
 real64		p_input_real64(PPInput input);
-const real64 *	p_input_real64_vec2(PPInput input, real64 *buf);
-const real64 *	p_input_real64_vec3(PPInput input, real64 *buf);
-const real64 *	p_input_real64_vec4(PPInput input, real64 *buf);
-const real64 *	p_input_real64_mat16(PPInput input, real64 *buf);
-const char *	p_input_string(PPInput input, char *buf, size_t buf_max);
+const real64 *	p_input_real64_vec2(PPInput input);
+const real64 *	p_input_real64_vec3(PPInput input);
+const real64 *	p_input_real64_vec4(PPInput input);
+const real64 *	p_input_real64_mat16(PPInput input);
+const char *	p_input_string(PPInput input);
 const PINode *	p_input_node(PPInput input);
 
-/* Node manipulation functions. All require an output node. */
+/* Node manipulation functions. Getters work on both input and output
+ * nodes, setting requires output.
+*/
 
 const char *	p_node_name_get(const void *node);
 void		p_node_name_set(PONode *node, const char *name);
