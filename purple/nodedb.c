@@ -300,6 +300,25 @@ VNodeType nodedb_type_get(const Node *node)
 
 /* ----------------------------------------------------------------------------------------- */
 
+NdbTagGroup * nodedb_tag_group_lookup(const Node *node, const char *name)
+{
+	unsigned int	i;
+	NdbTagGroup	*g;
+
+	if(node == NULL || name == NULL || *name == '\0')
+		return NULL;
+	for(i = 0; (g = dynarr_index(node->tag_groups, i)) != NULL; i++)
+	{
+		if(*g->name == '\0')
+			continue;
+		if(strcmp(g->name, name) == 0)
+			return g;
+	}
+	return NULL;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeOwner ownership)
 {
 	Node	*n;
