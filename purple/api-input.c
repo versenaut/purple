@@ -7,6 +7,7 @@
 #include "purple.h"
 
 #include "log.h"
+#include "strutil.h"
 #include "vecutil.h"
 
 #include "plugins.h"
@@ -49,6 +50,9 @@ static int input_real64(const PInputValue *v, real64 *value)
 	case P_INPUT_REAL32_VEC4:
 		*value = vec_real32_vec4_magnitude(v->v.vreal32_vec2);
 		break;
+	case P_INPUT_REAL32_MAT16:
+		*value = vec_real32_mat16_determinant(v->v.vreal32_mat16);
+		break;
 	case P_INPUT_REAL64:
 		*value = v->v.vreal64;
 		break;
@@ -60,6 +64,9 @@ static int input_real64(const PInputValue *v, real64 *value)
 		break;
 	case P_INPUT_REAL64_VEC4:
 		*value = vec_real64_vec4_magnitude(v->v.vreal64_vec2);
+		break;
+	case P_INPUT_REAL64_MAT16:
+		*value = vec_real64_mat16_determinant(v->v.vreal64_mat16);
 		break;
 	case P_INPUT_STRING:
 		*value = strtod(v->v.vstring, NULL);
