@@ -710,6 +710,7 @@ void plugins_libraries_load(void)
 
 			for(j = 0; j < filelist_size(fl); j++)
 				library_new(filelist_filename_full(fl, j));
+			filelist_destroy(fl);
 		}
 		else
 			LOG_MSG(("Couldn't load file list from \"%s\"", plugins_info.paths[i]));
