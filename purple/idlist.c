@@ -1,7 +1,11 @@
 /*
- * A list of IDs, used for dependent-tracking by graph modules. Tries to be at least marginally
- * clever and store IDs below a certain (see header) limit efficiently as bits set in a mask,
- * and resorting to an actual linked list for bigger IDs. Might work out okay.
+ * A list of IDs, used for dependent-tracking by graph modules. To reduce memory allocation
+ * overhead, we simply stuff both ID and the required count (this is a multiset) into the
+ * list data pointer. This limits both ID and count ranges, but... Should be OK anyway.
+ * 
+ * The layout used is: a void * is assumed to hold at least 32 bits. The lower 16 bits are
+ * used for the ID, on the theory it's quicker to access it that way. The upper 16 bits are
+ * used for the count, which is less-often accessed. The entry list is kept sorted on ID.
 */
 
 #include "verse.h"
@@ -11,9 +15,18 @@
 #include <string.h>
 
 #include "mem.h"
+#include "memchunk.h"
 #include "list.h"
+#include "log.h"
 
 #include "idlist.h"
+
+/* ----------------------------------------------------------------------------------------- */
+
+#define	MASK_ID		((1 << 16) - 1)
+#define	SHIFT_ID	0
+#define	MASK_COUNT	(~MASK_ID)
+#define	SHIFT_COUNT	16
 
 /* ----------------------------------------------------------------------------------------- */
 
@@ -29,112 +42,102 @@ IdList * idlist_new(void)
 void idlist_construct(IdList *il)
 {
 	if(il != NULL)
-	{
-		memset(il->quick, 0, sizeof il->quick);
-		il->slow = NULL;
-	}
+		il->entries = NULL;
 }
 
-/* Compare IDs, for sorted insert in list. */
-static int cmp_id(const void *data1, const void *data2)
+static int cmp_find(const void *listdata, const void *data)
 {
-	unsigned int	a = (unsigned int) data1, b = (unsigned int) data2;
+	uint32	listid = ((uint32) listdata & MASK_ID) >> SHIFT_ID,
+		newid  = ((uint32) data & MASK_ID) >> SHIFT_ID;
 
-	return a < b ? -1 : a > b;
+	return listid < newid ? -1 : listid > newid;
+}
+
+static int cmp_insert(const void *data1, const void *data2)
+{
+	uint32	id1 = ((uint32) data1 & MASK_ID) >> SHIFT_ID,
+		id2  = ((uint32) data2 & MASK_ID) >> SHIFT_ID;
+
+	return id1 < id2 ? -1 : id1 > id2;
 }
 
 void idlist_insert(IdList *il, unsigned int id)
 {
+	List	*iter;
+
 	if(il == NULL)
 		return;
-	if(id < IDLIST_QUICK_MAX)
-		il->quick[id / 32] |= 1 << (id % 32);
-	else if(list_find_sorted(il->slow, (void *) id, cmp_id) == NULL)	/* No dupes. */
-		il->slow = list_insert_sorted(il->slow, (void *) id, cmp_id);
+	if((iter = list_find_sorted(il->entries, (void *) id, cmp_find)) != NULL)
+	{
+		uint32	d = (uint32) list_data(iter);
+		uint16	count;
+
+		count = (d & MASK_COUNT) >> SHIFT_COUNT;
+		count++;
+		d &= ~MASK_COUNT;
+		d |= count << SHIFT_COUNT;
+
+		list_data_set(iter, (void *) d);
+	}
+	else
+	{
+		uint32	d = (id << SHIFT_ID) | (1 << SHIFT_COUNT);
+
+		il->entries = list_insert_sorted(il->entries, (void *) d, cmp_insert);
+		if(id > 1 << 16)
+			LOG_WARN(("Insertion of module ID %u in IdSet breaks implementation assumption, failing", id));
+	}
 }
 
 void idlist_remove(IdList *il, unsigned int id)
 {
+	List	*el;
+
 	if(il == NULL)
 		return;
-	if(id < IDLIST_QUICK_MAX)
-		il->quick[id / 32] &= ~(1 << (id % 32));
-	else
-		il->slow = list_remove(il->slow, (void *) id);
-}
-
-void idlist_foreach(const IdList *il, int (*callback)(unsigned int id, void *data), void *data)
-{
-	int		i, j;
-	const List	*iter;
-
-	if(il == NULL || callback == NULL)
-		return;
-	for(i = 0; i < sizeof il->quick / sizeof *il->quick; i++)
+	if((el = list_find_sorted(il->entries, (void *) id, cmp_find)) != NULL)
 	{
-		if(il->quick[i] == 0)
-			continue;
-		for(j = 0; j < 32; j++)
+		uint32	d = (uint32) list_data(el);
+		uint16	count;
+
+		count = (d & MASK_COUNT) >> SHIFT_COUNT;
+		count--;
+		if(count > 0)		/* Writeback required? */
 		{
-			if(il->quick[i] & (1 << j))
-				if(!callback(32 * i + j, data))
-					return;
+			d &= ~MASK_COUNT;
+			d |= count << SHIFT_COUNT;
+			list_data_set(el, (void *) d);
+		}
+		else
+		{
+			il->entries = list_unlink(il->entries, el);
+			list_destroy(el);
 		}
 	}
-	for(iter = il->slow; iter != NULL; iter = list_next(iter))
-		if(!callback((unsigned int) list_data(iter), data))
-			return;
 }
 
 void idlist_foreach_init(const IdList *il, IdListIter *iter)
 {
 	if(il == NULL || iter == NULL)
 		return;
-	iter->quick = -1;
-	iter->slow = NULL;
+	iter->iter = il->entries;
 }
 
 boolean idlist_foreach_step(const IdList *il, IdListIter *iter)
 {
 	if(il == NULL || iter == NULL)
 		return FALSE;
-	if(iter->quick < IDLIST_QUICK_MAX)	/* Doing quick iteration? */
-	{
-		int	i;	/* Precision lossage. Should be safe for a while. */
-
-		for(i = iter->quick + 1; i < IDLIST_QUICK_MAX; i++)
-		{
-			if(il->quick[i / 32] & (1 << (i % 32)))
-			{
-				iter->quick = i;
-				iter->id = i;
-				return TRUE;
-			}
-		}
-		iter->quick = IDLIST_QUICK_MAX;
-		iter->slow  = il->slow;
-		if(iter->slow != NULL)	/* No fall-through, don't step list. */
-		{
-			iter->id = (unsigned int) list_data(iter->slow);
-			return TRUE;
-		}
-	}
-	if(iter->slow != NULL)
-	{
-		iter->slow = list_next(iter->slow);
-		if(iter->slow != NULL)
-		{
-			iter->id = (unsigned int) list_data(iter->slow);
-			return TRUE;
-		}
-	}
-	return FALSE;
+	if(iter->iter == NULL)
+		return FALSE;
+	iter->id = (((uint32) list_data(iter->iter)) & MASK_ID) >> SHIFT_ID;
+	iter->iter = list_next(iter->iter);
+	return TRUE;
 }
 
 void idlist_destruct(IdList *il)
 {
 	if(il != NULL)
-		list_destroy(il->slow);
+		list_destroy(il->entries);
 }
 
 void idlist_destroy(IdList *il)
@@ -148,31 +151,18 @@ void idlist_destroy(IdList *il)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static int cb_test_as_string(unsigned int id, void *data)
-{
-	void	**d = data;
-	char	num[32];
-	size_t	len;
-
-	len = sprintf(num, "%s%u", d[2] ? " " : "", id);
-	d[2] = (void *) 1;
-	if((size_t) d[1] >= len)
-	{
-		strcat(d[0], num);
-		d[1] -= len;
-		return TRUE;
-	}
-	return FALSE;
-}
-
 void idlist_test_as_string(const IdList *il, char *buf, size_t buf_max)
 {
-	void	*data[3];
+	List	*iter;
 
-	data[0] = buf;
-	data[1] = (void *) buf_max;
-	data[2] = 0;
+	printf("idlist contents: (%u) [", list_length(il->entries));
+	for(iter = il->entries; iter != NULL; iter = list_next(iter))
+	{
+		uint32	d = (uint32) list_data(iter), id, count;
 
-	buf[0] = '\0';
-	idlist_foreach(il, cb_test_as_string, data);
+		id    = (d & MASK_ID) >> SHIFT_ID;
+		count = (d & MASK_COUNT) >> SHIFT_COUNT;
+		printf(" (%u;%u)", id, count);
+	}
+	printf(" ]\n");
 }
