@@ -16,7 +16,7 @@ do
 	cat <<-END
 	<funcsynopsis>
 	 <funcprototype>
-	  <funcdef><function>module_input_set_$t</function></funcdef>
+	  <funcdef><function>mod_input_set_$t</function></funcdef>
 	  <paramdef>uint32 <parameter>graph</parameter></paramdef>
 	  <paramdef>uint32 <parameter>module</parameter></paramdef>
 	  <paramdef>uint8 <parameter>input</parameter></paramdef>

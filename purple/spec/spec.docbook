@@ -842,13 +842,15 @@ don't run the risk of having more than one Verse client trying to edit the same 
 <para>
 These are methods for creating and destroying graphs, i.e. named containers in which plug-ins can be instantiated.
 Graphs serve as <quote>projects</quote> when working with Purple; each graph is owned by a single user. A graph is
-self-contained; modules in a graph can not exchange information directly with modules in different graphs.
+self-contained; modules in a graph can not exchange information directly with modules in different graphs. All
+the methods for working with graphs belong to the <literal>PurpleGraph</literal> method group, which exists in the
+Purple engine's avatar object node.
 <variablelist>
 <varlistentry>
 <term>
 <funcsynopsis>
 <funcprototype>
- <funcdef><function>graph_create</function></funcdef>
+ <funcdef><function>create</function></funcdef>
  <paramdef>VNodeID <parameter>node</parameter></paramdef>
  <paramdef>uint16 <parameter>buffer</parameter></paramdef>
  <paramdef>string <parameter>name</parameter></paramdef>
@@ -866,7 +868,7 @@ and its contents will be completely overwritten by the Purple engine.</para>
 <term>
 <funcsynopsis>
 <funcprototype>
- <funcdef><function>graph_destroy</function></funcdef>
+ <funcdef><function>destroy</function></funcdef>
  <paramdef>uint32 <parameter>graph</parameter></paramdef>
 </funcprototype>
 </funcsynopsis>
@@ -881,7 +883,7 @@ specified when creating it, nothing happens to the description.</para>
 <term>
 <funcsynopsis>
 <funcprototype>
- <funcdef><function>graph_rename</function></funcdef>
+ <funcdef><function>rename</function></funcdef>
  <paramdef>uint32 <parameter>graph</parameter></paramdef>
  <paramdef>string <parameter>new_name</parameter></paramdef>
 </funcprototype>
@@ -908,7 +910,7 @@ These are methods for creating and destroying modules, i.e. instances of plug-in
 <term>
 <funcsynopsis>
 <funcprototype>
- <funcdef><function>module_create</function></funcdef>
+ <funcdef><function>mod_create</function></funcdef>
  <paramdef>uint32 <parameter>graph</parameter></paramdef>
  <paramdef>uint32 <parameter>plugin</parameter></paramdef>
 </funcprototype>
@@ -927,7 +929,7 @@ representation of the Purple state, see below for details.
 <term>
 <funcsynopsis>
 <funcprototype>
- <funcdef><function>module_destroy</function></funcdef>
+ <funcdef><function>mod_destroy</function></funcdef>
  <paramdef>uint32 <parameter>graph</parameter></paramdef>
  <paramdef>uint32 <parameter>module</parameter></paramdef>
 </funcprototype>
