@@ -317,6 +317,21 @@ NdbTagGroup * nodedb_tag_group_lookup(const Node *node, const char *name)
 	return NULL;
 }
 
+NdbTag * nodedb_tag_lookup(NdbTagGroup *group, const char *name)
+{
+	unsigned int	i;
+	NdbTag		*tag;
+
+	if(group == NULL || name == NULL || *name == '\0')
+		return NULL;
+	for(i = 0; (tag = dynarr_index(group->tags, i)) != NULL; i++)
+	{
+		if(strcmp(tag->name, name) == 0)
+			return tag;
+	}
+	return NULL;
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeOwner ownership)
