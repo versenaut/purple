@@ -244,7 +244,6 @@ void dynstr_truncate(DynStr *str, size_t size)
 		return;
 	str->len = size;
 	str->str[str->len] = '\0';
-	printf("dynstr at %p truncated to %u\n", str, str->len);
 }
 
 char * dynstr_destroy(DynStr *str, int destroy_buffer)
