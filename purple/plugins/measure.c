@@ -36,7 +36,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		p_output_real64_vec3(output, max);
 		break;		/* Only process first geometry node. */
 	}
-	return P_COMPUTE_DONE;	/* Sleep until scale changes. */
+	return P_COMPUTE_DONE;
 }
 
 void init(void)
