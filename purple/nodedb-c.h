@@ -24,18 +24,19 @@ typedef struct
 
 typedef struct
 {
+	Node	node;
+	DynArr	*curves;
+} NodeCurve;
+
+typedef struct
+{
 	VLayerID	id;
 	char		name[16];
 	uint8		dimensions;
 	DynArr		*keys;		/* Array of Keys, actual storage, arranged by ID/index. */
 	List		*curve;		/* List of Keys, ordered by pos. */
+	NodeCurve	*node;		/* Needed for notification on key destroy. */
 } NdbCCurve;
-
-typedef struct
-{
-	Node	node;
-	DynArr	*curves;
-} NodeCurve;
 
 extern void		nodedb_c_construct(NodeCurve *n);
 extern void		nodedb_c_copy(NodeCurve *n, const NodeCurve *src);
@@ -55,5 +56,7 @@ extern NdbCKey *	nodedb_c_key_create(NdbCCurve *curve, uint32 key_id,
 					    real64 pos, const real64 *value,
 					    const uint32 *pre_pos, const real64 *pre_value,
 					    const uint32 *post_pos, const real64 *post_value);
+extern void		nodedb_c_key_destroy(NdbCCurve *curve, NdbCKey *key);
+extern void		nodedb_c_curve_destroy(NodeCurve *node, NdbCCurve *curve);
 
 extern void		nodedb_c_register_callbacks(void);
