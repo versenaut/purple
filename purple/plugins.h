@@ -8,8 +8,10 @@
 
 #include "purple.h"
 
-typedef struct Library	Library;
-typedef struct Plugin	Plugin;
+typedef struct Library		Library;
+typedef struct Plugin		Plugin;
+
+typedef struct PInputSet	PInputSet;
 
 extern void	plugins_init(const char *paths);
 
@@ -31,3 +33,9 @@ extern char *	plugins_build_xml(void);
 extern const Plugin *	plugin_lookup(unsigned int id);
 extern unsigned int	plugin_id(const Plugin *p);
 extern const char *	plugin_name(const Plugin *p);
+
+extern PInputSet *	plugin_inputset_new(const Plugin *p);
+extern void		plugin_inputset_set(PInputSet *is, unsigned int index, const PInputValue *value);
+extern void		plugin_inputset_clear(PInputSet *is, unsigned int index);
+extern boolean		plugin_inputset_is_set(const PInputSet *is, unsigned int index);
+extern void		plugin_inputset_destroy(PInputSet *is);
