@@ -60,20 +60,20 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		geo = p_output_node_copy(output, ingeo, 1);
 		p_node_o_link_set(obj, geo, "geometry", 0);
 
-		inlayer  = p_node_g_layer_lookup(ingeo, "vertex");
+		inlayer  = p_node_g_layer_find(ingeo, "vertex");
 		printf(" input layer at %p\n", inlayer);
-		outlayer = p_node_g_layer_lookup(geo, "vertex");
-		size  = p_node_g_layer_size(geo, inlayer);		/* Safely handles NULL layer. */
+		outlayer = p_node_g_layer_find(geo, "vertex");
+		size  = p_node_g_layer_size(inlayer);		/* Safely handles NULL layer. */
 		for(j = 0, yrelprev = -1E20; j < size; j++, yrelprev = yrel)
 		{
-			p_node_g_vertex_get_xyz(ingeo, inlayer, j, point, point + 1, point + 2);
+			p_node_g_vertex_get_xyz(inlayer, j, point, point + 1, point + 2);
 			yrel = (point[1] - min[1]) / ytot;
 			if(yrel != yrelprev)
 				rot_matrix_build_y(matrix, yrel * twist);
 			printf(" point (%g,%g,%g) gets yrel=%g -> ", point[0], point[1], point[2], yrel);
 			point_rotate(point, matrix);
 			printf("warped into (%g,%g,%g)\n", point[0], point[1], point[2]);
-			p_node_g_vertex_set_xyz(geo, outlayer, j, point[0], point[1], point[2]);								    
+			p_node_g_vertex_set_xyz(outlayer, j, point[0], point[1], point[2]);								    
 		}
 		break;
 	}

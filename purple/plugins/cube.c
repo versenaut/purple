@@ -24,17 +24,17 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 
 	p_node_o_link_set(obj, geo, "geometry", 0);
 	/* (Re)Create the polygons. Vertex references will dangle (for a while), but that's OK. */
-	lay = p_node_g_layer_lookup(geo, "polygon");
-	p_node_g_polygon_set_corner_uint32(geo, lay, 0,  0, 1, 2, 3);
-	p_node_g_polygon_set_corner_uint32(geo, lay, 1,  3, 2, 6, 7);
-	p_node_g_polygon_set_corner_uint32(geo, lay, 2,  7, 6, 5, 4);
-	p_node_g_polygon_set_corner_uint32(geo, lay, 3,  1, 0, 4, 5);
-	p_node_g_polygon_set_corner_uint32(geo, lay, 4,  0, 3, 7, 4);
-	p_node_g_polygon_set_corner_uint32(geo, lay, 5,  2, 1, 5, 6);
+	lay = p_node_g_layer_find(geo, "polygon");
+	p_node_g_polygon_set_corner_uint32(lay, 0,  0, 1, 2, 3);
+	p_node_g_polygon_set_corner_uint32(lay, 1,  3, 2, 6, 7);
+	p_node_g_polygon_set_corner_uint32(lay, 2,  7, 6, 5, 4);
+	p_node_g_polygon_set_corner_uint32(lay, 3,  1, 0, 4, 5);
+	p_node_g_polygon_set_corner_uint32(lay, 4,  0, 3, 7, 4);
+	p_node_g_polygon_set_corner_uint32(lay, 5,  2, 1, 5, 6);
 
 	lay = p_node_g_layer_lookup(geo, "vertex");
 	for(i = 0; i < 8; i++)	/* Loop and set eight scaled corners. */
-		p_node_g_vertex_set_xyz(geo, lay, i, size * corner[i][0], size * corner[i][1], size * corner[i][2]);
+		p_node_g_vertex_set_xyz(lay, i, size * corner[i][0], size * corner[i][1], size * corner[i][2]);
 
 	return P_COMPUTE_DONE;	/* Sleep until size changes. */
 }
