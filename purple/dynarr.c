@@ -195,6 +195,7 @@ void dynarr_clear(DynArr *da)
 	if(da == NULL)
 		return;
 	mem_free(da->data);
+	da->data  = NULL;
 	da->alloc = 0;
 	da->next  = 0;
 }
