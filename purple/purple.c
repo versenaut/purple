@@ -158,36 +158,25 @@ static void test_xmlnode(void)
 static void test_xmlnode(void)
 {
 	const char	*graph =
-		"<graph>\n"
-		" <module id=\"0\" plug-in=\"4\">\n"
-		"  <set input=\"0\" type=\"real32\">2</set>\n"
-		" </module>\n"
-		" <module id=\"1\" plug-in=\"3\">\n"
-		"  <set input=\"0\" type=\"module\">0</set>\n"
-		" </module>\n"
-		" <module id=\"2\" plug-in=\"16\">\n"
-		"  <set input=\"0\" type=\"module\">0</set>\n"
-		"  <set input=\"1\" type=\"module\">1</set>\n"
-		"  <set input=\"2\" type=\"real32\">0</set>\n"
-		" </module>\n"
-		" <module id=\"3\" plug-in=\"2\">\n"
-		"  <set input=\"0\" type=\"module\">2</set>\n"
-		" </module>\n"
-		"</graph>\n";
+	"<?xml version=\"1.0\" standalone=\"yes\"?>\n"
+	"<purple-graphs>\n"
+	 "<graph id=\"1\" name=\"busta\">\n"
+	  "<at>\n"
+	   "<node>Text_Node_2</node>\n"
+	   "<buffer name=\"sod\">0</buffer>\n"
+	  "</at>\n"
+	 "</graph>\n"
+	"</purple-graphs>\n";
 	XmlNode	*root;
 
 	if((root = xmlnode_new(graph)) != NULL)
 	{
 		printf("got it\n");
-		List	*modules = xmlnode_nodeset_get(root,
-						       XMLNODE_AXIS_CHILDREN,
-						       XMLNODE_NAME("module"),
-						       XMLNODE_ATTRIB_VAL("plug-in", "16"),
-						       XMLNODE_DONE);
-		printf(" filtered out %u nodes\n", list_length(modules));
-		list_destroy(modules);
+		printf("node: '%s'\n", xmlnode_eval_single(root, "graph/at/node"));
+		printf("name: '%s'\n", xmlnode_eval_single(root, "graph/at/buffer/@name"));
 		xmlnode_destroy(root);
 	}
+	exit(0);
 }
 #endif
 
