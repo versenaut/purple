@@ -133,6 +133,7 @@ const char * value_type_name(const PValue *v)
 	return NULL;
 }
 
+#if 0
 /* Append string representation of <v> to <d>. Only works if there is just a single type of value
  * actually present in <v>. Only intended to be used for inputs, so that is not a problem.
 */
@@ -150,6 +151,7 @@ void value_append(const PValue *v, DynStr *d)
 		}
 	}
 }
+#endif
 
 /* ----------------------------------------------------------------------------------------- */
 
@@ -244,13 +246,7 @@ static int do_set(PValue *v, PValueType type, va_list arg)
 		v->v.vmodule = (uint32) va_arg(arg, uint32);
 		return 1;
 	case P_VALUE_STRING:
-		{
-			const char	*s = va_arg(arg, const char *);
-
-			printf("setting string to '%s'\n", s);
-			v->v.vstring = stu_strdup(s/*(const char *) va_arg(arg, const char *)*/);
-			printf("string set to '%s'\n", v->v.vstring);
-		}
+		v->v.vstring = stu_strdup((const char *) va_arg(arg, const char *));
 		return 1;
 	default:
 		LOG_WARN(("Problem in do_set(): type %d unhandled", type));
