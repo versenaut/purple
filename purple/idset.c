@@ -102,7 +102,6 @@ unsigned int idset_foreach_first(const IdSet *is)
 
 	if(is == NULL)
 		return 0;
-	printf("Computing first ID for set of %u\n", is->size);
 	for(id = 0; id <= is->max && id < dynarr_size(is->arr); id++)
 	{
 		if((objp = dynarr_index(is->arr, id)) != NULL && *objp != NULL)
