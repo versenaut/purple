@@ -17,7 +17,6 @@
 #include "dynlib.h"
 #include "dynstr.h"
 #include "filelist.h"
-#include "graph.h"
 #include "hash.h"
 #include "idset.h"
 #include "list.h"
@@ -32,6 +31,7 @@
 
 #include "nodedb.h"
 #include "client.h"
+#include "graph.h"
 
 #include "command-structs.h"
 
