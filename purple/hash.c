@@ -66,6 +66,8 @@ static unsigned int get_prime(unsigned int x)
 	return the_primes[sizeof the_primes / sizeof *the_primes - 1];
 }
 
+/* ----------------------------------------------------------------------------------------- */
+
 /* This is (allegedly) the "djb2" string hashing function. Copied
  * (after some Googling) from <http://www.cs.yorku.ca/~oz/hash.html>.
 */
