@@ -9,7 +9,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
 	uint32	mode = p_input_uint32(input[0]);
 	PONode	*out;
-	static char	blob[32];
+	static uint32	blob[8];
 
 	out = p_output_node_create(output, V_NT_OBJECT, 0);
 	p_node_name_set(out, "tag-test");
@@ -32,10 +32,28 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		int	i;
 
 		for(i = 0; i < sizeof blob; i++)
-			blob[i] = rand() >> 19;
+			blob[i] = rand();
 		p_node_tag_create_path(out, "test/test1", VN_TAG_BLOB, sizeof blob, blob);
 	}
-	return P_COMPUTE_DONE;
+
+/*	{
+		PIter		iter;
+		PNTagGroup	*tg;
+
+		printf("**iter test:\n");
+		for(p_node_tag_group_iter(out, &iter); (tg = p_iter_data(&iter)) != NULL; p_iter_next(&iter))
+		{
+			PIter	titer;
+			PNTag	*tag;
+
+			printf(" %u: '%s'\n", p_iter_index(&iter), p_node_tag_group_get_name(tg));
+			printf(" tags:\n");
+			for(p_node_tag_group_tag_iter(tg, &titer); (tag = p_iter_data(&titer)) != NULL; p_iter_next(&titer))
+				printf("  %u: '%s'\n", p_iter_index(&titer), p_node_tag_get_name(tag));
+		}
+		printf("--done\n");
+	}
+*/	return P_COMPUTE_DONE;
 }
 
 void init(void)
