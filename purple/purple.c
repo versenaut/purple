@@ -33,6 +33,7 @@
 #include "memchunk.h"
 #include "plugins.h"
 #include "scheduler.h"
+#include "synchronizer.h"
 #include "textbuf.h"
 #include "value.h"
 #include "xmlnode.h"
@@ -472,6 +473,7 @@ int main(void)
 	plugins_libraries_load();
 
 	plugin_input_init();
+	plugin_output_init();
 	plugins_libraries_init();
 
 	plugins_build_xml();
@@ -490,6 +492,7 @@ int main(void)
 			cron_update();
 			console_update();
 			sched_update();
+			sync_update(1.0);
 		}
 	}
 	return 0;
