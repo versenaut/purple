@@ -230,7 +230,7 @@ static Attrib * attribs_build(const char *token, size_t *attrib_num)
 				{
 					attr[index].name = put;
 					while(isalpha(*src) || *src == '-')
-						*put++ = *src++;
+						*put++ = tolower(*src++);
 					*put++ = '\0';
 					if(*src == '=')
 					{
@@ -284,15 +284,7 @@ static XmlNode * node_new(const char *token)
 		node->attrib_num = 0;
 		node->attrib   = attribs_build(token ? token + elen : NULL, &node->attrib_num);
 		node->children = NULL;
-/*
-		if(node->attrib_num > 0)
-		{
-			int	i;
-
-			for(i = 0; i < node->attrib_num; i++)
-				printf("%s=%s\n", node->attrib[i].name, node->attrib[i].value);
-		}
-*/		return node;
+		return node;
 	}
 	return NULL;
 }
