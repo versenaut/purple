@@ -211,6 +211,13 @@ size_t p_node_t_buffer_get_count(PINode *node)
 
 PNTBuffer * p_node_t_buffer_create(PONode *node, const char *name)
 {
+	PNTBuffer	*b;
+
+	if((b = nodedb_t_buffer_get_named((NodeText *) node, name)) != NULL)
+	{
+		nodedb_t_buffer_clear(b);
+		return b;
+	}
 	return nodedb_t_buffer_create((NodeText *) node, ~0, name);
 }
 
@@ -227,4 +234,9 @@ void p_node_t_buffer_delete(PNTBuffer *buffer, size_t pos, size_t length)
 void p_node_t_buffer_append(PNTBuffer *buffer, const char *text)
 {
 	return nodedb_t_buffer_append(buffer, text);
+}
+
+char * p_node_t_buffer_read_line(PNTBuffer *buffer, unsigned int line, char *put, size_t putmax)
+{
+	return nodedb_t_buffer_read_line(buffer, line, put, putmax);
 }
