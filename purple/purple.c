@@ -8,6 +8,7 @@
 #include <string.h>
 
 #define	PURPLE_CONSOLE
+/*#undef	PURPLE_CONSOLE*/
 
 #if defined PURPLE_CONSOLE
 
@@ -380,9 +381,11 @@ static void console_parse_module_input_set(const char *line)
 	else
 		printf("mis couldn't parse %s as type %c literal\n", literal, tcode[0]);
 }
+#endif		/* PURPLE_CONSOLE */
 
 static void console_update(void)
 {
+#if defined PURPLE_CONSOLE
 	int	fd;
 	fd_set	fds;
 	struct timeval	timeout;
@@ -494,9 +497,8 @@ static void console_update(void)
 				printf("Input: '%s'\n", line);
 		}
 	}
-}
-
 #endif		/* PURPLE_CONSOLE */
+}
 
 int main(void)
 {
