@@ -88,3 +88,8 @@ void p_output_string(PPOutput out, const char *v)
 {
 	graph_port_output_set(out, P_VALUE_STRING, v);
 }
+
+PONode * p_output_node(PPOutput out, const PINode *v)
+{
+	return NULL;
+}
