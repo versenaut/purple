@@ -335,6 +335,21 @@ NdbMFragment * nodedb_m_fragment_create_transparency(NodeMaterial *node, real64 
 	return nodedb_m_fragment_create(node, ~0, VN_M_FT_TRANSPARENCY, &frag);
 }
 
+NdbMFragment * nodedb_m_fragment_create_volume(NodeMaterial *node, real64 diffusion,
+					       real64 col_r, real64 col_g, real64 col_b, const NdbMFragment *color)
+{
+	VMatFrag	frag;
+
+	if(node == NULL)
+		return NULL;
+	frag.volume.diffusion = diffusion;
+	frag.volume.col_r = col_r;
+	frag.volume.col_g = col_g;
+	frag.volume.col_b = col_b;
+	link_set(&frag.volume.color, color);
+	return nodedb_m_fragment_create(node, ~0, VN_M_FT_VOLUME, &frag);
+}
+
 NdbMFragment * nodedb_m_fragment_create_blender(NodeMaterial *node, VNMBlendType type,
 						const PNMFragment *data_a, const PNMFragment *data_b, const PNMFragment *ctrl)
 {
