@@ -50,8 +50,8 @@ static void cb_t_buffer_create(void *user, VNodeID node_id, uint16 buffer_id, ui
 			tb->id = buffer_id;
 			stu_strncpy(tb->name, sizeof tb->name, name);
 			printf("text buffer %u.%u %s created\n", node_id, buffer_id, name);
+			NOTIFY(n, STRUCTURE);
 		}
-		NOTIFY(n, STRUCTURE);
 	}
 }
 
