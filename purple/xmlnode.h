@@ -9,10 +9,14 @@
 
 typedef struct XmlNode	XmlNode;
 
+/* Create XML parse tree from textual representation in <buffer>. */
 extern XmlNode	*	xmlnode_new(const char *buffer);
 
+/* Get value of named <attribute>. */
 extern const char *	xmlnode_attrib_get(const XmlNode *node, const char *attribute);
 
+/* Print outline of XML parse tree rooted at <root>. Mainly for debugging. */
 extern void		xmlnode_print_outline(const XmlNode *root);
 
+/* Destroy an XML parse tree. */
 extern void		xmlnode_destroy(XmlNode *root);
