@@ -83,7 +83,7 @@ boolean		p_port_input_boolean(const PPort port);
 void		p_port_output_boolean(PPort port);
 
 /* Read out inputs, registered earlier. One for each type. :/ If this wasn't in C, we could use meta
- * information to just say p_input(index) and have it return a value of the proper registered type.
+ * information to just say p_input(input) and have it return a value of the proper registered type.
 */
 boolean		p_input_boolean(PPInput input);
 int32		p_input_int32(PPInput input);
