@@ -127,7 +127,7 @@ PNGLayer *	p_node_g_layer_lookup(PINode *node, const char *name);
 size_t		p_node_g_layer_size(PINode *node, const PNGLayer *layer);
 PNGLayer *	p_node_g_layer_create(PONode *node, const char *name, VNGLayerType type,
 					     uint32 def_int, real32 def_real);
-void		p_node_g_layer_delete(PNGLayer *node, const char *name);
+void		p_node_g_layer_destroy(PNGLayer *node, const char *name);
 void		p_node_g_vertex_set_xyz(PONode *node, PNGLayer *layer, uint32 id, real64 x, real64 y, real64 z);
 void		p_node_g_vertex_get_xyz(const PONode *node, const PNGLayer *layer, uint32 id, real64 *x, real64 *y, real64 *z);
 void		p_node_g_polygon_set_corner_uint32(PONode *node, PNGLayer *layer, uint32 id, uint32 v0, uint32 v1, uint32 v2, uint32 v3);
@@ -154,11 +154,21 @@ void		p_node_b_layer_destroy(PONode *node, PNBLayer *layer);
 
 
 /* Curve-node manipulation functions. */
-typedef void	PNCCurve;
+typedef void	PNCCurve, PNCKey;
 
 PNCCurve *	p_node_c_curve_create(PONode *node, const char *name, uint8 dimensions);
 PNCCurve *	p_node_c_curve_lookup(PINode *node, const char *name);
 uint8		p_node_c_curve_dimensions_get(const PNCCurve *curve);
+size_t		p_node_c_curve_key_get_count(const PNCCurve *curve);
+PNCKey *	p_node_c_curve_key_get_nth(const PNCCurve *curve, unsigned int n);
+
+/* Text-node manipulation functions. */
+typedef void	PNTBuffer;
+
+const char *	p_node_t_language_get(PINode *node);
+size_t		p_node_t_buffer_get_count(PINode *node);
+PNTBuffer *	p_node_t_buffer_get_nth(PINode *node, unsigned int n);
+PNTBuffer *	p_node_t_buffer_lookup(PINode *node);
 
 
 /* Duplicates an input node, and returns something you can actually edit. */
