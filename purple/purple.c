@@ -384,24 +384,13 @@ static int console_script(char *line, size_t line_size)
 	"nc text\n"
 	"tbc 2 klax\n"
 	"gc 2 0 busta\n"
-	"mc 1 19\n"
-	"mc 1 3\n"
-	"mc 1 21\n"
+
+	"mc 1 8\n"
+	"mc 1 15\n"
 	"mc 1 2\n"
-	"mism 1 3 0 : 2\n"
-	"mism 1 2 0 : 0\n"
-	"mism 1 2 1 : 1\n"
+	"mism 1 2 0 : 1\n"
 	"mism 1 1 0 : 0\n"
-/*	"mc 1 4\n"
-	"mc 1 3\n"
-	"mc 1 16\n"
-	"mc 1 2\n"
-	"mism 1 1 0 : 0\n"
-	"mism 1 2 0 : 0\n"
-	"mism 1 2 1 : 1\n"
-	"misr 1 2 2 : 0\n"
-	"mism 1 3 0 : 2\n"
-	"misr 1 0 0 : 2\n"*/;
+	"misu 1 0 0 : 16\n";
 	static int	next_line = 0;
 
 	if(strcmp(line, ".") == 0)
