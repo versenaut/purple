@@ -18,6 +18,7 @@
 #include "dynstr.h"
 #include "filelist.h"
 #include "hash.h"
+#include "idlist.h"
 #include "idset.h"
 #include "list.h"
 #include "log.h"
@@ -308,6 +309,29 @@ static void test_idset(void)
 
 	idset_destroy(is);
 }
+
+static void test_idlist(void)
+{
+	IdList	*il;
+	char	buf[1024];
+
+
+	il = idlist_new();
+	idlist_insert(il, 0);
+	idlist_insert(il, 1);
+	idlist_insert(il, 100);
+	idlist_insert(il, 200);
+	idlist_insert(il, 300);
+	idlist_insert(il, 33);
+	idlist_test_as_string(il, buf, sizeof buf);
+	printf("[%s]\n", buf);
+	idlist_remove(il, 200);
+	idlist_test_as_string(il, buf, sizeof buf);
+	printf("[%s]\n", buf);
+
+	idlist_destroy(il);
+}
+
 
 static int cron_handler(void *data)
 {
@@ -602,6 +626,7 @@ int main(void)
 	test_textbuf();
 	test_xmlnode();
 	test_idset();
+	test_idlist();
 	return 0;
 */
 	plugins_libraries_load();
