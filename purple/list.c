@@ -275,7 +275,7 @@ void list_foreach(const List *list, int (*callback)(void *data, void *userdata),
 	}
 }
 
-List * list_find_sorted(const List *list, const void *data, int (*compare)(const void *data1, const void *data2))
+List * list_find_sorted(const List *list, const void *data, int (*compare)(const void *listdata, const void *data))
 {
 	for(; list != NULL; list = list->next)
 	{
