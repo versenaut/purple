@@ -581,6 +581,7 @@ void plugins_init(const char *paths)
 	plugins_info.plugins_name = hash_new_string();
 	plugins_info.chunk_meta  = memchunk_new("Meta", sizeof (MetaEntry), 4);
 
+	memcpy(type_map_by_name, type_map_by_value, sizeof type_map_by_name);
 	qsort(type_map_by_name, sizeof type_map_by_name / sizeof *type_map_by_name, sizeof *type_map_by_name, cmp_type_name);
 }
 
