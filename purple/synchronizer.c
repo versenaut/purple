@@ -55,7 +55,7 @@ static void cb_notify(Node *node, NodeNotifyEvent ev)
 			list_destroy(iter);
 			n->id = node->id;	/* To-sync copy now has known ID. Excellent. */
 			sync_info.queue_sync = list_prepend(sync_info.queue_sync, n);	/* Re-add to other queue. */
-			printf("node at %p has host-side ID %u\n", n, n->id);
+			LOG_MSG(("Node at %p has host-side ID %u", n, n->id));
 			break;
 		}
 	}
@@ -334,13 +334,68 @@ static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 
 /* ----------------------------------------------------------------------------------------- */
 
+/* Convenience function to print a material, concisely just listing fragments and links. */
+static void print_material(const NodeMaterial *n)
+{
+	unsigned int	i;
+	const NdbMFragment	*f;
+	static const char	*tname[] = { "color", "light", "reflection", "transparency",
+						"volume", "geometry", "texture", "noise",
+						"blender", "matrix", "ramp", "animation",
+						"alternative", "output" 
+	};
+
+	for(i = 0; (f = dynarr_index(n->fragments, i)) != NULL; i++)
+	{
+		if(f->id == (VNMFragmentID) ~0)
+			continue;
+		printf(" %u=%s", f->id, tname[f->type]);
+		switch(f->type)
+		{
+		case VN_M_FT_LIGHT:
+			printf("(N%u)", f->frag.light.brdf);
+			break;
+		case VN_M_FT_VOLUME:
+			printf("(%u)", f->frag.volume.color);
+			break;
+		case VN_M_FT_TEXTURE:
+			printf("(N%u,%u)", f->frag.texture.bitmap, f->frag.texture.mapping);
+			break;
+		case VN_M_FT_NOISE:
+			printf("(%u)", f->frag.noise.mapping);
+			break;
+		case VN_M_FT_BLENDER:
+			printf("(%u,%u,%u)", f->frag.blender.data_a, f->frag.blender.data_b, f->frag.blender.control);
+			break;
+		case VN_M_FT_MATRIX:
+			printf("(%u)", f->frag.matrix.data);
+			break;
+		case VN_M_FT_RAMP:
+			printf("(%u)", f->frag.ramp.mapping);
+			break;
+		case VN_M_FT_ALTERNATIVE:
+			printf("(%u,%u)", f->frag.alternative.alt_a, f->frag.alternative.alt_b);
+			break;
+		case VN_M_FT_OUTPUT:
+			printf("(%u,%u)", f->frag.output.front, f->frag.output.back);
+			break;
+		default:
+			;	/* "Scalar" fragment. */
+		}
+	}
+	printf("\n");
+}
+
 static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 {
 	unsigned int	i, sync = 1, send;
 	NdbMFragment	*f;
 
-	if((unsigned int) 12 < 0)	printf("apa\n");
-
+/*	printf("syncing \n");
+	print_material(n);
+	printf("against \n");
+	print_material(target);
+*/
 	for(i = 0; (f = dynarr_index(n->fragments, i)) != NULL; i++)
 	{
 		if(f->id == (VNMFragmentID) ~0)
@@ -460,14 +515,13 @@ static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 				   nodedb_m_fragment_resolve(&tmp.output.back,  target, n, f->frag.output.back))
 				{
 					strcpy(tmp.output.label, f->frag.output.label);
-					printf("about to create output label=%s, front=%u back=%u\n",
-					       tmp.output.label, tmp.output.front, tmp.output.back);
 					send = 1;
 				}
 				break;
 			}
 			if(send)
 			{
+/*				printf("SYNC>>> sync sending create of type %d mat frag in %u\n", f->type, target->node.id);*/
 				verse_send_m_fragment_create(target->node.id, ~0, f->type, &tmp);
 				f->pending = 1;
 				sync = 0;
@@ -483,6 +537,20 @@ static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 				continue;
 			f->pending = 0;
 		}
+
+		/* Do a "reverse sync" sweep; checking if there are fragments in the server-side
+		 * node that are not in fact present in the Purple local one. If so, destroy them.
+		*/
+		for(i = 0; (f = dynarr_index(target->fragments, i)) != NULL; i++)
+		{
+			if(f->id == (VNMFragmentID) ~0)
+				continue;
+			if(!nodedb_m_fragment_find_equal(n, target, f))
+			{
+				verse_send_m_fragment_destroy(target->node.id, f->id);
+				printf(">> sync destroying material fragment %u.%u\n", target->node.id, f->id);
+			}
+		}
 	}
 	return sync;
 }
@@ -493,7 +561,6 @@ static int sync_bitmap_dimensions(const NodeBitmap *n, const NodeBitmap *target)
 {
 	if(n->width != target->width || n->height != target->height || n->depth != target->depth)
 	{
-		printf("setting dimensions of node %u\n", target->node.id);
 		verse_send_b_dimensions_set(target->node.id, n->width, n->height, n->depth);
 		return 0;
 	}
