@@ -7,6 +7,8 @@
 
 #include "verse.h"
 
+#include "dynarr.h"
+#include "dynstr.h"
 #include "hash.h"
 #include "list.h"
 #include "log.h"
@@ -22,7 +24,6 @@
 
 typedef struct
 {
-	uint32	id;
 	char	name[32];
 
 	VNodeID	node;
@@ -42,17 +43,18 @@ static char			*create_name[]  = { "node", "buffer", "name" },
 static struct
 {
 	uint8	mid_create, mid_rename, mid_destroy;
-	uint32	next_id;
+	DynArr	*graphs;	/* Array holding graphs indexed on ID. */
 	List	*free_ids;
-	Hash	*graphs_id, *graphs_name;	/* Graphs hashed on ID and name, respectively. */
+	Hash	*graphs_name;	/* Graphs hashed on name. */
 } graph_info = { 0 };
 
 /* ----------------------------------------------------------------------------------------- */
 
 void graph_init(void)
 {
-	graph_info.next_id  = 0;
+	graph_info.graphs = dynarr_new(sizeof (Graph), 8);
 	graph_info.free_ids = NULL;
+	graph_info.graphs_name = hash_new_string();
 }
 
 void graph_method_send_creates(uint32 avatar, uint8 group_id)
@@ -81,69 +83,40 @@ void graph_method_receive_create(uint8 id, const char *name)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static unsigned int graph_direct_hash(const void *a)
+static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 {
-	return ((const Graph *) a)->id;
-}
-
-static int graph_direct_compare(const void *a, const void *b)
-{
-	return strcmp(((const Graph *) a)->name, ((const Graph *) b)->name) == 0;
-}
-
-static Graph * graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
-{
-	Graph	*g;
+	Graph	g;
 
 	printf("Create graph named '%s' in node %u, buffer %u\n", name, node_id, buffer_id);
 	/* Make sure name is unique. */
 	if(hash_lookup(graph_info.graphs_name, name) != NULL)
-		return NULL;	/* It wasn't. */
+		return;	/* It wasn't. */
 
-	if(graph_info.graphs_id == NULL)
-		graph_info.graphs_id = hash_new(graph_direct_hash, graph_direct_compare);
-	if(graph_info.graphs_name == NULL)
-		graph_info.graphs_name = hash_new_string();
-
-	g = mem_alloc(sizeof *g);
+	stu_strncpy(g.name, sizeof g.name, name);
+	g.node   = node_id;
+	g.buffer = buffer_id;
 	if(graph_info.free_ids != NULL)
 	{
-		g->id = (uint32) list_data(graph_info.free_ids);
+		uint32	id = (uint32) list_data(graph_info.free_ids);
+		printf("re-using ID %u from deleted graph\n", id);
 		graph_info.free_ids = list_tail(graph_info.free_ids);
+		dynarr_set(graph_info.graphs, id, &g);
 	}
 	else
-		g->id = graph_info.next_id++;
-	stu_strncpy(g->name, sizeof g->name, name);
-	g->node   = node_id;
-	g->buffer = buffer_id;
-
-	printf("<graph name=\"%s\" id=\"%u\">\n"
-	       " <at>\n"
-	       "  <node>%u</node>\n"
-	       "  <buffer>%u</buffer>\n"
-	       " </at>\n"
-	       "</graph>\n", g->name, g->id, node_id, buffer_id);
-
-	hash_insert(graph_info.graphs_id, (void *) g->id, g);
-	hash_insert(graph_info.graphs_name, g->name, g);
-
-	return g;
+		dynarr_append(graph_info.graphs, &g);
 }
 
 static void graph_destroy(uint32 id)
 {
 	Graph	*g;
 
-	if((g = hash_lookup(graph_info.graphs_id, id)) == NULL)
+	if((g = dynarr_index(graph_info.graphs, id)) == NULL || g->name[0] == '\0')
 	{
 		LOG_WARN(("Couldn't destroy graph %u, not found", id));
 		return;
 	}
-	graph_info.free_ids = list_prepend(graph_info.free_ids, list_new((void *) g->id));
-
-	hash_remove(graph_info.graphs_id, g->id);
-	hash_remove(graph_info.graphs_id, g->name);
-	mem_free(g);
+	g->name[0] = '\0';
+	graph_info.free_ids = list_prepend(graph_info.free_ids, (void *) id);
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -186,7 +159,10 @@ void graph_method_receive_call(uint8 id, const void *param)
 	else if(id == graph_info.mid_rename)
 		;
 	else if(id == graph_info.mid_destroy)
-		;
+	{
+		if(verse_method_call_unpack(param, sizeof destroy_type / sizeof *destroy_type, destroy_type, arg))
+			graph_destroy(arg[0].vuint32);
+	}
 	else
 		LOG_WARN(("Received call to unknown graph method %u", id));
 }
