@@ -6,14 +6,9 @@
 #include "purple-plugin.h"
 
 /* It's more fun to compute. */
-static void compute(PPInput *input, PPOutput output, void *user)
+static void compute(PPInput *input, PPOutput output, void *state)
 {
-	if(user == NULL)
-		printf("Hello!\n");
-	else if(user == (void *) 1)
-		printf("Hola!\n");
-	else if(user == (void *) 2)
-		printf("Morsning!\n");
+	printf("Hello!\n");
 }
 
 void init(void)
@@ -29,12 +24,4 @@ void init(void)
 	p_init_meta("desc/purpose", "Say hello to the world");
 	p_init_meta("author", "Emil Brink");
 	p_init_compute(compute, NULL);
-
-	p_init_create("hola");
-	p_init_meta("author", "Emil Brink");
-	p_init_meta("desc/purpose", "Say hola to the world");
-	p_init_compute(compute, (void *) 1);
-
-	p_init_create("morsning");
-	p_init_compute(compute, (void *) 2);
 }

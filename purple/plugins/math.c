@@ -4,7 +4,7 @@
 
 #include "purple.h"
 
-static void compute_add_real32(PPInput *input, PPOutput output, void *user)
+static void compute_add_real32(PPInput *input, PPOutput output, void *state)
 {
 	real32	a, b;
 
@@ -21,7 +21,7 @@ static void compute_add_real32(PPInput *input, PPOutput output, void *user)
 /*	p_output_real32(a + b);*/
 }
 
-static void compute_sub_real32(PPInput *input, PPOutput output, void *user)
+static void compute_sub_real32(PPInput *input, PPOutput output, void *state)
 {
 	real32	a, b;
 
