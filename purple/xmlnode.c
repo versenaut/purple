@@ -479,7 +479,7 @@ static int filter_node(const XmlNode *node, void **filter, size_t filter_size)
 	{
 		void	*cmd = filter[i];
 
-		printf("read command %p\n", cmd);
+/*		printf("read command %p\n", cmd);*/
 		if(cmd == (void *) XMLNODE_FILTER_ACCEPT)
 			break;
 		else if(cmd == (void *) XMLNODE_FILTER_NAME)
@@ -522,7 +522,7 @@ List * xmlnode_nodeset_get(const XmlNode *node, XmlNodeAxis axis, ...)
 			break;
 	}
 	va_end(va);
-	printf("filter size is %u, axis is %d\n", filter_size, axis);
+/*	printf("filter size is %u, axis is %d\n", filter_size, axis);*/
 
 	if(axis == XMLNODE_AXIS_ANCESTOR)
 	{
@@ -539,7 +539,7 @@ List * xmlnode_nodeset_get(const XmlNode *node, XmlNodeAxis axis, ...)
 	{
 		List	*list = NULL, *iter;
 
-		printf("traverse children\n");
+/*		printf("traverse children\n");*/
 		for(iter = node->children; iter != NULL; iter = list_next(iter))
 		{
 			if(filter_node(list_data(iter), filter, filter_size))
