@@ -6,6 +6,7 @@
  * Material node databasing.
 */
 
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -90,6 +91,36 @@ NdbMFragment * nodedb_m_fragment_lookup(const NodeMaterial *node, VNMFragmentID 
 
 /* ----------------------------------------------------------------------------------------- */
 
+/* Set node reference in a material fragment. */
+static void node_ref_set(NdbMFragment *frag, VNodeID *reffield, const Node *node)
+{
+	if(frag == NULL || reffield == NULL)
+		return;
+	if(node != NULL)
+		*reffield = node->id;
+	else
+		*reffield = (VNodeID) ~0;
+	frag->node = node;	/* Very little work to do; the importance here is in the formalism. */
+	printf("set fragment; frag=%p field=%u node=%p\n", frag, *reffield, frag->node);
+}
+
+/* Compare node references in two material fragments, knowing that they have an embedded
+ * VNodeID member at <refoff> into the union. Uses direct node pointer if set, else reads
+ * out the embedded value.
+*/
+static int node_ref_equal(const NdbMFragment *a, const NdbMFragment *b, size_t refoff)
+{
+	VNodeID	ra, rb;
+
+	ra = a->node != NULL ? a->node->id : *(const VNodeID *) (((const unsigned char *) &a->frag) + refoff);
+	rb = b->node != NULL ? b->node->id : *(const VNodeID *) (((const unsigned char *) &b->frag) + refoff);
+
+/*	printf("got node refs from %u in %p and %p; %u and %u\n", refoff, a, b, ra, rb);*/
+	return ra == rb;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 static int fragments_equal(const NodeMaterial *node, const NdbMFragment *a,
 			   const NodeMaterial *target, const NdbMFragment *b);
 
@@ -155,6 +186,7 @@ static int fragments_equal(const NodeMaterial *node, const NdbMFragment *a,
 		{
 			int	neq;
 
+#if 0
 			/* Comparing the node link requires some intelligence. It's either local
 			 * (special node field in NdbMFragment) or remote, using an ID only.
 			 * We do not currently compare actual bitmap contents, that'd be... Hard.
@@ -163,6 +195,8 @@ static int fragments_equal(const NodeMaterial *node, const NdbMFragment *a,
 				neq = a->node->id == b->frag.texture.bitmap;
 			else
 				neq = a->frag.texture.bitmap == b->frag.texture.bitmap;
+#endif
+			neq = node_ref_equal(a, b, offsetof(VMatFrag, texture.bitmap));
 			return neq && strcmp(a->frag.texture.layer_r, b->frag.texture.layer_r) == 0 &&
 				strcmp(a->frag.texture.layer_g, b->frag.texture.layer_g) == 0 &&
 				strcmp(a->frag.texture.layer_b, b->frag.texture.layer_b) == 0;
@@ -288,18 +322,6 @@ NdbMFragment * nodedb_m_fragment_create(NodeMaterial *node, VNMFragmentID fragme
 }
 
 /* ----------------------------------------------------------------------------------------- */
-
-static void node_ref_set(NdbMFragment *frag, VNodeID *reffield, const Node *node)
-{
-	if(frag == NULL || reffield == NULL)
-		return;
-	if(node != NULL)
-		*reffield = node->id;
-	else
-		*reffield = (VNodeID) ~0;
-	frag->node = node;	/* Very little work to do; the importance here is in the formalism. */
-	printf("set fragment; frag=%p field=%u node=%p\n", frag, *reffield, frag->node);
-}
 
 static void link_set(VNMFragmentID *ptr, const NdbMFragment *fragment)
 {
