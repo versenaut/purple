@@ -590,7 +590,7 @@ PInputSet * plugin_inputset_new(const Plugin *p)
 	return is;
 }
 
-const PPInput * plugin_inputset_ports(PInputSet *is)
+PPInput * plugin_inputset_ports(PInputSet *is)
 {
 	size_t	i;
 
@@ -670,7 +670,7 @@ void plugin_inputset_destroy(PInputSet *is)
 
 void plugin_run_compute(Plugin *p, PInputSet *is)
 {
-	const PPInput	*port;
+	PPInput	*port;
 
 	if(p == NULL || is == NULL)
 		return;
@@ -688,7 +688,7 @@ void plugin_run_compute(Plugin *p, PInputSet *is)
 				return;
 			}
 		}
-		p->compute(plugin_inputset_ports(is), NULL, p->compute_user);
+		p->compute(port, NULL, p->compute_user);
 	}
 }
 

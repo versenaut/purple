@@ -38,6 +38,7 @@ extern unsigned int	plugin_id(const Plugin *p);
 extern const char *	plugin_name(const Plugin *p);
 
 extern PInputSet *	plugin_inputset_new(const Plugin *p);
+extern PPInput *	plugin_inputset_ports(PInputSet *is);
 extern void		plugin_inputset_set_va(PInputSet *is, unsigned int index, PInputType type, va_list arg);
 extern void		plugin_inputset_clear(PInputSet *is, unsigned int index);
 extern boolean		plugin_inputset_is_set(const PInputSet *is, unsigned int index);
