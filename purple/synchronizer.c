@@ -324,7 +324,9 @@ static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 			sync = 0;
 		}
 	}
-	/* Step two: see if crease information has changed. */
+	/* Step two: see if target has layers that have been destroyed. */
+
+	/* Step three: see if crease information has changed. */
 	sync &= sync_geometry_creases(n, target);
 
 	return sync;
@@ -428,6 +430,7 @@ static int sync_bitmap(NodeBitmap *n, const NodeBitmap *target)
 			sync = 0;
 		}
 	}
+	/* FIXME: Scan for destroyed layers, too. */
 	return sync;
 }
 
@@ -510,6 +513,7 @@ static int sync_text(NodeText *n, const NodeText *target)
 			sync = 0;
 		}
 	}
+	/* FIXME: Scan for destroyed buffers, too. */
 	return sync;
 }
 
@@ -546,6 +550,7 @@ static int sync_curve_curve(const NodeCurve *n, const NdbCCurve *curve,
 			sync = 0;
 		}
 	}
+	/* FIXME: Scan for destroyed keys, too. */
 	return sync;
 }
 
@@ -568,6 +573,7 @@ static int sync_curve(NodeCurve *n, const NodeCurve *target)
 			sync = 0;
 		}
 	}
+	/* FIXME: Scan for destroyed curves, too. */
 	return sync;
 }
 
