@@ -735,7 +735,14 @@ static int sync_text(const NodeText *n, const NodeText *target)
 			sync = 0;
 		}
 	}
-	/* FIXME: Scan for destroyed buffers, too. */
+	/* Do a "reverse sync" sweep, i.e. check target for buffers not in local node, and delete them. */
+	for(i = 0; (buffer = dynarr_index(target->buffers, i)) != NULL; i++)
+	{
+		if(buffer->name[0] == '\0')
+			continue;
+		if(nodedb_t_buffer_find(n, buffer->name) == NULL)
+			verse_send_t_buffer_destroy(target->node.id, buffer->id);
+	}
 	return sync;
 }
 
