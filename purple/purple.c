@@ -78,30 +78,6 @@ static int foreach_test(const void *data, void *user)
 	return 1;
 }
 
-static void test_hash(void)
-{
-	Hash	*h;
-
-	if((h = hash_new_string()) != NULL)
-	{
-		char	*object = "raj raj\0monster", *obj2 = "monster";
-		void	*p;
-
-		hash_insert(h, object, object);
-		hash_insert(h, obj2, obj2);
-		p = hash_lookup(h, "raj raj");
-		printf("hash: p=%p\n", p);
-		hash_foreach(h, foreach_test, NULL);
-		printf("size=%u, removing '%s'\n", hash_size(h), object);
-		hash_remove(h, object);
-		hash_foreach(h, foreach_test, NULL);
-		printf("size=%u, removing '%s'\n", hash_size(h), obj2);
-		hash_remove(h, obj2);
-		hash_foreach(h, foreach_test, NULL);
-		hash_destroy(h);
-	}
-}
-
 static void test_filelist(void)
 {
 	FileList	*fl;
@@ -487,7 +463,6 @@ int main(void)
 
 /*	test_chunk();
 	test_dynarr();
-	test_hash();
 	test_filelist();
 	test_textbuf();
 	test_xmlnode();
