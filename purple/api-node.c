@@ -190,7 +190,7 @@ size_t p_node_c_curve_key_get_count(const PNCCurve *curve)
 
 PNCKey * p_node_c_curve_key_get_nth(const PNCCurve *curve, unsigned int n)
 {
-	return nodedb_c_curve_key_get_nth((NodeCurve *) curve, n);
+	return nodedb_c_curve_key_get_nth(curve, n);
 }
 
 /* ----------------------------------------------------------------------------------------- */
