@@ -218,6 +218,7 @@ PINode * p_node_o_link_get(const PONode *node, const char *label, uint32 target_
 
 		if(n == NULL)
 			return (PINode *) nodedb_o_link_get_local((NodeObject *) node, label, target_id);
+		return n;
 	}
 	return NULL;
 }
