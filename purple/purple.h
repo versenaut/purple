@@ -161,6 +161,8 @@ void		p_node_b_dimensions_get(PINode *node, uint16 *width, uint16 *height, uint1
 unsigned int	p_node_b_layer_num(PINode *node);
 PNBLayer *	p_node_b_layer_nth(PINode *node, unsigned int n);
 PNBLayer *	p_node_b_layer_find(PINode *node, const char *name);
+const char *	p_node_b_layer_get_name(const PNBLayer *layer);
+VNBLayerType	p_node_b_layer_get_type(const PNBLayer *layer);
 
 PNBLayer *	p_node_b_layer_create(PONode *node, const char *name, VNBLayerType type);
 void *		p_node_b_layer_access_begin(PONode *node, PNBLayer *layer);

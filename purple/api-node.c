@@ -259,6 +259,20 @@ PNBLayer * p_node_b_layer_find(PINode *node, const char *name)
 	return nodedb_b_layer_find((NodeBitmap *) node, name);
 }
 
+const char * p_node_b_layer_get_name(const PNBLayer *layer)
+{
+	if(layer != NULL)
+		return ((NdbBLayer *) layer)->name;
+	return NULL;
+}
+
+VNBLayerType p_node_b_layer_get_type(const PNBLayer *layer)
+{
+	if(layer != NULL)
+		return ((NdbBLayer *) layer)->type;
+	return -1;
+}
+
 PNBLayer * p_node_b_layer_create(PONode *node, const char *name, VNBLayerType type)
 {
 	PNBLayer	*l;
