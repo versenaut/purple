@@ -28,7 +28,8 @@ struct XmlNode
 {
 	const char	*element;
 	char		*text;
-	Attrib		**attrib;	/* NULL-terminated array, all allocated in one piece. */
+	size_t		attrib_num;	/* Number of attributes. */
+	Attrib		*attrib;
 	List		*children;
 };
 
@@ -157,13 +158,13 @@ static const char * token_get(const char *buffer, DynStr **token, TokenStatus *s
 /* A qsort() comparison callback for (indirect) attribute name ordering. */
 static int cmp_attr(const void *a, const void *b)
 {
-	const Attrib	*aa = *(Attrib **) a, *ab = *(Attrib **) b;
+	const Attrib	*aa = a, *ab = b;
 
 	return strcmp(aa->name, ab->name);
 }
 
 /* FIXME: This function is way too long. Could be refactored, some day. */
-static Attrib ** attribs_build(const char *token)
+static Attrib * attribs_build(const char *token, size_t *attrib_num)
 {
 	size_t		num = 0, name_size = 0, value_size = 0;
 	const char	*src = token;
@@ -213,13 +214,12 @@ static Attrib ** attribs_build(const char *token)
 	}
 	if(num > 0 && name_size > 0 && value_size > 0)
 	{
-		Attrib	**attr;
+		Attrib	*attr;
 
-		if((attr = mem_alloc((num + 1) * sizeof *attr + num * sizeof **attr + (name_size + value_size + 2 * num))) != NULL)
+		if((attr = mem_alloc(num * sizeof *attr + (name_size + value_size + 2 * num))) != NULL)
 		{
 			int	index = 0;
-			Attrib	*a = (Attrib *) (attr + (num + 1));
-			char	*put = (char *) (a + num);
+			char	*put = (char *) (attr + num);
 
 			src = token;
 			while(*src)
@@ -228,8 +228,7 @@ static Attrib ** attribs_build(const char *token)
 					src++;
 				if(isalpha(*src))
 				{
-					attr[index] = a;
-					a->name = put;
+					attr[index].name = put;
 					while(isalpha(*src) || *src == '-')
 						*put++ = *src++;
 					*put++ = '\0';
@@ -242,20 +241,19 @@ static Attrib ** attribs_build(const char *token)
 						if(quot == '\'' || quot == '"')
 						{
 							src++;
-							a->value = put;
+							attr[index].value = put;
 							while(*src && *src != quot)
 								*put++ = *src++;
 							*put++ = '\0';
 							if(*src == quot)
 								src++;
 							index++;
-							a++;
 						}
 					}
 				}
 			}
-			attr[index] = NULL;
 			qsort(attr, num, sizeof *attr, cmp_attr);
+			*attrib_num = num;
 			return attr;
 		}
 	}
@@ -283,9 +281,18 @@ static XmlNode * node_new(const char *token)
 		*put = '\0';
 		node->element  = (const char *) (node + 1);
 		node->text     = NULL;
-		node->attrib   = attribs_build(token ? token + elen : NULL);
+		node->attrib_num = 0;
+		node->attrib   = attribs_build(token ? token + elen : NULL, &node->attrib_num);
 		node->children = NULL;
-		return node;
+/*
+		if(node->attrib_num > 0)
+		{
+			int	i;
+
+			for(i = 0; i < node->attrib_num; i++)
+				printf("%s=%s\n", node->attrib[i].name, node->attrib[i].value);
+		}
+*/		return node;
 	}
 	return NULL;
 }
@@ -438,12 +445,12 @@ const char * xmlnode_attrib_get(const XmlNode *node, const char *name)
 	if(node == NULL || name == NULL)
 		return NULL;
 
-	for(i = 0; node->attrib[i] != NULL; i++)
+	for(i = 0; i < node->attrib_num; i++)
 	{
-		int	rel = strcmp(name, node->attrib[i]->name);
+		int	rel = strcmp(name, node->attrib[i].name);
 
 		if(rel == 0)
-			return node->attrib[i]->value;
+			return node->attrib[i].value;
 	}
 	return NULL;
 }
