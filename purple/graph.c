@@ -83,6 +83,37 @@ void graph_method_receive_create(uint8 id, const char *name)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static void graph_build_xml(void)
+{
+	size_t	i, max;
+	DynStr	*xml;
+	Graph	*g;
+
+	max = dynarr_size(graph_info.graphs);
+
+	xml = dynstr_new_sized(32 + max * 128);
+	dynstr_append(xml, "<?xml version=\"1.0\" standalone=\"yes\"?>\n\n");
+
+	for(i = 0; i < max; i++)
+	{
+		g = dynarr_index(graph_info.graphs, i);
+		if(g == NULL)
+			continue;
+		g->xml_start = dynstr_length(xml);
+		dynstr_append_printf(xml,
+				     "<graph id=\"%u\" name=\"%s\">\n"
+				     " <at>\n"
+				     "  <node>%u</node>\n"
+				     "  <buffer>%u</buffer>\n"
+				     " </at>\n"
+				     "</graph>\n", i, g->name, g->node, g->buffer);
+		g->xml_length = dynstr_length(xml) - g->xml_start;
+		printf("%s: %d,%d\n", g->name, g->xml_start, g->xml_length);
+	}
+	printf("XML:\n%s\n", dynstr_string(xml));
+	dynstr_destroy(xml, 1);
+}
+
 static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 {
 	Graph	g;
