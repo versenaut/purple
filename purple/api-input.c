@@ -10,9 +10,9 @@
 
 #include "dynstr.h"
 #include "log.h"
+#include "value.h"
 #include "nodeset.h"
 #include "strutil.h"
-#include "value.h"
 #include "port.h"
 #include "vecutil.h"
 
@@ -268,6 +268,11 @@ const char * p_input_string(PPInput input, char *buffer, size_t buf_max)
 boolean p_input_boolean(PPInput input)
 {
 	return port_input_boolean(input);
+}
+
+int32 p_input_int32(PPInput input)
+{
+	return port_input_int32(input);
 }
 
 uint32 p_input_uint32(PPInput input)
