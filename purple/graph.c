@@ -62,8 +62,8 @@ static MethodInfo method_info[] = {
 			{ "graph_id", "name" } },
 	{ 0, "destroy",	1, { VN_O_METHOD_PTYPE_UINT32 }, { "graph_id" } },
 	
-/*	{ 0, "mod_create",  2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "plugin_id" } },
-	{ 0, "mod_destroy", 2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "module_id" } }
+	{ 0, "mod_create",  2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "plugin_id" } },
+/*	{ 0, "mod_destroy", 2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "module_id" } }
 */};
 
 static struct
@@ -154,6 +154,8 @@ static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 	g->node   = node_id;
 	g->buffer = buffer_id;
 	id = idset_insert(graph_info.graphs, g);
+	g->desc_start = 0;
+	g->modules = NULL;		/* Be a bit lazy. */
 
 	for(i = 0, pos = client_info.graphs.start; i < id; i++)
 	{
