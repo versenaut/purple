@@ -81,7 +81,6 @@ struct PInputSet
 {
 	size_t		size;
 	uint32		*use;
-	PInputType	*type;
 	PInputValue	*value;
 };
 
@@ -507,11 +506,10 @@ PInputSet * plugin_inputset_new(const Plugin *p)
 	if(size == 0)
 		return NULL;
 	num = (size + 31) / 32;
-	is = mem_alloc(sizeof *is + num * sizeof *is->use + size * (sizeof *is->type + sizeof *is->value));
+	is = mem_alloc(sizeof *is + num * sizeof *is->use + size * sizeof *is->value);
 	is->size  = size;
 	is->use   = (uint32 *) (is + 1);
-	is->type  = (PInputType *) (is->use + num);
-	is->value = (PInputValue *) (is->type + size);
+	is->value = (PInputValue *) (is->use + num);
 	memset(is->use, 0, num * sizeof *is->use);
 	return is;
 }
@@ -520,14 +518,8 @@ void plugin_inputset_set_va(PInputSet *is, unsigned int index, PInputType type, 
 {
 	if(is == NULL || index >= is->size)
 		return;
-	is->type[index] = type;
-	switch(type)
-	{
-	case P_INPUT_REAL32:
-		is->value[index].v.vreal32 = va_arg(arg, double);
-		break;
-	}
 	is->use[index / 32] |= 1 << (index % 32);
+	set_value(is->value + index, type, &arg);
 }
 
 void plugin_inputset_clear(PInputSet *is, unsigned int index)
@@ -556,7 +548,7 @@ void plugin_inputset_describe(const PInputSet *is, DynStr *d)
 		if(is->use[i / 32] & (1 << (i % 32)))
 		{
 			dynstr_append_printf(d, "  <set input=\"%u\" type=\"", i);
-			dynstr_append(d, plugin_input_type_to_name(is->type[i]));
+			dynstr_append(d, plugin_input_type_to_name(is->value[i].type));
 			dynstr_append_printf(d, "\">");
 			append_value(d, &is->value[i]);
 			dynstr_append(d, "</set>\n");
