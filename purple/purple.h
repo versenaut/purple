@@ -158,8 +158,11 @@ typedef void	PNBLayer;
 
 void		p_node_b_dimensions_set(PONode *node, uint16 width, uint16 height, uint16 depth);
 void		p_node_b_dimensions_get(PINode *node, uint16 *width, uint16 *height, uint16 *depth);
+unsigned int	p_node_b_layer_num(PINode *node);
+PNBLayer *	p_node_b_layer_nth(PINode *node, unsigned int n);
+PNBLayer *	p_node_b_layer_find(PINode *node, const char *name);
+
 PNBLayer *	p_node_b_layer_create(PONode *node, const char *name, VNBLayerType type);
-PNBLayer *	p_node_b_layer_lookup(PINode *node, const char *name);
 void *		p_node_b_layer_access_begin(PONode *node, PNBLayer *layer);
 void		p_node_b_layer_access_end(PONode *node, PNBLayer *layer, void *framebuffer);
 void *		p_node_b_layer_access_multi_begin(PONode *node, VNBLayerType format, ... /* Layer names ending with NULL. */);
