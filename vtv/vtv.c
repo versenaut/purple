@@ -328,7 +328,7 @@ static gint evt_timeout(gpointer user)
 int main(int argc, char *argv[])
 {
 	MainInfo	min;
-	GtkWidget	*vbox, *hbox, *label;
+	GtkWidget	*vbox, *hbox, *label, *btn;
 
 	min.nodes = NULL;
 
@@ -357,6 +357,10 @@ int main(int argc, char *argv[])
 	min.subscribe = gtk_button_new_with_label("Subscribe");
 	gtk_signal_connect(GTK_OBJECT(min.subscribe), "clicked", GTK_SIGNAL_FUNC(evt_subscribe_clicked), &min);
 	gtk_box_pack_start(GTK_BOX(hbox), min.subscribe, FALSE, FALSE, 0);
+
+	btn = gtk_button_new_with_label("Quit");
+	gtk_signal_connect(GTK_OBJECT(btn), "clicked", GTK_SIGNAL_FUNC(evt_window_delete), &min);
+	gtk_box_pack_end(GTK_BOX(hbox), btn, FALSE, FALSE, 0);
 
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 
