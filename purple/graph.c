@@ -397,8 +397,8 @@ PONode * graph_port_output_node_create(PPOutput port, VNodeType type, uint32 lab
 				{
 					if(type == V_NT_GEOMETRY)
 					{
-						nodedb_g_layer_create(*node, ~0, "vertex", VN_G_LAYER_VERTEX_XYZ);
-						nodedb_g_layer_create(*node, ~0, "polygon", VN_G_LAYER_POLYGON_CORNER_UINT32);
+						nodedb_g_layer_create((NodeGeometry *) *node, ~0, "vertex", VN_G_LAYER_VERTEX_XYZ);
+						nodedb_g_layer_create((NodeGeometry *) *node, ~0, "polygon", VN_G_LAYER_POLYGON_CORNER_UINT32);
 					}
 					m->out.nodes.next++;
 					nodedb_ref(*node);
