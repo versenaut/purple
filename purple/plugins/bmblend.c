@@ -38,13 +38,13 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	p_node_b_layer_create(out, "col_g", VN_B_LAYER_UINT8);
 	p_node_b_layer_create(out, "col_b", VN_B_LAYER_UINT8);
 
+	/* Begin access to RGB layers in sources and destination. */
 	if((fb1 = p_node_b_layer_access_multi_begin(in1, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL &&
 	   (fb2 = p_node_b_layer_access_multi_begin(in2, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL &&
 	   (fbout = p_node_b_layer_access_multi_begin(out, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL)
 	{
 		int	x, y, z;
 
-		printf("blending %ux%ux%u, alpha=%g\n", width, height, depth, alpha);
 		for(z = 0; z < depth; z++)
 		{
 			for(y = 0; y < height; y++)
@@ -53,18 +53,20 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 						*r2  = fb2 + 3 * z * dim2[0] * dim2[1] + y * 3 * dim2[0];
 				uint8		*put = fbout + 3 * z * width * height + y * 3 * width;
 
-				printf("row %u: %u %u %u\n", y, r1 - fb1, r2 - fb2, put - fbout);
 				for(x = 0; x < 3 * width; x++)
-					*put++ = alpha * *r2++ + alphainv * *r1++;
+					*put++ = alpha * *r2++ + alphainv * *r1++;	/* Simple blend equation. */
 			}
 		}
 	}
+	/* Finalize accesses. */
 	if(fb1 != NULL)
 		p_node_b_layer_access_multi_end(in1, fb1);
 	if(fb2 != NULL)
 		p_node_b_layer_access_multi_end(in2, fb2);
 	if(fbout != NULL)
 		p_node_b_layer_access_multi_end(out, fbout);
+
+	return P_COMPUTE_DONE;
 }
 
 void init(void)
