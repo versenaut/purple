@@ -5,7 +5,7 @@
 CC=gcc
 CFLAGS=-I.. -I../../verse/ -shared -Wstrict-prototypes -Wmissing-prototypes
 
-ALL:	libcube.so libhello.so libfactors.so libmath.so libstringop.so
+ALL:	libcube.so libhello.so libfactors.so libmath.so libscale.so libstringop.so
 
 lib%.so : %.c
 	$(CC) $(CFLAGS) -o $@ $^
@@ -15,6 +15,8 @@ libcube.so:	cube.c
 libhello.so:	hello.c
 
 libmath.so:	math.c
+
+libscale.so:	scale.c
 
 libstringop.so:	stringop.c
 
