@@ -8,6 +8,8 @@
 
 #include "purple.h"
 
+/* ----------------------------------------------------------------------------------------- */
+
 typedef struct Library	Library;
 typedef struct Plugin	Plugin;
 
@@ -19,8 +21,11 @@ typedef struct
 	void		*state;
 } PInstance;
 
+/* ----------------------------------------------------------------------------------------- */
+
 extern void	plugins_init(const char *paths);
 
+/* Calls used by the Init API functions, used by plug-ins in their init() phase. */
 extern Plugin *	plugin_new(const char *name);
 extern void	plugin_set_input(Plugin *p, int index, PValueType type, const char *name, va_list taglist);
 extern void	plugin_set_meta(Plugin *p, const char *category, const char *text);
@@ -41,6 +46,10 @@ extern const Plugin *	plugin_lookup(unsigned int id);
 extern unsigned int	plugin_id(const Plugin *p);
 extern const char *	plugin_name(const Plugin *p);
 
+/* Portset sub-API. A portset is a collection of (input) ports, always created by providing
+ * a plug-in as a template. The portset contains as many value slots as the provided plug-in
+ * has inputs.
+*/
 extern PPortSet *	plugin_portset_new(const Plugin *p);
 extern PPInput *	plugin_portset_ports(PPortSet *is);
 extern void		plugin_portset_set_va(PPortSet *is, unsigned int index, PValueType type, va_list arg);
@@ -51,6 +60,9 @@ extern boolean		plugin_portset_get_module(const PPortSet *is, unsigned int index
 extern void		plugin_portset_describe(const PPortSet *is, DynStr *d);
 extern void		plugin_portset_destroy(PPortSet *is);
 
+/* Plug-in instances are used to represent instances of plug-ins ("modules"). It's a
+ * transparent structure holding an inputset and a state pointer, basically.
+*/
 extern int		plugin_instance_init(Plugin *p, PInstance *inst);
 extern void		plugin_instance_compute(Plugin *p, const PInstance *inst);
 extern void		plugin_instance_free(Plugin *p, PInstance *inst);
