@@ -1,5 +1,5 @@
 /*
- *
+ * A very trivial and non-compliant with anything "XML parser" workalike.
 */
 
 #include <ctype.h>
@@ -36,6 +36,9 @@ struct XmlNode
 
 #define	TOKEN_STATUS_RETURN(s, r)	*status = s; return r;
 
+/* Look up entity (on the form &ENTITY;) from start of <buffer>, and append the corresponding
+ * actual text to <token>. Returns pointer to first char of <buffer> past entity.
+*/
 static const char * append_entity(const char *buffer, DynStr *token)
 {
 	static const struct
@@ -59,6 +62,10 @@ static const char * append_entity(const char *buffer, DynStr *token)
 	return buffer;
 }
 
+/* Parse off a "token" from <buffer>, storing it in <token> which is created if necessary.
+ * A token is simply either a tag, or some text. Uses <status> to report the type of the
+ * token, angle brackets are stripped from tags. Returns new buffer pointer.
+*/
 static const char * token_get(const char *buffer, DynStr **token, int skip_space, TokenStatus *status)
 {
 	TokenStatus	dummy;
@@ -154,6 +161,7 @@ static const char * token_get(const char *buffer, DynStr **token, int skip_space
 
 /* ----------------------------------------------------------------------------------------- */
 
+/* A qsort() comparison callback for (indirect) attribute name ordering. */
 static int cmp_attr(const void *a, const void *b)
 {
 	const Attrib	*aa = *(Attrib **) a, *ab = *(Attrib **) b;
@@ -261,6 +269,7 @@ static Attrib ** attribs_build(const char *token)
 	return NULL;
 }
 
+/* Create a new node, from the given <token>. If token is NULL, node is anonymous. */
 static XmlNode * node_new(const char *token)
 {
 	size_t	elen = 0;
@@ -288,6 +297,9 @@ static XmlNode * node_new(const char *token)
 	return NULL;
 }
 
+/* Determine if <tag> is the closing tag for the <parent> node. This means that if <parent>
+ * is the element "foo", 1 is returned if <tag> is "/foo" and 0 otherwise.
+*/
 static int node_closes(const XmlNode *parent, const char *tag)
 {
 	const char	*src;
@@ -304,6 +316,7 @@ static int node_closes(const XmlNode *parent, const char *tag)
 	return 1;
 }
 
+/* Add a <child> node to a <parent>. Thin. */
 static void node_child_add(XmlNode *parent, XmlNode *child)
 {
 	if(parent == NULL || child == NULL)
@@ -311,6 +324,10 @@ static void node_child_add(XmlNode *parent, XmlNode *child)
 	parent->children = list_append(parent->children, child);
 }
 
+/* Add <text> content to a <parent> node. This is a bit weird, since text is not totally symmetrically
+ * handled: the first text child of a node is stored directly in the node, while any additional text
+ * children will be linked as individual XmlNodes.
+*/
 static void node_text_add(XmlNode *parent, DynStr *text)
 {
 	if(parent->text == NULL)
@@ -325,6 +342,7 @@ static void node_text_add(XmlNode *parent, DynStr *text)
 	}
 }
 
+/* Traverse <buffer>, extracting tokens. Build nodes from tokens, and add to <parent> as fit. Recurse. */
 static XmlNode * build_tree(XmlNode *parent, const char **buffer)
 {
 	DynStr	*token = NULL;
@@ -404,6 +422,7 @@ const char * xmlnode_attrib_get(const XmlNode *node, const char *name)
 	return NULL;
 }
 
+/* Worker function to print outline of a node hierarchy. */
 static void do_print_outline(const XmlNode *root, int indent)
 {
 	int		i;
