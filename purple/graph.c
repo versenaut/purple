@@ -32,6 +32,7 @@
 #include "strutil.h"
 #include "textbuf.h"
 #include "port.h"
+#include "xmlnode.h"
 
 #include "nodedb.h"
 
@@ -153,6 +154,8 @@ static struct
 
 /* ----------------------------------------------------------------------------------------- */
 
+static void	module_create(unsigned int module_id, uint32 graph_id, uint32 plugin_id);
+static void	module_input_set(uint32 graph_id, uint32 module_id, uint8 input_index, PValueType type, ...);
 static void	module_input_clear_links_to(Graph *g, uint32 module_id, uint32 rm);
 
 /* ----------------------------------------------------------------------------------------- */
@@ -166,7 +169,7 @@ void graph_init(void)
 	graph_info.chunk_module = memchunk_new("graph/module", sizeof (Module), 8);
 
 	for(i = 0; i < sizeof method_info / sizeof *method_info; i++)
-		method_info[i].id = ~0;
+		method_info[i].id = (uint8) ~0u;
 }
 
 void graph_method_send_creates(uint32 avatar, uint8 group_id)
@@ -175,10 +178,10 @@ void graph_method_send_creates(uint32 avatar, uint8 group_id)
 
 	for(i = 0; i < sizeof method_info / sizeof *method_info; i++)
 	{
-		verse_send_o_method_create(avatar, group_id, ~0, method_info[i].name,
+		verse_send_o_method_create(avatar, group_id, ~0u, method_info[i].name,
 					   method_info[i].param_count,
 					   (VNOParamType *) method_info[i].param_type,
-					   (char **) method_info[i].param_name);
+					   (const char **) method_info[i].param_name);
 	}
 }
 
@@ -198,7 +201,7 @@ void graph_method_check_created(NodeObject *obj)
 	{
 		const NdbOMethod	*m;
 
-		if(method_info[i].id == (uint8) ~0 && (m = nodedb_o_method_lookup(g, method_info[i].name)) != NULL)
+		if(method_info[i].id == (uint8) ~0u && (m = nodedb_o_method_lookup(g, method_info[i].name)) != NULL)
 		{
 			method_info[i].id = m->id;
 			graph_info.to_register--;
@@ -247,21 +250,31 @@ static void graph_index_renumber(void)
 }
 
 /* Create a new graph. */
-static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
+static Graph * graph_create(unsigned int id, VNodeID node_id, uint16 buffer_id, const char *name)
 {
-	unsigned int	id, i, pos;
+	unsigned int	i, pos;
 	Graph		*g, *me;
 	char		xml[256];
 
 	/* Make sure name is unique. */
 	if(hash_lookup(graph_info.graphs_name, name) != NULL)
-		return;	/* It wasn't. */
+		return NULL;	/* It wasn't. */
 
 	me = g = mem_alloc(sizeof *g);
 	stu_strncpy(g->name, sizeof g->name, name);
 	g->node   = node_id;
 	g->buffer = buffer_id;
-	id = idset_insert(graph_info.graphs, g);
+	if(id == ~0u)
+		id = idset_insert(graph_info.graphs, g);
+	else
+	{
+		if(idset_insert_with_id(graph_info.graphs, id, g) != id)
+		{
+			LOG_ERR(("Couldn't insert graph '%s' with ID %u", name, id));
+			mem_free(g);
+			return NULL;
+		}
+	}
 	g->desc_start = 0;
 	g->modules = NULL;		/* Be a bit lazy. */
 
@@ -278,8 +291,117 @@ static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, me->index_start, 0, xml);
 	hash_insert(graph_info.graphs_name, me->name, me);
 	snprintf(xml, sizeof xml, "<graph>\n</graph>\n");
-	verse_send_t_text_set(me->node, me->buffer, 0, ~0, xml);
+	verse_send_t_text_set(me->node, me->buffer, 0, ~0u, xml);
 	me->desc_start = strchr(xml, '/') - xml - 1;
+
+	return me;
+}
+
+/* Create a Graph, based on data found in XmlNode at <gdesc>, and stuff it refers to. */
+Graph * graph_create_resume(const XmlNode *gdesc, const unsigned int *pmap)
+{
+	const char	*ids, *name, *nn, *gtext;
+	unsigned long	gid, bufid;
+	char		*eptr;
+	NodeText	*node;
+	NdbTBuffer	*buf;
+	XmlNode		*graph;
+	Graph		*g;
+	List		*mods;
+	const List	*iter;
+
+	ids  = xmlnode_eval_single(gdesc, "@id");
+	name = xmlnode_eval_single(gdesc, "@name");
+
+	gid = strtoul(ids, &eptr, 10);
+	if(eptr == ids)
+	{
+		LOG_ERR(("Couldn't parse numeric graph ID from '%s'", ids));
+		return NULL;
+	}
+	nn = xmlnode_eval_single(gdesc, "at/node");
+	if((node = (NodeText *) nodedb_lookup_by_name_with_type(nn, V_NT_TEXT)) == NULL)
+	{
+		LOG_ERR(("Couldn't find node '%s' for graph '%s'", nn, name));
+		return NULL;
+	}
+	nn = xmlnode_eval_single(gdesc, "at/buffer");
+	bufid = strtoul(nn, &eptr, 10);
+	if(eptr == nn)
+	{
+		LOG_ERR(("Couldn't parse numeric buffer ID from '%s', graph '%s'", nn, name));
+		return NULL;
+	}
+	buf = nodedb_t_buffer_nth(node, bufid);
+	if(buf == NULL)
+	{
+		LOG_ERR(("Couldn't find buffer %u in node '%s for graph '%s'", bufid, nn, name));
+		return NULL;
+	}
+	gtext = nodedb_t_buffer_read_begin(buf);
+	graph = xmlnode_new(gtext);
+	nodedb_t_buffer_read_end(buf);
+	if(graph == NULL)
+	{
+		LOG_ERR(("Couldn't parse graph description in node '%s' %u as XML for graph '%s'", nn, bufid, name));
+		return NULL;
+	}
+	/* At this point, it doesn't matter if the server-side graph XML is wiped; we have
+	 * already parsed it after all, so we can re-create it (and we will, painstakingly).
+	*/
+	printf("We can now create the graph '%s', in node %lu, buffer %lu\n", name, (unsigned long) node->node.id, bufid);
+	g = graph_create(gid, node->node.id, bufid, name);
+	printf("Graph created, time to populate it with happy modules\n");
+	mods = xmlnode_nodeset_get(graph, XMLNODE_AXIS_CHILD, XMLNODE_NAME("module"), XMLNODE_DONE);
+	printf(" modules:\n");
+	for(iter = mods; iter != NULL; iter = list_next(iter))
+	{
+		const char	*tmp;
+		const XmlNode	*here = list_data(iter);
+		unsigned long	id, pi, index;
+		List		*sets;
+		const List	*siter;
+
+		tmp = xmlnode_eval_single(here, "@id");
+		id = strtoul(tmp, &eptr, 10);
+		if(eptr == tmp)
+		{
+			LOG_ERR(("Couldn't parse numerical module ID from '%s'", tmp));
+			continue;
+		}
+		tmp = xmlnode_eval_single(here, "@plug-in");
+		pi = strtoul(tmp, &eptr, 10);
+		if(eptr == tmp)
+		{
+			LOG_ERR(("Couldn't parse numerical plug-in ID from '%s'", tmp));
+			continue;
+		}
+		printf("  %lu is %lu (maps to %u)\n", id, pi, pmap[pi]);
+		module_create(id, gid, pmap[pi]);
+		sets = xmlnode_nodeset_get(here, XMLNODE_AXIS_CHILD, XMLNODE_NAME("set"), XMLNODE_DONE);
+		for(siter = sets, index = 0; siter != NULL; siter = list_next(siter), index++)
+		{
+			const XmlNode	*set = list_data(siter);
+			const char	*tname, *value;
+			PValueType	type;
+			PValue		val;
+
+			tname = xmlnode_eval_single(set, "@type");
+			type  = value_type_from_name(tname);
+			value = xmlnode_eval_single(set, "");
+			printf("   set input %s to %s, type %d\n", xmlnode_eval_single(set, "@input"), xmlnode_eval_single(set, ""), type);
+			value_init(&val);
+			if(value_set_from_string(&val, type, value))
+			{
+				printf(" got the value parsed\n");
+			}
+		}
+		list_destroy(sets);
+	}
+	list_destroy(mods);
+	xmlnode_destroy(graph);
+
+	return g;
 }
 
 /* Destroy a graph. */
@@ -401,8 +523,8 @@ PONode * graph_port_output_node_create(PPOutput port, VNodeType type, uint32 lab
 				{
 					if(type == V_NT_GEOMETRY)
 					{
-						nodedb_g_layer_create((NodeGeometry *) *node, ~0, "vertex", VN_G_LAYER_VERTEX_XYZ);
-						nodedb_g_layer_create((NodeGeometry *) *node, ~0, "polygon", VN_G_LAYER_POLYGON_CORNER_UINT32);
+						nodedb_g_layer_create((NodeGeometry *) *node, ~0u, "vertex", VN_G_LAYER_VERTEX_XYZ);
+						nodedb_g_layer_create((NodeGeometry *) *node, ~0u, "polygon", VN_G_LAYER_POLYGON_CORNER_UINT32);
 					}
 					m->out.nodes.next++;
 					nodedb_ref(*node);
@@ -583,8 +705,10 @@ static PPOutput cb_module_lookup(uint32 module_id, void *data)
 	return NULL;
 }
 
-/* Create a new module, i.e. a plug-in instance, in a graph. */
-static void module_create(uint32 graph_id, uint32 plugin_id)
+/* Create a new module, i.e. a plug-in instance, in a graph. If <module_id> is not ~0,
+ * the module is created with it as its ID. Very handy during resume.
+*/
+static void module_create(unsigned int module_id, uint32 graph_id, uint32 plugin_id)
 {
 	Plugin	*p;
 	Graph	*g;
@@ -791,7 +915,7 @@ void send_method_call(int method, const VNOParam *param)
 	if(method < 0 || (size_t) method >= sizeof method_info / sizeof *method_info)
 		return;
 	mi = method_info + method;
-	if(mi->id == (uint8) ~0)
+	if(mi->id == (uint8) ~0u)
 	{
 		LOG_WARN(("Can't send call to method %s(), not created yet", mi->name));
 		return;
@@ -971,9 +1095,9 @@ void graph_method_receive_call(uint8 id, const void *param)
 		verse_method_call_unpack(param, mi->param_count, mi->param_type, arg);
 		switch(i)
 		{
-		case CREATE:	graph_create(arg[0].vnode, arg[1].vlayer, arg[2].vstring);	break;
+		case CREATE:	graph_create(~0u, arg[0].vnode, arg[1].vlayer, arg[2].vstring);	break;
 		case DESTROY:	graph_destroy(arg[0].vuint32);					break;
-		case MOD_CREATE: module_create(arg[0].vuint32, arg[1].vuint32);			break;
+		case MOD_CREATE: module_create(~0u, arg[0].vuint32, arg[1].vuint32);		break;
 		case MOD_DESTROY: module_destroy(arg[0].vuint32, arg[1].vuint32);		break;
 		case MOD_INPUT_CLEAR:
 			module_input_clear(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8);
