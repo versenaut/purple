@@ -8,11 +8,11 @@
 
 #include "bintree.h"
 
+/* Held in binary tree, indexed by block index which is not stored here but in tree. */
 typedef struct
 {
-	uint32		index;		/* Index. Serves as key in binary tree, and orders blocks. */
 	VNALayerType	type;
-	VNASample	*data;
+	void		*data;		/* Data in type-specific format, co-allocated with block. */
 } NdbABlk;
 
 typedef struct
@@ -33,15 +33,10 @@ extern void		nodedb_a_construct(NodeAudio *n);
 extern void		nodedb_a_copy(NodeAudio *n, const NodeAudio *src);
 extern void		nodedb_a_destruct(NodeAudio *n);
 
-extern unsigned int	nodedb_a_buffer_num(const NodeAudio *node);
-extern NdbALayer *	nodedb_a_buffer_nth(const NodeAudio *node, unsigned int n);
-extern NdbALayer *	nodedb_a_buffer_find(const NodeAudio *node, const char *name);
+extern unsigned int	nodedb_a_layer_num(const NodeAudio *node);
+extern NdbALayer *	nodedb_a_layer_nth(const NodeAudio *node, unsigned int n);
+extern NdbALayer *	nodedb_a_layer_find(const NodeAudio *node, const char *name);
 
 extern NdbALayer *	nodedb_a_layer_create(NodeAudio *node, VLayerID layer_id, const char *name, VNALayerType type, real64 frequency);
-/*extern char *		nodedb_a_buffer_read_line(NdbTBuffer *buffer, unsigned int line, char *put, size_t putmax);
-extern void		nodedb_t_buffer_insert(NdbTBuffer *buffer, size_t pos, const char *text);
-extern void		nodedb_t_buffer_append(NdbTBuffer *buffer, const char *text);
-extern void		nodedb_t_buffer_delete(NdbTBuffer *buffer, size_t pos, size_t length);
-extern void		nodedb_t_buffer_clear(NdbTBuffer *buffer);
-*/
+
 extern void		nodedb_a_register_callbacks(void);
