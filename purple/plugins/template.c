@@ -9,11 +9,13 @@ typedef struct
 	unsigned int	value;	/* Just to prevent an empty struct. */
 } State;
 
-static void compute(PPInput *input, PPOutput output, void *state_typeless)
+static PComputeStatus compute(PPInput *input, PPOutput output, void *state_typeless)
 {
 	State	*state = state_typeless;
 
 	state->value++;
+
+	return P_COMPUTE_DONE;		/* Return P_COMPUTE_AGAIN if we need to run again. */
 }
 
 static void ctor(void *state_typeless)
