@@ -59,6 +59,17 @@ char * stu_strncpy(char *dest, size_t max, const char *src)
 	return base;
 }
 
+char * stu_strncpy_accept_null(char *dest, size_t max, const char *src)
+{
+	if(src == NULL)
+	{
+		if(max > 0)
+			*dest = '\0';
+		return dest;
+	}
+	return stu_strncpy(dest, max, src);
+}
+
 char ** stu_split(const char *string, char split)
 {
 	const char	*p;
