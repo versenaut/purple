@@ -404,10 +404,17 @@ static int console_script(char *line, size_t line_size)
 	"tbc 2 klax\n"
 	"gc 2 0 busta\n"
 
-	"mc 1 25\n"
-	"mc 1 2\n"
+	"mc 1 27\n" /* 0: Plane. */
+	"mc 1 6\n"  /* 1: Bbox. */
+	"mc 1 34\n" /* 2: Warp. */
+	"mc 1 2\n"  /* 3: Output. */
+	"mism 1 3 0 : 2\n"
+	"mism 1 2 0 : 0\n"
+	"mism 1 2 1 : 1\n"
+	"misr 1 2 2 : 0.1\n"
 	"mism 1 1 0 : 0\n"
-	"miss 1 0 0 : \"foo\"\n";
+	"misr 1 0 0 : 10.0\n"
+	"misu 1 0 1 : 3\n";
 	static int	next_line = 0;
 
 	if(strcmp(line, ".") == 0)
