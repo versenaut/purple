@@ -8,10 +8,34 @@
  * own state. Pretty hairy in places.
 */
 
+#include <stdio.h>
+#include <string.h>
+
+#include "xmlnode.h"
+
+#include "resume.h"
+
 static struct
 {
+	int	enabled;		/* Set to 1 in init(), queried by resume_enabled(). */
 	char	meta[32];
-} resume_info;
+} resume_info = { 0 };
+
+/* ----------------------------------------------------------------------------------------- */
+
+void resume_init(const char *options)
+{
+	printf("Initializing resume-mode\n");
+	resume_info.enabled = 1;
+	strcpy(resume_info.meta, "PurpleMeta");
+}
+
+int resume_enabled(void)
+{
+	return resume_info.enabled;
+}
+
+/* ----------------------------------------------------------------------------------------- */
 
 /* This cron job only runs once, after the user-specified resume delay has passed. */
 int resume_update(void *data)
