@@ -325,6 +325,16 @@ static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 		}
 	}
 	/* Step two: see if target has layers that have been destroyed. */
+	for(i = 0; (layer = dynarr_index(target->layers, i)) != NULL; i++)
+	{
+		if(layer->name[0] == '\0')
+			continue;
+		if(nodedb_g_layer_find(n, layer->name) == 0)
+		{
+			printf("sync destroying target-only layer %u.%u (%s)\n", target->node.id, layer->id, layer->name);
+			verse_send_g_layer_destroy(target->node.id, layer->id);
+		}
+	}
 
 	/* Step three: see if crease information has changed. */
 	sync &= sync_geometry_creases(n, target);
