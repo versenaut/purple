@@ -123,113 +123,6 @@ Plugin * plugin_new(const char *name)
 	return p;
 }
 
-#if 0
-static int set_value(PInputValue *value, PInputType new_type, va_list *taglist)
-{
-	if(value->type == P_INPUT_STRING)
-	{
-		mem_free(value->v.vstring);
-		value->v.vstring = NULL;
-	}
-	value->type = new_type;
-	switch(value->type)
-	{
-	case P_INPUT_BOOLEAN:
-		value->v.vboolean = (boolean) va_arg(*taglist, int);
-		return 0;
-	case P_INPUT_INT32:
-		value->v.vint32 = (int32) va_arg(*taglist, int32);
-		return 1;
-	case P_INPUT_UINT32:
-		value->v.vuint32 = (uint32) va_arg(*taglist, uint32);
-		return 1;
-	case P_INPUT_REAL32:
-		value->v.vreal32 = (real32) va_arg(*taglist, double);
-		return 1;
-	case P_INPUT_REAL32_VEC2:
-		{
-			const real32 *data = (const real32 *) va_arg(*taglist, const real32 *);
-			value->v.vreal32_vec2[0] = data[0];
-			value->v.vreal32_vec2[1] = data[1];
-		}
-		return 1;
-	case P_INPUT_REAL32_VEC3:
-		{
-			const real32 *data = (const real32 *) va_arg(*taglist, const real32 *);
-			value->v.vreal32_vec3[0] = data[0];
-			value->v.vreal32_vec3[1] = data[1];
-			value->v.vreal32_vec3[2] = data[2];
-		}
-		return 1;
-	case P_INPUT_REAL32_VEC4:
-		{
-			const real32 *data = (const real32 *) va_arg(*taglist, const real32 *);
-			value->v.vreal32_vec4[0] = data[0];
-			value->v.vreal32_vec4[1] = data[1];
-			value->v.vreal32_vec4[2] = data[2];
-			value->v.vreal32_vec4[3] = data[3];
-		}
-		return 1;
-	case P_INPUT_REAL32_MAT16:
-		{
-			const real32	*data = (const real32 *) va_arg(*taglist, const real32 *);
-			int		i;
-
-			for(i = 0; i < 16; i++)
-				value->v.vreal32_mat16[i] = data[i];
-		}
-		return 1;
-	case P_INPUT_REAL64:
-		value->v.vreal64 = (real64) va_arg(*taglist, double);
-		return 1;
-	case P_INPUT_REAL64_VEC2:
-		{
-			const real64 *data = (const real64 *) va_arg(*taglist, const real64 *);
-			value->v.vreal64_vec2[0] = data[0];
-			value->v.vreal64_vec2[1] = data[1];
-		}
-		return 1;
-	case P_INPUT_REAL64_VEC3:
-		{
-			const real64 *data = (const real64 *) va_arg(*taglist, const real64 *);
-			value->v.vreal64_vec3[0] = data[0];
-			value->v.vreal64_vec3[1] = data[1];
-			value->v.vreal64_vec3[2] = data[2];
-		}
-		return 1;
-	case P_INPUT_REAL64_VEC4:
-		{
-			const real64 *data = (const real64 *) va_arg(*taglist, const real64 *);
-			value->v.vreal64_vec4[0] = data[0];
-			value->v.vreal64_vec4[1] = data[1];
-			value->v.vreal64_vec4[2] = data[2];
-			value->v.vreal64_vec4[3] = data[3];
-		}
-		return 1;
-	case P_INPUT_REAL64_MAT16:
-		{
-			const real64	*data = (const real64 *) va_arg(*taglist, const real64 *);
-			int		i;
-
-			for(i = 0; i < 16; i++)
-				value->v.vreal64_mat16[i] = data[i];
-		}
-		return 1;
-	case P_INPUT_MODULE:
-		value->v.vmodule = (uint32) va_arg(*taglist, uint32);
-		return 1;
-	case P_INPUT_STRING:
-		value->v.vstring = stu_strdup((const char *) va_arg(*taglist, const char *));
-		return 1;
-	default:
-		LOG_WARN(("Unhandled type %d", new_type));
-	}
-	value->type = P_INPUT_BOOLEAN;
-	value->v.vboolean = 0;
-	return 0;
-}
-#endif
-
 void plugin_set_input(Plugin *p, int index, PValueType type, const char *name, va_list taglist)
 {
 	if(p == NULL)
@@ -473,23 +366,29 @@ void plugin_describe_append(const Plugin *p, DynStr *d)
 				dynstr_append(d, "   <flag name=\"required\" value=\"true\"/>\n");
 			if(in->spec.def || in->spec.min || in->spec.max)
 			{
+				char		buf[1024];
+				const char	*p;
+
 				dynstr_append(d, "   <range>\n");
 				if(in->spec.def)
 				{
 					dynstr_append(d, "    <def>");
-					append_value(d, &in->spec.def_val);
+					if((p = value_as_string(&in->spec.def_val, buf, sizeof buf, NULL)) != NULL)
+						dynstr_append(d, p);
 					dynstr_append(d, "</def>\n");
 				}
 				if(in->spec.min)
 				{
 					dynstr_append(d, "    <min>");
-					append_value(d, &in->spec.min_val);
+					if((p = value_as_string(&in->spec.min_val, buf, sizeof buf, NULL)) != NULL)
+						dynstr_append(d, p);
 					dynstr_append(d, "</min>\n");
 				}
 				if(in->spec.max)
 				{
 					dynstr_append(d, "    <max>");
-					append_value(d, &in->spec.max_val);
+					if((p = value_as_string(&in->spec.max_val, buf, sizeof buf, NULL)) != NULL)
+						dynstr_append(d, p);
 					dynstr_append(d, "</max>\n");
 				}
 				dynstr_append(d, "   </range>\n");
