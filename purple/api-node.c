@@ -182,3 +182,25 @@ uint8 p_node_c_curve_dimensions_get(const PNCCurve *curve)
 {
 	return nodedb_c_curve_dimensions_get(curve);
 }
+
+size_t p_node_c_curve_key_get_count(const PNCCurve *curve)
+{
+	return nodedb_c_curve_key_get_count(curve);
+}
+
+PNCKey * p_node_c_curve_key_get_nth(const PNCCurve *curve, unsigned int n)
+{
+	return nodedb_c_curve_key_get_nth((NodeCurve *) curve, n);
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
+const char * p_node_t_language_get(PINode *node)
+{
+	return nodedb_t_language_get((NodeText *) node);
+}
+
+size_t p_node_t_buffer_get_count(PINode *node)
+{
+	return nodedb_t_buffer_get_count((NodeText *) node);
+}
