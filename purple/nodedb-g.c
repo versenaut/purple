@@ -90,13 +90,14 @@ static void cb_g_layer_create(void *user, VNodeID node_id, VLayerID layer_id, co
 	NodeGeometry	*node;
 	NdbGLayer	*layer;
 
+	printf("now in g_layer_create\n");
 	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
 		return;
 	if(node->layers == NULL)
 		node->layers = dynarr_new(sizeof *layer, 2);
 	if(node->layers != NULL)
 	{
-		if((layer = dynarr_set(node->layers, layer_id, NULL)) == NULL)
+		if((layer = dynarr_set(node->layers, layer_id, NULL)) != NULL)
 		{
 			if(layer->name[0] != '\0')
 			{
@@ -113,6 +114,8 @@ static void cb_g_layer_create(void *user, VNodeID node_id, VLayerID layer_id, co
 			layer->def_uint = def_uint;
 			layer->def_real = def_real;
 			NOTIFY(node, STRUCTURE);
+			verse_send_g_layer_subscribe(node_id, layer_id, VN_FORMAT_REAL64);
+			printf("created layer %u.%u (%s), type %d\n", node_id, layer_id, name, type);
 		}
 	}
 }
@@ -124,7 +127,7 @@ static void cb_g_layer_destroy(void *user, VNodeID node_id, VLayerID layer_id)
 
 	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
 		return;
-	if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL)
+	if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL || layer->name[0] == '\0')
 		return;
 	layer->name[0] = '\0';
 	if(layer->data != NULL)
@@ -132,10 +135,53 @@ static void cb_g_layer_destroy(void *user, VNodeID node_id, VLayerID layer_id)
 	NOTIFY(node, STRUCTURE);
 }
 
+static void cb_g_vertex_set_real32_xyz(void *user, VNodeID node_id, VLayerID layer_id, uint32 vertex_id, real32 x, real32 y, real32 z)
+{
+	NodeGeometry	*node;
+	NdbGLayer	*layer;
+	real32		*vtx;
+
+	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
+		return;
+	if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL || layer->name[0] == '\0')
+		return;
+	if(layer->data == NULL)
+		layer->data = dynarr_new(3 * sizeof *vtx, 16);	/* FIXME: Should care about defaults. */
+	if((vtx = dynarr_set(layer->data, vertex_id, NULL)) != NULL)
+	{
+		vtx[0] = x;
+		vtx[1] = y;
+		vtx[2] = z;
+	}
+}
+
+static void cb_g_vertex_set_real64_xyz(void *user, VNodeID node_id, VLayerID layer_id, uint32 vertex_id, real64 x, real64 y, real64 z)
+{
+	NodeGeometry	*node;
+	NdbGLayer	*layer;
+	real64		*vtx;
+
+	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
+		return;
+	if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL || layer->name[0] == '\0')
+		return;
+	if(layer->data == NULL)
+		layer->data = dynarr_new(3 * sizeof *vtx, 16);	/* FIXME: Should care about defaults. */
+	if((vtx = dynarr_set(layer->data, vertex_id, NULL)) != NULL)
+	{
+		vtx[0] = x;
+		vtx[1] = y;
+		vtx[2] = z;
+	}
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 void nodedb_g_register_callbacks(void)
 {
-	verse_callback_set(verse_send_g_layer_create,	cb_g_layer_create,	NULL);
-	verse_callback_set(verse_send_g_layer_destroy,	cb_g_layer_destroy,	NULL);
+	verse_callback_set(verse_send_g_layer_create,		cb_g_layer_create,	NULL);
+	verse_callback_set(verse_send_g_layer_destroy,		cb_g_layer_destroy,	NULL);
+
+	verse_callback_set(verse_send_g_vertex_set_real32_xyz,	cb_g_vertex_set_real32_xyz,	NULL);
+	verse_callback_set(verse_send_g_vertex_set_real64_xyz,	cb_g_vertex_set_real64_xyz,	NULL);
 }
