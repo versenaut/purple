@@ -1,8 +1,9 @@
 /*
- * 
+ * A "cron" module, for handling scheduling of jobs. A "job" here can be anything,
+ * it's just represented as a function to be called. We support either jobs to run
+ * at a given time relative from when it's scheduled, as well as periodic jobs that
+ * are run with a given (approximate, Purple is a cooperative system) period.
 */
-
-#define	CRON_ANONYMOUS	0
 
 typedef enum
 {
