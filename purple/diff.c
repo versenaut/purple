@@ -254,7 +254,7 @@ static int ses_compute(const void *a, int aoff, int n, const void *b, int boff, 
 
 int diff_compare(const void *a, int aoff, int n,
 	 const void *b, int boff, int m,
-	 int dmax, DynArr *edits, int *sn, DynArr *buf)
+	 int dmax, DynArr *edits, DynArr *buf)
 {
 	Context			ctx;
 	int			d = 0, x, y;
@@ -273,7 +273,7 @@ int diff_compare(const void *a, int aoff, int n,
 	ctx.si = 0;
 	ctx.dmax = dmax ? dmax : INT_MAX;
 
-	if(edits && sn)
+	if(edits)
 	{
 		if((e = dynarr_set(edits, 0, NULL)) == NULL)
 		{
@@ -301,8 +301,6 @@ int diff_compare(const void *a, int aoff, int n,
 		return -1;
 	}
 
-	if(edits && sn)
-		*sn = e->op ? ctx.si + 1 : 0;
 	if(buf == NULL)
 		dynarr_destroy(tmp);
 	return d;
@@ -310,5 +308,5 @@ int diff_compare(const void *a, int aoff, int n,
 
 int diff_compare_simple(const void *a, size_t n, const void *b, size_t m, DynArr *edits)
 {
-	return diff_compare(a, 0, n,  b, 0, m,  -1, edits, NULL, NULL);
+	return diff_compare(a, 0, n,  b, 0, m,  -1, edits, NULL);
 }
