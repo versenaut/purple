@@ -700,3 +700,48 @@ char * p_node_t_buffer_read_line(PNTBuffer *buffer, unsigned int line, char *put
 {
 	return nodedb_t_buffer_read_line(buffer, line, put, putmax);
 }
+
+/* ----------------------------------------------------------------------------------------- */
+
+unsigned int p_node_a_layer_get_num(PINode *node)
+{
+	return nodedb_a_layer_num((NodeAudio *) node);
+}
+
+PNALayer * p_node_a_layer_nth(PINode *node, unsigned int n)
+{
+	return nodedb_a_layer_nth((NodeAudio *) node, n);
+}
+
+PNALayer * p_node_a_layer_find(PINode *node, const char *name)
+{
+	return nodedb_a_layer_find((NodeAudio *) node, name);
+}
+
+const char * p_node_a_layer_get_name(const PNALayer *layer)
+{
+	if(layer != NULL)
+		return ((NdbALayer *) layer)->name;
+	return NULL;
+}
+
+PNALayer * p_node_a_layer_create(PONode *node, const char *name, VNALayerType type, real64 frequency)
+{
+	PNALayer	*l;
+
+	if(node == NULL)
+		return NULL;
+	if((l = nodedb_a_layer_find((NodeAudio *) node, name)) != NULL)
+		return l;
+	return nodedb_a_layer_create((NodeAudio *) node, ~0, name, type, frequency);
+}
+
+unsigned int p_node_a_layer_read_samples(const PNALayer *layer, unsigned int start, real64 *buffer, unsigned int length)
+{
+	return nodedb_a_layer_read_samples((NdbALayer *) layer, start, buffer, length);
+}
+
+void p_node_a_layer_write_samples(PNALayer *layer, unsigned int start, const real64 *buffer, unsigned int length)
+{
+	nodedb_a_layer_write_samples((NdbALayer *) layer, start, buffer, length);
+}
