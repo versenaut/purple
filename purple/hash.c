@@ -131,7 +131,7 @@ static void resize(Hash *hash)
 	{
 		for(i = 0; i < new_len; i++)
 			nv[i] = NULL;
-		LOG_MSG(("Allocated new vector, %u elements", new_len));
+		LOG_MSG(("Growing from %u to %u elements", hash->length, new_len));
 		for(i = 0; i < hash->length; i++)
 		{
 			for(iter = hash->vector[i]; iter != NULL; iter = next)
@@ -159,10 +159,7 @@ void hash_insert(Hash *hash, const void *key, void *data)
 		return;
 
 	if(hash->size >= hash->length)
-	{
-		LOG_MSG(("Hash growing from length %u", hash->length));
 		resize(hash);
-	}
 
 	h = hash->hfunc(key);
 	h %= hash->length;
