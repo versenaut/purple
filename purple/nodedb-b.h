@@ -7,7 +7,6 @@ typedef struct
 	uint16		id;
 	char		name[16];
 	VNBLayerType	type;
-	union
 	void		*framebuffer;
 } NdbBLayer;
 
