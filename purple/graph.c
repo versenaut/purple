@@ -20,6 +20,8 @@
 #include "strutil.h"
 #include "textbuf.h"
 
+#include "nodedb.h"
+
 #include "client.h"
 
 #include "graph.h"
