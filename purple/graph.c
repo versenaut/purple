@@ -53,7 +53,7 @@ typedef struct
 	const char	   *param_name[4];
 } MethodInfo;
 
-enum { CREATE, RENAME, DESTROY };
+enum { CREATE, RENAME, DESTROY, MOD_CREATE };
 
 static MethodInfo method_info[] = {
 	{ 0, "create",  3, { VN_O_METHOD_PTYPE_NODE, VN_O_METHOD_PTYPE_LAYER, VN_O_METHOD_PTYPE_STRING },
@@ -76,7 +76,7 @@ static struct
 
 void graph_init(void)
 {
-	graph_info.graphs = idset_new();
+	graph_info.graphs = idset_new(1);
 	graph_info.graphs_name = hash_new_string();
 }
 
@@ -254,6 +254,15 @@ void graph_method_send_call_destroy(uint32 id)
 
 	param[0].vuint32 = id;
 	send_method_create(DESTROY, param);
+}
+
+void graph_method_send_call_mod_create(uint32 graph_id, uint32 plugin_id)
+{
+	VNOParam	param[2];
+
+	param[0].vuint32 = graph_id;
+	param[1].vuint32 = plugin_id;
+	send_method_create(MOD_CREATE, param);
 }
 
 void graph_method_receive_call(uint8 id, const void *param)
