@@ -222,40 +222,6 @@ static void test_idset(void)
 	idset_destroy(is);
 }
 
-static void test_idlist(void)
-{
-	IdList		*il;
-	IdListIter	iter;
-	char		buf[1024];
-
-	il = idlist_new();
-	idlist_insert(il, 0);
-	idlist_insert(il, 1);
-	idlist_insert(il, 100);
-	idlist_insert(il, 200);
-	idlist_insert(il, 300);
-	idlist_insert(il, 33);
-	idlist_test_as_string(il, buf, sizeof buf);
-	printf("[%s]\n", buf);
-	idlist_remove(il, 200);
-	idlist_test_as_string(il, buf, sizeof buf);
-	printf("[%s]\n", buf);
-
-	idlist_insert(il, 40);
-	idlist_insert(il, 150);
-	idlist_insert(il, 90);
-
-	printf("iter: [");
-	for(idlist_foreach_init(il, &iter); idlist_foreach_step(il, &iter);)
-	{
-		printf(" %u ", iter.id);
-	}
-	printf(" ]\n");
-
-	idlist_destroy(il);
-}
-
-
 static int cron_handler(void *data)
 {
 	static int	count = 3;
