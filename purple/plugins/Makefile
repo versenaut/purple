@@ -5,7 +5,7 @@
 CC=gcc
 CFLAGS=-I.. -I../../verse/ -shared -Wstrict-prototypes -Wmissing-prototypes
 
-ALL:	libhello.so libmath.so
+ALL:	libhello.so libfactors.so libmath.so
 
 lib%.so : %.c
 	$(CC) $(CFLAGS) -o $@ $^
