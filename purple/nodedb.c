@@ -302,11 +302,11 @@ int nodedb_unref(Node *node)
 {
 	if(node != NULL)
 	{
-/*		printf("unreffing %p (%u)\n", node, node->id);*/
 		node->ref--;
 		if(node->ref <= 0)
 		{
-			LOG_MSG(("Node %u (%s) has zero references, destroying", node->id, node->name));
+			LOG_MSG(("Node %u (%s) type %d at %p has zero references, destroying", node->id, node->name,
+				 node->type, node));
 			nodedb_destroy(node);
 			return 1;
 		}
