@@ -105,6 +105,20 @@ void textbuf_delete(TextBuf *tb, size_t offset, size_t length)
 	memmove(tb->buf + offset, tb->buf + offset + length, tb->length - (offset + length));
 	tb->length -= length;
 	tb->buf[tb->length] = '\0';
+
+	if(tb->alloc >= 4 * ALLOC_EXTRA && tb->alloc * 2 > tb->length)
+	{
+		char	*nb;
+
+		nb = mem_realloc(tb->buf, tb->length + ALLOC_EXTRA);
+		if(nb == NULL)
+		{
+			LOG_ERR(("Couldn't shrink textbuf after delete"));
+			return;
+		}
+		tb->buf = nb;
+		tb->alloc = tb->length + ALLOC_EXTRA;
+	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
