@@ -51,14 +51,14 @@ extern const char *	plugin_name(const Plugin *p);
  * has inputs.
 */
 extern PPortSet *	plugin_portset_new(const Plugin *p);
-extern PPInput *	plugin_portset_ports(PPortSet *is);
-extern void		plugin_portset_set_va(PPortSet *is, unsigned int index, PValueType type, va_list arg);
-extern void		plugin_portset_clear(PPortSet *is, unsigned int index);
-extern boolean		plugin_portset_is_set(const PPortSet *is, unsigned int index);
-extern size_t		plugin_portset_size(const PPortSet *is);
-extern boolean		plugin_portset_get_module(const PPortSet *is, unsigned int index, uint32 *module_id);
-extern void		plugin_portset_describe(const PPortSet *is, DynStr *d);
-extern void		plugin_portset_destroy(PPortSet *is);
+extern PPInput *	plugin_portset_ports(PPortSet *ps);
+extern void		plugin_portset_set_va(PPortSet *ps, unsigned int index, PValueType type, va_list arg);
+extern void		plugin_portset_clear(PPortSet *ps, unsigned int index);
+extern boolean		plugin_portset_is_set(const PPortSet *ps, unsigned int index);
+extern size_t		plugin_portset_size(const PPortSet *ps);
+extern boolean		plugin_portset_get_module(const PPortSet *ps, unsigned int index, uint32 *module_id);
+extern void		plugin_portset_describe(const PPortSet *ps, DynStr *d);
+extern void		plugin_portset_destroy(PPortSet *ps);
 
 /* Plug-in instances are used to represent instances of plug-ins ("modules"). It's a
  * transparent structure holding an inputset and a state pointer, basically.
