@@ -47,15 +47,19 @@ boolean port_peek_module(const PPort *port, uint32 *module_id)
 
 void port_append_value(const PPort *port, DynStr *d)
 {
-	value_append(&port->value, d);
+	char		buf[1024];
+	const char	*p;
+
+	if((p = value_as_string(&port->value, buf, sizeof buf, NULL)) != NULL)
+		dynstr_append(d, p);
 }
 
 int port_set_va(PPort *port, PValueType type, va_list arg)
 {
-	return value_set(&port->value, type, arg);
+	return value_set_va(&port->value, type, arg);
 }
 
-/* Save some typing in these (inelegant?) accessor function definitions. */
+/* Save some typing in these (inelegant?) accessor function definitions. Trampolines. */
 #define	ACCESSOR(t, n)	t port_input_ ##n (PPort *port) { return value_get_ ##n (&port->value, &port->cache); }
 
 ACCESSOR(boolean, boolean)
