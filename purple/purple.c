@@ -72,31 +72,6 @@ static void test_chunk(void)
 	memchunk_destroy(c);
 }
 
-static void test_dynarr(void)
-{
-	DynArr	*a;
-
-	if((a = dynarr_new(sizeof (int), 4)) != NULL)
-	{
-		int	i;
-		int	data[32];
-
-		for(i = 0; i < sizeof data / sizeof *data; i++)
-			data[i] = i;
-
-		for(i = sizeof data / sizeof *data - 1; i >= 0; i--)
-			dynarr_set(a, i, data + i);
-		for(i = 0; i < sizeof data / sizeof *data; i++)
-		{
-			const void	*p = dynarr_index(a, i);
-
-			if(p != NULL)
-				printf("%d ", *(int *) p);
-		}
-		printf("\n");
-	}
-}
-
 static int foreach_test(const void *data, void *user)
 {
 	printf("Here's '%s'\n", (const char *) data);
