@@ -439,6 +439,18 @@ void plugin_portset_set_va(PPortSet *ps, unsigned int index, PValueType type, va
 		ps->use[index / 32] |= 1 << (index % 32);
 }
 
+/* Set value from string representation. */
+void plugin_portset_set_from_string(PPortSet *ps, unsigned int index, PValueType type, const char *string)
+{
+	if(ps == NULL || index >= ps->size || string == NULL)
+		return;
+	port_clear(ps->input + index);
+	if(port_set_from_string(ps->input + index, type, string) == 0)
+		LOG_WARN(("Input setting from string failed"));
+	else
+		ps->use[index / 32] |= 1 << (index % 32);
+}
+
 void plugin_portset_clear(PPortSet *ps, unsigned int index)
 {
 	uint32	pos, mask;

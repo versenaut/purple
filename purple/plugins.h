@@ -62,6 +62,7 @@ extern const char *	plugin_name(const Plugin *p);
 extern PPortSet *	plugin_portset_new(const Plugin *p);
 extern PPInput *	plugin_portset_ports(PPortSet *ps);
 extern void		plugin_portset_set_va(PPortSet *ps, unsigned int index, PValueType type, va_list arg);
+extern void		plugin_portset_set_from_string(PPortSet *ps, unsigned int index, PValueType type, const char *string);
 extern void		plugin_portset_clear(PPortSet *ps, unsigned int index);
 extern boolean		plugin_portset_is_set(const PPortSet *ps, unsigned int index);
 extern size_t		plugin_portset_size(const PPortSet *ps);
