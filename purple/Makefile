@@ -14,13 +14,17 @@ ALL:	$(TARGETS) all-plugins
 CFLAGS=-g -Wall -rdynamic -I$(VERSE) -L$(VERSE)
 LDLIBS=-ldl -lverse
 
-purple:		purple.c api-init.o client.o cron.o dynarr.o dynlib.o dynstr.o graph.o \
+purple:		purple.c \
+		api-init.o api-input.o \
+		client.o cron.o dynarr.o dynlib.o dynstr.o graph.o \
 		filelist.o hash.o idset.o list.o log.o mem.o memchunk.o \
 		nodedb.o nodedb-o.o nodedb-t.o \
 		plugins.o strutil.o textbuf.o timeval.o xmlnode.o xmlutil.o \
 		$(VERSE)/libverse.a
 
 api-init.o:	api-init.c purple.h
+
+api-input.o:	api-input.c purple.h
 
 client.o:	client.c client.h
 
