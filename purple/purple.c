@@ -26,6 +26,7 @@
 #include "plugins.h"
 #include "strutil.h"
 #include "textbuf.h"
+#include "value.h"
 #include "xmlnode.h"
 #include "xmlutil.h"
 
@@ -322,13 +323,14 @@ static void console_parse_module_input_set(const char *line)
 	char		tcode[4];
 	const char	*literal,
 			tsel[] = "bdurRms", *tpos;
-	const PInputType tarr[] = {
-		P_INPUT_BOOLEAN, P_INPUT_INT32, P_INPUT_UINT32, P_INPUT_REAL32, P_INPUT_REAL64,
-		P_INPUT_MODULE, P_INPUT_STRING
+	const PValueType tarr[] = {
+		P_VALUE_BOOLEAN, P_VALUE_INT32, P_VALUE_UINT32, P_VALUE_REAL32, P_VALUE_REAL64,
+		P_VALUE_MODULE, P_VALUE_STRING
 	};
 	char		string[1024];
 	uint32		g, m, i, got;
-	PInputValue	value;
+	PValueType	type;
+	PValue		value;
 
 	if(sscanf(line, "mis%c%c%u %u %u", tcode, tcode + 1, &g, &m, &i) != 5 || (literal = strchr(line, ':')) == NULL)
 	{
@@ -342,19 +344,19 @@ static void console_parse_module_input_set(const char *line)
 		printf("Unknown type character '%c' in mis command--use one of %s\n", tcode[0], tsel);
 		return;
 	}
-	value.type = tarr[tpos - tsel];
-	if(value.type == P_INPUT_REAL32 || value.type == P_INPUT_REAL64)
+	type = tarr[tpos - tsel];
+	if(type == P_VALUE_REAL32 || type == P_VALUE_REAL64)
 	{
 		if(tcode[1] == ' ')			/* No modifier? */
 			;
 		else if(tcode[1] == '2')		/* Vector? */
-			value.type += 1;
+			type += 1;
 		else if(tcode[1] == '3')
-			value.type += 2;
+			type += 2;
 		else if(tcode[1] == '4')
-			value.type += 3;
+			type += 3;
 		else if(tcode[1] == 'm')
-			value.type += 4;		/* Matrix. */
+			type += 4;		/* Matrix. */
 		else
 		{
 			printf("Illegal vector/matrix code %c\n", tcode[1]);
@@ -362,36 +364,36 @@ static void console_parse_module_input_set(const char *line)
 		}
 	}
 
-	switch(value.type)
+	switch(type)
 	{
-	case P_INPUT_BOOLEAN:
+	case P_VALUE_BOOLEAN:
 		{
 			unsigned int	tmp;
 			got = sscanf(literal, "%u", &tmp) == 1;
 			value.v.vboolean = tmp;
 		}
 		break;
-	case P_INPUT_INT32:
+	case P_VALUE_INT32:
 		got = sscanf(literal, "%d", &value.v.vint32) == 1;
 		break;
-	case P_INPUT_UINT32:
+	case P_VALUE_UINT32:
 		got = sscanf(literal, "%u", &value.v.vuint32) == 1;
 		break;
-	case P_INPUT_REAL32:
+	case P_VALUE_REAL32:
 		got = sscanf(literal, "%g", &value.v.vreal32) == 1;
 		break;
-	case P_INPUT_REAL32_VEC2:
+	case P_VALUE_REAL32_VEC2:
 		got = sscanf(literal, "%g %g", &value.v.vreal32_vec2[0], &value.v.vreal32_vec2[1]) == 2;
 		break;
-	case P_INPUT_REAL32_VEC3:
+	case P_VALUE_REAL32_VEC3:
 		got = sscanf(literal, "%g %g %g", &value.v.vreal32_vec3[0], &value.v.vreal32_vec3[1],
 			     &value.v.vreal32_vec3[2]) == 3;
 		break;
-	case P_INPUT_REAL32_VEC4:
+	case P_VALUE_REAL32_VEC4:
 		got = sscanf(literal, "%g %g %g %g", &value.v.vreal32_vec4[0], &value.v.vreal32_vec4[1],
 			     &value.v.vreal32_vec4[2], &value.v.vreal32_vec4[3]) == 4;
 		break;
-	case P_INPUT_REAL32_MAT16:
+	case P_VALUE_REAL32_MAT16:
 		got = sscanf(literal, "%g %g %g %g "
 			     " %g %g %g %g"
 			     " %g %g %g %g"
@@ -413,21 +415,21 @@ static void console_parse_module_input_set(const char *line)
 			got = 1;
 		}
 		break;
-	case P_INPUT_REAL64:
+	case P_VALUE_REAL64:
 		got = sscanf(literal, "%lg", &value.v.vreal64) == 1;
 		break;
-	case P_INPUT_REAL64_VEC2:
+	case P_VALUE_REAL64_VEC2:
 		got = sscanf(literal, "%lg %lg", &value.v.vreal64_vec2[0], &value.v.vreal64_vec2[1]) == 2;
 		break;
-	case P_INPUT_REAL64_VEC3:
+	case P_VALUE_REAL64_VEC3:
 		got = sscanf(literal, "%lg %lg %lg", &value.v.vreal64_vec3[0], &value.v.vreal64_vec3[1],
 			     &value.v.vreal64_vec3[2]) == 3;
 		break;
-	case P_INPUT_REAL64_VEC4:
+	case P_VALUE_REAL64_VEC4:
 		got = sscanf(literal, "%lg %lg %lg %lg", &value.v.vreal64_vec4[0], &value.v.vreal64_vec4[1],
 			     &value.v.vreal64_vec4[2], &value.v.vreal64_vec4[3]) == 4;
 		break;
-	case P_INPUT_REAL64_MAT16:
+	case P_VALUE_REAL64_MAT16:
 		got = sscanf(literal, "%lg %lg %lg %lg "
 			     " %lg %lg %lg %lg"
 			     " %lg %lg %lg %lg"
@@ -449,10 +451,10 @@ static void console_parse_module_input_set(const char *line)
 			got = 1;
 		}
 		break;
-	case P_INPUT_MODULE:
+	case P_VALUE_MODULE:
 		got = sscanf(literal, "%u", &value.v.vmodule) == 1;
 		break;
-	case P_INPUT_STRING:
+	case P_VALUE_STRING:
 		got = sscanf(literal, " \"%[^\"]\"", string) == 1;
 		value.v.vstring = string;
 		break;
@@ -460,7 +462,7 @@ static void console_parse_module_input_set(const char *line)
 		;
 	}
 	if(got == 1)
-		graph_method_send_call_mod_input_set(g, m, i, &value);
+		graph_method_send_call_mod_input_set(g, m, i, type, &value);
 	else
 		printf("mis couldn't parse %s as type %s literal\n", literal, tcode);
 }
