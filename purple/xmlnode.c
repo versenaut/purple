@@ -16,7 +16,7 @@
 
 /* ----------------------------------------------------------------------------------------- */
 
-typedef enum { TAG, TAGEMPTY, TEXT, END, ERROR } TokenStatus;
+typedef enum { TAG, TAGEMPTY, TEXT, ERROR } TokenStatus;
 
 typedef struct
 {
@@ -66,7 +66,7 @@ static const char * append_entity(const char *buffer, DynStr *token)
  * A token is simply either a tag, or some text. Uses <status> to report the type of the
  * token, angle brackets are stripped from tags. Returns new buffer pointer.
 */
-static const char * token_get(const char *buffer, DynStr **token, int skip_space, TokenStatus *status)
+static const char * token_get(const char *buffer, DynStr **token, TokenStatus *status)
 {
 	TokenStatus	dummy;
 	DynStr		*d;
@@ -76,13 +76,6 @@ static const char * token_get(const char *buffer, DynStr **token, int skip_space
 	if(status == NULL)
 		status = &dummy;	/* No need to check it, now. */
 
-	if(skip_space)
-	{
-		while(*buffer && isspace(*buffer))
-			buffer++;
-		if(!*buffer)
-			return buffer;
-	}
 	if(*buffer == '<')
 	{
 		char	here, last = 0;
@@ -297,25 +290,6 @@ static XmlNode * node_new(const char *token)
 	return NULL;
 }
 
-/* Determine if <tag> is the closing tag for the <parent> node. This means that if <parent>
- * is the element "foo", 1 is returned if <tag> is "/foo" and 0 otherwise.
-*/
-static int node_closes(const XmlNode *parent, const char *tag)
-{
-	const char	*src;
-
-	if(parent == NULL || tag == NULL || *tag == '\0' || *tag != '/')
-		return 0;
-	src = parent->element;
-	tag++;		/* Skip the slash. */
-	for(; *src && *tag && *src == *tag; src++, tag++)
-	{
-		if(isspace(*tag))
-			return 0;
-	}
-	return 1;
-}
-
 /* Add a <child> node to a <parent>. Thin. */
 static void node_child_add(XmlNode *parent, XmlNode *child)
 {
@@ -342,16 +316,43 @@ static void node_text_add(XmlNode *parent, DynStr *text)
 	}
 }
 
+/* Determine if <tag> is the closing tag for the <parent> node. This means that if <parent>
+ * is the element "foo", 1 is returned if <tag> is "/foo" and 0 otherwise.
+*/
+static int node_closes(const XmlNode *parent, const char *tag)
+{
+	const char	*src;
+
+	if(parent == NULL || tag == NULL || *tag == '\0' || *tag != '/')
+		return 0;
+	src = parent->element;
+	tag++;		/* Skip the slash. */
+	for(; *src && *tag && *src == *tag; src++, tag++)
+	{
+		if(isspace(*tag))
+			return 0;
+	}
+	return *src == *tag;
+}
+
 /* Traverse <buffer>, extracting tokens. Build nodes from tokens, and add to <parent> as fit. Recurse. */
-static XmlNode * build_tree(XmlNode *parent, const char **buffer)
+static XmlNode * build_tree(XmlNode *parent, const char **buffer, int *complete)
 {
 	DynStr	*token = NULL;
+
+	*complete = 1;
 
 	for(; **buffer;)
 	{
 		TokenStatus	st;
 
-		*buffer = token_get(*buffer, &token, 0, &st);
+		*buffer = token_get(*buffer, &token, &st);
+		if(st == ERROR)
+		{
+			LOG_WARN(("XML parse error detected, aborting"));
+			*complete = 0;
+			return parent;
+		}
 		if(token != NULL)
 		{
 			if(st == TAG || st == TAGEMPTY)
@@ -365,6 +366,7 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer)
 					if(node_closes(parent, tag))
 						return parent;
 					LOG_ERR(("Element nesting error in XML source, aborting"));
+					*complete = 0;
 					return parent;
 				}
 				else
@@ -374,7 +376,7 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer)
 					token = NULL;
 
 					if(st != TAGEMPTY)
-						subtree = build_tree(child, buffer);
+						subtree = build_tree(child, buffer, complete);
 					else
 						subtree = child;
 					if(parent != NULL)
@@ -388,7 +390,10 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer)
 				if(parent != NULL)
 					node_text_add(parent, token);
 				else
+				{
+					LOG_WARN(("Ignoring top-level text"));
 					dynstr_destroy(token, 1);
+				}
 				token = NULL;
 			}
 		}
@@ -400,9 +405,15 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer)
 
 XmlNode * xmlnode_new(const char *buffer)
 {
+	XmlNode	*root;
+	int	complete;
+
 	if(buffer == NULL)
 		return NULL;
-	return build_tree(NULL, &buffer);
+	root = build_tree(NULL, &buffer, &complete);
+	printf("complete: %s\n", complete ? "yes" : "no");
+	return root;
+
 }
 
 const char * xmlnode_attrib_get(const XmlNode *node, const char *name)
