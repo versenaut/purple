@@ -78,6 +78,68 @@ void nodedb_g_destruct(NodeGeometry *n)
 
 /* ----------------------------------------------------------------------------------------- */
 
+unsigned int nodedb_g_layer_num(const NodeGeometry *node)
+{
+	unsigned int	i, num;
+	NdbGLayer	*layer;
+
+	if(node == NULL)
+		return 0;
+	for(i = num = 0; (layer = dynarr_index(node->layers, i)) != NULL; i++)
+	{
+		if(layer->name[0] == '\0')
+			continue;
+		num++;
+	}
+	return num;
+}
+
+NdbGLayer * nodedb_g_layer_nth(const NodeGeometry *node, unsigned int index)
+{
+	unsigned int	i;
+	NdbGLayer	*layer;
+
+	if(node == NULL)
+		return 0;
+	for(i = 0; (layer = dynarr_index(node->layers, i)) != NULL; i++, index--)
+	{
+		if(layer->name[0] == '\0')
+			continue;
+		if(index == 0)
+			return layer;
+	}
+	return NULL;
+}
+
+NdbGLayer * nodedb_g_layer_find(const NodeGeometry *node, const char *name)
+{
+	unsigned int	i;
+	NdbGLayer	*layer;
+
+	if(node == NULL)
+		return NULL;
+	for(i = 0; (layer = dynarr_index(node->layers, i)) != NULL; i++)
+	{
+		if(strcmp(layer->name, name) == 0)
+			return layer;
+	}
+	return NULL;
+}
+
+size_t nodedb_g_layer_get_size(const NdbGLayer *layer)
+{
+	if(layer != NULL)
+		return dynarr_size(layer->data);
+	return 0;
+}
+
+const char * nodedb_g_layer_get_name(const NdbGLayer *layer)
+{
+	if(layer != NULL)
+		return layer->name;
+	return NULL;
+}
+
 static void cb_def_layer(unsigned int index, void *element, void *user)
 {
 	NdbGLayer	*layer = element;
@@ -121,26 +183,6 @@ void nodedb_g_layer_create(NodeGeometry *node, VLayerID layer_id, const char *na
 	layer->def_real = 0.0;
 }
 
-NdbGLayer * nodedb_g_layer_lookup(const NodeGeometry *node, const char *name)
-{
-	unsigned int	i;
-	NdbGLayer	*layer;
-
-	if(node == NULL)
-		return NULL;
-	for(i = 0; (layer = dynarr_index(node->layers, i)) != NULL; i++)
-	{
-		if(strcmp(layer->name, name) == 0)
-			return layer;
-	}
-	return NULL;
-}
-
-size_t nodedb_g_layer_size(const NodeGeometry *node, const NdbGLayer *layer)
-{
-	return dynarr_size(layer->data);
-}
-
 NdbGLayer * nodedb_g_layer_lookup_id(const NodeGeometry *node, VLayerID layer_id)
 {
 	if(node == NULL)
@@ -158,7 +200,7 @@ static void cb_g_layer_create(void *user, VNodeID node_id, VLayerID layer_id, co
 
 	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
 		return;
-	if((layer = nodedb_g_layer_lookup(node, name)) != NULL)
+	if((layer = nodedb_g_layer_find(node, name)) != NULL)
 	{
 		if(layer->type == type)
 		{
@@ -172,7 +214,7 @@ static void cb_g_layer_create(void *user, VNodeID node_id, VLayerID layer_id, co
 	else
 	{	
 		nodedb_g_layer_create(node, layer_id, name, type);
-		if((layer = nodedb_g_layer_lookup(node, name)) != NULL)
+		if((layer = nodedb_g_layer_find(node, name)) != NULL)
 		{
 			layer->id = layer_id;
 			stu_strncpy(layer->name, sizeof layer->name, name);
@@ -203,11 +245,13 @@ static void cb_g_layer_destroy(void *user, VNodeID node_id, VLayerID layer_id)
 	NOTIFY(node, STRUCTURE);
 }
 
-void nodedb_g_vertex_set_xyz(NodeGeometry *node, NdbGLayer *layer, uint32 vertex_id, real64 x, real64 y, real64 z)
+void nodedb_g_vertex_set_xyz(NdbGLayer *layer, uint32 vertex_id, real64 x, real64 y, real64 z)
 {
 	real64	*vtx;
 
-	if(layer->data == NULL)\
+	if(layer == NULL)
+		return;
+	if(layer->data == NULL)
 		layer->data = dynarr_new(3 * sizeof *vtx, 16);	/* FIXME: Should care about defaults. */\
 	if((vtx = dynarr_set(layer->data, vertex_id, NULL)) != NULL)
 	{
@@ -218,11 +262,11 @@ void nodedb_g_vertex_set_xyz(NodeGeometry *node, NdbGLayer *layer, uint32 vertex
 	}
 }
 
-void nodedb_g_vertex_get_xyz(const NodeGeometry *node, const NdbGLayer *layer, uint32 vertex_id, real64 *x, real64 *y, real64 *z)
+void nodedb_g_vertex_get_xyz(const NdbGLayer *layer, uint32 vertex_id, real64 *x, real64 *y, real64 *z)
 {
 	real64	*vtx;
 
-	if(layer->type != VN_G_LAYER_VERTEX_XYZ || layer->data == NULL)
+	if(layer == NULL || layer->type != VN_G_LAYER_VERTEX_XYZ || layer->data == NULL)
 		return;
 	if((vtx = dynarr_index(layer->data, vertex_id)) != NULL)
 	{
@@ -286,8 +330,7 @@ VERTEX_SCALAR(real64)
 
 /* Macro to define a polygon corner value handler function. */
 #define POLYGON_CORNER(t)	\
-	void nodedb_g_polygon_set_corner_ ##t(NodeGeometry *node, NdbGLayer *layer, uint32 polygon_id,\
-						      t v0, t v1, t v2, t v3)\
+	void nodedb_g_polygon_set_corner_ ##t(NdbGLayer *layer, uint32 polygon_id, t v0, t v1, t v2, t v3)\
 	{\
 		t		*v;\
 		\
@@ -299,7 +342,6 @@ VERTEX_SCALAR(real64)
 			v[1] = v1;\
 			v[2] = v2;\
 			v[3] = v3;\
-			NOTIFY(node, DATA);\
 		}\
 	}\
 	\
