@@ -126,10 +126,36 @@ PONode * p_output_node_create(PPOutput out, VNodeType type, uint32 label)
 {
 	PONode	*n = graph_port_output_node_create(out, type, label);
 
-	if(type == V_NT_MATERIAL)
+	/* FIXME: This clearing goes against the caching idea that is the reason for the
+	 * labelled storage in the first place. This conflict might need to be resolved...
+	*/
+	if(type == V_NT_GEOMETRY)
+	{
+		NdbGLayer	*l;
+
+		if((l = nodedb_g_layer_find((NodeGeometry *) n, "vertex")) != NULL)
+		{
+			real64	gone[] = { V_REAL64_MAX, V_REAL64_MAX, V_REAL64_MAX };
+			uint32	i, s;
+
+			s = dynarr_size(l->data);
+			for(i = 0; i < s; i++)
+				dynarr_set(l->data, i, gone);
+			printf("cleared %u vertex slots\n", i);
+		}
+		if((l = nodedb_g_layer_find((NodeGeometry *) n, "polygon")) != NULL)
+		{
+			uint32	gone[] = { ~0u, ~0u, ~0u, ~0u }, i, s;
+
+			s = dynarr_size(l->data);
+			for(i = 0; i < s; i++)
+				dynarr_set(l->data, i, gone);
+			printf("cleared %u polygon slots\n", i);
+		}
+	}
+	else if(type == V_NT_MATERIAL)
 	{
 		dynarr_clear(((NodeMaterial *) n)->fragments);
-		printf("material node at %p cleared of fragments\n", n);
 	}
 	return n;
 }
