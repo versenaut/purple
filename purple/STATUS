@@ -20,6 +20,8 @@ Done:
 * Implement text updates of actual graph contents.
 * Implement module (plug-in instantiation) handling.
 * Test module handling (creation, linking, deletion).
+* Implement general purpose data structure to hold the "value" of
+  a module input or output (scalars).
 
 
 Todo:
@@ -28,8 +30,7 @@ Todo:
   handling and comparison. Scary.
 * Design and implement corresponding plug-in APIs for dealing with
   node data.
-* Implement general purpose data structure to hold the "value" of
-  a module input or output (node set, and scalars).
+* Design and implement NodeSet for value-structure.
 * Implement scheduler for actually running plug-in code, and pass
   data between them.
 * Implement node comparison capability to find changes in outputs.
