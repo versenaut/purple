@@ -328,7 +328,6 @@ static void console_parse_module_input_set(const char *line)
 	};
 	char		string[1024];
 	uint32		g, m, i, got;
-	PInputType	type;
 	PInputValue	value;
 
 	if(sscanf(line, "mis%s %u %u %u", tcode, &g, &m, &i) != 4 || (literal = strchr(line, ':')) == NULL)
@@ -364,7 +363,11 @@ static void console_parse_module_input_set(const char *line)
 	switch(value.type)
 	{
 	case P_INPUT_BOOLEAN:
-		got = sscanf(literal, "%u", &value.v.vboolean) == 1;
+		{
+			unsigned int	tmp;
+			got = sscanf(literal, "%u", &tmp) == 1;
+			value.v.vboolean = tmp;
+		}
 		break;
 	case P_INPUT_INT32:
 		got = sscanf(literal, "%d", &value.v.vint32) == 1;
@@ -410,7 +413,7 @@ static void console_parse_module_input_set(const char *line)
 	if(got == 1)
 		graph_method_send_call_mod_input_set(g, m, i, &value);
 	else
-		printf("mis couldn't parse %s as type %d literal\n", literal, tcode);
+		printf("mis couldn't parse %s as type %s literal\n", literal, tcode);
 }
 
 static void console_update(void)
@@ -440,7 +443,7 @@ static void console_update(void)
 				uint16	buf;
 				char	name[64];
 
-				if(sscanf(line, "gc %u %u %s", &node, &buf, name) == 3)
+				if(sscanf(line, "gc %u %su %s", &node, &buf, name) == 3)
 					graph_method_send_call_create(node, buf, name);
 			}
 			else if(strncmp(line, "gd ", 3) == 0)
