@@ -34,7 +34,6 @@ extern List *	list_first(List *list);
 extern List *	list_last(List *list);
 
 extern void	list_foreach(const List *list, int (*callback)(void *data, void *userdata), void *userdata);
-extern List *	list_find(List *list, int (*test)(void *data, void *userdata), void *userdata);
 extern List *	list_find_sorted(const List *list, const void *data, int (*compare)(const void *data1, const void *data2));
 
 extern void	list_destroy(List *list);
