@@ -39,6 +39,7 @@ static void cb_o_link_set(void *user, VNodeID node_id, uint16 link_id, uint32 li
 			l->link = link;
 			stu_strncpy(l->name, sizeof l->name, name);
 			l->target = target_id;
+			NOTIFY(n, DATA);
 		}
 	}
 }
