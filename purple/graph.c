@@ -142,6 +142,13 @@ static void graph_rename(uint32 id, const char *name)
 		LOG_WARN(("Couldn't rename graph %u, not found", id));
 		return;
 	}
+	if(strcmp(g->name, name) == 0)
+		return;
+	if(hash_lookup(graph_info.graphs_name, name) != NULL)
+	{
+		LOG_WARN(("Couldn't rename graph %u, \"%s\", into \"%s\"--name collision", id, g->name, name));
+		return;
+	}
 	hash_remove(graph_info.graphs_name, g->name);
 	stu_strncpy(g->name, sizeof g->name, name);
 	hash_insert(graph_info.graphs_name, g->name, g);
