@@ -39,9 +39,16 @@
 
 typedef struct
 {
+	DynArr	*node;
+	uint32	next;		/* Next expected label. These must be "tight", enforced by create(). */
+} ONodes;
+
+typedef struct
+{
 	PPort	port;		/* Result is stored here. */
 	IdList	dependants;	/* Tracks dependants, to notify when output changes. */
 	boolean	changed;	/* Output changed recently? Don't notify all the time... */
+	ONodes	nodes;		/* Output nodes. Caches between invocations, using 'label' on create(). */
 } Output;
 
 typedef struct
@@ -52,10 +59,11 @@ typedef struct
 
 	VNodeID	node;
 	uint16	buffer;
-	uint32	desc_start;	/* Base location in graph XML buffer, first module starts here. */
+	uint32	desc_start;		/* Base location in graph XML buffer, first module starts here. */
 	IdSet	*modules;
 } Graph;
 
+/* A module is an instance of a plug-in, i.e. a node in a Graph. Can't call it "node", collides w/ Verse. */
 typedef struct
 {
 	uint32		id;
@@ -359,6 +367,48 @@ void graph_port_output_set_node(PPOutput port, PONode *node)
 	m->out.changed = TRUE;
 }
 
+PONode * graph_port_output_node_create(PPOutput port, VNodeType type, uint32 label)
+{
+	Module	*m = MODULE_FROM_PORT(port);
+	Node	**node = NULL;
+
+	if(label < m->out.nodes.next)	/* Lookup of existing? */
+	{
+		if(m->out.nodes.node == NULL)
+			return NULL;
+		if((node = dynarr_index(m->out.nodes.node, label)) != NULL)
+		{
+			printf("Returning previously created node with label %u\n", label);
+			graph_port_output_set_node(port, *node);
+			return *node;
+		}
+		return NULL;
+	}
+	else if(label == m->out.nodes.next)
+	{
+		printf("This would be a good time to create a new node and label it %u\n", label);
+		if(m->out.nodes.node == NULL)
+			m->out.nodes.node = dynarr_new(sizeof *node, 1);
+		if(m->out.nodes.node != NULL)
+		{
+			if((node = dynarr_set(m->out.nodes.node, m->out.nodes.next, NULL)) != NULL)
+			{
+				if((*node = nodedb_new(type)) != NULL)
+				{
+					m->out.nodes.next++;
+					nodedb_ref(*node);
+				}
+			}
+		}
+		if(node != NULL)
+			graph_port_output_set_node(port, *node);
+		return node != NULL ? *node : NULL;
+	}
+	else
+		LOG_WARN(("Mismatched node label %u, expected %u", label, m->out.nodes.next));
+	return NULL;
+}
+
 void graph_port_output_end(PPOutput port)
 {
 	Module		*m = MODULE_FROM_PORT(port), *dep;
@@ -366,7 +416,7 @@ void graph_port_output_end(PPOutput port)
 
 	if(m->out.changed)
 	{
-		/* Our output changed, so ask scheduler to attempt to recompute any dependants. */
+		/* Our output changed, so ask scheduler to compute() any dependant modules. */
 		for(idlist_foreach_init(&m->out.dependants, &iter); idlist_foreach_step(&m->out.dependants, &iter); )
 		{
 			if((dep = idset_lookup(m->graph->modules, iter.id)) != NULL)
@@ -514,6 +564,8 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 	plugin_instance_set_output(&m->instance, &m->out.port);
 	plugin_instance_set_link_resolver(&m->instance, cb_module_lookup, g);
 	idlist_construct(&m->out.dependants);
+	m->out.nodes.node = NULL;
+	m->out.nodes.next = 0;
 	m->start = m->length = 0;
 	if(g->modules == NULL)
 		g->modules = idset_new(0);
@@ -524,6 +576,23 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 	graph_modules_desc_start_update(g);
 	verse_send_t_text_set(g->node, g->buffer, m->start, 0, dynstr_string(desc));
 	dynstr_destroy(desc, 1);
+}
+
+/* Release all labeled nodes created by an instance. */
+static void output_nodes_clear(Output *o)
+{
+	if(o->nodes.node != NULL)
+	{
+		unsigned int	i;
+		Node		**n;
+
+		for(i = 0; i < o->nodes.next; i++)
+		{
+			if((n = dynarr_index(o->nodes.node, i)) != NULL)
+				nodedb_unref(*n);
+		}
+		dynarr_destroy(o->nodes.node);
+	}
 }
 
 /* Destroy a module. */
@@ -547,6 +616,8 @@ static void module_destroy(uint32 graph_id, uint32 module_id)
 	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, NULL);
 	idlist_destruct(&m->out.dependants);
 	plugin_instance_free(&m->instance);
+	port_clear(&m->out.port);
+	output_nodes_clear(&m->out);
 	memchunk_free(graph_info.chunk_module, m);
 	graph_modules_desc_start_update(g);
 }
