@@ -528,14 +528,6 @@ size_t plugins_amount(void)
 	return idset_size(plugins_info.plugins);
 }
 
-static int cb_build_xml(const void *data, void *user)
-{
-	dynstr_append_c(user, '\n');
-	plugin_describe_append(data, user);
-
-	return 1;
-}
-
 char * plugins_build_xml(void)
 {
 	unsigned int	id;
@@ -551,7 +543,6 @@ char * plugins_build_xml(void)
 		dynstr_append_c(d, '\n');
 		plugin_describe_append(p, d);
 	}
-/*	hash_foreach(plugins_info.plugins_name, cb_build_xml, d);*/
 	dynstr_append(d, "</purple-plugins>\n");
 
 	return dynstr_destroy(d, 0);
