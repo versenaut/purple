@@ -6,7 +6,6 @@ typedef struct
 {
 	uint16		buffer;
 	unsigned int	cron;
-	TextBuf		*text;		/* Remote (shared, server-side) plugins description. */
 } PluginsMeta;
 
 typedef struct
@@ -14,7 +13,6 @@ typedef struct
 	uint16		buffer;
 	size_t		start;		/* Location of first content character, after header. */
 	unsigned int	cron;
-	TextBuf		*text;
 } GraphsMeta;
 
 typedef struct
