@@ -292,6 +292,7 @@ static void evt_subscribe_clicked(GtkWidget *wid, gpointer user)
 		gtk_notebook_append_page(GTK_NOTEBOOK(min->notebook), scwin, hbox);
 		buf->page_num = gtk_notebook_page_num(GTK_NOTEBOOK(min->notebook), scwin);
 		gtk_widget_show_all(scwin);
+		gtk_notebook_set_page(GTK_NOTEBOOK(min->notebook), buf->page_num);
 		verse_send_t_buffer_subscribe(min->cur_node, min->cur_buffer);
 		subscribe_set_sensitive(min);
 	}
