@@ -29,9 +29,7 @@ static PComputeStatus compute_fact(PPInput *input, PPOutput output, void *state)
 	uint32	*s = state;
 
 	if(s[1] == 0)	/* First run? */
-	{
 		s[1] = p_input_uint32(input[0]);
-	}
 	if(s[1] <= 1)
 	{
 		printf("fact done, emitting %u\n", s[0]);
@@ -39,7 +37,7 @@ static PComputeStatus compute_fact(PPInput *input, PPOutput output, void *state)
 		fact_ctor(state);	/* Reset state. */
 		return P_COMPUTE_DONE;
 	}
-	printf("computing faculty, scaling %u by %u\n", s[0], s[1]);
+/*	printf("computing faculty, scaling %u by %u\n", s[0], s[1]);*/
 	s[0] *= s[1]--;
 	return P_COMPUTE_AGAIN;
 }
@@ -48,18 +46,16 @@ static PComputeStatus compute_add_real32(PPInput *input, PPOutput output, void *
 {
 	real32	a, b;
 
-	{
+/*	{
 		const char	*as, *bs;
 		if((as = p_input_string(input[0])) != NULL &&
 		   (bs = p_input_string(input[1])) != NULL)
 			printf("Inputs are '%s' and '%s'\n", as, bs);
 	}
-	a = p_input_real32(input[0]);
+*/	a = p_input_real32(input[0]);
 	b = p_input_real32(input[1]);
 	printf("math: adding %g and %g\n", a, b);
-	p_output_string(output, "arne");
-	p_output_string(output, "anka");
-/*	p_output_real32(a + b);*/
+	p_output_real32(output, a + b);
 
 	return P_COMPUTE_DONE;
 }
@@ -71,7 +67,7 @@ static PComputeStatus compute_sub_real32(PPInput *input, PPOutput output, void *
 	a = p_input_real32(input[0]);
 	b = p_input_real32(input[1]);
 	printf("math: substracting %g from %g\n", b, a);
-/*	p_output_real32(a - b);*/
+	p_output_real32(output, a - b);
 
 	return P_COMPUTE_DONE;
 }
