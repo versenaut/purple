@@ -146,6 +146,7 @@ typedef void	PNTagGroup;
 unsigned int	p_node_tag_group_num(PINode *node);
 PNTagGroup *	p_node_tag_group_nth(PINode *node, unsigned int n);
 PNTagGroup *	p_node_tag_group_find(PINode *node, const char *name);
+const char *	p_node_tag_group_get_name(const PNTagGroup *group);
 
 PNTagGroup *	p_node_tag_group_create(PONode *node, const char *name);
 void		p_node_tag_group_destroy(PONode *node, PNTagGroup *group);
