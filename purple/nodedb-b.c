@@ -289,9 +289,32 @@ static real64 layer_get_pixel(const NodeBitmap *node, NdbBLayer *layer, const un
 	return 0.0;
 }
 
+static void layer_put_pixel(const NodeBitmap *node, NdbBLayer *layer, unsigned char *framebuffer,
+			    int x, int y, int z, real64 pixel)
+{
+	if(layer->type == VN_B_LAYER_UINT1)
+	{
+		size_t	row = (node->width + 7) / 8, off;
+		uint8	mask;
+
+		off  = z * row * node->height + y * row + x / 8;
+		mask = 128 >> (x % 8);
+		if(pixel > 0.0)
+			framebuffer[off] |= mask;
+		else
+			framebuffer[off] &= ~mask;
+	}
+	else if(layer->type == VN_B_LAYER_UINT8)
+		((uint8 *) framebuffer)[z * node->width * node->height + y * node->width + x] = pixel * 255.0;
+	else if(layer->type == VN_B_LAYER_REAL32)
+		((real32 *) framebuffer)[z * node->width * node->height + y * node->width + x] = pixel;
+	else if(layer->type == VN_B_LAYER_REAL64)
+		((real64 *) framebuffer)[z * node->width * node->height + y * node->width + x] = pixel;
+}
+
 static void multi_put_pixel(struct multi_info *mi, int x)
 {
-	real32	pix;
+	real64	pix;
 	int	i;
 
 	if(mi->format == VN_B_LAYER_UINT1)
@@ -406,9 +429,35 @@ void * nodedb_b_layer_access_multi_begin(NodeBitmap *node, VNBLayerType format, 
 void nodedb_b_layer_access_multi_end(NodeBitmap *node, void *framebuffer)
 {
 	struct multi_info	*mi = (struct multi_info *) ((char *) framebuffer - (sizeof *mi));
-	size_t			i;
+	size_t			i, x, y, z, off;
+	real64			pixel;
 
-	/* FIXME: Do complicated write-back here. Need to retain layer names and formats! */
+	/* Write contents back to individual layers. Lots of work. */
+	for(i = 0; i < mi->num; i++)
+	{
+		for(z = 0; z < node->depth; z++)
+		{
+			for(y = 0; y < node->height; y++)
+			{
+				multi_scanline_init(mi, y, z);
+				for(x = 0; x < node->width; x++)
+				{
+					off = mi->num * x + i;
+
+					/* Read out pixel from multi-buffer. */
+					if(mi->format == VN_B_LAYER_UINT1)
+						pixel = (mi->put[off / 8] & (128 >> (off % x))) ? 1.0 : 0.0;
+					if(mi->format == VN_B_LAYER_UINT8)
+						pixel = mi->put[off] / 255.0;
+					else if(mi->format == VN_B_LAYER_REAL32)
+						pixel = ((const real32 *) mi->put)[off];
+					else if(mi->format == VN_B_LAYER_REAL64)
+						pixel = ((const real64 *) mi->put)[off];
+					layer_put_pixel(mi->node, mi->layer[i], mi->access[i], x, y, z, pixel);
+				}
+			}
+		}
+	}
 	/* Stop accessing layers. */
 	for(i = 0; i < mi->num; i++)
 		nodedb_b_layer_access_end(node, mi->layer[i], mi->access[i]);
