@@ -17,13 +17,13 @@ Done:
   which contains a graph index that lists all existing graphs. This
   index is kept up to date when graphs are created/renamed/destroyed.
 * Test graph creation method calls.
+* Implement text updates of actual graph contents.
+* Implement module (plug-in instantiation) handling.
+* Test module handling (creation, linking, deletion).
 
 
 Todo:
 
-* Implement text updates of actual graph contents.
-* Implement module (plug-in instantiation) handling.
-* Test module handling (creation, linking, deletion).
 * Start designing and implementing node storage system, with event
   handling and comparison. Scary.
 * Implement corresponding plug-in APIs for dealing with node data.
