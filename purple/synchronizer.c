@@ -58,8 +58,7 @@ void sync_init(void)
 /* ----------------------------------------------------------------------------------------- */
 
 static void sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer, size_t size,
-				const NodeGeometry *target, const NdbGLayer *tlayer, size_t tsize,
-				size_t common)
+				const NodeGeometry *target, const NdbGLayer *tlayer, size_t tsize)
 {
 	const unsigned char	*data, *tdata;
 	size_t		i, esize;
@@ -138,19 +137,12 @@ static void sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 				printf("  but the default real is wrong\n");
 			else	/* "Envelope" is fine, inspect contents. */
 			{
-				size_t	len, tlen, clen, samelen;
+				size_t	len, tlen;
 
 				/* Vertex data must be identical for this to pass; order is significant. */
 				len  = dynarr_size(layer->data);
 				tlen = dynarr_size(tlayer->data);
-/*				clen = dynarr_size_common_prefix(layer->data, tlayer->data);
-				printf(" common prefix length is %u\n", clen);
-				if(clen == len && clen == tlen)
-				{
-					printf(" all done\n");
-					return;
-				}
-*/				sync_geometry_layer(n, layer, len, target, tlayer, tlen, 0);
+				sync_geometry_layer(n, layer, len, target, tlayer, tlen);
 			}
 		}
 		else
