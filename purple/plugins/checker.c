@@ -6,7 +6,7 @@
 #include "purple-plugin.h"
 
 /* Determine if (x,y) is in two-dimensional checker board square of size <user> or not. */
-static real64 check(uint32 x, uint32 y, uint32 z, void *user)
+static real64 cb_check(uint32 x, uint32 y, uint32 z, void *user)
 {
 	uint32	size = (uint32) user, row = y / size, col = x / size;
 	int	v = (row & 1) ? (col & 1) : !(col & 1);
@@ -26,7 +26,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	for(i = 0; i < sizeof lname / sizeof *lname; i++)
 	{
 		layer = p_node_b_layer_create(node, lname[i], VN_B_LAYER_UINT8);
-		p_node_b_layer_foreach_set(node, layer, check, (void *) size);
+		p_node_b_layer_foreach_set(node, layer, cb_check, (void *) size);
 	}
 	return P_COMPUTE_DONE;
 }
