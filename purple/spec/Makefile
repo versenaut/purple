@@ -8,7 +8,7 @@ spec:			spec.docbook inputmethods.snip
 			docbook2html $<
 
 inputmethods.snip:	inputmethods.sh
-			$^ >$@
+			./$^ >$@
 
 # ---------------------------------------------------------
 
