@@ -314,6 +314,16 @@ NdbMFragment * nodedb_m_fragment_create_light(NodeMaterial *node, VNMLightType t
 	return f;
 }
 
+NdbMFragment * nodedb_m_fragment_create_reflection(NodeMaterial *node, real64 normal_falloff)
+{
+	VMatFrag	frag;
+
+	if(node == NULL)
+		return NULL;
+	frag.reflection.normal_falloff = normal_falloff;
+	return nodedb_m_fragment_create(node, ~0, VN_M_FT_REFLECTION, &frag);
+}
+
 NdbMFragment * nodedb_m_fragment_create_blender(NodeMaterial *node, VNMBlendType type,
 						const PNMFragment *data_a, const PNMFragment *data_b, const PNMFragment *ctrl)
 {
