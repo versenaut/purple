@@ -20,6 +20,7 @@
 
 /* ----------------------------------------------------------------------------------------- */
 
+/* A struct like this is associated with every instance of this plug-in. */
 typedef struct
 {
 	Node	*notify;
@@ -28,8 +29,8 @@ typedef struct
 
 /* ----------------------------------------------------------------------------------------- */
 
-/* This gets called when the node we're watching changes. We need to cause a re-
- * computation of any modules having this one as an input dependency.
+/* This gets called when the node we're watching changes. We need to cause a
+ * re-computation of any modules having this one as an input dependency.
 */
 static void cb_notify(Node *node, NodeNotifyEvent ev, void *user)
 {
