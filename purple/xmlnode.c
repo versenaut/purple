@@ -439,17 +439,22 @@ XmlNode * xmlnode_new(const char *buffer)
 
 const char * xmlnode_attrib_get(const XmlNode *node, const char *name)
 {
-	int	i;
+	int	lo, hi;
 
 	if(node == NULL || name == NULL)
 		return NULL;
 
-	for(i = 0; i < node->attrib_num; i++)
+	for(lo = 0, hi = node->attrib_num; lo < hi;)
 	{
-		int	rel = strcmp(name, node->attrib[i].name);
+		int	mid = (lo + hi) / 2, rel;
 
+		rel = strcmp(name, node->attrib[mid].name);
 		if(rel == 0)
-			return node->attrib[i].value;
+			return node->attrib[mid].value;
+		else if(rel < 0)
+			hi = mid - 1;
+		else
+			lo = mid + 1;
 	}
 	return NULL;
 }
