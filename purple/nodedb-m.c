@@ -381,6 +381,17 @@ NdbMFragment * nodedb_m_fragment_create_texture(NodeMaterial *node, const Node *
 	return f;
 }
 
+NdbMFragment * nodedb_m_fragment_create_noise(NodeMaterial *node, VNMNoiseType type, const NdbMFragment *mapping)
+{
+	VMatFrag	frag;
+
+	if(node == NULL)
+		return NULL;
+	frag.noise.type = type;
+	link_set(&frag.noise.mapping, mapping);
+	return nodedb_m_fragment_create(0, ~0, VN_M_FT_NOISE, &frag);
+}
+
 NdbMFragment * nodedb_m_fragment_create_blender(NodeMaterial *node, VNMBlendType type,
 						const PNMFragment *data_a, const PNMFragment *data_b, const PNMFragment *ctrl)
 {
