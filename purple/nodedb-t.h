@@ -13,7 +13,7 @@ typedef struct
 {
 	uint16	id;
 	char	name[16];
-	char	content;
+	TextBuf	*text;
 } NdbTBuffer;
 
 extern void		nodedb_t_init(NodeText *n);

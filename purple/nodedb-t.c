@@ -9,6 +9,7 @@
 
 #include "dynarr.h"
 #include "strutil.h"
+#include "textbuf.h"
 
 #include "nodedb.h"
 #include "nodedb-internal.h"
@@ -63,7 +64,8 @@ static void cb_t_buffer_create(void *user, VNodeID node_id, uint16 buffer_id, ui
 		{
 			tb->id = buffer_id;
 			stu_strncpy(tb->name, sizeof tb->name, name);
-			printf("text buffer %u.%u %s created\n", node_id, buffer_id, name);
+			tb->text = textbuf_new(1024);
+			printf("Text buffer %u.%u %s created\n", node_id, buffer_id, name);
 			NOTIFY(n, STRUCTURE);
 		}
 	}
@@ -81,7 +83,8 @@ static void cb_t_buffer_destroy(void *user, VNodeID node_id, uint16 buffer_id, u
 		{
 			tb->id = 0;
 			tb->name[0] = '\0';
-			/* FIXME: Do something about contents here, too. */
+			textbuf_destroy(tb->text);
+			tb->text = NULL;
 			NOTIFY(n, STRUCTURE);
 		}
 	}
@@ -97,8 +100,8 @@ static void cb_t_text_set(void *user, VNodeID node_id, uint16 buffer_id, uint32 
 
 		if((tb = dynarr_index(n->buffers, buffer_id)) != NULL)
 		{
-			printf("Ignoring text change to %u.%u\n", node_id, buffer_id);
-			/* FIXME: Do something slightly better here. */
+			textbuf_delete(tb->text, pos, len);
+			textbuf_insert(tb->text, pos, text);
 			NOTIFY(n, DATA);
 		}
 	}
