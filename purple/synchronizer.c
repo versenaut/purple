@@ -845,7 +845,7 @@ void sync_node_add(Node *node)
 {
 	if(node == NULL)
 		return;
-	if(node->id == ~0)	/* Locally created? */
+	if(node->id == (VNodeID) ~0)	/* Locally created? */
 		sync_info.queue_create = list_prepend(sync_info.queue_create, (void *) node);
 	else
 		sync_info.queue_sync = list_prepend(sync_info.queue_sync, (void *) node);
