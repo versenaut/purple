@@ -137,7 +137,7 @@ typedef void	PNGLayer;
 typedef void	PNGBone;
 
 unsigned int	p_node_g_layer_num(PINode *node);
-PNGLayer *	p_node_g_layer_nth(PINode *node);
+PNGLayer *	p_node_g_layer_nth(PINode *node, unsigned int n);
 PNGLayer *	p_node_g_layer_find(PINode *node, const char *name);
 size_t		p_node_g_layer_get_size(const PNGLayer *layer);
 const char *	p_node_g_layer_get_name(const PNGLayer *layer);

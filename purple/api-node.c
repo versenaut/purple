@@ -182,10 +182,18 @@ PINode * p_node_o_link_get(const PONode *node, const char *label, uint32 target_
 
 /* ----------------------------------------------------------------------------------------- */
 
-PNGLayer * p_node_g_layer_lookup(PINode *node, const char *name)
+unsigned int p_node_g_layer_num(PINode *node)
 {
-	if(node == NULL || name == NULL)
-		return NULL;
+	return nodedb_g_layer_num((NodeGeometry *) node);
+}
+
+PNGLayer * p_node_g_layer_nth(PINode *node, unsigned int n)
+{
+	return nodedb_g_layer_nth((NodeGeometry *) node, n);
+}
+
+PNGLayer * p_node_g_layer_find(PINode *node, const char *name)
+{
 	if(node->type != V_NT_GEOMETRY)
 		return NULL;
 	return nodedb_g_layer_find((NodeGeometry *) node, name);
