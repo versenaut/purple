@@ -850,9 +850,7 @@ static int sync_audio_layer(const NodeAudio *n, const NdbALayer *layer,
 		blk = bintree_iter_element(iter);
 		if((tblk = bintree_lookup(tlayer->blocks, (void *) index)) != NULL)
 		{
-			if(nodedb_a_blocks_equal(layer->type, blk, tblk))
-				printf(" Block %u equal, doing nothing\n", index);
-			else
+			if(!nodedb_a_blocks_equal(layer->type, blk, tblk))
 			{
 				printf(" Block %u differs, sending new version\n", index);
 				verse_send_a_block_set(target->node.id, tlayer->id, index, tlayer->type, blk->data);
@@ -861,11 +859,10 @@ static int sync_audio_layer(const NodeAudio *n, const NdbALayer *layer,
 		}
 		else
 		{
-			printf(" Target node missing block %u, setting it\n", index);
+/*			printf(" Target node missing block %u, setting it\n", index);*/
 			verse_send_a_block_set(target->node.id, tlayer->id, index, tlayer->type, blk->data);
 		}
 	}
-	printf(" returning %d\n", sync);
 	return sync;
 }
 
@@ -947,6 +944,7 @@ void sync_node_add(Node *node)
 {
 	if(node == NULL)
 		return;
+	timeval_jurassic(&node->sync.last_send);
 	if(node->id == (VNodeID) ~0)	/* Locally created? */
 		sync_info.queue_create = list_prepend(sync_info.queue_create, (void *) node);
 	else
@@ -959,6 +957,7 @@ void sync_update(double slice)
 {
 	List	*iter, *next;
 	Node	*n;
+	TimeVal	now;
 
 	/* Create nodes that need to be created. */
 	for(iter = sync_info.queue_create; iter != NULL; iter = next)
@@ -973,12 +972,16 @@ void sync_update(double slice)
 	}
 
 	/* Synchronize existing nodes. */
+	timeval_now(&now);
 	for(iter = sync_info.queue_sync; iter != NULL; iter = next)
 	{
 		Node	*n = list_data(iter);
 
 		next = list_next(iter);
 
+		if(timeval_elapsed(&n->sync.last_send, &now) < 0.1)
+			continue;
+		n->sync.last_send = now;
 		if(sync_node(n))
 		{
 			sync_info.queue_sync = list_unlink(sync_info.queue_sync, iter);
