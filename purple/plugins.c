@@ -549,11 +549,12 @@ PluginStatus plugin_instance_compute(PInstance *inst)
 		const Input	*in;
 
 		/* Check that all required inputs have values, and re-link ports to outputs for module-inputs. */
-		for(i = 0; (in = dynarr_index(p->input, i)) != NULL; i++)
+		for(i = 0; i < dynarr_size(p->input); i++)
 		{
 			uint32	module;
 
-			if(in->spec.req && port_is_unset(ps->input +i))
+			in = dynarr_index(p->input, i);
+			if(in->spec.req && port_is_unset(ps->input + i))
 				return PLUGIN_STOP_INPUT_MISSING;
 			if(plugin_portset_get_module(ps, i, &module))
 			{
