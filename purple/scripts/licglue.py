@@ -13,7 +13,7 @@ import string
 import sys
 
 LICENSE_TEMPLATE=" * Copyright (C) 2004 COPYRIGHT-PLACEHOLDER. See COPYING for license details."
-LICENSE=LICENSE_TEMPLATE
+LICENSE=""
 
 # Insert comment blurb at the top, either creating new comment or extending existing.
 def insert(name, file, blurb):
@@ -49,6 +49,9 @@ for a in sys.argv[1:]:
 	if a[0:7] == "--copy=":
 		copyright = a[7:]
 		LICENSE = string.replace(LICENSE_TEMPLATE, "COPYRIGHT-PLACEHOLDER", copyright)
+		continue
+	if LICENSE == "":
+		print "Use --copy to set copyright owner name"
 		continue
 	f = load(a)
 	if len(f) > 0:
