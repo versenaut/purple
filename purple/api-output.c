@@ -8,6 +8,7 @@
 */
 
 #include <stdarg.h>
+#include <stdio.h>
 
 #include "purple.h"
 
@@ -105,12 +106,12 @@ PONode * p_output_node(PPOutput out, PINode *v)
 
 PONode * p_output_node_o_link(PPOutput out, PONode *node, const char *label)
 {
-	PONode	*n;
+	Node	*n;
 
-	if((n = nodedb_o_link_get_local(node, label, 0)) != NULL)
+	if((n = nodedb_o_link_get_local((NodeObject *) node, label, 0)) != NULL)
 	{
 		n = nodedb_new_copy((Node *) n);
-		nodedb_o_link_set_local(node, label, n, 0);
+		nodedb_o_link_set_local((NodeObject *) node, n, label, 0);
 		graph_port_output_set_node(out, n);
 	}
 	else
@@ -132,7 +133,7 @@ PONode * p_output_node_pass(PPOutput out, PINode *node)
 {
 	if(out != NULL && node != NULL)
 	{
-		graph_port_output_set_node(out, node);
+		graph_port_output_set_node(out, (PONode *) node);
 		return (PONode *) node;
 	}
 	return NULL;
