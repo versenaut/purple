@@ -220,14 +220,20 @@ Node * nodedb_new_copy(const Node *src)
 	if((n = nodedb_new(src->type)) != NULL)
 	{
 		n->id = src->id;
-		n->type = src->type;
 		strcpy(n->name, src->name);
 		n->owner = src->owner;
 		n->tag_groups = dynarr_new_copy(src->tag_groups, cb_copy_tag_group, NULL);
 		switch(n->type)
 		{
+		case V_NT_AUDIO:
+			nodedb_a_copy((NodeAudio *) n, (const NodeAudio *) src);
+			printf("audio node copied, type is %d\n", n->type);
+			break;
 		case V_NT_BITMAP:
 			nodedb_b_copy((NodeBitmap *) n, (const NodeBitmap *) src);
+			break;	
+		case V_NT_CURVE:
+			nodedb_c_copy((NodeCurve *) n, (const NodeCurve *) src);
 			break;
 		case V_NT_GEOMETRY:
 			nodedb_g_copy((NodeGeometry *) n, (const NodeGeometry *) src);
@@ -237,9 +243,6 @@ Node * nodedb_new_copy(const Node *src)
 			break;
 		case V_NT_TEXT:
 			nodedb_t_copy((NodeText *) n, (const NodeText *) src);
-			break;
-		case V_NT_CURVE:
-			nodedb_c_copy((NodeCurve *) n, (const NodeCurve *) src);
 			break;
 		default:
 			LOG_WARN(("Node copy not implemented for type %d\n", n->type));
