@@ -351,6 +351,37 @@ NdbTagGroup * nodedb_tag_group_lookup(const Node *node, const char *name)
 	return NULL;
 }
 
+static void cb_default_tag(unsigned int index, void *element, void *user)
+{
+	NdbTag	*tag = element;
+
+	tag->name[0] = '\0';
+	tag->type = -1;
+}
+
+void nodedb_tag_create(NdbTagGroup *group, uint16 tag_id, const char *name, VNTagType type, const VNTag *value)
+{
+	NdbTag	*tag;
+
+	if(group == NULL || name == NULL || *name == '\0' || value == NULL)
+		return;
+	if(group->tags == NULL)
+	{
+		group->tags = dynarr_new(sizeof *tag, 4);
+		dynarr_set_default_func(group->tags, cb_default_tag, NULL);
+	}
+	if(tag_id == (uint16) ~0)
+		tag = dynarr_append(group->tags, NULL, NULL);
+	else
+		tag = dynarr_set(group->tags, tag_id, NULL);
+	if(tag != NULL)
+	{
+		stu_strncpy(tag->name, sizeof tag->name, name);
+		tag->type  = type;
+		tag->value = *value;	/* FIXME: Memory management for non-scalar types... */
+	}
+}
+
 NdbTag * nodedb_tag_lookup(NdbTagGroup *group, const char *name)
 {
 	unsigned int	i;
@@ -483,20 +514,13 @@ static void cb_tag_create(void *user, VNodeID node_id, uint16 group_id, uint16 t
 {
 	Node		*n;
 	NdbTagGroup	*tg;
-	NdbTag		*tag;
 
 	if((n = nodedb_lookup(node_id)) == NULL)
 		return;
 	if((tg = dynarr_index(n->tag_groups, group_id)) == NULL || tg->name[0] == '\0')
 		return;
-	if(tg->tags == NULL)
-		tg->tags = dynarr_new(sizeof *tag, 4);
-	if((tag = dynarr_set(tg->tags, tag_id, NULL)) != NULL)
-	{
-		stu_strncpy(tag->name, sizeof tag->name, name);
-		tag->type  = type;
-		tag->value = *value;
-	}
+	nodedb_tag_create(tg, tag_id, name, type, value);
+	NOTIFY(n, DATA);
 }
 
 static void cb_tag_destroy(void *user, VNodeID node_id, uint16 group_id, uint16 tag_id)
