@@ -6,6 +6,9 @@
  * A little something to measure elapsed time.
 */
 
+#if !defined TIMEVAL_H
+#define	TIMEVAL_H
+
 typedef struct
 {
 	long	sec, usec;
@@ -33,3 +36,5 @@ extern int	timeval_passed(const TimeVal *sometime, const TimeVal *now);
  * current time from timeval_now() is used.
 */
 extern double	timeval_elapsed(const TimeVal *then, const TimeVal *now);
+
+#endif		/* TIMEVAL_H */
