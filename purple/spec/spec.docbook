@@ -46,7 +46,7 @@ introduces and defines the terms used in the rest of this document.
 <sect2 id='sysview'>
 <title>System Overview</title>
 <para>
-The following figure shows, at a rather coarse level, the Purple system's organisation:
+The following figure shows, at a rather coarse level, the Purple system's organization:
 <figure>
 <title>System Overview</title>
  <mediaobject>
@@ -142,13 +142,13 @@ connects them into a polygonal mesh. This mesh then appears on the output.
 </para>
 <para>
 The Bend module has a single input labeled <quote>geometry</quote>. The plug-in will take any geometry it can
-find on its input, apply some kind of (here hardcoded, in a more realistic case it would take additional inputs
+find on its input, apply some kind of (here hard coded, in a more realistic case it would take additional inputs
 to control the amount and direction of the bend) bending transform on the vertices of the geometry. The bent
 geometry then appears on the output.
 </para>
 <para>
 Here, the final data would not end up on the Verse host, since the output of the Bend module is not connected
-to anything. It would require explicit action from the user, probably by conneting the output to some kind of
+to anything. It would require explicit action from the user, probably by connecting the output to some kind of
 <quote>Verse data sink</quote> module, to make the Purple engine write it to the host. Exactly how this will
 work has not yet been decided.
 </para>
@@ -270,31 +270,31 @@ visible functions, and use functions from the API to describe themselves and get
 A plug-in using the Purple API must define a single public function, called &Init;.
 </para>
 <sect3>
-<title>The &Init; Entrypoint</title>
+<title>The &Init; Entry point</title>
 <para>
 It is the responsibility of the &Init; function to register the plug-in with the engine. It does this by
 calling various functions in the <link linkend='api-init'>init group</link> of the API. Typically, the
 function will do:
 <itemizedlist>
 <listitem>
-<para>Register global meta information. Any meta information set before the creation of the first entrypoint
-will be inherited by all entrypoints.</para>
+<para>Register global meta information. Any meta information set before the creation of the first entry point
+will be inherited by all entry points.</para>
 </listitem>
 </itemizedlist>
-Then, for each entrypoint:
+Then, for each entry point:
 <orderedlist>
 <listitem>
-<para>Create the plug-in entrypoint by naming it. Any subsequent init-calls apply to the last named
-entrypoint.
+<para>Create the plug-in entry point by naming it. Any subsequent init-calls apply to the last named
+entry point.
 </para>
 </listitem>
 <listitem>
-<para>Initialize the entrypoint's inputs. This is the most important activity, if a plug-in requires input
+<para>Initialize the entry point's inputs. This is the most important activity, if a plug-in requires input
 data it must say so by registering inputs.</para>
 </listitem>
 <listitem>
 <para>Set meta information. This includes the plug-in's name, who wrote it, copyright, and various help
-and other descriptive texts. All of these are entierly optional, but to make the plug-in accessible for
+and other descriptive texts. All of these are entirely optional, but to make the plug-in accessible for
 end users it's a good idea to provide as much meta information as possible.</para>
 </listitem>
 <listitem>
@@ -306,7 +306,7 @@ call when the plug-in's output value is needed.
 </orderedlist>
 </para>
 <para>
-The &Init; does not recieve any arguments, and does return any value to the engine. All interaction is
+The &Init; does not receive any arguments, and does return any value to the engine. All interaction is
 done by calling functions in the init group. Calling functions in other groups has no effect, since the
 plug-in has not yet been instantiated (into a module) when &Init; runs.
 </para>
@@ -353,7 +353,7 @@ The API is for C, and has functions in the following categories:
 <itemizedlist>
 <listitem>
 <para>Initialization. Functions for letting the plug-in describe itself to the engine. Includes
-setting the function pointer the engine is to use as the plug-in's &Compute; entrypoint.</para>
+setting the function pointer the engine is to use as the plug-in's &Compute; entry point.</para>
 </listitem>
 <listitem>
 <para>Input accessing. Functions to get values for inputs.</para>
@@ -465,7 +465,7 @@ Finally, there is:
 void p_init_meta(const char *category, const char *text);
 </programlisting>
 This function registers <quote>meta data</quote> about the plug-in, using a simple string-based approach.
-Meta data is collected into categories, and categories look like path names in a filesystem (for instance
+Meta data is collected into categories, and categories look like path names in a file system (for instance
 <quote>desc/purpose</quote> should be a short text describing the purpose of the plug-in). The parameters
 are:
 <variablelist>
@@ -1045,7 +1045,7 @@ This example uses the <literal>multiply</literal> plug-in from <link linkend='ex
 <para>
 Here, it is important to note that the <symbol>real32</symbol> type given in the <symbol>set</symbol> elements
 refers <emphasis>only</emphasis> to the type of the value contained in the element; it has a very lose coupling
-to the types of the inputs that are being tageted. Purple does automatic type-conversion of values whenever possible.
+to the types of the inputs that are being targeted. Purple does automatic type-conversion of values whenever possible.
 A typical end user interface will use information from the plug-in descriptions to ensure that the types will
 match in practice, but this is not a requirement of the underlying basic technology.
 </para>
@@ -1102,7 +1102,7 @@ accordingly.
 <para>
 Accept <link linkend='comms-graphs'>graph editing</link> method calls, and update the <link linkend='comms-graphs'>
 graph description</link> when needed. When an input changes, do the minimum number of calls to various plug-ins'
-&Compute; functions. This can change module outputs, which in turn changes othe module's inputs...
+&Compute; functions. This can change module outputs, which in turn changes other module's inputs...
 </para>
 </listitem>
 </itemizedlist>
@@ -1120,7 +1120,7 @@ engine client executable.
 <para>
 In the simplest form, the engine inspects the disk location where plug-ins are held once, as it starts up. For each
 found file, it tries to validate it as actually being a Purple plug-in, and if it seems to be, issues a call to the
-&Init; entrypoint. A slightly more advanced approach, possible as a future enhancement, would be for the engine to
+&Init; entry point. A slightly more advanced approach, possible as a future enhancement, would be for the engine to
 continually monitor the plug-in location, and load/unload plug-ins as they appear/disappear. This would make the
 development of plug-ins more dynamic since the engine would not need to be restarted with each new version of one of
 its plug-ins.
@@ -1138,7 +1138,7 @@ exported as XML in a Verse text node.
 <title>Graph Editing</title>
 <para>
 The engine, being a Verse client, will have a object node associated with it on the Verse host. Verse object
-nodes can contain method groups that in turn contain methods, which are named procedure-like entrypoints that can
+nodes can contain method groups that in turn contain methods, which are named procedure-like entry points that can
 accepts calls with a set of parameters. Such methods have <link linkend='comms-methods'>been chosen</link> as the
 interface to use to edit Purple module graphs.
 </para>
@@ -1250,7 +1250,7 @@ a passive scene display, perhaps implemented using existing Verse rendering tech
 module graph display.
 </para>
 <para>
-As an intitial mental model, the UI client will probably most resemble a typical (if there is such a thing)
+As an initial mental model, the UI client will probably most resemble a typical (if there is such a thing)
 3D modeling/animation package. The intent is that it should have the same functionality, provided there are
 plug-ins available for the required tasks.
 </para>
