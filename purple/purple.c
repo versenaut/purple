@@ -2,8 +2,11 @@
  * A little something we call Purple.
 */
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <sys/select.h>
 
 #include "verse.h"
 
@@ -12,7 +15,9 @@
 #include "dynlib.h"
 #include "dynstr.h"
 #include "filelist.h"
+#include "graph.h"
 #include "hash.h"
+#include "idset.h"
 #include "list.h"
 #include "log.h"
 #include "mem.h"
@@ -266,6 +271,39 @@ static void test_xmlnode(void)
 	}
 }
 
+static void test_idset(void)
+{
+	IdSet		*is;
+	const char	*a = "a", *b = "b", *c = "c";
+	void		*p;
+	unsigned int	id;
+
+	is = idset_new();
+	printf("inserting a at %p\n", a);
+	idset_insert(is, a);
+	idset_insert(is, b);
+	idset_insert(is, c);
+	for(id = idset_foreach_first(is); (p = idset_lookup(is, id)) != NULL; id = idset_foreach_next(is, id))
+	{
+		printf("%u: %s\n", id, (const char *) p);
+	}
+	printf("removing 1, 0\n");
+	idset_remove(is, 1);
+	idset_remove(is, 0);
+	for(id = idset_foreach_first(is); (p = idset_lookup(is, id)) != NULL; id = idset_foreach_next(is, id))
+	{
+		printf("%u: %s\n", id, (const char *) p);
+	}
+	idset_insert(is, b);
+	idset_insert(is, a);
+	for(id = idset_foreach_first(is); (p = idset_lookup(is, id)) != NULL; id = idset_foreach_next(is, id))
+	{
+		printf("%u: %s\n", id, (const char *) p);
+	}
+
+	idset_destroy(is);
+}
+
 static int cron_handler(void *data)
 {
 	static int	count = 3;
@@ -273,6 +311,87 @@ static int cron_handler(void *data)
 	printf("count: %d\n", --count);
 
 	return count > 0;
+}
+
+static void console_update(void)
+{
+	int	fd;
+	fd_set	fds;
+	struct timeval	timeout;
+
+	fd = fileno(stdin);
+	FD_ZERO(&fds);
+	FD_SET(fd, &fds);
+	timeout.tv_sec  = 0;
+	timeout.tv_usec = 1000;
+	if(select(fd + 1, &fds, NULL, NULL, &timeout))
+	{
+		char	line[1024];
+		int	got;
+
+		if((got = read(fd, line, sizeof line)) > 0)
+		{
+			line[got] = '\0';
+			while(got > 0 && isspace(line[got - 1]))
+				line[--got] = '\0';
+			if(strncmp(line, "gc ", 3) == 0)
+			{
+				VNodeID	node;
+				uint16	buf;
+				char	name[64];
+
+				if(sscanf(line, "gc %u %u %s", &node, &buf, name) == 3)
+					graph_method_send_call_create(node, buf, name);
+			}
+			else if(strncmp(line, "gr ", 3) == 0)
+			{
+				uint32	id;
+				char	name[64];
+
+				if(sscanf(line, "gr %u %s", &id, name) == 2)
+					graph_method_send_call_rename(id, name);
+			}
+			else if(strncmp(line, "gd ", 3) == 0)
+			{
+				uint32	id;
+
+				if(sscanf(line, "gd %u", &id) == 1)
+					graph_method_send_call_destroy(id);
+			}
+			else if(strncmp(line, "nc ", 3) == 0)
+			{
+				if(strcmp(line + 3, "text") == 0)
+					verse_send_node_create(0, V_NT_TEXT, client_info.avatar);
+				else
+					printf("Use \"nc text\" to create a new text node\n");
+			}
+			else if(strncmp(line, "ns ", 3) == 0)
+			{
+				VNodeID	node;
+
+				if(sscanf(line, "ns %u", &node) == 1)
+					verse_send_node_subscribe(node);
+			}
+			else if(strncmp(line, "tbc ", 4) == 0)
+			{
+				VNodeID	node;
+				char	name[32];
+
+				if(sscanf(line, "tbc %u %s", &node, name) == 2)
+					verse_send_t_buffer_create(node, ~0, 0, name);
+			}
+			else if(strncmp(line, "tsl ", 4) == 0)
+			{
+				VNodeID	node;
+				char	lang[32];
+
+				if(sscanf(line, "tsl %u %s", &node, lang) == 2)
+					verse_send_t_set_language(node, lang);
+			}
+			else
+				printf("Input: '%s'\n", line);
+		}
+	}
 }
 
 int main(void)
@@ -283,6 +402,8 @@ int main(void)
 	list_init();
 	plugins_init("/home/emil/data/projects/purple/plugins/");
 
+	graph_init();
+
 /*	test_chunk();
 	test_list();
 	test_dynarr();
@@ -292,6 +413,7 @@ int main(void)
 	test_dynstr();
 	test_textbuf();
 	test_xmlnode();
+	test_idset();
 	return 0;
 */
 	plugins_libraries_load();
@@ -310,6 +432,7 @@ int main(void)
 /*			printf("Buffer: %u\n", verse_session_get_size());*/
 			verse_callback_update(100);
 			cron_update();
+			console_update();
 		}
 	}
 	return 0;
