@@ -57,6 +57,29 @@ void nodedb_t_destruct(NodeText *n)
 	dynarr_destroy(n->buffers);
 }
 
+const char * nodedb_t_language_get(const NodeText *node)
+{
+	if(node == NULL || node->node.type != V_NT_TEXT)
+		return NULL;
+	return node->language;
+}
+
+size_t nodedb_t_buffer_get_count(const NodeText *node)
+{
+	unsigned int	i, count = 0;
+	NdbTBuffer	*b;
+
+	if(node == NULL || node->node.type != V_NT_TEXT)
+		return 0;
+	for(i = 0; (b = dynarr_index(node->buffers, i)) != NULL; i++)
+	{
+		if(b->name[0] == '\0')
+			continue;
+		count++;
+	}
+	return count;
+}
+
 NdbTBuffer * nodedb_t_buffer_lookup(const NodeText *node, const char *name)
 {
 	unsigned int	i;
@@ -64,22 +87,12 @@ NdbTBuffer * nodedb_t_buffer_lookup(const NodeText *node, const char *name)
 
 	if(node == NULL || name == NULL || *name == '\0')
 		return NULL;
-	for(i = 0; i < dynarr_size(node->buffers); i++)
+	for(i = 0; (b = dynarr_index(node->buffers, i)) != NULL; i++)
 	{
-		if((b = dynarr_index(node->buffers, i)) != NULL)
-		{
-			if(strcmp(b->name, name) == 0)
-				return b;
-		}
+		if(strcmp(b->name, name) == 0)
+			return b;
 	}
 	return NULL;
-}
-
-NdbTBuffer * nodedb_t_buffer_lookup_id(const NodeText *node, uint16 buffer_id)
-{
-	if(node == NULL)
-		return NULL;
-	return dynarr_index(node->buffers, buffer_id);
 }
 
 /* ----------------------------------------------------------------------------------------- */
