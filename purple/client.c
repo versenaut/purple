@@ -67,11 +67,6 @@ static void cb_o_method_group_create(void *user, VNodeID node_id, uint8 group_id
 	LOG_MSG(("Node %u has method group %u, \"%s\"", node_id, group_id, name));
 	if(node_id == client_info.avatar && strcmp(name, METHOD_GROUP_CONTROL_NAME) == 0)
 	{
-		const VNOParamType	create_type[]   = { VN_O_METHOD_PTYPE_STRING },
-					destroy_type[]  = { VN_O_METHOD_PTYPE_UINT32 };
-		const char		*create_name[]  = { "name" },
-					*destroy_name[] = { "graph" };
-
 		client_info.gid_control = group_id;
 		verse_send_o_method_group_subscribe(client_info.avatar, group_id);
 		graph_method_send_creates(client_info.avatar, client_info.gid_control);
