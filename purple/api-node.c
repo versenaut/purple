@@ -14,6 +14,7 @@
 
 #include "dynarr.h"
 #include "list.h"
+#include "strutil.h"
 #include "textbuf.h"
 
 #include "nodedb.h"
@@ -33,6 +34,70 @@ void p_node_name_set(PONode *node, const char *name)
 VNodeType p_node_type_get(PINode *node)
 {
 	return nodedb_type_get(node);
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
+PNTagGroup * p_node_tag_group_create(PONode *node, const char *name)
+{
+	return nodedb_tag_group_create(node, ~0, name);
+}
+
+PNTagGroup * p_node_tag_group_lookup(PINode *node, const char *name)
+{
+	return nodedb_tag_group_lookup(node, name);
+}
+
+void p_node_tag_create(PNTagGroup *group, const char *name, VNTagType type, const VNTag *value)
+{
+	nodedb_tag_create(group, ~0, name, type, value);
+}
+
+/* Convenience routine to lookup a group, and set a tag all in one call. Uses group/tag syntax. */
+void p_node_tag_create_path(PONode *node, const char *path, VNTagType type, ...)
+{
+	char	group[32], *put;
+
+	if(node == NULL || path == NULL || *path == '\0')
+		return;
+	for(put = group; *path != '/' && (put - group) < (sizeof group - 1);)
+		*put++ = *path++;
+	*put = '\0';
+	if(*path == '/')
+	{
+		NdbTagGroup	*tg;
+		NdbTag		*tag;
+		VNTag		value;
+		va_list		arg;
+
+		if((tg = nodedb_tag_group_lookup(node, group)) == NULL)
+			tg = nodedb_tag_group_create(node, ~0, group);
+		path++;
+		va_start(arg, type);
+		switch(type)
+		{
+		case VN_TAG_BOOLEAN:
+			value.vboolean = va_arg(arg, int);
+			break;
+		case VN_TAG_UINT32:
+			value.vuint32 = va_arg(arg, uint32);
+			break;
+		case VN_TAG_REAL64:
+			value.vreal64 = va_arg(arg, real64);
+			break;
+		case VN_TAG_STRING:
+			value.vstring = stu_strdup(va_arg(arg, const char *));
+			break;
+		default:
+			printf("not implemented\n");
+		}
+		va_end(arg);
+		/* If tag exists, just (re)set the value, else create it. */
+		if((tag = nodedb_tag_lookup(tg, path)) != NULL)
+			nodedb_tag_set(tag, type, &value);
+		else
+			nodedb_tag_create(tg, ~0, path, type, &value);
+	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
