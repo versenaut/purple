@@ -183,10 +183,10 @@ static int set_value(PInputValue *value, PInputType new_type, va_list *taglist)
 		value->v.vboolean = (boolean) va_arg(*taglist, int);
 		return 0;
 	case P_INPUT_INT32:
-		value->v.vint32 = (int32) va_arg(*taglist, double);
+		value->v.vint32 = (int32) va_arg(*taglist, int32);
 		return 1;
 	case P_INPUT_UINT32:
-		value->v.vuint32 = (uint32) va_arg(*taglist, double);
+		value->v.vuint32 = (uint32) va_arg(*taglist, uint32);
 		return 1;
 	case P_INPUT_REAL32:
 		value->v.vreal32 = (real32) va_arg(*taglist, double);
