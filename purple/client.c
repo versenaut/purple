@@ -10,6 +10,7 @@
 #include "cron.h"
 #include "graph.h"
 #include "log.h"
+#include "textbuf.h"
 #include "timeval.h"
 #include "strutil.h"
 
@@ -22,7 +23,8 @@
 typedef struct {
 	VNodeID		node;
 	uint16		buffer;
-	unsigned int	cron_id;
+	unsigned int	cron;
+	TextBuf		*text;		/* Remote (shared, server-side) plugins description. */
 } PluginsDesc;
 
 static struct
@@ -109,16 +111,38 @@ static void cb_o_method_call(void *user, VNodeID node_id, uint8 group_id, uint8 
 		LOG_WARN(("Got method call to unknown group %u, method %u", group_id, method_id));
 }
 
+static int cb_plugins_refresh(void *data)
+{
+	printf("Verse plugins: '%s'\n", textbuf_text(client_info.plugins.text));
+	return 1;
+}
+
 static void cb_t_buffer_create(void *user, VNodeID node_id, VNMBufferID buffer_id, uint16 index, const char *name)
 {
 	printf("Text node %u has buffer named \"%s\", id=%u\n", node_id, name, buffer_id);
-	verse_send_t_buffer_subscribe(node_id, buffer_id);
-	verse_send_t_text_set(node_id, buffer_id, 0, 100, "<?xml version=\"1.0\" standalone=\"yes\"?>\n");
+	if(node_id == client_info.plugins.node && strcmp(name, "plugins") == 0)
+	{
+		verse_send_t_buffer_subscribe(node_id, buffer_id);
+		verse_send_t_text_set(node_id, buffer_id, 0, 100, "<?xml version=\"1.0\" standalone=\"yes\"?>\n");
+		if(client_info.plugins.cron == 0)
+			client_info.plugins.cron = cron_add(CRON_PERIODIC, 1.0E9, cb_plugins_refresh, NULL);
+		client_info.plugins.text = textbuf_new(2048);
+	}
+	else
+		printf(" Unknown, ignoring\n");
 }
 
 static void cb_t_text_set(void *user, VNodeID node_id, VNMBufferID buffer_id, uint32 pos, uint32 len, const char *text)
 {
-	printf("insert %u at %u: '%s'\n", len, pos, text);
+	if(node_id != client_info.plugins.node || buffer_id != client_info.plugins.buffer)
+		return;
+	if(client_info.plugins.text != NULL)
+	{
+		textbuf_delete(client_info.plugins.text, pos, len);
+		textbuf_insert(client_info.plugins.text, pos, text);
+		if(client_info.plugins.cron != 0)
+			cron_set(client_info.plugins.cron, 1.0, cb_plugins_refresh, NULL);
+	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
