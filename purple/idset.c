@@ -90,7 +90,7 @@ unsigned int idset_insert_with_id(IdSet *is, unsigned int id, void *object)
 	}
 	/* Desired ID is beyond the current range. Extend with fake removes. */
 	dist = id - is->max;
-	LOG_MSG(("Inserting in idset with known ID %u, distance from max %u is %u\n", id, is->max, dist));
+	LOG_MSG(("Inserting in idset with known ID %u, distance from max %u is %u", id, is->max, dist));
 	i = id - 1;
 	do
 	{
