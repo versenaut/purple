@@ -36,4 +36,7 @@ extern void		nodedb_g_construct(NodeGeometry *n);
 extern void		nodedb_g_copy(NodeGeometry *n, const NodeGeometry *src);
 extern void		nodedb_g_destruct(NodeGeometry *n);
 
+extern NdbGLayer *	nodedb_g_layer_lookup(const NodeGeometry *n, const char *name);
+extern void		nodedb_g_layer_create(NodeGeometry *n, VLayerID layer_id, const char *name, VNGLayerType type);
+
 extern void		nodedb_g_register_callbacks(void);
