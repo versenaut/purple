@@ -15,6 +15,17 @@ extern size_t		idset_size(const IdSet *is);
 
 extern void *		idset_lookup(const IdSet *is, unsigned int id);
 
-extern void *		idset_foreach_next(const IdSet *is, unsigned int *id);
+/*
+ * const IdSet *is;
+ * unsigned int	id;
+ * void *obj;
+ * 
+ * for(id = idset_foreach_first(is); (obj = idset_lookup(is, id)) != NULL; id = idset_foreach_next(is, id))
+ * {
+ * 	Process object with ID <id>.
+ * }
+*/
+extern unsigned int	idset_foreach_first(const IdSet *is);
+extern unsigned int	idset_foreach_next(const IdSet *is, unsigned int id);
 
 extern void		idset_destroy(IdSet *is);

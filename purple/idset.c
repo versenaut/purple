@@ -73,22 +73,42 @@ size_t idset_size(const IdSet *is)
 
 void * idset_lookup(const IdSet *is, unsigned int id)
 {
-	return *(void **) dynarr_index(is->arr, id);
+	void	**objp;
+
+	if(is == NULL)
+		return NULL;
+	if((objp = dynarr_index(is->arr, id)) != NULL)
+		return *objp;
+	return NULL;
 }
 
-void * idset_foreach_next(const IdSet *is, unsigned int *id)
+unsigned int idset_foreach_first(const IdSet *is)
+{
+	unsigned int	id;
+	void		**objp;
+
+	if(is == NULL)
+		return 0;
+	for(id = 0; id < dynarr_size(is->arr); id++)
+	{
+		if((objp = dynarr_index(is->arr, id)) != NULL && *objp != NULL)
+			return id;
+	}
+	return 0;
+}
+
+unsigned int idset_foreach_next(const IdSet *is, unsigned int id)
 {
 	void	**objp;
 
-	if(is == NULL || id == NULL)
-		return NULL;
-	while((objp = dynarr_index(is->arr, *id)) != NULL)
+	if(is == NULL)
+		return 0;
+	while((objp = dynarr_index(is->arr, ++id)) != NULL)
 	{
-		*id++;
 		if(*objp != NULL)
-			return *objp;
+			return id;
 	}
-	return NULL;
+	return id;
 }
 
 void idset_destroy(IdSet *is)
