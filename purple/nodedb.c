@@ -166,6 +166,9 @@ Node * nodedb_new(VNodeType type)
 		case V_NT_CURVE:
 			nodedb_c_construct((NodeCurve *) n);
 			break;
+		case V_NT_AUDIO:
+			nodedb_a_construct((NodeAudio *) n);
+			break;
 		default:
 			LOG_WARN(("Missing node-specific init code for type %d", type));
 		}
