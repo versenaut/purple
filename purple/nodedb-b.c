@@ -246,21 +246,23 @@ void nodedb_b_layer_access_end(NodeBitmap *node, NdbBLayer *layer, void *framebu
 
 /* ----------------------------------------------------------------------------------------- */
 
+/* Information used to keep track of a multi-layer framebuffer. */
 struct multi_info
 {
-	unsigned char	*fb;	/* Points at first byte past structure, beginning of framebuffer. */
-	unsigned char	*put;
-	size_t		mask;
-	VNBLayerType	format;
-	NodeBitmap	*node;
-	size_t		num;
-	NdbBLayer	*layer[16];
-	void		*access[16];
-	size_t		row_size, sheet_size;
-	int		y, z;
-	/* Framebuffer for multi-format interleaved image goes here. */
+	unsigned char	*fb;			/* Points at first byte past structure, framebuffer base. */
+	unsigned char	*put;			/* Used when reading and writing, loops over scanlines. */
+	size_t		mask;			/* Used for 1bpp layer access. */
+	VNBLayerType	format;			/* Format of each layer in this multi-layer buffer. */
+	NodeBitmap	*node;			/* Source node for the layers. */
+	size_t		num;			/* Number of layers in buffer, at least 1. */
+	NdbBLayer	*layer[16];		/* Source layer pointers. */
+	void		*access[16];		/* Source layer framebuffer pointers. */
+	size_t		row_size, sheet_size;	/* Handy sizes. */
+	int		y, z;			/* Current scanline coordinates. */
+	/* Framebuffer for multi-layer interleaved image goes here. */
 };
 
+/* Prepare to process a scanline of a multi-layer framebuffer. */
 static void multi_scanline_init(struct multi_info *mi, int y, int z)
 {
 	mi->put = mi->fb + z * mi->sheet_size + y * mi->row_size;
@@ -289,6 +291,7 @@ static real64 layer_get_pixel(const NodeBitmap *node, NdbBLayer *layer, const un
 	return 0.0;
 }
 
+/* Write <pixel> to <layer>'s <framebuffer> at (x,y,z), converting it to the layer's type as needed. */
 static void layer_put_pixel(const NodeBitmap *node, NdbBLayer *layer, unsigned char *framebuffer,
 			    int x, int y, int z, real64 pixel)
 {
@@ -312,6 +315,7 @@ static void layer_put_pixel(const NodeBitmap *node, NdbBLayer *layer, unsigned c
 		((real64 *) framebuffer)[z * node->width * node->height + y * node->width + x] = pixel;
 }
 
+/* Initialize multi framebuffer by reading out and writing pixel <x> from the current scanline in all layers. */
 static void multi_put_pixel(struct multi_info *mi, int x)
 {
 	real64	pix;
@@ -453,6 +457,7 @@ void nodedb_b_layer_access_multi_end(NodeBitmap *node, void *framebuffer)
 						pixel = ((const real32 *) mi->put)[off];
 					else if(mi->format == VN_B_LAYER_REAL64)
 						pixel = ((const real64 *) mi->put)[off];
+					/* Write pixel into source layer. */
 					layer_put_pixel(mi->node, mi->layer[i], mi->access[i], x, y, z, pixel);
 				}
 			}
