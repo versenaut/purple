@@ -39,7 +39,18 @@ Node * nodedb_lookup(VNodeID node_id)
 	return hash_lookup(nodedb_info.nodes, (const void *) node_id);
 }
 
+NodeText * nodedb_lookup_text(VNodeID node_id)
+{
+	Node	*n;
+
+	if((n = nodedb_lookup(node_id)) != NULL)
+		return n->type == V_NT_TEXT ? (NodeText *) n : NULL;
+	return NULL;
+}
+
 /* ----------------------------------------------------------------------------------------- */
+
+#define	NOTIFY(n, e)	notify_mine_check((Node *) (n), NODEDB_NOTIFY_ ## e);
 
 static void notify_mine_check(Node *n, NodeNotifyEvent ev)
 {
@@ -72,7 +83,7 @@ static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeID 
 		if(n->owner == nodedb_info.avatar)
 		{
 			hash_insert(nodedb_info.nodes_mine, (const void *) n->id, n);
-			notify_mine_check(n, NODEDB_NOTIFY_CREATE);
+			NOTIFY(n, CREATE);
 		}
 		verse_send_node_subscribe(node_id);
 	}
@@ -88,10 +99,22 @@ static void cb_node_name_set(void *user, VNodeID node_id, const char *name)
 	{
 		stu_strncpy(n->name, sizeof n->name, name);
 		LOG_MSG(("Name of %u set to \"%s\"", n->id, n->name));
-		notify_mine_check(n, NODEDB_NOTIFY_DATA);
+		NOTIFY(n, DATA);
 	}
 	else
 		LOG_WARN(("Couldn't set name of node %u, not found in database", node_id));
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
+static void cb_t_buffer_create(void *user, VNodeID node_id, uint16 buffer_id, const char *name)
+{
+	NodeText	*n;
+
+	if((n = nodedb_lookup_text(node_id)) != NULL)
+	{
+		NOTIFY(n, STRUCTURE);
+	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -122,7 +145,8 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 	verse_callback_set(verse_send_node_create,	cb_node_create,	NULL);
 	verse_callback_set(verse_send_node_name_set,	cb_node_name_set, NULL);
 
- 	verse_send_node_list(0);
+	verse_callback_set(verse_send_t_buffer_create,	cb_t_buffer_create, NULL);
+
  	verse_send_node_list(mask);
 }
 
