@@ -28,7 +28,7 @@ struct XmlNode
 {
 	const char	*element;
 	const char	*text;
-	List		*attribs;
+	Attrib		**attrib;	/* NULL-terminated array, all allocated in one piece. */
 	List		*children;
 };
 
@@ -155,6 +155,111 @@ static const char * token_get(const char *buffer, DynStr **token, int skip_space
 
 /* ----------------------------------------------------------------------------------------- */
 
+static int cmp_attr(const void *a, const void *b)
+{
+	const Attrib	*aa = *(Attrib **) a, *ab = *(Attrib **) b;
+
+	return strcmp(aa->name, ab->name);
+}
+
+static Attrib ** attribs_build(const char *token)
+{
+	size_t		num = 0, name_size = 0, value_size = 0;
+	const char	*src = token;
+
+	while(*src)
+	{
+		while(isspace(*src))
+			src++;
+		if(isalpha(*src))
+		{
+			while(isalpha(*src) || *src == '-')
+			{
+				name_size++;
+				src++;
+			}
+			if(*src == '=')
+			{
+				char	quot;
+
+				src++;
+				quot = *src;
+				if(quot == '\'' || quot == '"')
+				{
+					src++;
+					while(*src && *src != quot)
+					{
+						value_size++;
+						src++;
+					}
+					if(*src == quot)
+						src++;
+					else
+						return NULL;
+					num++;
+				}
+				else
+					return NULL;
+			}
+			else
+				return NULL;
+		}
+		else
+			return NULL;
+	}
+	printf("found %d attribs, %u bytes in names and %u in values\n", num, name_size, value_size);
+	if(num > 0 && name_size > 0 && value_size > 0)
+	{
+		Attrib	**attr;
+
+		if((attr = mem_alloc((num + 1) * sizeof *attr + num * sizeof **attr + (name_size + value_size + 2 * num))) != NULL)
+		{
+			int	index = 0;
+			Attrib	*a = (Attrib *) (attr + (num + 1));
+			char	*put = (char *) (a + num);
+
+			printf("%u and %u (%u %u)\n", (char *) a - (char *) attr, put - (char *) a, num, sizeof *a);
+			src = token;
+			while(*src)
+			{
+				while(isspace(*src))
+					src++;
+				if(isalpha(*src))
+				{
+					attr[index] = a;
+					a->name = put;
+					while(isalpha(*src) || *src == '-')
+						*put++ = *src++;
+					*put++ = '\0';
+					if(*src == '=')
+					{
+						char	quot;
+
+						src++;
+						quot = *src;
+						if(quot == '\'' || quot == '"')
+						{
+							src++;
+							a->value = put;
+							while(*src && *src != quot)
+								*put++ = *src++;
+							*put++ = '\0';
+							if(*src == quot)
+								src++;
+							index++;
+							a++;
+						}
+					}
+				}
+			}
+			attr[index] = NULL;
+			qsort(attr, num, sizeof *attr, cmp_attr);
+			return attr;
+		}
+	}
+	return NULL;
+}
+
 static XmlNode * node_new(const char *token)
 {
 	size_t	elen;
@@ -173,10 +278,18 @@ static XmlNode * node_new(const char *token)
 			for(i = 0; i < elen; i++)
 				*put++ = token[i];
 			*put = '\0';
-			node->element = (const char *) (node + 1);
+			node->element  = (const char *) (node + 1);
 			node->text     = NULL;
-			node->attribs  = NULL;
+			node->attrib   = attribs_build(token + elen);
 			node->children = NULL;
+
+			if(node->attrib != NULL)
+			{
+				int	i;
+
+				for(i = 0; node->attrib[i] != NULL; i++)
+					printf("%s='%s'\n", node->attrib[i]->name, node->attrib[i]->value);
+			}
 			return node;
 		}
 	}
@@ -269,7 +382,7 @@ XmlNode * xmlnode_new(const char *buffer)
 
 const char * xmlnode_attrib_get(const XmlNode *node, const char *name)
 {
-	const List	*iter;
+/*	const List	*iter;
 
 	if(node == NULL || name == NULL || *name == '\0')
 		return NULL;
@@ -283,7 +396,7 @@ const char * xmlnode_attrib_get(const XmlNode *node, const char *name)
 		else if(rel > 0)
 			break;
 	}
-	return NULL;
+*/	return NULL;
 }
 
 static void do_print_outline(const XmlNode *root, int indent)
