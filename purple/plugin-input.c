@@ -19,7 +19,6 @@
 
 typedef struct
 {
-	int	init;
 	Node	*notify;
 	void	*notify_handle;
 } State;
@@ -35,12 +34,6 @@ static void compute(PPInput *input, PPOutput output, void *state_typeless)
 	State	*state = state_typeless;
 
 	printf("Input::compute() running, state at %p\n", state);
-	if(!state->init)
-	{
-		printf("First time in input::compute\n");
-		state->init   = 1;
-		state->notify = NULL;
-	}
 	if(p_input_string(input[0], name, sizeof name) != NULL)
 	{
 		Node	*node;
@@ -52,7 +45,10 @@ static void compute(PPInput *input, PPOutput output, void *state_typeless)
 			/* De-register current. */
 			nodedb_notify_node_remove(state->notify, state->notify_handle);
 			if(node != NULL)	/* Register new. */
+			{
 				state->notify_handle = nodedb_notify_node_add(node, cb_notify, NULL);
+				printf(" added notification, handle %p\n", state->notify_handle);
+			}
 			else
 				state->notify_handle = NULL;
 			state->notify = node;
@@ -62,6 +58,22 @@ static void compute(PPInput *input, PPOutput output, void *state_typeless)
 		printf("Input couldn't get node name to watch\n");
 }
 
+static void ctor(void *state_typeless)
+{
+	State	*state = state_typeless;
+
+	state->notify = NULL;
+	state->notify_handle = NULL;
+}
+
+static void dtor(void *state_typeless)
+{
+	State	*state = state_typeless;
+
+	if(state->notify)
+		nodedb_notify_node_remove(state->notify, state->notify_handle);
+}
+
 /* This works just as a "real" (library-based) plug-in's init() function. */
 void plugin_input_init(void)
 {
@@ -69,6 +81,6 @@ void plugin_input_init(void)
 	p_init_input(0, P_INPUT_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_meta("desc/purpose", "Built-in plug-in, outputs the single node whose name is given");
 	p_init_meta("author", "Emil Brink");
-	p_init_state(sizeof (State));
+	p_init_state(sizeof (State), ctor, dtor);
 	p_init_compute(compute);
 }
