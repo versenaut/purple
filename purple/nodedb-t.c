@@ -69,6 +69,13 @@ const char * nodedb_t_language_get(const NodeText *node)
 	return node->language;
 }
 
+void nodedb_t_language_set(NodeText *node, const char *language)
+{
+	if(node == NULL || language == NULL)
+		return;
+	stu_strncpy(node->language, sizeof node->language, language);
+}
+
 size_t nodedb_t_buffer_get_count(const NodeText *node)
 {
 	unsigned int	i, count = 0;
