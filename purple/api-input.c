@@ -72,6 +72,17 @@ static int input_real64(const PInputValue *v, real64 *value)
 
 /* These are the plug-in-visible actual Purple API functions. */
 
+boolean p_input_boolean(PPInput input)
+{
+	const PInputValue	*v = input;
+	real64			value;
+
+	if(input_real64(v, &value))
+		return value != 0.0;
+	LOG_WARN(("Can't convert value of type %d to boolean", v->type));
+	return 0;
+}
+
 int32 p_input_int32(PPInput input)
 {
 	const PInputValue	*v = input;
