@@ -5,7 +5,7 @@
 CC=gcc
 CFLAGS=-I.. -I../../verse/ -shared -Wstrict-prototypes -Wmissing-prototypes
 
-ALL:	libbbox.so libchecker.so libcube.so libhello.so libfactors.so libmath.so \
+ALL:	libbbox.so libchecker.so libcube.so libdisc.so libhello.so libfactors.so libmath.so \
 	libmeasure.so libscale.so libstringop.so libwarp.so
 
 lib%.so : %.c
@@ -16,6 +16,8 @@ libbbbox.so:	bbox.c
 libchecker.so:	checker.c
 
 libcube.so:	cube.c
+
+libdisc.so:	disc.c
 
 libhello.so:	hello.c
 
