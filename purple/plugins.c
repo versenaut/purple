@@ -487,8 +487,9 @@ void plugin_portset_destroy(PPortSet *ps)
 	mem_free(ps);
 }
 
-void plugin_run_compute(Plugin *p, PPortSet *ps, void *state)
+static void plugin_run_compute(Plugin *p, PInstance *inst)
 {
+	PPortSet	*ps = inst->inputs;
 	PPInput	*port;
 
 	if(p == NULL || ps == NULL)
@@ -498,16 +499,25 @@ void plugin_run_compute(Plugin *p, PPortSet *ps, void *state)
 		size_t		i;
 		const Input	*in;
 
-		/* Check that all required inputs have values. */
+		/* Check that all required inputs have values, and re-link ports to outputs for module-inputs. */
 		for(i = 0; (in = dynarr_index(p->input, i)) != NULL; i++)
 		{
+			uint32	module;
+
 			if(in->spec.req && port_is_unset(ps->input +i))
 			{
 				LOG_MSG(("Can't run compute() in %s, missing required input %u", p->name, i));
 				return;
 			}
+			if(plugin_portset_get_module(ps, i, &module))
+			{
+				PPOutput	o;
+
+				if((o = inst->resolver(module, inst->resolver_data)) != NULL)
+					ps->port[i] = o;
+			}
 		}
-		p->compute(port, NULL, state);
+		p->compute(port, inst->output, inst->state);
 	}
 }
 
@@ -535,9 +545,24 @@ int plugin_instance_init(Plugin *p, PInstance *inst)
 	return 1;
 }
 
-void plugin_instance_compute(Plugin *p, const PInstance *inst)
+void plugin_instance_set_output(PInstance *inst, PPOutput output)
 {
-	plugin_run_compute(p, inst->inputs, inst->state);
+	if(inst != NULL)
+		inst->output = output;
+}
+
+void plugin_instance_set_link_resolver(PInstance *inst, PPOutput (*get_module)(uint32 module_id, void *data), void *data)
+{
+	if(inst != NULL && get_module != NULL)
+	{
+		inst->resolver = get_module;
+		inst->resolver_data = data;
+	}
+}
+
+void plugin_instance_compute(Plugin *p, PInstance *inst)
+{
+	plugin_run_compute(p, inst);
 }
 
 void plugin_instance_free(Plugin *p, PInstance *inst)
@@ -646,7 +671,10 @@ void plugins_libraries_load(void)
 			int	j;
 
 			for(j = 0; j < filelist_size(fl); j++)
+			{
+				printf("attempting to load '%s'\n", filelist_filename_full(fl, j));
 				library_new(filelist_filename_full(fl, j));
+			}
 		}
 		else
 			LOG_MSG(("Couldn't load file list from \"%s\"", plugins_info.paths[i]));
