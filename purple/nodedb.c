@@ -271,9 +271,9 @@ static unsigned int node_hash(const void *p)
 	return (unsigned int) p;
 }
 
-static int node_has_key(const void *key, const void *obj)
+static int node_key_eq(const void *key1, const void *key2)
 {
-	return ((const Node *) obj)->id == (uint32) key;
+	return key1 == key2;
 }
 
 void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
@@ -287,8 +287,8 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 	nodedb_info.chunk_node[V_NT_OBJECT] = memchunk_new("chunk-node-object", sizeof (NodeObject), 16);
 	nodedb_info.chunk_node[V_NT_TEXT]   = memchunk_new("chunk-node-text", sizeof (NodeText), 16);
 
-	nodedb_info.nodes      = hash_new(node_hash, node_has_key);
-	nodedb_info.nodes_mine = hash_new(node_hash, node_has_key);
+	nodedb_info.nodes      = hash_new(node_hash, node_key_eq);
+	nodedb_info.nodes_mine = hash_new(node_hash, node_key_eq);
 
 	nodedb_info.chunk_notify = memchunk_new("chunk-node-notify", sizeof (NotifyInfo), 16);
 
