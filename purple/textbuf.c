@@ -95,13 +95,16 @@ void textbuf_delete(TextBuf *tb, size_t offset, size_t length)
 	if(tb == NULL)
 		return;
 	if(offset > tb->length)
-		offset = tb->length - 1;
+		offset = tb->length != 0 ? tb->length - 1 : 0;
 	if(offset + length > tb->length)
 		length = tb->length - offset;
 	if(length == 0)
 		return;
-	printf("moving %u bytes of tail\n", tb->length - (offset + length));
+	printf("deleting %u at %u\n", length, offset);
+	printf(" moving %u bytes of tail\n", tb->length - (offset + length));
 	memmove(tb->buf + offset, tb->buf + offset + length, tb->length - (offset + length));
+	tb->length -= length;
+	tb->buf[tb->length] = '\0';
 }
 
 /* ----------------------------------------------------------------------------------------- */
