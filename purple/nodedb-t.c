@@ -69,10 +69,28 @@ static void cb_t_buffer_create(void *user, VNodeID node_id, uint16 buffer_id, ui
 	}
 }
 
+static void cb_t_buffer_destroy(void *user, VNodeID node_id, uint16 buffer_id, uint16 index, const char *name)
+{
+	NodeText	*n;
+
+	if((n = nodedb_lookup_text(node_id)) != NULL)
+	{
+		NdbTBuffer	*tb;
+
+		if((tb = dynarr_index(n->buffers, buffer_id)) != NULL)
+		{
+			tb->id = 0;
+			tb->name[0] = '\0';
+			/* FIXME: Do something about contents here, too. */
+		}
+	}
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 void nodedb_t_register_callbacks(void)
 {
 	verse_callback_set(verse_send_t_set_language,	cb_t_set_language, NULL);
 	verse_callback_set(verse_send_t_buffer_create,	cb_t_buffer_create, NULL);
+	verse_callback_set(verse_send_t_buffer_destroy,	cb_t_buffer_destroy, NULL);
 }
