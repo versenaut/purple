@@ -154,7 +154,7 @@ static void cb_c_key_set(void *user, VNodeID node_id, VLayerID curve_id, uint32 
 					}
 					if(ins)
 						c->curve = list_insert_sorted(c->curve, key, cb_key_compare);
-					{
+/*					{
 						const List	*iter;
 
 						printf("Curve: ");
@@ -165,7 +165,7 @@ static void cb_c_key_set(void *user, VNodeID node_id, VLayerID curve_id, uint32 
 						}
 						printf("\n");
 					}
-/*					printf("setting curve %u.%u key=%u\n", node_id, curve_id, key_id);
+*//*					printf("setting curve %u.%u key=%u\n", node_id, curve_id, key_id);
 					printf("  pre:");
 					for(i = 0; i < dimensions; i++)
 					{
@@ -190,6 +190,28 @@ static void cb_c_key_set(void *user, VNodeID node_id, VLayerID curve_id, uint32 
 	}
 }
 
+static void cb_c_key_destroy(void *user, VNodeID node_id, VLayerID curve_id, uint32 key_id)
+{
+	NodeCurve	*n;
+
+	if((n = (NodeCurve *) nodedb_lookup_with_type(node_id, V_NT_CURVE)) != NULL)
+	{
+		NdbCCurve	*c;
+
+		if((c = dynarr_index(n->curves, curve_id)) != NULL)
+		{
+			NdbCKey	*k;
+
+			if((k = dynarr_index(c->keys, key_id)) != NULL)
+			{
+				k->id = ~0;
+				c->curve = list_remove(c->curve, k);
+				printf("key %u.%u.%u deleted\n", node_id, curve_id, key_id);
+			}
+		}
+	}
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 void nodedb_c_register_callbacks(void)
@@ -197,4 +219,5 @@ void nodedb_c_register_callbacks(void)
 	verse_callback_set(verse_send_c_curve_create,	cb_c_curve_create, NULL);
 	verse_callback_set(verse_send_c_curve_destroy,	cb_c_curve_destroy, NULL);
 	verse_callback_set(verse_send_c_key_set,	cb_c_key_set, NULL);
+	verse_callback_set(verse_send_c_key_destroy,	cb_c_key_destroy, NULL);
 }
