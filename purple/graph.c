@@ -155,7 +155,7 @@ static struct
 /* ----------------------------------------------------------------------------------------- */
 
 static void	module_create(unsigned int module_id, uint32 graph_id, uint32 plugin_id);
-static void	module_input_set(uint32 graph_id, uint32 module_id, uint8 input_index, PValueType type, ...);
+static void	module_input_set_from_string(Graph *g, uint32 module_id, uint8 input_index, PValueType type, ...);
 static void	module_input_clear_links_to(Graph *g, uint32 module_id, uint32 rm);
 
 /* ----------------------------------------------------------------------------------------- */
@@ -354,13 +354,12 @@ Graph * graph_create_resume(const XmlNode *gdesc, const unsigned int *pmap)
 	printf("Graph created, time to populate it with happy modules\n");
 	mods = xmlnode_nodeset_get(graph, XMLNODE_AXIS_CHILD, XMLNODE_NAME("module"), XMLNODE_DONE);
 	printf(" modules:\n");
+	/* First create all required modules. */
 	for(iter = mods; iter != NULL; iter = list_next(iter))
 	{
 		const char	*tmp;
 		const XmlNode	*here = list_data(iter);
-		unsigned long	id, pi, index;
-		List		*sets;
-		const List	*siter;
+		unsigned long	id, pi;
 
 		tmp = xmlnode_eval_single(here, "@id");
 		id = strtoul(tmp, &eptr, 10);
@@ -378,23 +377,39 @@ Graph * graph_create_resume(const XmlNode *gdesc, const unsigned int *pmap)
 		}
 		printf("  %lu is %lu (maps to %u)\n", id, pi, pmap[pi]);
 		module_create(id, gid, pmap[pi]);
+	}
+	/* Now that the modules exist, go through again and set inputs. This is best done
+	 * in a separate stage, since it ensures that any inputs that refer to modules with
+	 * a higher index than the source module actually work; all modules are there now.
+	*/
+	for(iter = mods; iter != NULL; iter = list_next(iter))
+	{
+		const XmlNode	*here = list_data(iter);
+		const char	*tmp;
+		char		*eptr;
+		List		*sets;
+		const List	*siter;
+		unsigned long	id, index;
+
+		tmp = xmlnode_eval_single(here, "@id");
+		id = strtoul(tmp, &eptr, 10);
+		if(eptr == tmp)
+		{
+			LOG_ERR(("Couldn't parse numerical module ID from '%s'", tmp));
+			continue;
+		}
 		sets = xmlnode_nodeset_get(here, XMLNODE_AXIS_CHILD, XMLNODE_NAME("set"), XMLNODE_DONE);
 		for(siter = sets, index = 0; siter != NULL; siter = list_next(siter), index++)
 		{
 			const XmlNode	*set = list_data(siter);
 			const char	*tname, *value;
 			PValueType	type;
-			PValue		val;
 
 			tname = xmlnode_eval_single(set, "@type");
 			type  = value_type_from_name(tname);
 			value = xmlnode_eval_single(set, "");
-			printf("   set input %s to %s, type %d\n", xmlnode_eval_single(set, "@input"), xmlnode_eval_single(set, ""), type);
-			value_init(&val);
-			if(value_set_from_string(&val, type, value))
-			{
-				printf(" got the value parsed\n");
-			}
+			printf("  set input %u.%s to %s, type %d\n", id, xmlnode_eval_single(set, "@input"), xmlnode_eval_single(set, ""), type);
+			module_input_set_from_string(g, id, index, type, value);
 		}
 		list_destroy(sets);
 	}
@@ -796,12 +811,50 @@ static void module_destroy(uint32 graph_id, uint32 module_id)
 	graph_modules_desc_start_update(g);
 }
 
+static void do_module_input_set(Graph *g, uint32 module_id, uint8 input_index, PValueType type, int string, va_list arg)
+{
+	Module	*m;
+	DynStr	*desc;
+	uint32	old_link;
+
+	if((m = idset_lookup(g->modules, module_id)) == NULL)
+	{
+		LOG_WARN(("Attempted to set module input in non-existant module %u", module_id));
+		return;
+	}
+
+	printf("setting module input %u, type %d\n", input_index, type);
+
+	/* Remove any existing dependency by this input. */
+	if(plugin_portset_get_module(m->instance.inputs, input_index, &old_link))
+		module_dep_remove(g, old_link, m->id);
+
+	if(string)
+		plugin_portset_set_from_string(m->instance.inputs, input_index, type, va_arg(arg, const char *));
+	else
+		plugin_portset_set_va(m->instance.inputs, input_index, type, arg);
+	desc = module_build_desc(m);
+	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, dynstr_string(desc));
+	m->length = dynstr_length(desc);
+	dynstr_destroy(desc, 1);
+	graph_modules_desc_start_update(g);
+
+	/* Did we just set a link to someone? Then notify that someone about new dependant. */
+	if(type == P_VALUE_MODULE)
+	{
+		uint32	other;
+
+		plugin_portset_get_module(m->instance.inputs, input_index, &other);
+		module_dep_add(g, other, m->id);
+	}
+	sched_add(&m->instance);
+}
+
 /* Set a module input to a value. The value might be either a literal, or a reference to another module's output. */
 static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_index, PValueType type, ...)
 {
 	va_list	arg;
 	Graph	*g;
-	Module	*m;
 	DynStr	*desc;
 	uint32	old_link;
 
@@ -810,12 +863,10 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 		LOG_WARN(("Attempted to set module input in non-existant graph %u", graph_id));
 		return;
 	}
-	if((m = idset_lookup(g->modules, module_id)) == NULL)
-	{
-		LOG_WARN(("Attempted to set module input in non-existant module %u.%u", graph_id, module_id));
-		return;
-	}
-
+	va_start(arg, type);
+	do_module_input_set(g, module_id, input_index, type, 0, arg);
+	va_end(arg);
+#if 0
 	/* Remove any existing dependency by this input. */
 	if(plugin_portset_get_module(m->instance.inputs, input_index, &old_link))
 		module_dep_remove(g, old_link, m->id);
@@ -838,6 +889,17 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 		module_dep_add(g, other, module_id);
 	}
 	sched_add(&m->instance);
+#endif
+}
+
+/* Set module input from a string representation, passed as the single vararg. Only used by resume. */
+static void module_input_set_from_string(Graph *g, uint32 module_id, uint8 input_index, PValueType type, ...)
+{
+	va_list	arg;
+
+	va_start(arg, type);
+	do_module_input_set(g, module_id, input_index, type, 1, arg);
+	va_end(arg);
 }
 
 /* Clear a module input, i.e. remove any assigned value and leave it "floating" as after module creation. */
