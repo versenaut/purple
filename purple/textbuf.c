@@ -18,9 +18,9 @@
 
 struct TextBuf
 {
-	char	*buf;
-	size_t	length;
-	size_t	alloc;
+	char	*buf;		/* Buffer space. */
+	size_t	length;		/* Exact length of text. */
+	size_t	alloc;		/* Bytes allocated at <buf>. Has margin to reduce realloc()ing. */
 };
 
 /* ----------------------------------------------------------------------------------------- */
@@ -81,7 +81,7 @@ void textbuf_insert(TextBuf *tb, size_t offset, const char *text)
 		}
 	}
 	memmove(tb->buf + offset + len, tb->buf + offset, tb->length - offset);
-	memcpy(tb->buf + offset, text, len);
+	memcpy(tb->buf + offset, text, len);	/* Using strcpy() would add '\0 in mid-buffer; bad. */
 	tb->length += len;
 	tb->buf[tb->length] = '\0';
 }
@@ -107,7 +107,7 @@ void textbuf_delete(TextBuf *tb, size_t offset, size_t length)
 		nb = mem_realloc(tb->buf, tb->length + ALLOC_EXTRA);
 		if(nb == NULL)
 		{
-			LOG_ERR(("Couldn't shrink textbuf after delete"));
+			LOG_WARN(("Couldn't shrink textbuf after delete"));
 			return;
 		}
 		tb->buf = nb;
