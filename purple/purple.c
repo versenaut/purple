@@ -321,10 +321,10 @@ static void console_parse_module_input_set(const char *line)
 {
 	char		tcode[32];
 	const char	*literal,
-			tsel[] = "bdurRs", *tpos;
+			tsel[] = "bdurRms", *tpos;
 	const PInputType tarr[] = {
 		P_INPUT_BOOLEAN, P_INPUT_INT32, P_INPUT_UINT32, P_INPUT_REAL32, P_INPUT_REAL64,
-		P_INPUT_STRING
+		P_INPUT_MODULE, P_INPUT_STRING
 	};
 	char		string[1024];
 	uint32		g, m, i, got;
@@ -333,7 +333,6 @@ static void console_parse_module_input_set(const char *line)
 	if(sscanf(line, "mis%s %u %u %u", tcode, &g, &m, &i) != 4 || (literal = strchr(line, ':')) == NULL)
 	{
 		printf("Syntax: mis<TYPE> <GRAPH> <MODULE> <INPUT> : <VALUE>\n");
-		printf(" Valid types: 'r' -- real number\n");
 		return;
 	}
 	literal++;
@@ -403,6 +402,9 @@ static void console_parse_module_input_set(const char *line)
 		got = sscanf(literal, "%lg %lg %lg %lg", &value.v.vreal64_vec4[0], &value.v.vreal64_vec4[1],
 			     &value.v.vreal64_vec4[2], &value.v.vreal64_vec4[3]) == 4;
 		break;
+	case P_INPUT_MODULE:
+		got = sscanf(literal, "%u", &value.v.vmodule) == 1;
+		break;
 	case P_INPUT_STRING:
 		got = sscanf(literal, " \"%[^\"]\"", string) == 1;
 		value.v.vstring = string;
@@ -443,7 +445,7 @@ static void console_update(void)
 				uint16	buf;
 				char	name[64];
 
-				if(sscanf(line, "gc %u %su %s", &node, &buf, name) == 3)
+				if(sscanf(line, "gc %u %hu %s", &node, &buf, name) == 3)
 					graph_method_send_call_create(node, buf, name);
 			}
 			else if(strncmp(line, "gd ", 3) == 0)
