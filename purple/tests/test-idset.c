@@ -68,36 +68,86 @@ int main(void)
 		idset_destroy(is);
 	}
 	test_end();
-
-/*	test_begin("insert");
+	
+	test_begin("insert+remove");
 	{
-		char	buf[256];
-		IdList	*il;
-		int	ok = 0;
+		IdSet		*is;
+		unsigned int	i, j, k;
 
-		il = idlist_new();
-		idlist_insert(il, 3);
-		idlist_insert(il, 18);
-		idlist_insert(il, 11);
-		idlist_insert(il, 22);
-		idlist_insert(il, 3);
-		idlist_insert(il, 22);
-		idlist_insert(il, 22);
-		idlist_insert(il, 11);
-		idlist_test_as_string(il, buf, sizeof buf);
-		if(strcmp(buf, "[(3;2) (11;2) (18;1) (22;3)]") == 0)
-		{
-			idlist_remove(il, 22);
-			idlist_remove(il, 18);
-			idlist_remove(il, 22);
-			idlist_remove(il, 22);
-			idlist_test_as_string(il, buf, sizeof buf);
-			ok = strcmp(buf, "[(3;2) (11;2)]") == 0;
-		}
-		test_result(ok);
-		idlist_destroy(il);
+		is = idset_new(0);
+		i = idset_insert(is, "i");
+		j = idset_insert(is, "j");
+		idset_remove(is, i);
+		k = idset_insert(is, "k");
+		test_result(i != j && i == k);	/* Make sure ID is re-used. */
+		idset_destroy(is);
 	}
 	test_end();
-*/
+
+	test_begin("insert_with_id()");
+	{
+		IdSet		*is;
+		unsigned int	i;
+
+		is = idset_new(0);
+		i = idset_insert_with_id(is, 10, "ten");
+		test_result(i == 10);	/* Check that we got the expected ID. */
+		idset_remove(is, i);
+	}
+	test_end();
+	
+	test_begin("insert_with_id()+insert()s");
+	{
+		IdSet		*is;
+		unsigned int	i, j[5], jj, jk, ok = 0;
+
+		is = idset_new(0);
+		i = idset_insert_with_id(is, sizeof j / sizeof *j, "foo");
+		for(jj = 0; jj < sizeof j / sizeof *j; jj++)
+			j[jj] = idset_insert(is, "a j");
+		/* Verify that insert()s are all distinct, and below with_id(). */
+		ok = i == sizeof j / sizeof *j;
+		for(jj = 0; jj < sizeof j / sizeof *j; jj++)
+		{
+			if(j[jj] >= sizeof j / sizeof *j)
+				ok = 0;
+			for(jk = 0; jk < sizeof j / sizeof *j; jk++)
+			{
+				if(jj == jk)
+					continue;
+				if(j[jj] == j[jk])
+					ok = 0;
+			}
+		}
+		test_result(ok);
+		idset_destroy(is);
+	}
+	test_end();
+
+	test_begin("insert_with_id() twice");
+	{
+		IdSet		*is;
+		unsigned int	i, j;
+
+		is = idset_new(0);
+		i = idset_insert_with_id(is, 10, "ten");
+		j = idset_insert_with_id(is,  5, "five");
+		test_result(i == 10 && j == 5);
+		idset_destroy(is);
+	}
+	test_end();
+
+	test_begin("new() with offset");
+	{
+		IdSet		*is;
+		unsigned int	i;
+
+		is = idset_new(10);
+		i = idset_insert_with_id(is, 22, "foo");
+		test_result(i == 22 && strcmp(idset_lookup(is, 22), "foo") == 0);
+		idset_destroy(is);
+	}
+	test_end();
+
 	return test_package_end();
 }
