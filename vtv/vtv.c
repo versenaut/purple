@@ -9,6 +9,7 @@
 
 #define	GTK_DISABLE_DEPRECATED	1
 
+#include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 
 #include "verse.h"
@@ -314,6 +315,20 @@ static void cb_t_text_set(void *user, VNodeID node_id, uint16 buffer_id, uint32 
 	gtk_text_insert(GTK_TEXT(buf->text), NULL, NULL, NULL, text, strlen(text));
 }
 
+static gboolean evt_window_keypress(GtkWidget *win, GdkEventKey *evt, gpointer user)
+{
+	MainInfo	*min = user;
+
+	if(evt->state & GDK_CONTROL_MASK)
+	{
+		if(evt->keyval == GDK_q)
+			gtk_main_quit();
+		else if(evt->keyval >= GDK_1 && evt->keyval <= GDK_9)
+			gtk_notebook_set_page(GTK_NOTEBOOK(min->notebook), evt->keyval - GDK_1);
+	}
+	return TRUE;
+}
+
 static void evt_window_delete(GtkWidget *win, GdkEvent *evt, gpointer user)
 {
 	gtk_main_quit();
@@ -334,6 +349,7 @@ int main(int argc, char *argv[])
 
 	gtk_init(&argc, &argv);
 	min.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_signal_connect(GTK_OBJECT(min.window), "key_press_event", GTK_SIGNAL_FUNC(evt_window_keypress), &min);
 	gtk_signal_connect(GTK_OBJECT(min.window), "delete_event", GTK_SIGNAL_FUNC(evt_window_delete), &min);
 	gtk_window_set_title(GTK_WINDOW(min.window), "Verse Text Viewer");
 	gtk_widget_set_usize(min.window, 640, 480);
