@@ -252,9 +252,7 @@ static int ses_compute(const void *a, int aoff, int n, const void *b, int boff, 
 	return d;
 }
 
-int diff_compare(const void *a, int aoff, int n,
-	 const void *b, int boff, int m,
-	 int dmax, DynArr *edits, DynArr *buf)
+int diff_compare(const void *a, int aoff, int n, const void *b, int boff, int m, int dmax, DynArr *edits, DynArr *buf)
 {
 	Context			ctx;
 	int			d = 0, x, y;
