@@ -580,11 +580,15 @@ the needs, and describes how each was mapped to use a suitable part of the Verse
 <sect2>
 <title>Needs and Possibilities</title>
 <para>
-There are at least three different communication requirements between the engine and front-end clients. There must be:
+There are at least four different communication requirements between the engine and front-end clients. There must be:
 <itemizedlist>
 <listitem>
  <para>A way for the user interface to learn about which plug-ins are available in the engine, and
 to get meta-data describing each.</para>
+</listitem>
+<listitem>
+ <para>A way for a client to learn about which graphs have been created, so it can let a user select
+which graph to work with (assuming the user wishes to continue working on an existing graph).</para>
 </listitem>
 <listitem>
  <para>A way to ask the engine to <emphasis>create</emphasis> a new module instance, change the connections
@@ -634,7 +638,8 @@ mapping becomes:
 </thead>
 <tbody>
  <row><entry><link linkend='comms-plugins'>Plug-in Descriptions</link></entry><entry>Text Buffer</entry></row>
-<row><entry><link linkend='comms-methods'>Graph Editing</link></entry><entry>Method Calls</entry></row>
+ <row><entry><link linkend='comms-graph-dir'>Graph Directory</link></entry><entry>Text Buffer</entry></row>
+ <row><entry><link linkend='comms-methods'>Graph Editing</link></entry><entry>Method Calls</entry></row>
  <row><entry><link linkend='comms-graphs'>Graph Description</link></entry><entry>Text Buffer</entry></row>
 </tbody>
 </tgroup>
@@ -644,6 +649,11 @@ mapping becomes:
 Method calls, as noted above, only exist in the context of an object node, which of course begs the question:
 which node is it? The answer is simple: it's the Purple engine client's avatar that exports the method interface for
 graph editing.
+</para>
+<para>
+The two first text node usages, for plug-in and graph descriptions, reside in different buffers of a single text
+node created by the Purple engine and linked to from its avatar. This text node is called the <emphasis>meta</emphasis>
+text node.
 </para>
 </sect2>
 
@@ -800,6 +810,16 @@ into <emphasis>modules</emphasis>.
 
 </sect2>
 
+<sect2 id='comms-graph-dir'>
+<title>Details: Graph Directory</title>
+<para>
+This section describes the directory of existing graphs that is maintained by the Purple engine. This directory
+is needed, because (as is shown below) graphs reside in various places that are chosen by clients. A central
+location that contains an up to date listing of which graphs exist is necessary to allow interface clients to
+present e.g. a list of graphs from which a user can pick one to edit.
+</para>
+</sect2>
+
 <sect2 id='comms-methods'>
 <title>Details: Graph Editing Method API</title>
 <para>
@@ -814,7 +834,7 @@ plug-in will be a change in the graph description text buffer, so the <quote>ret
 </para>
 <para>
 By using method calls in the ui-to-engine direction and shared text in the other direction, we move the most
-complexcity (that of generating proper descriptions of available plug-ins and graphs) into the engine, and
+complexity (that of generating proper descriptions of available plug-ins and graphs) into the engine, and
 don't run the risk of having more than one Verse client trying to edit the same text node at the same time.
 </para>
 <sect3>
@@ -829,12 +849,16 @@ self-contained; modules in a graph can not exchange information directly with mo
 <funcsynopsis>
 <funcprototype>
  <funcdef><function>graph_create</function></funcdef>
+ <paramdef>VNodeID <parameter>node</parameter></paramdef>
+ <paramdef>uint16 <parameter>buffer</parameter></paramdef>
  <paramdef>string <parameter>name</parameter></paramdef>
 </funcprototype>
 </funcsynopsis>
 </term>
 <listitem>
-<para>Create a new graph with the given name. The name must be unique.</para>
+<para>Create a new graph with the given name. The name must be unique. The node and buffer parameters tell
+the Purple engine where the description of the graph will reside. This should be an text node and buffer,
+and its contents will be completely overwritten by the Purple engine.</para>
 </listitem>
 </varlistentry>
 
@@ -848,7 +872,8 @@ self-contained; modules in a graph can not exchange information directly with mo
 </funcsynopsis>
 </term>
 <listitem>
-<para>Destroy the indicated graph.</para>
+<para>Destroy the indicated graph. Since Purple does not own the storage space for the description, as
+specified when creating it, nothing happens to the description.</para>
 </listitem>
 </varlistentry>
 
