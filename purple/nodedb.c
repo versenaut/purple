@@ -376,10 +376,18 @@ void nodedb_tag_create(NdbTagGroup *group, uint16 tag_id, const char *name, VNTa
 		tag = dynarr_set(group->tags, tag_id, NULL);
 	if(tag != NULL)
 	{
+		tag->id    = tag_id;
 		stu_strncpy(tag->name, sizeof tag->name, name);
-		tag->type  = type;
-		tag->value = *value;	/* FIXME: Memory management for non-scalar types... */
+		nodedb_tag_set(tag, type, value);
 	}
+}
+
+void nodedb_tag_set(NdbTag *tag, VNTagType type, const VNTag *value)
+{
+	if(tag == NULL || value == NULL)
+		return;
+	tag->type  = type;
+	tag->value = *value;	/* FIXME: Memory management for non-scalar types. */
 }
 
 NdbTag * nodedb_tag_lookup(NdbTagGroup *group, const char *name)
@@ -537,6 +545,8 @@ static void cb_tag_destroy(void *user, VNodeID node_id, uint16 group_id, uint16 
 	{
 		tag->name[0] = '\0';
 		tag->type = -1;
+		/* FIXME: Memory management for non-scalar types. */
+		NOTIFY(n, DATA);
 	}
 }
 
