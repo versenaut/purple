@@ -9,6 +9,7 @@
  * means we can waste at most 7 pixels per scanline (for a REAL64 layer), i.e. 56 bytes.
 */
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -78,7 +79,7 @@ static void cb_copy_layer(void *d, const void *s, void *user)
 	strcpy(dst->name, src->name);
 	dst->type = src->type;
 
-	layer_size = (node->width * ps + 7 / 8) * node->height * node->depth;
+	layer_size = ((node->width * ps + 7) / 8) * node->height * node->depth;
 	if((dst->framebuffer = mem_alloc(layer_size)) != NULL)
 		memcpy(dst->framebuffer, src->framebuffer, layer_size);
 }
@@ -163,6 +164,18 @@ int nodedb_b_dimensions_set(NodeBitmap *node, uint16 width, uint16 height, uint1
 	return 1;
 }
 
+void nodedb_b_dimensions_get(const NodeBitmap *node, uint16 *width, uint16 *height, uint16 *depth)
+{
+	if(node == NULL)
+		return;
+	if(width != NULL)
+		*width = node->width;
+	if(height != NULL)
+		*height = node->height;
+	if(depth != NULL)
+		*depth = node->depth;
+}
+
 static void cb_def_layer(unsigned int index, void *element, void *user)
 {
 	NdbBLayer	*layer = element;
@@ -230,6 +243,179 @@ void nodedb_b_layer_access_end(NodeBitmap *node, NdbBLayer *layer, void *framebu
 {
 	/* Nothing much to do, here. */
 }
+
+/* ----------------------------------------------------------------------------------------- */
+
+struct multi_info
+{
+	unsigned char	*fb;	/* Points at first byte past structure, beginning of framebuffer. */
+	unsigned char	*put;
+	size_t		mask;
+	VNBLayerType	format;
+	NodeBitmap	*node;
+	size_t		num;
+	NdbBLayer	*layer[16];
+	void		*access[16];
+	size_t		row_size, sheet_size;
+	int		y, z;
+	/* Framebuffer for multi-format interleaved image goes here. */
+};
+
+static void multi_scanline_init(struct multi_info *mi, int y, int z)
+{
+	mi->put = mi->fb + z * mi->sheet_size + y * mi->row_size;
+/*	printf("z=%u row %u begins at %p (offset %u, row=%u)\n", z, y, mi->put, mi->put - mi->fb, mi->row_size);*/
+	mi->mask = 0x80;		/* Scanlines always begin at even byte boundaries. */
+	mi->y = y;
+	mi->z = z;
+}
+
+/* This slows things down, but hey. */
+static real64 layer_get_pixel(const NodeBitmap *node, NdbBLayer *layer, const unsigned char *framebuffer, int x, int y, int z)
+{
+	if(layer->type == VN_B_LAYER_UINT1)
+	{
+		size_t	row = (node->width + 7) / 8, off;
+
+		off = z * row * node->height + y * row + x / 8;
+		return ((uint8 *) framebuffer)[off] & (128 >> (x % 8)) ? 1.0 : 0.0;
+	}
+	else if(layer->type == VN_B_LAYER_UINT8)
+		return (real64) ((uint8 *) framebuffer)[z * node->width * node->height + y * node->width + x] / 255.0;
+	else if(layer->type == VN_B_LAYER_REAL32)
+		return ((real32 *) framebuffer)[z * node->width * node->height + y * node->width + x];
+	else if(layer->type == VN_B_LAYER_REAL64)
+		return ((real64 *) framebuffer)[z * node->width * node->height + y * node->width + x];
+	return 0.0;
+}
+
+static void multi_put_pixel(struct multi_info *mi, int x)
+{
+	real32	pix;
+	int	i;
+
+	if(mi->format == VN_B_LAYER_UINT1)
+	{
+		for(i = 0; i < mi->num; i++)
+		{
+			if(mi->mask == 0)
+			{
+				mi->put++;
+				mi->mask = 0x80;
+			}
+			pix = layer_get_pixel(mi->node, mi->layer[i], mi->access[i], x, mi->y, mi->z);
+			*mi->put &= ~mi->mask;
+			if(pix > 0.0)
+				*mi->put |= mi->mask;
+			mi->mask >>= 1;
+		}
+	}
+	else
+	{
+		for(i = 0; i < mi->num; i++)
+		{
+			pix = layer_get_pixel(mi->node, mi->layer[i], mi->access[i], x, mi->y, mi->z);
+			switch(mi->format)
+			{
+			case VN_B_LAYER_UINT8:
+				*mi->put++ = pix * 255.0;
+				break;
+			case VN_B_LAYER_REAL32:
+				{
+					real32	*p = (real32 *) mi->put;
+					*p++ = pix;
+					mi->put = (unsigned char *) p;
+				}
+				break;
+			case VN_B_LAYER_REAL64:
+				{
+					real64	*p = (real64 *) mi->put;
+					*p++ = pix;
+					mi->put = (unsigned char *) p;
+				}
+				break;
+			default:;
+			}
+		}
+	}
+}
+
+void * nodedb_b_layer_access_multi_begin(NodeBitmap *node, VNBLayerType format, va_list layers)
+{
+	const size_t		mul[] = { 1,  1,  2,  4,  8 };
+	size_t			num = 0, x, y, z, row_size, sheet_size;
+	const char		*name;
+	va_list			copy;
+	struct multi_info	*mi;
+	NdbBLayer		*layer[sizeof mi->layer / sizeof *mi->layer];
+
+	va_copy(copy, layers);
+	for(num = 0; ((name = va_arg(copy, const char *)) != NULL); num++)
+	{
+		if((layer[num] = nodedb_b_layer_lookup(node, name)) == NULL)
+			break;
+	}
+	va_end(copy);
+/*	printf("counted layers, num=%u last=%p\n", num, name);*/
+	if(name != NULL)		/* Lookup failed? Then we fail, for now. */
+	{
+		printf(" multi_begin(): couldn't lookup layer '%s', aborting\n", name);
+		return NULL;
+	}
+	if(num > sizeof layer / sizeof *layer)
+	{
+		LOG_ERR(("Can't multi-access more than %u layers", sizeof mi->layer / sizeof *mi->layer));
+		return NULL;
+	}
+
+	row_size = num * node->width;
+	row_size *= mul[format];
+	if(format == VN_B_LAYER_UINT1)
+	{
+		row_size += 7;
+		row_size /= 8;
+	}
+	sheet_size = row_size * node->height;
+/*	printf("row size: %u, sheet size: %u\n", row_size, sheet_size);*/
+	if((mi = mem_alloc(sizeof *mi + sheet_size * node->depth)) == NULL)
+		return NULL;
+	mi->fb = (char *) (mi + 1);
+	mi->put = NULL;
+	mi->format = format;
+	mi->node = node;
+	mi->num = num;
+	for(x = 0; x < num; x++)
+	{
+		mi->layer[x] = layer[x];
+		mi->access[x] = nodedb_b_layer_access_begin(node, mi->layer[x]);
+	}
+	mi->row_size = row_size;
+	mi->sheet_size = sheet_size;
+	for(z = 0; z < node->depth; z++)
+	{
+		for(y = 0; y < node->height; y++)
+		{
+			multi_scanline_init(mi, y, z);
+			for(x = 0; x < node->width; x++)
+				multi_put_pixel(mi, x);
+		}
+	}
+	return mi->fb;
+}
+
+void nodedb_b_layer_access_multi_end(NodeBitmap *node, void *framebuffer)
+{
+	struct multi_info	*mi = (struct multi_info *) ((char *) framebuffer - (sizeof *mi));
+	size_t			i;
+
+	/* FIXME: Do complicated write-back here. Need to retain layer names and formats! */
+	/* Stop accessing layers. */
+	for(i = 0; i < mi->num; i++)
+		nodedb_b_layer_access_end(node, mi->layer[i], mi->access[i]);
+	mem_free(mi);
+}
+
+/* ----------------------------------------------------------------------------------------- */
 
 void nodedb_b_layer_foreach_set(NodeBitmap *node, NdbBLayer *layer,
 				real64 (*pixel)(uint32 x, uint32 y, uint32 z, void *user), void *user)
