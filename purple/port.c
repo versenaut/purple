@@ -7,6 +7,7 @@
 #include "purple.h"
 
 #include "dynstr.h"
+#include "nodeset.h"
 #include "value.h"
 
 #include "port.h"
@@ -60,16 +61,10 @@ int port_set_va(PPort *port, PValueType type, va_list arg)
 	return value_set_va(&port->value, type, arg);
 }
 
-int port_set(PPort *port, PValueType type, ...)
+int port_set_node(PPort *port, PONode *node)
 {
-	va_list	arg;
-	int	ret;
-
-	va_start(arg, type);
-	ret = value_set_va(&port->value, type, arg);
-	va_end(arg);
-
-	return ret;
+	port->nodes = nodeset_add(port->nodes, node);
+	return 1;
 }
 
 /* Save some typing in these (inelegant?) accessor function definitions. Trampolines. */
@@ -90,3 +85,8 @@ ACCESSOR(const real64 *, real64_vec4)
 ACCESSOR(const real64 *, real64_mat16)
 ACCESSOR(const char *, string)
 ACCESSOR(uint32, module)
+
+PINode * port_input_node(PPort *port)
+{
+	return port != NULL ? nodeset_retreive(port->nodes) : NULL;
+}
