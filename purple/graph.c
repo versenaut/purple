@@ -31,7 +31,7 @@
 typedef struct
 {
 	uint32		id;
-	const Plugin	*plugin;
+	Plugin		*plugin;
 	PInstance	instance;
 
 	uint32		start, length;	/* Region in graph XML buffer used for this module. */
@@ -366,10 +366,10 @@ static void graph_modules_desc_start_update(Graph *g)
 /* Create a new module, i.e. a plug-in instance, in a graph. */
 static void module_create(uint32 graph_id, uint32 plugin_id)
 {
-	const Plugin	*p;
-	Graph		*g;
-	Module		*m;
-	DynStr		*desc;
+	Plugin	*p;
+	Graph	*g;
+	Module	*m;
+	DynStr	*desc;
 
 	if((p = plugin_lookup(plugin_id)) == NULL)
 	{
@@ -431,7 +431,6 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 	Graph	*g;
 	Module	*m;
 	DynStr	*desc;
-	int	done;
 
 	if((g = idset_lookup(graph_info.graphs, graph_id)) == NULL)
 	{
