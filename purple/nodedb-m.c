@@ -295,7 +295,7 @@ NdbMFragment * nodedb_m_fragment_create(NodeMaterial *node, VNMFragmentID fragme
 		f->frag = *fragment;
 		f->node = NULL;		/* Always set after creation, when used (light, texture). */
 		f->pending = 0;
-		printf("fragment %u.%u created, type=%u\n", node->node.id, fragment_id, f->type);
+/*		printf("fragment %u.%u created, type=%u\n", node->node.id, fragment_id, f->type);*/
 	}
 	return f;
 }
