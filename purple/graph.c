@@ -55,24 +55,24 @@ typedef struct
 	size_t		   param_count;
 	const VNOParamType param_type[4];	/* Wastes a bit, but simplifies code. */
 	const char	   *param_name[4];
-	const NdbOMethod   *method;		/* Filled-in once created. */ 
+	uint8		   id;			/* Filled-in once created. */ 
 } MethodInfo;
 
 enum { CREATE, DESTROY, MOD_CREATE, MOD_INPUT_CLEAR, MOD_INPUT_SET_REAL32 };
 
 #define	MI_INPUT(lct, uct)	\
 	{ "m_i_set_" #lct, 4, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8, \
-		VN_O_METHOD_PTYPE_ ##uct }, { "graph_id", "plugin_id", "input", "value" }, NULL \
+		VN_O_METHOD_PTYPE_ ##uct }, { "graph_id", "plugin_id", "input", "value" } \
 	}
 
 static MethodInfo method_info[] = {
 	{ "create",  3, { VN_O_METHOD_PTYPE_NODE, VN_O_METHOD_PTYPE_LAYER },
-			{ "node_id", "buffer_id", "name" }, NULL},
-	{ "destroy",	1, { VN_O_METHOD_PTYPE_UINT32 }, { "graph_id" }, NULL },
+			{ "node_id", "buffer_id", "name" } },
+	{ "destroy",	1, { VN_O_METHOD_PTYPE_UINT32 }, { "graph_id" } },
 	
 	{ "mod_create",  2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "plugin_id" } },
 	{ "mod_input_clear", 3, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8 },
-			{ "graph_id", "plugin_id", "input" }, NULL },
+			{ "graph_id", "plugin_id", "input" } },
 	MI_INPUT(real32, REAL32),
 /*	{ 0, "mod_destroy", 2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "module_id" } }
 */};
@@ -90,9 +90,14 @@ static struct
 
 void graph_init(void)
 {
+	unsigned int	i;
+
 	graph_info.graphs = idset_new(1);
 	graph_info.graphs_name = hash_new_string();
 	graph_info.chunk_module = memchunk_new("graph/module", sizeof (Module), 8);
+
+	for(i = 0; i < sizeof method_info / sizeof *method_info; i++)
+		method_info[i].id = ~0;
 }
 
 void graph_method_send_creates(uint32 avatar, uint8 group_id)
@@ -124,9 +129,10 @@ void graph_method_receive_create(NodeObject *obj)
 	{
 		const NdbOMethod	*m;
 
-		if(method_info[i].method == NULL && (m = nodedb_o_method_lookup(g, method_info[i].name)) != NULL)
+		if(method_info[i].id == (uint8) ~0 && (m = nodedb_o_method_lookup(g, method_info[i].name)) != NULL)
 		{
-			method_info[i].method = m;
+			method_info[i].id = m->id;
+			printf("**registered that method %u is at %p, id %u\n", i, m, m->id);
 			graph_info.to_register--;
 			if(graph_info.to_register == 0)
 				LOG_MSG(("Caught all %u methods, ready to send calls", sizeof method_info / sizeof *method_info));
@@ -345,8 +351,13 @@ void send_method_call(int method, const VNOParam *param)
 	if(method < 0 || method >= sizeof method_info / sizeof *method_info)
 		return;
 	mi = method_info + method;
+	if(mi->id == (uint8) ~0)
+	{
+		LOG_WARN(("Can't send call ot method %s(), not created yet", mi->name));
+		return;
+	}
 	if((pack = verse_method_call_pack(mi->param_count, mi->param_type, param)) != NULL)
-		verse_send_o_method_call(client_info.avatar, client_info.gid_control, mi->method->id, 0, pack);
+		verse_send_o_method_call(client_info.avatar, client_info.gid_control, mi->id, 0, pack);
 }
 
 void graph_method_send_call_create(VNodeID node, VLayerID buffer, const char *name)
@@ -398,9 +409,10 @@ void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32
 		break;
 	}
 	va_end(arg);
-/*	if((pack = verse_method_call_pack(4, type, param)) != NULL)
-		verse_send_o_method_call(client_info.avatar, client_info.gid_control->id, method_info[MOD_INPUT_SET_REAL32].id, 0, pack);
-*/
+	printf("sending input-set, method %u\n", method_info[MOD_INPUT_SET_REAL32].id);
+	if((pack = verse_method_call_pack(4, type, param)) != NULL)
+		verse_send_o_method_call(client_info.avatar, client_info.gid_control,
+					 method_info[MOD_INPUT_SET_REAL32].id, 0, pack);
 }
 
 void graph_method_send_call_mod_input_clear(uint32 graph_id, uint32 module_id, uint32 input)
@@ -422,7 +434,7 @@ void graph_method_receive_call(uint8 id, const void *param)
 	{
 		const MethodInfo	*mi = method_info + i;
 
-		if(id == mi->method->id)
+		if(id == mi->id)
 		{
 			verse_method_call_unpack(param, mi->param_count, mi->param_type, arg);
 			switch(i)
