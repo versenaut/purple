@@ -16,6 +16,7 @@ struct IdSet
 {
 	DynArr	*arr;
 	List	*removed;
+	size_t	size;		/* Number of active references. */
 };
 
 IdSet * idset_new(void)
@@ -25,6 +26,7 @@ IdSet * idset_new(void)
 	is = mem_alloc(sizeof *is);
 	is->arr = dynarr_new(sizeof (void *), 4);
 	is->removed = NULL;
+	is->size = 0;
 
 	return is;
 }
@@ -43,6 +45,7 @@ unsigned int idset_insert(IdSet *is, void *object)
 	}
 	else
 		index = dynarr_append(is->arr, &object);
+	is->size++;
 	return index;
 }
 
@@ -60,6 +63,7 @@ void idset_remove(IdSet *is, unsigned int id)
 		{
 			*objp = NULL;	/* Mark slot as empty. */
 			is->removed = list_prepend(is->removed, (void *) id);
+			is->size--;
 		}
 	}
 }
@@ -68,7 +72,7 @@ size_t idset_size(const IdSet *is)
 {
 	if(is == NULL)
 		return 0;
-	return dynarr_size(is->arr);
+	return is->size;
 }
 
 void * idset_lookup(const IdSet *is, unsigned int id)
