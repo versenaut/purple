@@ -417,6 +417,21 @@ NdbMFragment * nodedb_m_fragment_create_matrix(NodeMaterial *node, const real64 
 	return nodedb_m_fragment_create(node, ~0, VN_M_FT_MATRIX, &frag);
 }
 
+NdbMFragment * nodedb_m_fragment_create_ramp(NodeMaterial *node, VNMRampType type, uint8 channel,
+					     const NdbMFragment *mapping, uint8 point_count, const VNMRampPoint *ramp)
+{
+	VMatFrag	frag;
+
+	if(node == NULL || point_count > 48)
+		return NULL;
+	frag.ramp.type = type;
+	frag.ramp.channel = channel;
+	link_set(&frag.ramp.mapping, mapping);
+	frag.ramp.point_count = point_count;
+	memcpy(frag.ramp.ramp, ramp, point_count * sizeof *frag.ramp.ramp);
+	return nodedb_m_fragment_create(node, ~0, VN_M_FT_RAMP, &frag);
+}
+
 NdbMFragment * nodedb_m_fragment_create_output(NodeMaterial *node, const char *label,
 					       const NdbMFragment *front, const NdbMFragment *back)
 {
