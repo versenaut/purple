@@ -126,6 +126,7 @@ void nodedb_b_destruct(NodeBitmap *n)
 			mem_free(layer->framebuffer);
 		}
 		dynarr_destroy(n->layers);
+		n->layers = NULL;
 	}
 }
 
