@@ -131,7 +131,6 @@ void p_node_tag_destroy_path(PONode *node, const char *path)
 		path++;
 	if((g = nodedb_tag_group_lookup(node, group)) != NULL)
 	{
-		printf("group found, path='%s'\n", path);
 		if(*path == '\0')		/* If no second part, destroy group. */
 			nodedb_tag_group_destroy(g);
 		else if(*path == '*')		/* If asterisk, destroy all tags but leave group. */
@@ -139,8 +138,6 @@ void p_node_tag_destroy_path(PONode *node, const char *path)
 		else				/* Else destroy named tag only. */
 			nodedb_tag_destroy(g, nodedb_tag_lookup(g, path));
 	}
-	else
-		printf("group not found\n");
 }
 
 /* ----------------------------------------------------------------------------------------- */
