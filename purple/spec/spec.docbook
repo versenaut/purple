@@ -1129,7 +1129,9 @@ to module inputs.
 As can be seen, the connection is made from the point where the result is needed, i.e. in the last two
 <symbol>set</symbol>-elements. The input type is <quote><literal>module</literal></quote> to indicate that
 the element contains the ID of a module whose output should be connected to the input being defined. It is
-an error to define a cyclic graph, and the Purple engine will never write illegal graph descriptions.
+an error to define a cyclic graph, and the Purple engine will never write illegal graph descriptions. Links
+cannot be <quote>floating</quote>, the referenced module must always exist. If a referenced module is deleted,
+Purple will also delete the link, so as not to create a floating dependency.
 </para>
 </example>
 
