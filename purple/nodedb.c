@@ -20,6 +20,13 @@
 
 /* ----------------------------------------------------------------------------------------- */
 
+/* A node holds a list of these. */
+typedef struct
+{
+	void	(*callback)(Node *node, NodeNotifyEvent ev, void *user);
+	void	*user;
+} NotifyInfo;
+
 static struct
 {
 	VNodeID		avatar;
@@ -28,6 +35,7 @@ static struct
 	Hash		*nodes_mine;			/* Duplicate links to nodes owned by this client. */
 
 	List		*notify_mine;
+	MemChunk	*chunk_notify;			/* For allocating NotifyInfos. */
 } nodedb_info = { 0 };
 
 /* ----------------------------------------------------------------------------------------- */
@@ -88,6 +96,18 @@ void nodedb_internal_notify_mine_check(Node *n, NodeNotifyEvent ev)
 
 		for(iter = nodedb_info.notify_mine; iter != NULL; iter = list_next(iter))
 			((void (*)(Node *node, NodeNotifyEvent e)) list_data(iter))(n, ev);
+	}
+}
+
+void nodedb_internal_notify_node_check(Node *n, NodeNotifyEvent ev)
+{
+	const List	*iter;
+	const NotifyInfo *ni;
+
+	for(iter = n->notify; iter != NULL; iter = list_next(iter))
+	{
+		ni = list_data(iter);
+		ni->callback(n, ev, ni->user);
 	}
 }
 
@@ -170,6 +190,8 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 	nodedb_info.nodes      = hash_new(node_hash, node_has_key);
 	nodedb_info.nodes_mine = hash_new(node_hash, node_has_key);
 
+	nodedb_info.chunk_notify = memchunk_new("chunk-node-notify", sizeof (NotifyInfo), 16);
+
 	verse_callback_set(verse_send_node_create,	cb_node_create,	NULL);
 	verse_callback_set(verse_send_node_name_set,	cb_node_name_set, NULL);
 
@@ -187,4 +209,40 @@ void nodedb_notify_add(NodeOwnership whose, void (*notify)(Node *node, NodeNotif
 	}
 	else
 		LOG_ERR(("Notification for non-MINE ownership not implemented"));
+}
+
+void * nodedb_notify_node_add(Node *node, void (*notify)(Node *node, NodeNotifyEvent e, void *user), void *user)
+{
+	List		*iter;
+	NotifyInfo	*ni;
+
+	if(node == NULL || notify == NULL)
+		return NULL;
+	/* Check if node already has notification using this function & data. */
+	for(iter = node->notify; iter != NULL; iter = list_next(iter))
+	{
+		ni = list_data(iter);
+		if(ni->callback == notify && ni->user == user)
+			return iter;	/* It does, so return same handle. */
+	}
+	ni = memchunk_alloc(nodedb_info.chunk_notify);
+	ni->callback = notify;
+	ni->user = user;
+	iter = node->notify = list_prepend(node->notify, ni);
+
+	return iter;		/* Opaque "handle" is simply list pointer. Simplifies remove. */
+}
+
+void nodedb_notify_node_remove(Node *node, void *handle)
+{
+	List		*item;
+	NotifyInfo	*ni;
+
+	if(node == NULL || handle == NULL)
+		return;
+	item = handle;
+	node->notify = list_unlink(node->notify, item);
+	ni = list_data(item);
+	memchunk_free(nodedb_info.chunk_notify, ni);
+	list_destroy(item);
 }

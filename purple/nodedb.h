@@ -22,6 +22,8 @@ typedef struct
 	char		name[32];
 	VNodeID		owner;
 	DynArr		*tag_groups;
+
+	List		*notify;
 } Node;
 
 #include "nodedb-o.h"
@@ -41,3 +43,10 @@ typedef enum { NODEDB_NOTIFY_CREATE, NODEDB_NOTIFY_STRUCTURE, NODEDB_NOTIFY_DATA
 
 /* Add a callback that will be called when a change occurs in a node. */
 extern void		nodedb_notify_add(NodeOwnership whose, void (*notify)(Node *node, NodeNotifyEvent ev));
+
+/* Add a callback to be called on change of a specific node, rather than a broad category like above. */
+extern void *		nodedb_notify_node_add(Node *node,
+					       void (*notify)(Node *node, NodeNotifyEvent ev, void *user),
+					       void *user);
+
+extern void		nodedb_notify_node_remove(Node *node, void *handle);
