@@ -35,7 +35,7 @@ typedef struct
 {
 	uint32		id;
 	Plugin		*plugin;
-	PInstance	instance;
+	PInstance	instance;	/* Input values, state data. */
 	PPort		output;		/* Result is stored here. */
 	IdList		dependants;	/* Modules referencing this module's output. */
 
@@ -152,8 +152,8 @@ void graph_method_send_creates(uint32 avatar, uint8 group_id)
 	{
 		verse_send_o_method_create(avatar, group_id, -(1 + i), method_info[i].name,
 					   method_info[i].param_count,
-					   method_info[i].param_type,
-					   method_info[i].param_name);
+					   (VNOParamType *) method_info[i].param_type,
+					   (char **) method_info[i].param_name);
 	}
 }
 
