@@ -244,20 +244,30 @@ void p_node_b_dimensions_get(PINode *node, uint16 *width, uint16 *height, uint16
 	nodedb_b_dimensions_get((NodeBitmap *) node, width, height, depth);
 }
 
+unsigned int p_node_b_layer_num(PINode *node)
+{
+	return nodedb_b_layer_num((NodeBitmap *) node);
+}
+
+PNBLayer * p_node_b_layer_nth(PINode *node, unsigned int n)
+{
+	return nodedb_b_layer_nth((NodeBitmap *) node, n);
+}
+
+PNBLayer * p_node_b_layer_find(PINode *node, const char *name)
+{
+	return nodedb_b_layer_find((NodeBitmap *) node, name);
+}
+
 PNBLayer * p_node_b_layer_create(PONode *node, const char *name, VNBLayerType type)
 {
 	PNBLayer	*l;
 
 	if(node == NULL)
 		return NULL;
-	if((l = nodedb_b_layer_lookup((NodeBitmap *) node, name)) != NULL)
+	if((l = nodedb_b_layer_find((NodeBitmap *) node, name)) != NULL)
 		return l;
 	return nodedb_b_layer_create((NodeBitmap *) node, ~0, name, type);
-}
-
-PNBLayer * p_node_b_layer_lookup(PINode *node, const char *name)
-{
-	return nodedb_b_layer_lookup((NodeBitmap *) node, name);
 }
 
 void * p_node_b_layer_access_begin(PONode *node, PNBLayer *layer)

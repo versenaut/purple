@@ -414,7 +414,7 @@ static int sync_bitmap(NodeBitmap *n, const NodeBitmap *target)
 	{
 		if(layer->name[0] == '\0')
 			continue;
-		if((tlayer = nodedb_b_layer_lookup(target, layer->name)) != NULL)
+		if((tlayer = nodedb_b_layer_find(target, layer->name)) != NULL)
 		{
 			if(layer->type != tlayer->type)
 				printf(" bitmap layer type mismatch\n");
