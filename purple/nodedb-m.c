@@ -125,9 +125,9 @@ static int fragments_equal(const NodeMaterial *node, const NdbMFragment *a,
 			 * We do not currently compare actual bitmap contents, that'd be... Hard.
 			*/
 			if(a->node != NULL)
-				neq = a->node->id == b->frag.light.bitmap;
+				neq = a->node->id == b->frag.light.brdf;
 			else
-				neq = a->frag.texture.bitmap == b->frag.light.bitmap;
+				neq = a->frag.texture.bitmap == b->frag.light.brdf;
 			return neq && a->frag.light.normal_falloff == b->frag.light.normal_falloff &&
 				strcmp(a->frag.light.brdf_r, b->frag.light.brdf_r) == 0 &&
 				strcmp(a->frag.light.brdf_g, b->frag.light.brdf_g) == 0 &&
