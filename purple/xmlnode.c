@@ -30,6 +30,7 @@ struct XmlNode
 	char		*text;
 	size_t		attrib_num;	/* Number of attributes. */
 	Attrib		*attrib;
+	XmlNode		*parent;
 	List		*children;
 };
 
@@ -290,6 +291,7 @@ static XmlNode * node_new(const char *token)
 		node->text     = NULL;
 		node->attrib_num = 0;
 		node->attrib   = attribs_build(token ? token + elen : NULL, &node->attrib_num);
+		node->parent   = NULL;
 		node->children = NULL;
 		return node;
 	}
@@ -302,6 +304,7 @@ static void node_child_add(XmlNode *parent, XmlNode *child)
 	if(parent == NULL || child == NULL)
 		return;
 	parent->children = list_append(parent->children, child);
+	child->parent    = parent;
 }
 
 /* Add <text> content to a <parent> node. This is a bit weird, since text is not totally symmetrically
