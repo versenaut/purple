@@ -1,6 +1,6 @@
 /*
- * IdSet, a simple data structure for managing a set of objects, each of which is
- * given a numerical ID. Objects can be inserted and removed, with IDs re-used from
+ * IdSet, a simple data structure for managing a set of object references, each of which
+ * is given a numerical ID. Objects can be inserted and removed, with IDs re-used from
  * removed objects. IDs of inserted objects never change.
 */
 
@@ -16,6 +16,8 @@ extern size_t		idset_size(const IdSet *is);
 extern void *		idset_lookup(const IdSet *is, unsigned int id);
 
 /*
+ * Foreach-functions, to travese over all members of an IdSet. Use as follows:
+ * 
  * const IdSet *is;
  * unsigned int	id;
  * void *obj;
