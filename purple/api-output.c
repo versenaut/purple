@@ -99,7 +99,37 @@ PONode * p_output_node(PPOutput out, PINode *v)
 	return n;
 }
 
+PONode * p_output_node_o_link(PPOutput out, PONode *node, const char *label)
+{
+	PONode	*n;
+
+	if((n = nodedb_o_link_get_local(node, label, 0)) != NULL)
+	{
+		n = nodedb_new_copy((Node *) n);
+		nodedb_o_link_set_local(node, label, n, 0);
+		graph_port_output_set_node(out, n);
+	}
+	else
+		printf("api-output: couldn't get %s local link from %p\n", label, node);
+	return n;
+}
+
 PONode * p_output_node_create(PPOutput out, VNodeType type, uint32 label)
 {
 	return graph_port_output_node_create(out, type, label);
+}
+
+PONode * p_output_node_copy(PPOutput out, PINode *node, uint32 label)
+{
+	return graph_port_output_node_copy(out, node, label);
+}
+
+PONode * p_output_node_pass(PPOutput out, PINode *node)
+{
+	if(out != NULL && node != NULL)
+	{
+		graph_port_output_set_node(out, node);
+		return (PONode *) node;
+	}
+	return NULL;
 }
