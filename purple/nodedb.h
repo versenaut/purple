@@ -36,6 +36,7 @@ struct Node
 };
 
 #include "nodedb-b.h"
+#include "nodedb-c.h"
 #include "nodedb-g.h"
 #include "nodedb-o.h"
 #include "nodedb-t.h"
