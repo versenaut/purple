@@ -2,6 +2,30 @@
  * 
 */
 
+typedef struct
+{
+	char		name[VN_TAG_NAME_SIZE];
+	VNTagType	type;
+	VNTag		value;
+} Tag;
+
+typedef struct
+{
+	char		name[VN_TAG_GROUP_SIZE];
+	DynArr		*tags;
+} TagGroup;
+
+typedef struct
+{
+	VNodeID		id;
+	VNodeType	type;
+	char		name[32];
+	VNodeID		owner;
+	DynArr		*tag_groups;
+} Node;
+
+#include "nodedb-t.h"
+
 extern void		nodedb_register_callbacks(VNodeID avatar, uint32 mask);
 
 extern Node *		nodedb_lookup(VNodeID node_id);
