@@ -20,7 +20,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	PONode		*node;
 	PNBLayer	*layer;
 	uint32		side = p_input_uint32(input[0]), size = p_input_uint32(input[1]);
-	uint8		*frame, i;
+	uint8		*frame, *put, i;
 
 	node = p_output_node_create(output, V_NT_BITMAP, 0);
 	p_node_b_dimensions_set(node, side, side, 1);
@@ -33,10 +33,8 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 
 			for(y = 0; y < side; y++)
 			{
-				uint8	*row = frame + y * side;
-
-				for(x = 0; x < side; x++)
-					*row++ = check(side, size, x, y) ? 0xFF : 0x00;
+				for(x = 0, put = frame + y * side; x < side; x++)
+					*put++ = check(side, size, x, y) ? 0xFF : 0x00;
 			}
 			p_node_b_layer_access_end(node, layer, frame);
 		}
