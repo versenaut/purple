@@ -1,5 +1,9 @@
 /*
- * Memory handling functions, to ease debugging and stuff in the future. 
+ * Memory handling functions, to ease debugging and stuff in the future.
+ *
+ * Note that not all allocations go through these, there are various modules
+ * that use underlying system APIs directly and no attempt have been made
+ * to trap their allocations (for instance dynlib).
 */
 
 #if !defined MEM_H
