@@ -562,7 +562,11 @@ PluginStatus plugin_instance_compute(PInstance *inst)
 
 				if((o = inst->resolver(module, inst->resolver_data)) != NULL)
 					ps->port[i] = o;
+				else
+					printf("Couldn't resolve port %u\n", i);
 			}
+			else
+				ps->port[i] = &ps->input[i];
 		}
 		if(p->compute(port, inst->output, inst->state) == P_COMPUTE_DONE)
 			return PLUGIN_STOP_COMPLETE;
