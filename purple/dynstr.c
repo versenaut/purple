@@ -49,26 +49,26 @@ DynStr * dynstr_new(const char *text)
 	return NULL;
 }
 
-void dynstr_assign(DynStr *ds, const char *text)
+void dynstr_assign(DynStr *str, const char *text)
 {
 	size_t	len;
 	char	*nb;
 
-	if(ds == NULL || text == NULL)
+	if(str == NULL || text == NULL)
 		return;
 	len = strlen(text);
-	if(len < ds->len && len < 128)
+	if(len < str->len && len < 128)
 	{
-		strcpy(ds->str, text);
-		ds->len = len;
+		strcpy(str->str, text);
+		str->len = len;
 		return;
 	}
 	if((nb = mem_alloc(len + 1)) != NULL)
 	{
-		mem_free(ds->str);
-		ds->str   = nb;
-		ds->alloc = len + 1;
-		ds->len   = len;
+		mem_free(str->str);
+		str->str   = nb;
+		str->alloc = len + 1;
+		str->len   = len;
 	}
 	else
 		LOG_WARN(("Couldn't assign string, out of memory"));
@@ -97,13 +97,13 @@ static size_t format_size(const char *fmt, va_list args)
 	return 0;
 }
 
-void dynstr_printf(DynStr *ds, const char *fmt, ...)
+void dynstr_printf(DynStr *str, const char *fmt, ...)
 {
 	va_list	args;
 	size_t	need;
 	char	*nb;
 
-	if(ds == NULL || fmt == NULL)
+	if(str == NULL || fmt == NULL)
 		return;
 
 	va_start(args, fmt);
@@ -112,68 +112,68 @@ void dynstr_printf(DynStr *ds, const char *fmt, ...)
 
 	if(need == 0)	/* Size computation failed, or string is really boring. */
 		return;
-	if(need + 1 < ds->alloc)
+	if(need + 1 < str->alloc)
 	{
-		ds->len = vsprintf(ds->str, fmt, args);
+		str->len = vsprintf(str->str, fmt, args);
 		return;
 	}
-	if((nb = mem_realloc(ds->str, need + 1)) != NULL)
+	if((nb = mem_realloc(str->str, need + 1)) != NULL)
 	{
-		ds->str = nb;
-		vsprintf(ds->str, fmt, args);
-		ds->len = need;
-		ds->alloc = need + 1;
+		str->str = nb;
+		vsprintf(str->str, fmt, args);
+		str->len = need;
+		str->alloc = need + 1;
 	}
 }
 
-void dynstr_append(DynStr *ds, const char *text)
+void dynstr_append(DynStr *str, const char *text)
 {
 	size_t	len;
 	char	*nb;
 
-	if(ds == NULL || text == NULL || *text == '\0')
+	if(str == NULL || text == NULL || *text == '\0')
 		return;
 	len = strlen(text);
-	if(ds->len + len + 1 <= ds->alloc)
+	if(str->len + len + 1 <= str->alloc)
 	{
-		strcpy(ds->str + ds->len, text);
-		ds->len += len;
+		strcpy(str->str + str->len, text);
+		str->len += len;
 		return;
 	}
-	if((nb = mem_realloc(ds->str, ds->alloc + len + 1 + APPEND_MARGIN)) != NULL)
+	if((nb = mem_realloc(str->str, str->alloc + len + 1 + APPEND_MARGIN)) != NULL)
 	{
-		ds->str = nb;
-		strcpy(ds->str + ds->len, text);
-		ds->len += len;
-		ds->alloc = ds->alloc + len + 1 + APPEND_MARGIN;
-/*		LOG_MSG(("String grew to %u bytes, with %u allocated", ds->len, ds->alloc));*/
+		str->str = nb;
+		strcpy(str->str + str->len, text);
+		str->len += len;
+		str->alloc = str->alloc + len + 1 + APPEND_MARGIN;
+/*		LOG_MSG(("String grew to %u bytes, with %u allocated", str->len, str->alloc));*/
 		return;
 	}
 	LOG_ERR(("Couldn't allocate new buffer for append"));
 }
 
-void dynstr_append_c(DynStr *ds, char c)
+void dynstr_append_c(DynStr *str, char c)
 {
-	if(ds == NULL || c == '\0')
+	if(str == NULL || c == '\0')
 		return;
-	if(ds->alloc > ds->len + 1)
-		ds->str[ds->len++] = c;
+	if(str->alloc > str->len + 1)
+		str->str[str->len++] = c;
 	else
 	{
 		char	buf[2];
 
 		buf[0] = c;
 		buf[1] = '\0';
-		dynstr_append(ds, buf);
+		dynstr_append(str, buf);
 	}
 }
 
-void dynstr_append_printf(DynStr *ds, const char *fmt, ...)
+void dynstr_append_printf(DynStr *str, const char *fmt, ...)
 {
 	va_list	args;
 	int	need;
 
-	if(ds == NULL || fmt == NULL || *fmt == '\0')
+	if(str == NULL || fmt == NULL || *fmt == '\0')
 		return;
 
 	va_start(args, fmt);
@@ -181,52 +181,52 @@ void dynstr_append_printf(DynStr *ds, const char *fmt, ...)
 	va_end(args);
 	if(need == 0)
 		return;
-	else if(need <= (int) (ds->alloc - ds->len - 1))
+	else if(need <= (int) (str->alloc - str->len - 1))
 	{
-		vsprintf(ds->str + ds->len, fmt, args);
-		ds->len += need;
+		vsprintf(str->str + str->len, fmt, args);
+		str->len += need;
 		return;
 	}
 	else
 	{
 		char	*nb;
 
-		if((nb = mem_realloc(ds->str, ds->alloc + need + 1 + APPEND_MARGIN)) != NULL)
+		if((nb = mem_realloc(str->str, str->alloc + need + 1 + APPEND_MARGIN)) != NULL)
 		{
-			vsprintf(ds->str + ds->len, fmt, args);
-			ds->len   += need;
-			ds->alloc += need + 1 + APPEND_MARGIN;
+			vsprintf(str->str + str->len, fmt, args);
+			str->len   += need;
+			str->alloc += need + 1 + APPEND_MARGIN;
 			return;
 		}
 	}
 	LOG_ERR(("Couldn't allocate new buffer for append printf"));
 }
 
-const char * dynstr_string(const DynStr *ds)
+const char * dynstr_string(const DynStr *str)
 {
-	if(ds == NULL)
+	if(str == NULL)
 		return NULL;
-	return ds->str;
+	return str->str;
 }
 
-size_t dynstr_length(const DynStr *ds)
+size_t dynstr_length(const DynStr *str)
 {
-	if(ds == NULL)
+	if(str == NULL)
 		return 0;
-	return ds->len;
+	return str->len;
 }
 
-char * dynstr_destroy(DynStr *ds, int destroy_buffer)
+char * dynstr_destroy(DynStr *str, int destroy_buffer)
 {
 	char	*ret = NULL;
 
-	if(ds == NULL)
+	if(str == NULL)
 		return NULL;
 	if(!destroy_buffer)
-		ret = ds->str;
+		ret = str->str;
 	else
-		mem_free(ds->str);
-	mem_free(ds);
+		mem_free(str->str);
+	mem_free(str);
 
 	return ret;
 }
