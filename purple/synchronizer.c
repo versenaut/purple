@@ -77,8 +77,8 @@ static int object_link_exists(const NodeObject *n, VNodeID link, const char *lab
 
 static int sync_object(NodeObject *n, const NodeObject *target)
 {
-	int		sync = 1;
-	List		*iter, *next;
+	int	sync = 1;
+	List	*iter, *next;
 
 	/* Synchronize light source information. */
 	if(n->light[0] != target->light[0] || n->light[1] != target->light[1] || n->light[2] != target->light[2])
@@ -251,7 +251,7 @@ static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 		else
 		{
 			verse_send_g_layer_create(target->node.id, ~0, layer->name, layer->type, layer->def_uint, layer->def_real);
-			printf(" geometry layer %s created in %u\n", layer->name, target->node.id);
+			printf(" sync sending create of layer %s in %u\n", layer->name, target->node.id);
 			sync = 0;
 		}
 	}
@@ -260,6 +260,109 @@ static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 
 	return sync;
 }
+
+/* ----------------------------------------------------------------------------------------- */
+
+static int sync_bitmap_dimensions(const NodeBitmap *n, const NodeBitmap *target)
+{
+	if(n->width != target->width || n->height != target->height || n->depth != target->depth)
+	{
+		printf("setting dimensions of node %u\n", target->node.id);
+		verse_send_b_dimensions_set(target->node.id, n->width, n->height, n->depth);
+		return 0;
+	}
+	return 1;
+}
+
+static int sync_bitmap_layer(const NodeBitmap *n, const NdbBLayer *layer,
+			     const NodeBitmap *target, const NdbBLayer *tlayer)
+{
+	uint16		x, y, z, hit, wit, line, send;
+	NdbBTileDesc	tile, ttile;
+	int		sync = 1;
+
+	if(layer->type != tlayer->type)
+		return 1;		/* FIXME: This obviously isn't the proper thing to do. */
+
+/*	printf("syncing '%s' layers at %p and %p\n", layer->name, layer, tlayer);*/
+	wit = (n->width  + VN_B_TILE_SIZE - 1) / VN_B_TILE_SIZE;
+	hit = (n->height + VN_B_TILE_SIZE - 1) / VN_B_TILE_SIZE;
+	for(z = 0; z < n->depth; z++)
+	{
+		tile.in.z = ttile.in.z = z;
+		for(y = 0; y < hit; y++)
+		{
+			tile.in.y = ttile.in.y = y;
+			for(x = 0; x < wit; x++)
+			{
+				tile.in.x = ttile.in.x = x;
+				nodedb_b_tile_describe(n, layer, &tile);
+				nodedb_b_tile_describe(target, tlayer, &ttile);
+				send = 0;
+				if(ttile.out.ptr == NULL)
+					send = 1;
+				else
+				{
+					const uint8	*p1 = tile.out.ptr, *p2 = ttile.out.ptr;
+
+					for(line = 0;
+					    line < tile.out.height;
+					    line++, p1 += tile.out.mod_row, p2 += ttile.out.mod_row)
+					{
+						if(memcmp(p1, p2, tile.out.mod_tile) != 0)
+						{
+							send = 1;
+							break;
+						}
+					}
+				}
+				if(send)
+				{
+					VNBTile	out;
+					uint8	*put = (uint8 *) &out;
+
+					for(line = 0;
+					    line < tile.out.height;
+					    line++, put += tile.out.mod_tile, tile.out.ptr += tile.out.mod_row)
+						memcpy(put, tile.out.ptr, tile.out.mod_tile);
+					verse_send_b_tile_set(target->node.id, tlayer->id, x, y, z, tlayer->type, &out);
+					sync = 0;
+				}
+			}
+		}
+	}
+	return sync;
+}
+
+static int sync_bitmap(NodeBitmap *n, const NodeBitmap *target)
+{
+	unsigned int	i, sync = 0;
+	const NdbBLayer	*layer, *tlayer;
+
+	if(!sync_bitmap_dimensions(n, target))
+		return 0;
+	for(i = 0; ((layer = dynarr_index(n->layers, i)) != NULL); i++)
+	{
+		if(layer->name[0] == '\0')
+			continue;
+		if((tlayer = nodedb_b_layer_lookup(target, layer->name)) != NULL)
+		{
+			if(layer->type != tlayer->type)
+				printf(" bitmap layer type mismatch\n");
+			else
+				sync &= sync_bitmap_layer(n, layer, target, tlayer);
+		}
+		else
+		{
+			verse_send_b_layer_create(target->node.id, ~0, layer->name, layer->type);
+			printf(" sync sending create of bitmap layer %s in %u\n", layer->name, target->node.id);
+			sync = 0;
+		}
+	}
+	return sync;
+}
+
+/* ----------------------------------------------------------------------------------------- */
 
 static int sync_node(Node *n)
 {
@@ -276,6 +379,8 @@ static int sync_node(Node *n)
 		return sync_object((NodeObject *) n, (NodeObject *) target);
 	case V_NT_GEOMETRY:
 		return sync_geometry((NodeGeometry *) n, (NodeGeometry *) target);
+	case V_NT_BITMAP:
+		return sync_bitmap((NodeBitmap *) n, (NodeBitmap *) target);
 	default:
 		printf("Can't sync node of type %d\n", n->type);
 	}
