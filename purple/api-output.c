@@ -96,7 +96,7 @@ PONode * p_output_node(PPOutput out, PINode *v)
 
 	if((n = nodedb_new_copy((Node *) v)) != NULL)
 		graph_port_output_set_node(out, n);
-	return NULL;
+	return n;
 }
 
 PONode * p_output_node_create(PPOutput out, VNodeType type, uint32 label)
