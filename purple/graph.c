@@ -346,20 +346,9 @@ void graph_port_output_set(PPOutput port, PValueType type, ...)
 	va_list		arg;
 
 	va_start(arg, type);
-/*	port_clear(port);*/
 	port_set_va(port, type, arg);
 	m->out.changed = TRUE;
 	va_end(arg);
-#if 0
-	/* Our output changed, so ask scheduler to attempt to recompute any dependants. */
-	for(idlist_foreach_init(&m->out.dependants, &iter); idlist_foreach_step(&m->out.dependants, &iter); )
-	{
-		if((dep = idset_lookup(m->graph->modules, iter.id)) != NULL)
-			sched_add(&dep->instance);
-		else
-			printf("Couldn't find module %u in graph %s, a dependant of module %u\n", iter.id, m->graph->name, m->id);
-	}
-#endif
 }
 
 void graph_port_output_set_node(PPOutput port, PONode *node)
@@ -367,19 +356,8 @@ void graph_port_output_set_node(PPOutput port, PONode *node)
 	Module		*m = MODULE_FROM_PORT(port), *dep;
 	IdListIter	iter;
 
-/*	port_clear(port);*/
 	port_set_node(port, node);
 	m->out.changed = TRUE;
-#if 0
-	/* Our output changed, so ask scheduler to attempt to recompute any dependants. */
-	for(idlist_foreach_init(&m->out.dependants, &iter); idlist_foreach_step(&m->out.dependants, &iter); )
-	{
-		if((dep = idset_lookup(m->graph->modules, iter.id)) != NULL)
-			sched_add(&dep->instance);
-		else
-			printf("Couldn't find module %u in graph %s, a dependant of module %u\n", iter.id, m->graph->name, m->id);
-	}
-#endif
 }
 
 void graph_port_output_end(PPOutput port)
