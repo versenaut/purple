@@ -16,9 +16,9 @@ LDLIBS=-ldl -lverse -lm
 
 purple:		purple.c \
 		api-init.o api-input.o api-iter.o api-node.o api-output.o \
-		client.o cron.o diff.o dynarr.o dynlib.o dynstr.o graph.o \
+		bintree.o client.o cron.o diff.o dynarr.o dynlib.o dynstr.o graph.o \
 		filelist.o hash.o idlist.o idset.o list.o log.o mem.o memchunk.o \
-		nodedb.o nodedb-b.o nodedb-c.o nodedb-g.o nodedb-m.o nodedb-o.o nodedb-t.o \
+		nodedb.o nodedb-a.o nodedb-b.o nodedb-c.o nodedb-g.o nodedb-m.o nodedb-o.o nodedb-t.o \
 		nodeset.o plugins.o plugin-input.o plugin-output.o \
 		port.o scheduler.o strutil.o synchronizer.o textbuf.o timeval.o value.o vecutil.o xmlnode.o xmlutil.o \
 		$(VERSE)/libverse.a
@@ -33,6 +33,8 @@ api-input.o:	api-input.c purple.h
 api-node.o:	api-node.c purple.h
 
 api-output.o:	api-output.c purple.h
+
+bintree.o:	bintree.c bintree.h
 
 client.o:	client.c client.h
 
@@ -77,6 +79,8 @@ nodedb-c.o:	nodedb-c.c nodedb-c.h nodedb.h nodedb-internal.h
 nodedb-o.o:	nodedb-o.c nodedb-o.h nodedb.h nodedb-internal.h
 
 nodedb-t.o:	nodedb-t.c nodedb-t.h nodedb.h nodedb-internal.h
+
+nodedb-a.o:	nodedb-a.c nodedb-a.h nodedb.h nodedb-internal.h
 
 nodeset.o:	nodeset.c nodeset.h
 
