@@ -55,7 +55,12 @@ typedef struct
 	const char	   *param_name[4];
 } MethodInfo;
 
-enum { CREATE, RENAME, DESTROY, MOD_CREATE };
+enum { CREATE, RENAME, DESTROY, MOD_CREATE, MOD_INPUT_SET_REAL32 };
+
+#define	MI_INPUT(lct, uct)	\
+	{ 0, "m_i_set_" #lct, 3, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, \
+		VN_O_METHOD_PTYPE_ ##uct }, { "graph_id", "plugin_id", "value" } \
+	}
 
 static MethodInfo method_info[] = {
 	{ 0, "create",  3, { VN_O_METHOD_PTYPE_NODE, VN_O_METHOD_PTYPE_LAYER, VN_O_METHOD_PTYPE_STRING },
@@ -65,6 +70,7 @@ static MethodInfo method_info[] = {
 	{ 0, "destroy",	1, { VN_O_METHOD_PTYPE_UINT32 }, { "graph_id" } },
 	
 	{ 0, "mod_create",  2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "plugin_id" } },
+	MI_INPUT(real32, REAL32),
 /*	{ 0, "mod_destroy", 2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "module_id" } }
 */};
 
@@ -108,6 +114,7 @@ void graph_method_receive_create(uint8 id, const char *name)
 	{
 		if(strcmp(method_info[i].name, name) == 0)
 		{
+			printf("Method '%s' has ID %u\n", name, id);
 			method_info[i].id = id;
 			return;
 		}
@@ -265,6 +272,11 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 	printf("Sent %u chars of desc to %u.%u: '%s'\n", m->length, g->node, g->buffer, desc);
 }
 
+static void module_input_set(PInputType type, uint32 graph_id, uint32 module_id, uint8 input_index, ...)
+{
+	printf("hello!\n");
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 void send_method_call(int method, const VNOParam *param)
@@ -315,6 +327,29 @@ void graph_method_send_call_mod_create(uint32 graph_id, uint32 plugin_id)
 	send_method_call(MOD_CREATE, param);
 }
 
+void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32 index, PInputType vtype, ...)
+{
+	VNOParam	param[4];
+	VNOParamType	type[4] = { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8 };
+	va_list		arg;
+	void		*pack;
+
+	param[0].vuint32 = graph_id;
+	param[1].vuint32 = mod_id;
+	param[2].vuint8  = index;
+	va_start(arg, vtype);
+	switch(vtype)
+	{
+	case P_INPUT_REAL32:
+		param[3].vreal32 = (real32) va_arg(arg, double);
+		type[3] = VN_O_METHOD_PTYPE_REAL32;
+		break;
+	}
+	va_end(arg);
+	if((pack = verse_method_call_pack(4, type, param)) != NULL)
+		verse_send_o_method_call(client_info.avatar, client_info.gid_control, method_info[MOD_INPUT_SET_REAL32].id, 0, pack);
+}
+
 void graph_method_receive_call(uint8 id, const void *param)
 {
 	VNOParam	arg[8];
@@ -333,6 +368,9 @@ void graph_method_receive_call(uint8 id, const void *param)
 			case RENAME:	graph_rename(arg[0].vuint32, arg[1].vstring);			break;
 			case DESTROY:	graph_destroy(arg[0].vuint32);					break;
 			case MOD_CREATE: module_create(arg[0].vuint32, arg[1].vuint32);			break;
+			case MOD_INPUT_SET_REAL32:
+				module_input_set(P_INPUT_REAL32, arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, arg[3].vreal32);
+				break;
 			}
 			return;
 		}
