@@ -336,6 +336,51 @@ static void console_parse_module_input_set(const char *line)
 }
 #endif		/* PURPLE_CONSOLE */
 
+/* Pre-scripted sequence of console commands, to cut down on typing needed to test stuff. Hm. */
+static int console_script(char *line, size_t line_size)
+{
+	static const char script[] =
+	"nc text\n"
+	"tbc 2 klax\n"
+	"gc 2 0 busta\n"
+	"mc 1 4\n"
+	"mc 1 3\n"
+	"mc 1 16\n"
+	"mc 1 2\n"
+	"mism 1 1 0 : 0\n"
+	"mism 1 2 0 : 0\n"
+	"mism 1 2 1 : 1\n"
+	"misr 1 2 2 : 0\n"
+	"mism 1 3 0 : 2\n"
+	"misr 1 0 0 : 2\n";
+	static int	next_line = 0;
+
+	if(strcmp(line, ".") == 0)
+	{
+		const char	*sline = script;
+		int		i, curline = 0;
+
+		for(i = 0; script[i] != '\0'; i++)
+		{
+			if(script[i] == '\n')
+			{
+				if(curline == next_line)
+				{
+					next_line++;
+					memcpy(line, sline, (script + i - sline));
+					line[script + i - sline] = '\0';
+					printf("script: '%s'\n", line);
+					return 1;
+				}
+				curline++;
+			}
+			else if(i > 0 && script[i - 1] == '\n')
+				sline = script + i;
+		}
+	}
+	return 0;
+}
+
 static void console_update(void)
 {
 #if defined PURPLE_CONSOLE
@@ -358,6 +403,7 @@ static void console_update(void)
 			line[got] = '\0';
 			while(got > 0 && isspace(line[got - 1]))
 				line[--got] = '\0';
+			console_script(line, sizeof line);
 			if(strncmp(line, "gc ", 3) == 0)
 			{
 				VNodeID	node;
