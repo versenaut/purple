@@ -208,3 +208,23 @@ size_t p_node_t_buffer_get_count(PINode *node)
 {
 	return nodedb_t_buffer_get_count((NodeText *) node);
 }
+
+PNTBuffer * p_node_t_buffer_create(PONode *node, const char *name)
+{
+	return nodedb_t_buffer_create((NodeText *) node, ~0, name);
+}
+
+void p_node_t_buffer_insert(PNTBuffer *buffer, size_t pos, const char *text)
+{
+	return nodedb_t_buffer_insert(buffer, pos, text);
+}
+
+void p_node_t_buffer_delete(PNTBuffer *buffer, size_t pos, size_t length)
+{
+	return nodedb_t_buffer_delete(buffer, pos, length);
+}
+
+void p_node_t_buffer_append(PNTBuffer *buffer, const char *text)
+{
+	return nodedb_t_buffer_append(buffer, text);
+}
