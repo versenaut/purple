@@ -286,7 +286,9 @@ static void cb_o_method_group_create(void *user, VNodeID node_id, uint16 group_i
 
 		if(n->method_groups == NULL)
 			n->method_groups = dynarr_new(sizeof (NdbOMethodGroup), 1);
-		if((g = dynarr_set(n->method_groups, group_id, NULL)) != NULL)
+		if((g = dynarr_index(n->method_groups, group_id)) != NULL && strcmp(g->name, name) == 0)
+			;
+		else if((g = dynarr_set(n->method_groups, group_id, NULL)) != NULL)
 		{
 			g->id = group_id;
 			stu_strncpy(g->name, sizeof g->name, name);
