@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "verse.h"
+#include "purple.h"
 
 #include "dynarr.h"
 #include "list.h"
@@ -17,9 +18,49 @@
 
 /* ----------------------------------------------------------------------------------------- */
 
-void nodedb_t_init(NodeText *n)
+void nodedb_t_construct(NodeText *n)
 {
 	n->buffers = dynarr_new(sizeof (NdbTBuffer), 2);
+}
+
+void nodedb_t_copy(NodeText *n, const NodeText *src)
+{
+	unsigned int	i, num;
+
+	nodedb_t_construct(n);
+	num = dynarr_size(src->buffers);
+	for(i = 0; i < num; i++)
+	{
+		NdbTBuffer	*sb, *nb;
+
+		if((sb = dynarr_index(src->buffers, i)) != NULL && sb->name[0] != '\0')
+		{
+			printf("copying buffer %u in copy of '%s'\n", i, n->node.name);
+			nb = dynarr_set(n->buffers, i, NULL);
+			nb->id = i;
+			strcpy(nb->name, sb->name);
+			nb->text = textbuf_new(textbuf_length(sb->text));
+			textbuf_insert(nb->text, 0, textbuf_text(sb->text));
+		}
+	}
+}
+
+void nodedb_t_destruct(NodeText *n)
+{
+	unsigned int	i, num;
+
+	num = dynarr_size(n->buffers);
+	for(i = 0; i < num; i++)
+	{
+		NdbTBuffer	*b;
+
+		if((b = dynarr_index(n->buffers, i)) != NULL && b->name[0] != '\0')
+		{
+			printf("destroying buffer %u\n", i);
+			textbuf_destroy(b->text);
+		}
+	}
+	dynarr_destroy(n->buffers);
 }
 
 NdbTBuffer * nodedb_t_buffer_lookup(const NodeText *node, const char *name)
