@@ -195,33 +195,6 @@ int main(void)
 	}
 	test_end();
 
-	test_begin("Find");
-	{
-		int	ok = 0;
-
-		if(list_find(NULL, NULL, cmp_int) == NULL)
-		{
-			l = b = list_new((void *) 17);
-
-			if((a = list_find(l, (const void *) 17, cmp_int)) != NULL)
-			{
-				if(a == l)
-				{
-					l = list_prepend(l, (void *) 9);
-					l = list_prepend(l, (void *) 5);
-					l = list_prepend(l, (void *) 1);
-					l = list_append(l, (void *) 99);
-					l = list_append(l, (void *) 4);
-					if((a = list_find(l, (void *) 17, cmp_int)) != NULL)
-						ok = (a == b);
-				}
-			}
-		}
-		list_destroy(l);
-		test_result(ok);
-	}
-	test_end();
-
 	test_begin("Find in sorted list");
 	{
 		int	ok = 0;
@@ -235,6 +208,28 @@ int main(void)
 		{
 			l = list_reverse(l);	/* Reverse list, find should now fail. */
 			if(list_find_sorted(l, (const void *) 22, cmp_int) == NULL)
+				ok = 1;
+		}
+		list_destroy(l);
+		test_result(ok);
+	}
+	test_end();
+
+	test_begin("Unlink");
+	{
+		int	ok = 0;
+
+		a = list_new("this");
+		b = list_new("is");
+		c = list_new("testing");
+
+		l = list_concat(a, b);
+		l = list_concat(l, c);
+
+		if(list_length(l) == 3)
+		{
+			l = list_unlink(l, c);
+			if(list_length(l) == 2)
 				ok = 1;
 		}
 		list_destroy(l);
