@@ -146,6 +146,7 @@ static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 	gg->xml_length = strlen(xml);
 	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, gg->xml_start, 0, xml);
 	hash_insert(graph_info.graphs_name, gg->name, gg);
+	verse_send_t_text_set(gg->node, gg->buffer, 0, ~0, NULL);
 }
 
 static void graph_rename(uint32 id, const char *name)
