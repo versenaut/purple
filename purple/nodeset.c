@@ -167,7 +167,7 @@ boolean nodeset_get_string(const NodeSet *ns, PValue *dest)
 		return FALSE;
 	if((n = nodeset_retrieve(ns)) != NULL)
 	{
-		value_set(dest, P_VALUE_STRING, p_node_name_get(n));
+		value_set(dest, P_VALUE_STRING, p_node_get_name(n));
 		return TRUE;
 	}
 	return FALSE;
