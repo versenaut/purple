@@ -22,6 +22,8 @@ typedef struct {
 	char		name[32];
 	GtkWidget	*text;		/* GtkTextView visualizing the buffer contents. */
 	GtkWidget	*info;		/* Label showing size. */
+	GtkWidget	*pulse;		/* Progressbar showing network activity/buffer changes. */
+	guint		pulse_clear;	/* gtk_timeout handle for clearing the pulser. */
 	gint		page_num;	/* In GtkNotebook. */
 } TextBuffer;
 
@@ -141,6 +143,7 @@ static TextBuffer * node_text_buffer_new(MainInfo *min, VNodeID node_id, uint16 
 	g_snprintf(buf->name, sizeof buf->name, "[%u] %s", buffer_id, name);
 	buf->text = NULL;
 	buf->info = NULL;
+	buf->pulse = NULL;
 	buf->page_num = -1;
 	node->buffers = g_list_append(node->buffers, buf);
 
@@ -276,6 +279,7 @@ static void evt_buffer_close_clicked(GtkWidget *wid, gpointer user)
 		gtk_notebook_remove_page(GTK_NOTEBOOK(min->notebook), buf->page_num);
 		buf->text = NULL;
 		buf->info = NULL;
+		buf->pulse = NULL;
 
 		subscribe_set_sensitive(min);
 	}
@@ -300,9 +304,14 @@ static void evt_subscribe_clicked(GtkWidget *wid, gpointer user)
 /*		gtk_text_set_editable(GTK_TEXT(buf->text), FALSE);*/
 		gtk_container_add(GTK_CONTAINER(scwin), buf->text);
 		gtk_box_pack_start(GTK_BOX(vbox), scwin, TRUE, TRUE, 0);
+		hbox = gtk_hbox_new(FALSE, 0);
 		buf->info = gtk_label_new("");
 		gtk_misc_set_alignment(GTK_MISC(buf->info), 0.0f, 0.5f);
-		gtk_box_pack_start(GTK_BOX(vbox), buf->info, FALSE, FALSE, 0);
+		gtk_box_pack_start(GTK_BOX(hbox), buf->info, TRUE, TRUE, 0);
+		buf->pulse = gtk_progress_bar_new();
+		gtk_box_pack_start(GTK_BOX(hbox), buf->pulse, FALSE, FALSE, 0);		
+
+		gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 		nptr = strchr(buf->name, ' ') + 1;
 		g_snprintf(ltext, sizeof ltext, "[%u.%u] %s", min->cur_node, min->cur_buffer, nptr);
 		hbox = gtk_hbox_new(FALSE, 0);
@@ -323,6 +332,16 @@ static void evt_subscribe_clicked(GtkWidget *wid, gpointer user)
 	}
 }
 
+/* Clear the progress pulser/progress bar, a while after last (?) change has arrived. */
+static gboolean cb_pulse_timeout(gpointer user)
+{
+	TextBuffer	*buf = user;
+
+	buf->pulse_clear = 0;
+	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(buf->pulse), 0.0);
+	return FALSE;
+}
+
 static void cb_t_text_set(void *user, VNodeID node_id, uint16 buffer_id, uint32 pos, uint32 len, const char *text)
 {
 	TextBuffer	*buf;
@@ -334,6 +353,7 @@ static void cb_t_text_set(void *user, VNodeID node_id, uint16 buffer_id, uint32 
 		return;
 	if(buf->text == NULL)
 	{
+		printf("unsubscribing from text buffer %u\n", buffer_id);
 		verse_send_t_buffer_unsubscribe(node_id, buffer_id);
 		return;
 	}
@@ -348,6 +368,11 @@ static void cb_t_text_set(void *user, VNodeID node_id, uint16 buffer_id, uint32 
 		   gtk_text_buffer_get_char_count(textbuf),
 		   gtk_text_buffer_get_line_count(textbuf));
 	gtk_label_set_text(GTK_LABEL(buf->info), info);
+
+	gtk_progress_bar_pulse(GTK_PROGRESS_BAR(buf->pulse));
+	if(buf->pulse_clear != 0)
+		g_source_remove(buf->pulse_clear);
+	buf->pulse_clear = g_timeout_add(35, cb_pulse_timeout, buf);
 }
 
 static gboolean evt_window_keypress(GtkWidget *win, GdkEventKey *evt, gpointer user)
