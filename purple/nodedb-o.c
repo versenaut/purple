@@ -169,11 +169,40 @@ void nodedb_o_link_set_local(NodeObject *n, const PONode *link, const char *labe
 		}
 	}
 	l = mem_alloc(sizeof *l);
-	l->link = link;
+	l->link = (PONode *) link;
 	stu_strncpy(l->label, sizeof l->label, label);
 	l->target_id = target_id;
 	n->links_local = list_prepend(n->links_local, l);
 	printf("local link created\n");
+}
+
+PONode * nodedb_o_link_get_local(const NodeObject *n, const char *label, uint32 target_id)
+{
+	const List	*iter;
+
+	if(n == NULL || label == NULL)
+		return 0;
+	for(iter = n->links_local; iter != NULL; iter = list_next(iter))
+	{
+		NdbOLinkLocal	*l = list_data(iter);
+
+		if(l->target_id == target_id && strcmp(l->label, label) == 0)
+			return l->link;
+	}
+	return NULL;
+}
+
+PINode * nodedb_o_link_get(const NodeObject *n, const char *label, uint32 target_id)
+{
+	const NdbOLink	*link;
+	unsigned int	i;
+
+	for(i = 0; (link = dynarr_index(n->links, i)) != NULL; i++)
+	{
+		if(link->target_id == target_id && link->label != NULL && strcmp(link->label, label) == 0)
+			return nodedb_lookup(link->link);
+	}
+	return NULL;
 }
 
 NdbOMethodGroup * nodedb_o_method_group_lookup(NodeObject *node, const char *name)
