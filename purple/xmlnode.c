@@ -418,7 +418,11 @@ XmlNode * xmlnode_new(const char *buffer)
 	if(buffer == NULL)
 		return NULL;
 	root = build_tree(NULL, &buffer, &complete);
-	printf("complete: %s\n", complete ? "yes" : "no");
+	if(!complete)
+	{
+		xmlnode_destroy(root);
+		return NULL;
+	}
 	return root;
 
 }
