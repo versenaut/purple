@@ -33,11 +33,16 @@
 
 typedef struct
 {
+	PPort		port;		/* Result is stored here. */
+	IdList		dependants;	/* Tracks dependants, to notify when output changes. */
+} Output;
+
+typedef struct
+{
 	uint32		id;
 	Plugin		*plugin;
 	PInstance	instance;	/* Input values, state data. */
-	PPort		output;		/* Result is stored here. */
-	IdList		dependants;	/* Modules referencing this module's output. */
+	Output		out;		/* Things having to do with output/result, see above. */
 
 	uint32		start, length;	/* Region in graph XML buffer used for this module. */
 } Module;
@@ -283,7 +288,7 @@ static void module_dep_add(const Graph *g, uint32 module_id, uint32 dep_new)
 
 	if((m = idset_lookup(g->modules, module_id)) == NULL)
 		return;
-	idlist_insert(&m->dependants, dep_new);
+	idlist_insert(&m->out.dependants, dep_new);
 	printf("dep %u added\n", dep_new);
 }
 
@@ -293,7 +298,7 @@ static void module_dep_remove(const Graph *g, uint32 module_id, uint32 dep_old)
 
 	if((m = idset_lookup(g->modules, module_id)) == NULL)
 		return;
-	idlist_remove(&m->dependants, dep_old);
+	idlist_remove(&m->out.dependants, dep_old);
 	printf("dep %u removed\n", dep_old);
 }
 
@@ -305,7 +310,7 @@ static void module_dep_destroy_warning(Graph *g, Module *m)
 	uint32		lt;
 
 	/* First, remove input links to this module from others, the dependants. */
-	for(idlist_foreach_init(&m->dependants, &iter); idlist_foreach_step(&m->dependants, &iter); )
+	for(idlist_foreach_init(&m->out.dependants, &iter); idlist_foreach_step(&m->out.dependants, &iter); )
 		module_input_clear_links_to(g, iter.id, m->id);
 	/* Second, tell sources this module no longer depends on them. */
 	num = plugin_portset_size(m->instance.inputs);
@@ -418,7 +423,7 @@ static PPOutput cb_module_lookup(uint32 module_id, void *data)
 	Module	*m;
 
 	if((m = idset_lookup(((Graph *) data)->modules, module_id)) != NULL)
-		return &m->output;
+		return &m->out.port;
 	return NULL;
 }
 
@@ -448,9 +453,9 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 	}
 	m->plugin = p;
 	plugin_instance_init(m->plugin, &m->instance);
-	plugin_instance_set_output(&m->instance, &m->output);
+	plugin_instance_set_output(&m->instance, &m->out.port);
 	plugin_instance_set_link_resolver(&m->instance, cb_module_lookup, g);
-	idlist_construct(&m->dependants);
+	idlist_construct(&m->out.dependants);
 	m->start = m->length = 0;
 	if(g->modules == NULL)
 		g->modules = idset_new(0);
@@ -482,7 +487,7 @@ static void module_destroy(uint32 graph_id, uint32 module_id)
 	module_dep_destroy_warning(g, m);
 	idset_remove(g->modules, module_id);
 	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, NULL);
-	idlist_destruct(&m->dependants);
+	idlist_destruct(&m->out.dependants);
 	plugin_instance_free(m->plugin, &m->instance);
 	memchunk_free(graph_info.chunk_module, m);
 	graph_modules_desc_start_update(g);
