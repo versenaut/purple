@@ -276,7 +276,7 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 			default:
 				;
 			}
-			put += 4 * ps;
+			put += 4 * ps * node->width;
 		}
 	}
 	NOTIFY(node, DATA);
