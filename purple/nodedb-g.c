@@ -175,6 +175,28 @@ static void cb_g_vertex_set_real64_xyz(void *user, VNodeID node_id, VLayerID lay
 	}
 }
 
+/* Macro to define a handler function for a single-valued (i.e. non-XYZ) vertex set. */
+#define	VERTEX_SINGLE(t)	\
+	static void cb_g_vertex_set_ ##t(void *user, VNodeID node_id, VLayerID layer_id, uint32 vertex_id, t value)\
+	{\
+		NodeGeometry	*node;\
+		NdbGLayer	*layer;\
+		t		*v;\
+		\
+		if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)\
+			return;\
+		if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL || layer->name[0] == '\0')\
+			return;\
+		if(layer->data == NULL)\
+			layer->data = dynarr_new(3 * sizeof *v, 16);	/* FIXME: Should care about defaults. */\
+		if((v = dynarr_set(layer->data, vertex_id, NULL)) != NULL)\
+			*v = value;\
+	}
+
+VERTEX_SINGLE(uint32)
+VERTEX_SINGLE(real32)
+VERTEX_SINGLE(real64)
+
 /* ----------------------------------------------------------------------------------------- */
 
 void nodedb_g_register_callbacks(void)
@@ -184,4 +206,7 @@ void nodedb_g_register_callbacks(void)
 
 	verse_callback_set(verse_send_g_vertex_set_real32_xyz,	cb_g_vertex_set_real32_xyz,	NULL);
 	verse_callback_set(verse_send_g_vertex_set_real64_xyz,	cb_g_vertex_set_real64_xyz,	NULL);
+	verse_callback_set(verse_send_g_vertex_set_uint32,	cb_g_vertex_set_uint32,		NULL);
+	verse_callback_set(verse_send_g_vertex_set_real32,	cb_g_vertex_set_real32,		NULL);
+	verse_callback_set(verse_send_g_vertex_set_real64,	cb_g_vertex_set_real64,		NULL);
 }
