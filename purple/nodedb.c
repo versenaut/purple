@@ -236,7 +236,6 @@ Node * nodedb_new_copy(const Node *src)
 		{
 		case V_NT_AUDIO:
 			nodedb_a_copy((NodeAudio *) n, (const NodeAudio *) src);
-			printf("audio node copied, type is %d\n", n->type);
 			break;
 		case V_NT_BITMAP:
 			nodedb_b_copy((NodeBitmap *) n, (const NodeBitmap *) src);
