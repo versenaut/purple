@@ -337,23 +337,23 @@ static void append_value(DynStr *d, const PInputValue *v)
 			{
 				dynstr_append_printf(d, "[");
 				for(j = 0; j < 4; j++)
-					dynstr_append_printf(d, "%s%u", j > 0 ? " " : "", v->v.vreal32_mat16[4 * i + j]);
+					dynstr_append_printf(d, "%s%g", j > 0 ? " " : "", v->v.vreal32_mat16[4 * i + j]);
 				dynstr_append_printf(d, "]");
 			}
 			dynstr_append_printf(d, "]");
 		}
 		break;
 	case P_INPUT_REAL64:
-		dynstr_append_printf(d, "%g", v->v.vreal64);
+		dynstr_append_printf(d, "%.10g", v->v.vreal64);
 		break;
 	case P_INPUT_REAL64_VEC2:
-		dynstr_append_printf(d, "[%g %g]", v->v.vreal64_vec2[0], v->v.vreal64_vec2[1]);
+		dynstr_append_printf(d, "[%.10g %.10g]", v->v.vreal64_vec2[0], v->v.vreal64_vec2[1]);
 		break;
 	case P_INPUT_REAL64_VEC3:
-		dynstr_append_printf(d, "[%g %g %g]", v->v.vreal64_vec3[0], v->v.vreal64_vec3[1], v->v.vreal64_vec3[2]);
+		dynstr_append_printf(d, "[%.10g %.10g %.10g]", v->v.vreal64_vec3[0], v->v.vreal64_vec3[1], v->v.vreal64_vec3[2]);
 		break;
 	case P_INPUT_REAL64_VEC4:
-		dynstr_append_printf(d, "[%g %g %g %g]", v->v.vreal64_vec4[0], v->v.vreal64_vec4[1], v->v.vreal64_vec4[2], v->v.vreal64_vec4[3]);
+		dynstr_append_printf(d, "[%.10g %.10g %.10g %.10g]", v->v.vreal64_vec4[0], v->v.vreal64_vec4[1], v->v.vreal64_vec4[2], v->v.vreal64_vec4[3]);
 		break;
 	case P_INPUT_REAL64_MAT16:
 		{
@@ -364,7 +364,7 @@ static void append_value(DynStr *d, const PInputValue *v)
 			{
 				dynstr_append_printf(d, "[");
 				for(j = 0; j < 4; j++)
-					dynstr_append_printf(d, "%s%u", j > 0 ? " " : "", v->v.vreal64_mat16[4 * i + j]);
+					dynstr_append_printf(d, "%s%.10g", j > 0 ? " " : "", v->v.vreal64_mat16[4 * i + j]);
 				dynstr_append_printf(d, "]");
 			}
 			dynstr_append_printf(d, "]");
