@@ -3,6 +3,7 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "purple.h"
 
@@ -248,8 +249,7 @@ const char * p_input_string(PPInput input, char *buffer, size_t buf_max)
 			 in->v.vreal64_mat16[12], in->v.vreal64_mat16[13], in->v.vreal64_mat16[14], in->v.vreal64_mat16[15]);
 		break;
 	case P_INPUT_STRING:
-		stu_strncpy(buffer, buf_max, in->v.vstring);	/* Possibly quicker than snprintf(). */
-		break;
+		return stu_strncpy(buffer, buf_max, in->v.vstring);	/* Possibly quicker than snprintf(). */
 	}
 	if(put > 0 && put < buf_max)
 		return buffer;
