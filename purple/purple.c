@@ -661,8 +661,8 @@ int main(void)
 	test_xmlnode();
 	test_idset();
 	test_idlist();
-*/	return 0;
-
+	return 0;
+*/
 	plugins_libraries_load();
 	plugins_libraries_init();
 
