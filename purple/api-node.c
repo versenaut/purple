@@ -318,14 +318,24 @@ void p_node_b_layer_access_multi_end(PONode *node, void *framebuffer)
 
 /* ----------------------------------------------------------------------------------------- */
 
-PNCCurve * p_node_c_curve_create(PONode *node, const char *name, uint8 dimensions)
+unsigned int p_node_c_curve_num(PINode *node)
 {
-	return nodedb_c_curve_create((NodeCurve *) node, ~0, name, dimensions);
+	return nodedb_c_curve_num((NodeCurve *) node);
+}
+
+PNCCurve * p_node_c_curve_nth(PINode *node, unsigned int n)
+{
+	return nodedb_c_curve_nth((NodeCurve *) node, n);
 }
 
 PNCCurve * p_node_c_curve_find(PINode *node, const char *name)
 {
 	return nodedb_c_curve_find((NodeCurve *) node, name);
+}
+
+PNCCurve * p_node_c_curve_create(PONode *node, const char *name, uint8 dimensions)
+{
+	return nodedb_c_curve_create((NodeCurve *) node, ~0, name, dimensions);
 }
 
 uint8 p_node_c_curve_dimensions_get(const PNCCurve *curve)

@@ -84,6 +84,57 @@ void nodedb_c_destruct(NodeCurve *n)
 
 /* ----------------------------------------------------------------------------------------- */
 
+unsigned int nodedb_c_curve_num(const NodeCurve *node)
+{
+	unsigned int	i, num;
+	const NdbCCurve	*curve;
+
+	if(node == NULL)
+		return 0;
+	for(i = num = 0; (curve = dynarr_index(node->curves, i)) != NULL; i++)
+	{
+		if(curve->name[0] == '\0')
+			continue;
+		num++;
+	}
+	return num;
+}
+
+NdbCCurve * nodedb_c_curve_nth(const NodeCurve *node, unsigned int n)
+{
+	unsigned int	i;
+	NdbCCurve	*curve;
+
+	if(node == NULL)
+		return NULL;
+	for(i = 0; (curve = dynarr_index(node->curves, i)) != NULL; i++)
+	{
+		if(curve->name[0] == '\0')
+			continue;
+		if(n == 0)
+			return curve;
+		n--;
+	}
+	return NULL;
+}
+
+NdbCCurve * nodedb_c_curve_find(const NodeCurve *node, const char *name)
+{
+	unsigned int	i;
+	NdbCCurve	*curve;
+
+	if(node == NULL || name == NULL || *name == '\0')
+		return NULL;
+	for(i = 0; ((curve = dynarr_index(node->curves, i)) != NULL); i++)
+	{
+		if(strcmp(curve->name, name) == 0)
+			return curve;
+	}
+	return NULL;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 static void cb_curve_default(unsigned int indec, void *element, void *user)
 {
 	NdbCCurve	*curve = element;
@@ -116,21 +167,6 @@ NdbCCurve * nodedb_c_curve_create(NodeCurve *node, VLayerID curve_id, const char
 		printf("Curve curve %u.%u %s created, dim=%u\n", node->node.id, curve_id, name, curve->dimensions);
 	}
 	return curve;
-}
-
-NdbCCurve * nodedb_c_curve_lookup(const NodeCurve *node, const char *name)
-{
-	unsigned int	i;
-	NdbCCurve	*curve;
-
-	if(node == NULL || name == NULL)
-		return NULL;
-	for(i = 0; ((curve = dynarr_index(node->curves, i)) != NULL); i++)
-	{
-		if(strcmp(curve->name, name) == 0)
-			return curve;
-	}
-	return NULL;
 }
 
 uint8 nodedb_c_curve_dimensions_get(const NdbCCurve *curve)
