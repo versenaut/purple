@@ -15,10 +15,12 @@
 #include "verse.h"
 
 #include "dynarr.h"
+#include "diff.h"
 #include "list.h"
 #include "log.h"
 #include "mem.h"
 #include "plugins.h"
+#include "strutil.h"
 #include "textbuf.h"
 #include "nodedb.h"
 
@@ -368,6 +370,88 @@ static int sync_bitmap(NodeBitmap *n, const NodeBitmap *target)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static int sync_text_buffer(const NodeText *n, const NdbTBuffer *buffer,
+			    const NodeText *target, const NdbTBuffer *tbuffer)
+{
+	int		sync = 1, d;
+	DynArr		*edit;
+	DiffEdit	*ed;
+	const char	*text, *ttext;
+	size_t		len, tlen;
+
+	text  = textbuf_text(buffer->text);
+	len   = textbuf_length(buffer->text);
+	ttext = textbuf_text(tbuffer->text);
+	tlen  = textbuf_length(tbuffer->text);
+	if(len == tlen && strcmp(text, ttext) == 0)	/* Avoid allocating memory and running diff if equal. */
+		return sync;
+
+	edit  = dynarr_new(sizeof (*ed), 8);
+
+/*	printf("  text: '%s' (%u)\n", text, len);
+	printf("target: '%s' (%u)\n", ttext, tlen);
+*/	d = diff_compare_simple(ttext, tlen, text, len, edit);
+/*	printf("Edit distance: %d\n", d);*/
+	if(d > 0)
+	{
+		unsigned int	i, pos = 0;
+
+		for(i = 0; (ed = dynarr_index(edit, i)) != NULL; i++)
+		{
+			if(ed->op == DIFF_MATCH)
+			{
+				pos = ed->off + ed->len;
+			}
+			else if(ed->op == DIFF_DELETE)
+			{
+				verse_send_t_text_set(target->node.id, tbuffer->id, ed->off, ed->len, NULL);
+				pos = ed->off;
+			}
+			else if(ed->op == DIFF_INSERT)	/* Split inserts into something Verse can handle. */
+			{
+				char	temp[1024];
+				size_t	off, chunk;
+
+				for(off = ed->off; len > 0; off += chunk, len -= chunk)
+				{
+					chunk = len > sizeof temp - 1 ? sizeof temp - 1 : len;
+					stu_strncpy(temp, chunk, text + off);
+					temp[chunk] = '\0';
+					verse_send_t_text_set(target->node.id, tbuffer->id, pos, 0, temp);
+					pos += chunk;
+				}
+			}
+		}
+		sync = 0;
+	}
+	dynarr_destroy(edit);
+	return sync;
+}
+
+/* Alter <target> so it becomes copy of <n>. */
+static int sync_text(NodeText *n, const NodeText *target)
+{
+	unsigned int		i, sync = 1;
+	const NdbTBuffer	*buffer, *tbuffer;
+
+	for(i = 0; (buffer = dynarr_index(n->buffers, i)) != NULL; i++)
+	{
+		if(buffer->name[0] == '\0')
+			continue;
+		if((tbuffer = nodedb_t_buffer_get_named(target, buffer->name)) != NULL)
+			sync &= sync_text_buffer(n, buffer, target, tbuffer);
+		else
+		{
+			printf(" sync sending create of text buffer '%s' in %u\n", buffer->name, target->node.id);
+			verse_send_t_buffer_create(target->node.id, ~0, 0, buffer->name);
+			sync = 0;
+		}
+	}
+	return sync;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 static int sync_node(Node *n)
 {
 	Node	*target;
@@ -385,6 +469,8 @@ static int sync_node(Node *n)
 		return sync_geometry((NodeGeometry *) n, (NodeGeometry *) target);
 	case V_NT_BITMAP:
 		return sync_bitmap((NodeBitmap *) n, (NodeBitmap *) target);
+	case V_NT_TEXT:
+		return sync_text((NodeText *) n, (NodeText *) target);
 	default:
 		printf("Can't sync node of type %d\n", n->type);
 	}
