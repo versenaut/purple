@@ -154,6 +154,8 @@ Node * nodedb_new(VNodeType type)
 		n->owner      = 0U;
 		n->tag_groups = NULL;
 		n->notify     = NULL;
+		n->creator.port   = NULL;
+		n->creator.remote = NULL;
 
 		switch(n->type)
 		{
