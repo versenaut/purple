@@ -50,7 +50,7 @@ typedef struct
 
 typedef struct
 {
-unsigned int	req : 1;
+	unsigned int	req : 1;
 	unsigned int	def : 1;
 	unsigned int	min : 1;
 	unsigned int	max : 1;
@@ -670,9 +670,26 @@ void plugin_inputset_destroy(PInputSet *is)
 
 void plugin_run_compute(Plugin *p, PInputSet *is)
 {
+	const PPInput	*port;
+
 	if(p == NULL || is == NULL)
 		return;
-	p->compute(plugin_inputset_ports(is), NULL, p->compute_user);
+	if((port = plugin_inputset_ports(is)) != NULL)
+	{
+		size_t		i;
+		const Input	*in;
+
+		/* Check that all required inputs have values. */
+		for(i = 0; (in = dynarr_index(p->input, i)) != NULL; i++)
+		{
+			if(port[i] == NULL && in->spec.req)
+			{
+				printf("Can't run compute() in %s, missing required input %u\n", p->name, i);
+				return;
+			}
+		}
+		p->compute(plugin_inputset_ports(is), NULL, p->compute_user);
+	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
