@@ -63,12 +63,12 @@ void sync_init(void)
 static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 				const NodeGeometry *target, const NdbGLayer *tlayer)
 {
-	const unsigned char	*data, *tdata;
-	size_t		size, tsize, i, esize;
+	const uint8	*data, *tdata;
+	size_t		i, size, tsize, esize;
 	int		send = 0;
 
+	/* Basically break the dynarr abstraction, for speed. */
 	esize = dynarr_get_elem_size(layer->data);
-
 	size  = dynarr_size(layer->data);
 	tsize = dynarr_size(layer->data);
 	data  = dynarr_index(layer->data, 0);
