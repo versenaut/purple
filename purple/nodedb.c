@@ -377,7 +377,7 @@ void nodedb_tag_create(NdbTagGroup *group, uint16 tag_id, const char *name, VNTa
 		tag = dynarr_set(group->tags, tag_id, NULL);
 	if(tag != NULL)
 	{
-		tag->id    = tag_id;
+		tag->id = tag_id;
 		stu_strncpy(tag->name, sizeof tag->name, name);
 		nodedb_tag_set(tag, type, value);
 	}
@@ -469,6 +469,7 @@ int nodedb_tag_values_equal(const NdbTag *t1, const NdbTag *t2)
 			return 0;
 		return memcmp(tag1->vblob.blob, tag2->vblob.blob, tag1->vblob.size) == 0;
 	default:
+		LOG_WARN(("Missing code for comparing tags of type %d", t1->type));
 		return 0;
 	}
 	return 0;
