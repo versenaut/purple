@@ -28,7 +28,7 @@ extern unsigned int	nodedb_m_fragment_num(const NodeMaterial *node);
 extern NdbMFragment *	nodedb_m_fragment_nth(const NodeMaterial *node, unsigned int n);
 extern NdbMFragment *	nodedb_m_fragment_lookup(const NodeMaterial *node, VNMFragmentID id);
 
-extern const NdbMFragment * nodedb_m_fragment_find_equiv(const NodeMaterial *node,
+extern const NdbMFragment * nodedb_m_fragment_find_equal(const NodeMaterial *node,
 							 const NodeMaterial *source, const NdbMFragment *f);
 extern int		nodedb_m_fragment_resolve(VNMFragmentID *id,  const NodeMaterial *node,
 						  const NodeMaterial *source,  VNMFragmentID f);
