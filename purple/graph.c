@@ -31,7 +31,7 @@
 typedef struct
 {
 	uint32		id;
-	const Plugin	*plugin;	/* FIXME: Should be properly typed, of course. Placeholder. */
+	const Plugin	*plugin;
 	PInputSet	*inputs;
 
 	uint32		start, length;	/* Region in graph XML buffer used for this module. */
@@ -49,6 +49,7 @@ typedef struct
 	IdSet	*modules;
 } Graph;
 
+/* Bookkeeping structure used to keep track of the various methods used to control the Purple engine. */
 typedef struct
 {
 	const char	   *name;
@@ -58,6 +59,7 @@ typedef struct
 	uint8		   id;			/* Filled-in once created. */ 
 } MethodInfo;
 
+/* Enumeration to allow simple IDs for methods. */
 enum
 {
 	CREATE, DESTROY, MOD_CREATE, MOD_DESTROY, MOD_INPUT_CLEAR,
@@ -68,16 +70,22 @@ enum
 	MOD_INPUT_SET_STRING
 };
 
+/* Create name of input-setting method. */
 #define	MI_INPUT_NAME(lct)	"mod_set_" #lct
 
+/* Create initializer for ordniary scalar input setting method. */
 #define	MI_INPUT(lct, uct)	\
 	{ MI_INPUT_NAME(lct), 4, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8, \
-		VN_O_METHOD_PTYPE_ ##uct }, { "graph_id", "module_id", "input", "value" } \
-	}
+		VN_O_METHOD_PTYPE_ ##uct }, { "graph_id", "module_id", "input", "value" } }
+
+/* Create initializer for vector input setting method. Use shorter type name. */
 #define MI_INPUT_VEC(lct, uct, len)	\
 	{ MI_INPUT_NAME(lct) "v" #len, 4, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8, \
 	VN_O_METHOD_PTYPE_ ## uct ##_VEC ## len }, { "graph_id", "module_id", "input", "value" } }
 
+/* Initialize the method bookkeeping information. This data is duplicated and sorted to create a by-name version; this
+ * literal one is for lookup by the enumeration above so the order of initializers *must* match.
+*/
 static MethodInfo method_info[] = {
 	{ "create",  3, { VN_O_METHOD_PTYPE_NODE, VN_O_METHOD_PTYPE_LAYER, VN_O_METHOD_PTYPE_STRING },
 			{ "node_id", "buffer_id", "name" } },
@@ -204,6 +212,7 @@ static void graph_index_renumber(void)
 	}
 }
 
+/* Create a new graph. */
 static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 {
 	unsigned int	id, i, pos;
@@ -242,6 +251,7 @@ static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 	me->desc_start = strchr(xml, '/') - xml - 1;
 }
 
+/* Destroy a graph. */
 static void graph_destroy(uint32 id)
 {
 	Graph	*g;
@@ -261,6 +271,7 @@ static void graph_destroy(uint32 id)
 
 /* ----------------------------------------------------------------------------------------- */
 
+/* Build description of a single module, as a freshly created dynamic string. */
 static DynStr * module_build_desc(const Module *m)
 {
 	DynStr	*d;
@@ -273,6 +284,7 @@ static DynStr * module_build_desc(const Module *m)
 	return d;
 }
 
+/* Update start positions of module descriptions. Handy when one changes/appears. */
 static void graph_modules_desc_start_update(Graph *g)
 {
 	unsigned int	id;
@@ -288,6 +300,7 @@ static void graph_modules_desc_start_update(Graph *g)
 	}
 }
 
+/* Create a new module, i.e. a plug-in instance, in a graph. */
 static void module_create(uint32 graph_id, uint32 plugin_id)
 {
 	const Plugin	*p;
@@ -325,6 +338,7 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 	dynstr_destroy(desc, 1);
 }
 
+/* Destroy a module. */
 static void module_destroy(uint32 graph_id, uint32 module_id)
 {
 	Graph	*g;
@@ -347,6 +361,7 @@ static void module_destroy(uint32 graph_id, uint32 module_id)
 	graph_modules_desc_start_update(g);
 }
 
+/* Set a module input to a value. The value might be either a literal, or a reference to another module's output. */
 static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_index, PInputType type, ...)
 {
 	va_list	arg;
@@ -374,6 +389,7 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 	graph_modules_desc_start_update(g);
 }
 
+/* Clear a module input, i.e. remove any assigned value and leave it "floating" as after module creation. */
 static void module_input_clear(uint32 graph_id, uint32 module_id, uint8 input_index)
 {
 	Graph	*g;
