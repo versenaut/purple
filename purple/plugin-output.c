@@ -19,6 +19,8 @@
 
 #include "api-init.h"
 
+#include "plugin-output.h"
+
 /* ----------------------------------------------------------------------------------------- */
 
 /* Called when our solitary input changes. Somehow send the output to Verse. */
