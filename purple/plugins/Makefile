@@ -9,6 +9,7 @@ ALL:	libaudioecho.so libaudiotone.so libaudioscale.so libbbox.so libbmblend.so \
 	libchecker.so libcube.so libcurvetest.so libdisc.so \
 	libhello.so libfactors.so libmath.so libmattest.so libmeasure.so \
 	libnew-node.so \
+	libplane.so \
 	libscale.so libstringop.so \
 	libtagtest.so libtextnum.so libwarp.so
 
