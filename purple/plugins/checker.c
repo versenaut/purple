@@ -5,13 +5,13 @@
 #include "purple.h"
 #include "purple-plugin.h"
 
-static uint8 check(uint32 side, uint32 size, uint32 x, uint32 y)
+/* Determine if (x,y) is in two-dimensional checker board square of size <user> or not. */
+static real64 check(uint32 x, uint32 y, uint32 z, void *user)
 {
-	uint32	row = y / size, col = x / size;
+	uint32	size = (uint32) user, row = y / size, col = x / size;
+	int	v = (row & 1) ? (col & 1) : !(col & 1);
 
-	if((row & 1) == 0)
-		return !(col & 1);
-	return (col & 1);
+	return v ? 1.0 : 0.0;
 }
 
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
@@ -19,25 +19,14 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	const char	*lname[] = { "col_r", "col_g", "col_b" };
 	PONode		*node;
 	PNBLayer	*layer;
-	uint32		side = p_input_uint32(input[0]), size = p_input_uint32(input[1]);
-	uint8		*frame, *put, i;
+	uint32		side = p_input_uint32(input[0]), size = p_input_uint32(input[1]), i;
 
 	node = p_output_node_create(output, V_NT_BITMAP, 0);
 	p_node_b_dimensions_set(node, side, side, 1);
 	for(i = 0; i < sizeof lname / sizeof *lname; i++)
 	{
 		layer = p_node_b_layer_create(node, lname[i], VN_B_LAYER_UINT8);
-		if((frame = p_node_b_layer_access_begin(node, layer)) != NULL)
-		{
-			uint32	x, y;
-
-			for(y = 0; y < side; y++)
-			{
-				for(x = 0, put = frame + y * side; x < side; x++)
-					*put++ = check(side, size, x, y) ? 0xFF : 0x00;
-			}
-			p_node_b_layer_access_end(node, layer, frame);
-		}
+		p_node_b_layer_foreach_set(node, layer, check, (void *) size);
 	}
 	return P_COMPUTE_DONE;
 }
@@ -45,7 +34,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 void init(void)
 {
 	p_init_create("checker");
-	p_init_input(0, P_VALUE_UINT32, "side", P_INPUT_REQUIRED, P_INPUT_DONE);
-	p_init_input(1, P_VALUE_UINT32, "size", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_UINT32, "side", P_INPUT_REQUIRED, P_INPUT_DONE);	/* Side of entire checker. */
+	p_init_input(1, P_VALUE_UINT32, "size", P_INPUT_REQUIRED, P_INPUT_DONE);	/* Size of each square. */
 	p_init_compute(compute);
 }
