@@ -27,6 +27,7 @@ extern PInputType	plugin_input_type_from_name(const char *name);
 extern Plugin *	plugin_new(const char *name);
 extern void	plugin_set_input(Plugin *p, int index, PInputType type, const char *name, va_list taglist);
 extern void	plugin_set_meta(Plugin *p, const char *category, const char *text);
+extern void	plugin_set_state(Plugin *p, size_t size);
 extern void	plugin_set_compute(Plugin *p, void (*compute)(PPInput *input, PPOutput output, void *state));
 extern char *	plugin_describe(const Plugin *p);
 extern void	plugin_describe_append(const Plugin *p, DynStr *ds);
