@@ -23,4 +23,6 @@ extern size_t		bintree_size(const BinTree *tree);
 
 extern void		bintree_print(const BinTree *tree);
 
+extern void		bintree_destroy(BinTree *tree, void (*callback)(const void *key, void *element));
+
 #endif		/* BINTREE_H */

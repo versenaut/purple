@@ -204,3 +204,22 @@ void bintree_print(const BinTree *tree)
 	do_print(tree->root);
 	printf("\n");
 }
+
+/* ----------------------------------------------------------------------------------------- */
+
+void bintree_destroy(BinTree *tree, void (*callback)(const void *key, void *element))
+{
+	Node	*iter, *next;
+
+	if(tree == NULL)
+		return;
+
+	for(iter = tree_minimum(tree->root); iter != NULL; iter = next)
+	{
+		next = tree_successor(iter);
+		if(callback != NULL)
+			callback(iter->key, iter->element);
+		memchunk_free(the_chunk, iter);
+	}
+	mem_free(tree);
+}
