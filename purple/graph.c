@@ -217,7 +217,7 @@ static void graph_destroy(uint32 id)
 
 /* ----------------------------------------------------------------------------------------- */
 
-void send_method_create(int method, const VNOParam *param)
+void send_method_call(int method, const VNOParam *param)
 {
 	const MethodInfo *mi;
 	void *pack;
@@ -236,7 +236,7 @@ void graph_method_send_call_create(VNodeID node, VLayerID buffer, const char *na
 	param[0].vnode   = node;
 	param[1].vlayer  = buffer;
 	param[2].vstring = name;
-	send_method_create(CREATE, param);
+	send_method_call(CREATE, param);
 }
 
 void graph_method_send_call_rename(uint32 id, const char *name)
@@ -245,7 +245,7 @@ void graph_method_send_call_rename(uint32 id, const char *name)
 
 	param[0].vuint32 = id;
 	param[1].vstring = name;
-	send_method_create(RENAME, param);
+	send_method_call(RENAME, param);
 }
 
 void graph_method_send_call_destroy(uint32 id)
@@ -253,7 +253,7 @@ void graph_method_send_call_destroy(uint32 id)
 	VNOParam	param[1];
 
 	param[0].vuint32 = id;
-	send_method_create(DESTROY, param);
+	send_method_call(DESTROY, param);
 }
 
 void graph_method_send_call_mod_create(uint32 graph_id, uint32 plugin_id)
@@ -262,7 +262,7 @@ void graph_method_send_call_mod_create(uint32 graph_id, uint32 plugin_id)
 
 	param[0].vuint32 = graph_id;
 	param[1].vuint32 = plugin_id;
-	send_method_create(MOD_CREATE, param);
+	send_method_call(MOD_CREATE, param);
 }
 
 void graph_method_receive_call(uint8 id, const void *param)
