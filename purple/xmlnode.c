@@ -27,7 +27,7 @@ typedef struct
 struct XmlNode
 {
 	const char	*element;
-	const char	*text;
+	char		*text;
 	Attrib		**attrib;	/* NULL-terminated array, all allocated in one piece. */
 	List		*children;
 };
@@ -162,10 +162,14 @@ static int cmp_attr(const void *a, const void *b)
 	return strcmp(aa->name, ab->name);
 }
 
+/* FIXME: This function is way too long. Could be refactored, some day. */
 static Attrib ** attribs_build(const char *token)
 {
 	size_t		num = 0, name_size = 0, value_size = 0;
 	const char	*src = token;
+
+	if(token == NULL)
+		return NULL;
 
 	while(*src)
 	{
@@ -207,7 +211,6 @@ static Attrib ** attribs_build(const char *token)
 		else
 			return NULL;
 	}
-	printf("found %d attribs, %u bytes in names and %u in values\n", num, name_size, value_size);
 	if(num > 0 && name_size > 0 && value_size > 0)
 	{
 		Attrib	**attr;
@@ -218,7 +221,6 @@ static Attrib ** attribs_build(const char *token)
 			Attrib	*a = (Attrib *) (attr + (num + 1));
 			char	*put = (char *) (a + num);
 
-			printf("%u and %u (%u %u)\n", (char *) a - (char *) attr, put - (char *) a, num, sizeof *a);
 			src = token;
 			while(*src)
 			{
@@ -262,36 +264,27 @@ static Attrib ** attribs_build(const char *token)
 
 static XmlNode * node_new(const char *token)
 {
-	size_t	elen;
+	size_t	elen = 0;
+	XmlNode	*node;
 
-	for(elen = 0; token[elen] && !isspace(token[elen]); elen++)
-		;
-	if(elen > 0)
+	if(token != NULL)
 	{
-		XmlNode	*node;
+		for(elen = 0; token[elen] && !isspace(token[elen]); elen++)
+			;
+	}
+	if((node = mem_alloc(sizeof *node + elen + 1)) != NULL)
+	{
+		char	*put = (char *) (node + 1);
+		int	i;
 
-		if((node = mem_alloc(sizeof *node + elen + 1)) != NULL)
-		{
-			char	*put = (char *) (node + 1);
-			int	i;
-
-			for(i = 0; i < elen; i++)
-				*put++ = token[i];
-			*put = '\0';
-			node->element  = (const char *) (node + 1);
-			node->text     = NULL;
-			node->attrib   = attribs_build(token + elen);
-			node->children = NULL;
-
-			if(node->attrib != NULL)
-			{
-				int	i;
-
-				for(i = 0; node->attrib[i] != NULL; i++)
-					printf("%s='%s'\n", node->attrib[i]->name, node->attrib[i]->value);
-			}
-			return node;
-		}
+		for(i = 0; i < elen; i++)
+			*put++ = token[i];
+		*put = '\0';
+		node->element  = (const char *) (node + 1);
+		node->text     = NULL;
+		node->attrib   = attribs_build(token ? token + elen : NULL);
+		node->children = NULL;
+		return node;
 	}
 	return NULL;
 }
@@ -317,6 +310,23 @@ static void node_child_add(XmlNode *parent, XmlNode *child)
 	if(parent == NULL || child == NULL)
 		return;
 	parent->children = list_append(parent->children, child);
+}
+
+static void node_text_add(XmlNode *parent, DynStr *text)
+{
+	if(parent->text == NULL)
+	{
+		printf("Adding text to node %s\n", parent->element);
+		parent->text = dynstr_destroy(text, 0);
+	}
+	else
+	{
+		XmlNode	*tc;
+		printf("Adding text child to node %s\n", parent->element);
+		tc = node_new(NULL);
+		tc->text = dynstr_destroy(text, 0);
+		node_child_add(parent, tc);
+	}
 }
 
 static XmlNode * build_tree(XmlNode *parent, const char **buffer)
@@ -363,7 +373,12 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer)
 			else if(st == TEXT)
 			{
 				printf("got text: '%s'\n", dynstr_string(token));
-				dynstr_destroy(token, 1);
+				if(parent != NULL)
+				{
+					node_text_add(parent, token);
+				}
+				else
+					dynstr_destroy(token, 1);
 				token = NULL;
 			}
 		}
@@ -406,7 +421,10 @@ static void do_print_outline(const XmlNode *root, int indent)
 
 	for(i = 0; i < indent; i++)
 		putchar(' ');
-	printf("%s\n", root->element);
+	printf("%s", root->element);
+	if(root->text != NULL)
+		printf(" : \"%s\"", root->text);
+	putchar('\n');
 	for(iter = root->children; iter != NULL; iter = list_next(iter))
 		do_print_outline(list_data(iter), indent + 1);
 }
