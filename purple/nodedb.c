@@ -247,6 +247,9 @@ Node * nodedb_new_copy(const Node *src)
 		case V_NT_GEOMETRY:
 			nodedb_g_copy((NodeGeometry *) n, (const NodeGeometry *) src);
 			break;
+		case V_NT_MATERIAL:
+			nodedb_m_copy((NodeMaterial *) n, (const NodeMaterial *) src);
+			break;
 		case V_NT_OBJECT:
 			nodedb_o_copy((NodeObject *) n, (const NodeObject *) src);
 			break;
