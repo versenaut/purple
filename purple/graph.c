@@ -563,7 +563,7 @@ void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32
 		break;
 	case P_INPUT_MODULE:
 		type[3] = VN_O_METHOD_PTYPE_UINT32;
-		param[3].vstring = value->v.vmodule;
+		param[3].vuint32 = value->v.vmodule;
 		method = MOD_INPUT_SET_MODULE;
 		break;
 	case P_INPUT_STRING:
