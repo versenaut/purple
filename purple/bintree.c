@@ -145,12 +145,9 @@ static Node * tree_successor(const Node *node)
 	Node	*y;
 
 	if(node->right != NULL)
-	{
-		printf("%p has right %p\n", node, node->right);
 		return tree_minimum(node->right);
-	}
 	y = node->parent;
-	while(y != NULL && node == y->parent)
+	while(y != NULL && node == y->right)
 	{
 		node = y;
 		y = y->parent;
