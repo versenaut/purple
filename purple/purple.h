@@ -135,10 +135,10 @@ void		p_iter_next(PIter *iter);
 /* Node manipulation functions. Getters work on both input and output
  * nodes, setting requires output.
 */
-VNodeType	p_node_type_get(const Node *node);
+VNodeType	p_node_get_type(const Node *node);
 
-const char *	p_node_name_get(const Node *node);
-void		p_node_name_set(PONode *node, const char *name);
+const char *	p_node_get_name(const Node *node);
+void		p_node_set_name(PONode *node, const char *name);
 
 /* Tag functions. */
 typedef void	PNTagGroup, PNTag;
@@ -211,6 +211,13 @@ unsigned int	p_node_m_fragment_num(PINode *node);
 PNMFragment *	p_node_m_fragment_nth(PINode *node, unsigned int n);
 void		p_node_m_fragment_iter(PINode *node, PIter *iter);
 VNMFragmentType	p_node_m_fragment_get_type(const PNMFragment *f);
+PNMFragment *	p_node_m_fragment_get_link(const PNMFragment *f, unsigned char *label);
+PNMFragment *	p_node_m_fragment_create_color(PONode *node, real64 red, real64 green, real64 blue);
+PNMFragment *	p_node_m_fragment_create_light(PONode *node, VNMLightType type, real64 normal_falloff,
+					       PINode *brdf, const char *brdf_red, const char *brdf_green, const char *brdf_blue);
+PNMFragment *	p_node_m_fragment_create_output(PONode *node, const char *label,
+						const PNMFragment *front, const PNMFragment *back);
+
 
 /* Bitmap-node manipulation functions. */
 typedef void	PNBLayer;
