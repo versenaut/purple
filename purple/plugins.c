@@ -334,7 +334,7 @@ void plugin_describe_append(const Plugin *p, DynStr *d)
 	dynstr_append(d, "</plug-in>\n");
 }
 
-const Plugin * plugin_lookup(unsigned int id)
+Plugin * plugin_lookup(unsigned int id)
 {
 	return idset_lookup(plugins_info.plugins, id);
 }
