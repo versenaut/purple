@@ -7,7 +7,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define	PURPLE_CONSOLE
+
+#if defined PURPLE_CONSOLE
+
+/* FIXME: The console is not very portable. */
 #include <sys/select.h>
+#include <unistd.h>
+
+#endif
 
 #include "verse.h"
 #include "purple.h"
@@ -191,7 +199,7 @@ static void test_xmlnode(void)
 static void test_idset(void)
 {
 	IdSet		*is;
-	const char	*a = "a", *b = "b", *c = "c";
+	char		*a = "a", *b = "b", *c = "c";
 	void		*p;
 	unsigned int	id;
 
@@ -222,14 +230,7 @@ static void test_idset(void)
 	idset_destroy(is);
 }
 
-static int cron_handler(void *data)
-{
-	static int	count = 3;
-
-	printf("count: %d\n", --count);
-
-	return count > 0;
-}
+#if defined PURPLE_CONSOLE
 
 static void console_parse_module_input_set(const char *line)
 {
@@ -377,7 +378,7 @@ static void console_parse_module_input_set(const char *line)
 	if(got == 1)
 		graph_method_send_call_mod_input_set(g, m, i, type, &value);
 	else
-		printf("mis couldn't parse %s as type %c literal\n", literal, tcode);
+		printf("mis couldn't parse %s as type %c literal\n", literal, tcode[0]);
 }
 
 static void console_update(void)
@@ -494,6 +495,8 @@ static void console_update(void)
 		}
 	}
 }
+
+#endif		/* PURPLE_CONSOLE */
 
 int main(void)
 {
