@@ -340,9 +340,16 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer, int *complete)
 {
 	DynStr	*token = NULL;
 
+	if(complete == NULL)
+	{
+		static int	fake;
+
+		complete = &fake;
+	}
+
 	*complete = 1;
 
-	for(; **buffer;)
+	for(; *complete && **buffer;)
 	{
 		TokenStatus	st;
 
@@ -365,7 +372,7 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer, int *complete)
 				{
 					if(node_closes(parent, tag))
 						return parent;
-					LOG_ERR(("Element nesting error in XML source, aborting"));
+					LOG_ERR(("Element nesting error in XML source, <%s> vs <%s>--aborting", tag, parent->element));
 					*complete = 0;
 					return parent;
 				}
