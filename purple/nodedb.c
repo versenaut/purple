@@ -734,7 +734,7 @@ static int node_key_eq(const void *key1, const void *key2)
 
 void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 {
-	int	i;
+	unsigned int	i;
 
 	nodedb_info.avatar = avatar;
 
