@@ -137,11 +137,16 @@ void		p_node_g_crease_set_edge(PONode *node, const char *layer, uint32 def);
 
 
 /* Bitmap-node manipulation functions. */
+typedef void	PNBLayer;
+
 void		p_node_b_dimensions_set(PONode *node, uint16 width, uint16 height, uint16 depth);
-uint16		p_node_b_layer_create(PONode *node, const char *name, VNBLayerType type);
-void *		p_node_b_layer_access_begin(PONode *node, uint16 layer_id);
-void		p_node_b_layer_access_end(PONode *node, uint16 layer_id, void *framebuffer);
-void		p_node_b_layer_destroy(PONode *node, uint16 layer_id);
+PNBLayer *	p_node_b_layer_create(PONode *node, const char *name, VNBLayerType type);
+PNBLayer *	p_node_b_layer_lookup(PONode *node, const char *name);
+void *		p_node_b_layer_access_begin(PONode *node, PNBLayer *layer);
+void		p_node_b_layer_access_end(PONode *node, PNBLayer *layer, void *framebuffer);
+void *		p_node_b_layer_access_begin_rgb(PONode *node);
+void		p_node_b_layer_access_end_rgb(PONode *node, void *framebuffer);
+void		p_node_b_layer_destroy(PONode *node, PNBLayer *layer);
 
 
 /* Duplicates an input node, and returns something you can actually edit. */
