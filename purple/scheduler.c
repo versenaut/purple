@@ -44,7 +44,7 @@ void sched_add(PInstance *inst)
 	t = memchunk_alloc(sched_info.chunk_task);
 	t->inst = inst;
 	sched_info.ready = list_append(sched_info.ready, t);
-	LOG_MSG(("There are now %u scheduled ready tasks", list_length(sched_info.ready)));
+/*	LOG_MSG(("Added %s to ready-list, there are now %u ready tasks", plugin_name(inst->plugin), list_length(sched_info.ready)));*/
 	sched_info.ready_iter = NULL;
 }
 
@@ -76,7 +76,7 @@ void sched_update(void)
 			sched_info.ready = list_unlink(sched_info.ready, iter);
 			memchunk_free(sched_info.chunk_task, task);
 			list_destroy(iter);
-			LOG_MSG(("Task removed, there are now %u ready tasks", list_length(sched_info.ready)));
+/*			LOG_MSG(("Task removed, there are now %u ready tasks", list_length(sched_info.ready)));*/
 		}
 		iter = next;
 	}
