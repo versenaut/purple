@@ -162,6 +162,7 @@ Plugin * plugin_new(const char *name)
 		p->id = 0;
 		stu_strncpy(p->name, sizeof p->name, name);
 		p->library = NULL;
+		p->input = NULL;
 		p->meta = NULL;
 		p->compute = NULL;
 		p->compute_user = NULL;
