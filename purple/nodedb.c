@@ -153,6 +153,9 @@ Node * nodedb_new(VNodeType type)
 		case V_NT_TEXT:
 			nodedb_t_construct((NodeText *) n);
 			break;
+		case V_NT_CURVE:
+			nodedb_t_construct((NodeCurve *) n);
+			break;
 		default:
 			LOG_WARN(("Missing node-specific init code for type %d", type));
 		}
@@ -197,6 +200,9 @@ Node * nodedb_new_copy(const Node *src)
 		case V_NT_TEXT:
 			nodedb_t_copy((NodeText *) n, (const NodeText *) src);
 			break;
+		case V_NT_CURVE:
+			nodedb_c_copy((NodeCurve *) n, (const NodeCurve *) src);
+			break;
 		default:
 			LOG_WARN(("Node copy not implemented for type %d\n", n->type));
 		}
@@ -228,6 +234,9 @@ void nodedb_destroy(Node *n)
 			break;
 		case V_NT_TEXT:
 			nodedb_t_destruct((NodeText *) n);
+			break;
+		case V_NT_CURVE:
+			nodedb_c_destruct((NodeCurve *) n);
 			break;
 		default:
 			LOG_WARN(("Node destruction not implemented for type %d\n", n->type));
@@ -423,6 +432,7 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 	nodedb_info.chunk_node[V_NT_GEOMETRY] = memchunk_new("chunk-node-geometry", sizeof (NodeGeometry), 16);
 	nodedb_info.chunk_node[V_NT_OBJECT]   = memchunk_new("chunk-node-object", sizeof (NodeObject), 16);
 	nodedb_info.chunk_node[V_NT_TEXT]     = memchunk_new("chunk-node-text",   sizeof (NodeText), 16);
+	nodedb_info.chunk_node[V_NT_CURVE]    = memchunk_new("chunk-node-curve",  sizeof (NodeCurve), 16);
 
 	nodedb_info.nodes      = hash_new(node_hash, node_key_eq);
 	nodedb_info.nodes_mine = hash_new(node_hash, node_key_eq);
@@ -437,6 +447,7 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 	verse_callback_set(verse_send_tag_destroy,		cb_tag_destroy, NULL);
 
 	nodedb_b_register_callbacks();
+	nodedb_c_register_callbacks();
 	nodedb_g_register_callbacks();
 	nodedb_o_register_callbacks();
 	nodedb_t_register_callbacks();
