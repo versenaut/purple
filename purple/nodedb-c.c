@@ -32,14 +32,24 @@ static void cb_key_default(unsigned int index, void *element, void *user)
 {
 	NdbCKey	*key = element;
 
-	key->id = ~0;
+	key->pos = V_REAL64_MAX;
 }
 
+/* Comparison function for inserting keys into lists, using list_insert_sorted(). */
 static int cb_key_compare(const void *d1, const void *d2)
 {
 	const NdbCKey	*k1 = d1, *k2 = d2;
 
 	return k1->pos < k2->pos ? -1 : k1->pos > k2->pos;
+}
+
+/* Compare data from list, <listdata>, against <data> which should be pointer to pos. Returns -1, 0 or 1. */
+static int cb_key_compare_find(const void *listdata, const void *data)
+{
+	const NdbCKey	*k = listdata;
+	real64		pos = *(real64 *) data;
+
+	return k->pos < pos ? -1 : k->pos > pos;
 }
 
 static void cb_copy_curve(void *d, const void *s, void *user)
@@ -199,6 +209,116 @@ NdbCKey * nodedb_c_curve_key_nth(const NdbCCurve *curve, unsigned int n)
 	return NULL;
 }
 
+NdbCKey * nodedb_c_curve_key_find(const NdbCCurve *curve, real64 pos)
+{
+	const List	*iter;
+	NdbCKey		*key;
+
+	if(curve == NULL)
+		return NULL;
+	for(iter = curve->curve; iter != NULL; iter = list_next(iter))
+	{
+		key = list_data(iter);
+		if(key->pos == pos)
+			return key;
+		if(key->pos > pos)	/* List is sorted, so we can exit a bit quicker. */
+			return NULL;
+	}
+	return NULL;
+}
+
+int nodedb_c_curve_key_equal(const NdbCCurve *curve, const NdbCKey *k1, const NdbCKey *k2)
+{
+	int	i;
+
+	if(curve == NULL || k1 == NULL || k2 == NULL)
+		return 0;
+	if(k1->pos != k2->pos)
+		return 0;
+	for(i = 0; i < curve->dimensions; i++)
+	{
+		if(k1->value[i] != k2->value[i])
+			return 0;
+		if(k1->pre.pos[i] != k2->pre.pos[i])
+			return 0;
+		if(k1->pre.value[i] != k2->pre.value[i])
+			return 0;
+		if(k1->post.pos[i] != k2->post.pos[i])
+			return 0;
+		if(k1->post.value[i] != k2->post.value[i])
+			return 0;
+	}
+	return 1;
+}
+
+NdbCKey * nodedb_c_key_create(NdbCCurve *curve, uint32 key_id,
+				     real64 pos, const real64 *value,
+				     const uint32 *pre_pos, const real64 *pre_value,
+				     const uint32 *post_pos, const real64 *post_value)
+{
+	NdbCKey	*key;
+	int	insert = 0, sort = 0, i;
+
+	if(curve->keys == NULL)
+	{
+		curve->keys = dynarr_new(sizeof *key, 8);
+		dynarr_set_default_func(curve->keys, cb_key_default, NULL);
+	}
+	if(curve->keys == NULL)
+		return NULL;
+	if(key_id == ~0)
+	{
+		/* If creating a new key, make sure it's not clobbering an existing position. Search. */
+		List	*old;
+
+		if((old = list_find_sorted(curve->curve, &pos, cb_key_compare_find)) != NULL)
+			key = list_data(old);	/* Just re-use the same slot, since we're not changing position. */
+		else
+		{
+			key = dynarr_append(curve->keys, NULL, NULL);
+			insert = 1;
+		}
+	}
+	else
+	{
+		key = dynarr_set(curve->keys, key_id, NULL);
+		sort = 1;	/* We might re-sort. Turned off if new pos equals old, below. */
+	}
+	if(key == NULL)
+		return NULL;
+	key->id = key_id;
+	if(sort)
+		sort = key->pos != pos;	/* Only resort if new position differs from the one we're reusing. */
+	key->pos = pos;
+	for(i = 0; i < curve->dimensions; i++)
+	{
+		key->value[i]      = value[i];
+		key->pre.pos[i]    = pre_pos[i];
+		key->pre.value[i]  = pre_value[i];
+		key->post.pos[i]   = post_pos[i];
+		key->post.value[i] = post_value[i];
+	}
+	if(insert)
+	{
+		printf("inserting key in list\n");
+		curve->curve = list_insert_sorted(curve->curve, key, cb_key_compare);
+	}
+	else if(sort)
+	{
+		List	*nl = NULL, *iter;
+
+		printf("resorting list\n");
+		/* This is considered a rare event, so we can be a bit expensive. */
+		nl = list_insert_sorted(nl, key, cb_key_compare);	/* Get the new one in there. */
+		for(iter = curve->curve; iter != NULL; iter = list_next(iter))
+			nl = list_insert_sorted(nl, list_data(iter), cb_key_compare);
+		list_destroy(curve->curve);
+		curve->curve = nl;
+		printf("key list resorted\n");
+	}
+	return key;
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 static void cb_c_curve_create(void *user, VNodeID node_id, VLayerID curve_id, const char *name, uint8 dimensions)
@@ -256,60 +376,8 @@ static void cb_c_key_set(void *user, VNodeID node_id, VLayerID curve_id, uint32 
 		{
 			if(c->dimensions == dimensions)
 			{
-				NdbCKey	*key;
-
-				if(c->keys == NULL)
-				{
-					c->keys = dynarr_new(sizeof *key, 8);
-					dynarr_set_default_func(c->keys, cb_key_default, NULL);
-				}
-				if((key = dynarr_set(c->keys, key_id, NULL)) != NULL)
-				{
-					int	i, ins = key->id == ~0;
-
-					key->id  = key_id;
-					key->pos = pos;
-					for(i = 0; i < dimensions; i++)
-					{
-						key->value[i]      = value[i];
-						key->pre.pos[i]    = pre_pos[i];
-						key->pre.value[i]  = pre_value[i];
-						key->post.pos[i]   = post_pos[i];
-						key->post.value[i] = post_value[i];
-					}
-					if(ins)
-						c->curve = list_insert_sorted(c->curve, key, cb_key_compare);
-/*					{
-						const List	*iter;
-
-						printf("Curve: ");
-						for(iter = c->curve; iter != NULL; iter = list_next(iter))
-						{
-							const NdbCKey	*k = list_data(iter);
-							printf(" %g (%u)", k->pos, k->id);
-						}
-						printf("\n");
-					}
-*//*					printf("setting curve %u.%u key=%u\n", node_id, curve_id, key_id);
-					printf("  pre:");
-					for(i = 0; i < dimensions; i++)
-					{
-						printf(" (%u,%g)", pre_pos[i], pre_value[i]);
-					}
-					printf("\n");
-					printf("  now: (%g,[", pos);
-					for(i = 0; i < dimensions; i++)
-						printf(" %g", value[i]);
-					printf(" ])\n");
-					printf(" post: ");
-					for(i = 0; i < dimensions; i++)
-						printf(" (%u,%g)", post_pos[i], post_value[i]);
-					printf("\n");
-*/					if(ins)
-						NOTIFY(n, STRUCTURE);
-					else
-						NOTIFY(n, DATA);
-				}
+				nodedb_c_key_create(c, key_id, pos, value, pre_pos, pre_value, post_pos, post_value);
+				NOTIFY(n, DATA);
 			}
 			else
 				LOG_WARN(("Got key_set with wrong dimensions, %u is not %u", dimensions, c->dimensions));
