@@ -585,66 +585,65 @@ void graph_method_receive_call(uint8 id, const void *param)
 	{
 		const MethodInfo	*mi = method_info + i;
 
-		if(id == mi->id)
+		if(id != mi->id)
+			continue;
+		verse_method_call_unpack(param, mi->param_count, mi->param_type, arg);
+		switch(i)
 		{
-			verse_method_call_unpack(param, mi->param_count, mi->param_type, arg);
-			switch(i)
-			{
-			case CREATE:	graph_create(arg[0].vnode, arg[1].vlayer, arg[2].vstring);	break;
-			case DESTROY:	graph_destroy(arg[0].vuint32);					break;
-			case MOD_CREATE: module_create(arg[0].vuint32, arg[1].vuint32);			break;
-			case MOD_DESTROY: module_destroy(arg[0].vuint32, arg[1].vuint32);		break;
-			case MOD_INPUT_CLEAR:
-				module_input_clear(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8);
-				break;
-			case MOD_INPUT_SET_BOOLEAN:
-				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_BOOLEAN, arg[3].vuint8);
-				break;
-			case MOD_INPUT_SET_INT32:
-				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_INT32, arg[3].vint32);
-				break;
-			case MOD_INPUT_SET_UINT32:
-				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_UINT32, arg[3].vuint32);
-				break;
-			case MOD_INPUT_SET_REAL32:
-				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32, arg[3].vreal32);
-				break;
-			case MOD_INPUT_SET_REAL32_VEC2:
-				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32_VEC2, &arg[3].vreal32_vec);
-				break;
-			case MOD_INPUT_SET_REAL32_VEC3:
-				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32_VEC3, &arg[3].vreal32_vec);
-				break;
-			case MOD_INPUT_SET_REAL32_VEC4:
-				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32_VEC4, &arg[3].vreal32_vec);
-				break;
-			case MOD_INPUT_SET_REAL32_MAT16:
-				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32_MAT16, &arg[3].vreal32_mat);
-				break;
-			case MOD_INPUT_SET_REAL64:
-				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64, arg[3].vreal64);
-				break;
-			case MOD_INPUT_SET_REAL64_VEC2:
-				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64_VEC2, &arg[3].vreal64_vec);
-				break;
-			case MOD_INPUT_SET_REAL64_VEC3:
-				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64_VEC3, &arg[3].vreal64_vec);
-				break;
-			case MOD_INPUT_SET_REAL64_VEC4:
-				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64_VEC4, &arg[3].vreal64_vec);
-				break;
-			case MOD_INPUT_SET_REAL64_MAT16:
-				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64_MAT16, &arg[3].vreal64_mat);
-				break;
-			case MOD_INPUT_SET_MODULE:
-				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_MODULE, arg[3].vuint32);
-				break;
-			case MOD_INPUT_SET_STRING:
-				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_STRING, arg[3].vstring);
-				break;
-			}
-			return;
+		case CREATE:	graph_create(arg[0].vnode, arg[1].vlayer, arg[2].vstring);	break;
+		case DESTROY:	graph_destroy(arg[0].vuint32);					break;
+		case MOD_CREATE: module_create(arg[0].vuint32, arg[1].vuint32);			break;
+		case MOD_DESTROY: module_destroy(arg[0].vuint32, arg[1].vuint32);		break;
+		case MOD_INPUT_CLEAR:
+			module_input_clear(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8);
+			break;
+		case MOD_INPUT_SET_BOOLEAN:
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_BOOLEAN, arg[3].vuint8);
+			break;
+		case MOD_INPUT_SET_INT32:
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_INT32, arg[3].vint32);
+			break;
+		case MOD_INPUT_SET_UINT32:
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_UINT32, arg[3].vuint32);
+			break;
+		case MOD_INPUT_SET_REAL32:
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32, arg[3].vreal32);
+			break;
+		case MOD_INPUT_SET_REAL32_VEC2:
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32_VEC2, &arg[3].vreal32_vec);
+			break;
+		case MOD_INPUT_SET_REAL32_VEC3:
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32_VEC3, &arg[3].vreal32_vec);
+			break;
+		case MOD_INPUT_SET_REAL32_VEC4:
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32_VEC4, &arg[3].vreal32_vec);
+			break;
+		case MOD_INPUT_SET_REAL32_MAT16:
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL32_MAT16, &arg[3].vreal32_mat);
+			break;
+		case MOD_INPUT_SET_REAL64:
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64, arg[3].vreal64);
+			break;
+		case MOD_INPUT_SET_REAL64_VEC2:
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64_VEC2, &arg[3].vreal64_vec);
+			break;
+		case MOD_INPUT_SET_REAL64_VEC3:
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64_VEC3, &arg[3].vreal64_vec);
+			break;
+		case MOD_INPUT_SET_REAL64_VEC4:
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64_VEC4, &arg[3].vreal64_vec);
+			break;
+		case MOD_INPUT_SET_REAL64_MAT16:
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64_MAT16, &arg[3].vreal64_mat);
+			break;
+		case MOD_INPUT_SET_MODULE:
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_MODULE, arg[3].vuint32);
+			break;
+		case MOD_INPUT_SET_STRING:
+			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_STRING, arg[3].vstring);
+			break;
 		}
+		return;
 	}
 	LOG_WARN(("Received call to unknown graph method %u", id));
 }
