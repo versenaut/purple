@@ -35,6 +35,7 @@ struct Node
 	List		*notify;
 };
 
+#include "nodedb-a.h"
 #include "nodedb-b.h"
 #include "nodedb-c.h"
 #include "nodedb-g.h"
