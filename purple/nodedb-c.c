@@ -80,25 +80,48 @@ void nodedb_c_destruct(NodeCurve *n)
 
 /* ----------------------------------------------------------------------------------------- */
 
+NdbCCurve * nodedb_c_curve_create(NodeCurve *node, VLayerID curve_id, const char *name, uint8 dimensions)
+{
+	NdbCCurve	*curve;
+
+	if(node == NULL || name == NULL || dimensions > 4)
+		return NULL;
+	if(node->curves == NULL)
+		node->curves = dynarr_new(sizeof (NdbCCurve), 4);
+	if(curve_id == (VLayerID) ~0)
+		curve = dynarr_append(node->curves, NULL, NULL);
+	else
+		curve = dynarr_set(node->curves, curve_id, NULL);
+	if(curve != NULL)
+	{
+		curve->id = curve_id;
+		stu_strncpy(curve->name, sizeof curve->name, name);
+		curve->dimensions = dimensions;
+		curve->keys = NULL;
+		printf("Curve curve %u.%u %s created, dim=%u\n", node->node.id, curve_id, name, curve->dimensions);
+	}
+	return curve;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 static void cb_c_curve_create(void *user, VNodeID node_id, VLayerID curve_id, const char *name, uint8 dimensions)
 {
-	NodeCurve	*n;
+	NodeCurve	*node;
 
-	if((n = (NodeCurve *) nodedb_lookup_with_type(node_id, V_NT_CURVE)) != NULL)
+	if((node = (NodeCurve *) nodedb_lookup_with_type(node_id, V_NT_CURVE)) != NULL)
 	{
-		NdbCCurve	*c;
+		NdbCCurve	*curve;
 
-		if(n->curves == NULL)
-			n->curves = dynarr_new(sizeof (NdbCKey), 4);
-		if((c = dynarr_set(n->curves, curve_id, NULL)) != NULL)
+		if((curve = dynarr_index(node->curves, curve_id)) != NULL && curve->name[0] != '\0' && strcmp(curve->name, name) != 0)
 		{
-			c->id = curve_id;
-			stu_strncpy(c->name, sizeof c->name, name);
-			c->dimensions = dimensions;
-			c->keys = NULL;
-			printf("Curve curve %u.%u %s created, dim=%u\n", node_id, curve_id, name, c->dimensions);
+			LOG_WARN(("Layer already exists--unhandled case"));
+			return;
+		}
+		if((curve = nodedb_c_curve_create(node, curve_id, name, dimensions)) != NULL)
+		{
 			verse_send_c_curve_subscribe(node_id, curve_id);
-			NOTIFY(n, STRUCTURE);
+			NOTIFY(node, STRUCTURE);
 		}
 	}
 	else

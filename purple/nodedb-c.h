@@ -37,4 +37,6 @@ extern void		nodedb_c_construct(NodeCurve *n);
 extern void		nodedb_c_copy(NodeCurve *n, const NodeCurve *src);
 extern void		nodedb_c_destruct(NodeCurve *n);
 
+extern NdbCCurve *	nodedb_c_curve_create(NodeCurve *node, VLayerID curve_id, const char *name, uint8 dimensions);
+
 extern void		nodedb_c_register_callbacks(void);
