@@ -283,6 +283,20 @@ List * list_find(List *list, int (*test)(void *data, void *userdata), void *user
 	return NULL;
 }
 
+List * list_find_sorted(const List *list, const void *data, int (*compare)(const void *data1, const void *data2))
+{
+	for(; list != NULL; list = list->next)
+	{
+		int	rel = compare(list_data(list), data);
+
+		if(rel == 0)
+			return (List *) list;
+		if(rel > 0)		/* Reached element that must be after the sought one? Then fail. */
+			return NULL;
+	}
+	return NULL;
+}
+
 void list_destroy(List *list)
 {
 	List	*next;
