@@ -190,6 +190,15 @@ void dynarr_sort(DynArr *da, int (*cmp)(const void *el1, const void *el2))
 	qsort(da->data, da->next, da->elem_size, cmp);
 }
 
+void dynarr_clear(DynArr *da)
+{
+	if(da == NULL)
+		return;
+	mem_free(da->data);
+	da->alloc = 0;
+	da->next  = 0;
+}
+
 void dynarr_destroy(DynArr *da)
 {
 	if(da != NULL)
