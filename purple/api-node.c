@@ -284,6 +284,36 @@ void p_node_g_polygon_get_corner_real64(const PNGLayer *layer, uint32 id, real64
 	nodedb_g_polygon_get_corner_real64(layer, id, v0, v1, v2, v3);
 }
 
+void p_node_g_polygon_set_face_uint8(PNGLayer *layer, uint32 id, uint8 value)
+{
+	nodedb_g_polygon_set_face_uint8(layer, id, value);
+}
+
+uint8 p_node_g_polygon_get_face_uint8(const PNGLayer *layer, uint32 id)
+{
+	return nodedb_g_polygon_get_face_uint8(layer, id);
+}
+
+void p_node_g_polygon_set_face_uint32(PNGLayer *layer, uint32 id, uint32 value)
+{
+	nodedb_g_polygon_set_face_uint32(layer, id, value);
+}
+
+uint32 p_node_g_polygon_get_face_uint32(const PNGLayer *layer, uint32 id)
+{
+	return nodedb_g_polygon_get_face_uint32(layer, id);
+}
+
+void p_node_g_polygon_set_face_real64(PNGLayer *layer, uint32 id, real64 value)
+{
+	nodedb_g_polygon_set_face_real64(layer, id, value);
+}
+
+real64 p_node_g_polygon_get_face_real64(const PNGLayer *layer, uint32 id)
+{
+	return nodedb_g_polygon_get_face_real64(layer, id);
+}
+
 void p_node_g_crease_set_vertex(PONode *node, const char *layer, uint32 def)
 {
 	if(node == NULL || layer == NULL)

@@ -328,11 +328,11 @@ VERTEX_SCALAR(uint32)
 VERTEX_SCALAR(real32)
 VERTEX_SCALAR(real64)
 
-/* Macro to define a polygon corner value handler function. */
+/* Macro to define polygon corner value handler functions (api set/get, and callback set). */
 #define POLYGON_CORNER(t)	\
 	void nodedb_g_polygon_set_corner_ ##t(NdbGLayer *layer, uint32 polygon_id, t v0, t v1, t v2, t v3)\
 	{\
-		t		*v;\
+		t	*v;\
 		\
 		if(layer->data == NULL)\
 			layer->data = dynarr_new(4 * sizeof *v, 16);	/* FIXME: Should care about defaults. */\
@@ -342,6 +342,25 @@ VERTEX_SCALAR(real64)
 			v[1] = v1;\
 			v[2] = v2;\
 			v[3] = v3;\
+		}\
+	}\
+	\
+	void nodedb_g_polygon_get_corner_ ##t(const NdbGLayer *layer, uint32 polygon_id, t *v0, t *v1, t *v2, t *v3)\
+	{\
+		const t	*v;\
+		\
+		if(layer->data == NULL)\
+			return;\
+		if((v = dynarr_index(layer->data, polygon_id)) != NULL)\
+		{\
+			if(v0)\
+				*v0 = v[0];\
+			if(v1)\
+				*v1 = v[1];\
+			if(v2)\
+				*v2 = v[2];\
+			if(v3)\
+				*v3 = v[3];\
 		}\
 	}\
 	\
@@ -374,6 +393,24 @@ POLYGON_CORNER(real64)
 
 /* Macro to define a polygon face value handler function. */
 #define POLYGON_FACE(t)	\
+	void nodedb_g_polygon_set_face_ ##t(NdbGLayer *layer, uint32 polygon_id, t value)\
+	{\
+		t	*v;\
+		\
+		if(layer->data == NULL)\
+			layer->data = dynarr_new(sizeof *v, 16);	/* FIXME: Should care about defaults. */\
+		dynarr_set(layer->data, polygon_id, &value);\
+	}\
+	\
+	t nodedb_g_polygon_get_face_ ##t(const NdbGLayer *layer, uint32 polygon_id)\
+	{\
+		const t	*v;\
+		\
+		if((v = dynarr_index(layer->data, polygon_id)) != NULL)\
+			return *v;\
+		return 0;\
+	}\
+	\
 	static void cb_g_polygon_set_face_ ##t(void *user, VNodeID node_id, VLayerID layer_id, uint32 polygon_id, t value)\
 	{\
 		NodeGeometry	*node;\
