@@ -239,7 +239,9 @@ uint8		p_node_c_curve_get_dimensions(const PNCCurve *curve);
 PNCCurve *	p_node_c_curve_create(PONode *node, const char *name, uint8 dimensions);
 unsigned int	p_node_c_curve_key_num(const PNCCurve *curve);
 PNCKey *	p_node_c_curve_key_nth(const PNCCurve *curve, unsigned int n);
-
+PNCKey *	p_node_c_curve_key_create(PNCCurve *curve, real64 pos, const real64 *value,
+					  const uint32 *pre_pos, const real64 *pre_value,
+					  const uint32 *post_pos, const real64 *post_value);
 
 /* Text-node manipulation functions. */
 typedef void	PNTBuffer;
