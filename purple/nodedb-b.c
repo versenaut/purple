@@ -231,6 +231,76 @@ void nodedb_b_layer_access_end(NodeBitmap *node, NdbBLayer *layer, void *framebu
 	/* Nothing much to do, here. */
 }
 
+void nodedb_b_layer_foreach_set(NodeBitmap *node, NdbBLayer *layer,
+				real64 (*pixel)(uint32 x, uint32 y, uint32 z, void *user), void *user)
+{
+	uint8	*frame;
+
+	if(node == NULL || layer == NULL || pixel == NULL)
+		return;
+	if((frame = nodedb_b_layer_access_begin(node, layer)) != NULL)
+	{
+		uint32	z, y, x;
+		uint8	*put8, px, shift;
+		uint16	*put16;
+		real32	*put32;
+		real64	*put64;
+
+		for(z = 0; z < node->depth; z++)
+		{
+			for(y = 0; y < node->height; y++)
+			{
+				switch(layer->type)
+				{
+				case VN_B_LAYER_UINT1:
+					put8 = frame;
+					for(x = 0, px = 0; x < node->width; x++)
+					{
+						if(x > 0 && (x % 8) == 0)
+						{
+							printf(" x=%u, writing %02X\n", x, px);
+							*put8++ = px;
+							px = 0;
+						}
+						px <<= 1;
+						px |= pixel(x, y, z, user) >= 0.5;
+					}
+					shift = (8 - (x % 8)) % 8;
+					printf("scanline done, x=%u, writing %02X << %u = %02X\n", x, px, shift, px << shift);
+					*put8++ = px << shift;
+					frame += (node->width + 7) / 8;
+					break;
+				case VN_B_LAYER_UINT8:
+					put8 = frame;
+					for(x = 0; x < node->width; x++)
+						*put8++ = 255.0 * pixel(x, y, z, user);
+					frame += node->width;
+					break;
+				case VN_B_LAYER_UINT16:
+					put16 = (uint16 *) frame;
+					for(x = 0; x < node->width; x++)
+						*put16++ = 65535.0 * pixel(x, y, z, user);
+					frame += 2 * node->width;
+					break;
+				case VN_B_LAYER_REAL32:	
+					put32 = (real32 *) frame;
+					for(x = 0; x < node->width; x++)
+						*put32++ = pixel(x, y, z, user);
+					frame += 4 * node->width;
+					break;
+				case VN_B_LAYER_REAL64:
+					put64 = (real64 *) frame;
+					for(x = 0; x < node->width; x++)
+						*put64++ = pixel(x, y, z, user);
+					frame += 8 * node->width;
+					break;
+				}
+			}
+		}
+		nodedb_b_layer_access_end(node, layer, frame);
+	}
+}
+
 void * nodedb_b_layer_tile_find(const NodeBitmap *node, const NdbBLayer *layer,
 			     uint16 tile_x, uint16 tile_y, uint16 tile_z)
 {

@@ -131,3 +131,10 @@ void p_node_b_layer_access_end(PONode *node, PNBLayer *layer, void *framebuffer)
 {
 	nodedb_b_layer_access_end((NodeBitmap *) node, layer, framebuffer);
 }
+
+void p_node_b_layer_foreach_set(PONode *node, PNBLayer *layer,
+				real64 (*pixel)(uint32 x, uint32 y, uint32 z, void *user), void *user)
+{
+	nodedb_b_layer_foreach_set((NodeBitmap *) node, layer, pixel, user);
+}
+
