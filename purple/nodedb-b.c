@@ -28,6 +28,10 @@
 
 /* ----------------------------------------------------------------------------------------- */
 
+#define	MIN(a,b)	(((a) < (b)) ? (a) : (b))	/* Handy in tile width computations. */
+
+/* ----------------------------------------------------------------------------------------- */
+
 /* Return size in *bits* for a pixel in a given layer type. */
 static size_t pixel_size(VNBLayerType type)
 {
@@ -47,6 +51,16 @@ static size_t tile_modulo(const NodeBitmap *node, const NdbBLayer *layer)
 	static const size_t	mod[] = { 1, VN_B_TILE_SIZE, 2 * VN_B_TILE_SIZE, 4 * VN_B_TILE_SIZE, 8 * VN_B_TILE_SIZE };
 
 	return mod[layer->type];
+}
+
+/* Compute width of tile in *bytes*, for copying. */
+static size_t tile_width(const NodeBitmap *node, const NdbBLayer *layer, uint16 tile_x)
+{
+	size_t	tw = MIN(VN_B_TILE_SIZE, node->width - tile_x * VN_B_TILE_SIZE);
+
+	tw *= pixel_size(layer->type);
+	tw /= 8;
+	return tw > 0 ? tw : 1;
 }
 
 static size_t layer_modulo(const NodeBitmap *node, const NdbBLayer *layer)
@@ -572,7 +586,8 @@ void nodedb_b_tile_describe(const NodeBitmap *node, const NdbBLayer *layer, NdbB
 {
 	desc->out.mod_row  = layer_modulo(node, layer);
 	desc->out.mod_tile = tile_modulo(node, layer);
-	desc->out.height   = (desc->in.y * VN_B_TILE_SIZE + 3 >= node->height) ?
+	desc->out.width    = MIN(VN_B_TILE_SIZE, node->width - desc->in.x * VN_B_TILE_SIZE);
+	desc->out.height   = (desc->in.y * VN_B_TILE_SIZE + 7 >= node->height) ?
 				node->height % VN_B_TILE_SIZE : VN_B_TILE_SIZE;
 	desc->out.ptr = nodedb_b_layer_tile_find(node, layer, desc->in.x, desc->in.y, desc->in.z);
 }
@@ -632,7 +647,7 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 {
 	NodeBitmap	*node;
 	NdbBLayer	*layer;
-	size_t		ps, th, y, mod_src, mod_dst;
+	size_t		ps, tw, th, y, mod_src, mod_dst;
 	const uint8	*get;
 	uint8		*put;
 
@@ -664,9 +679,10 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 	get = (uint8 *) tile;		/* It's a union. */
 	put = nodedb_b_layer_tile_find(node, layer, tile_x, tile_y, tile_z);
 	mod_src = tile_modulo(node, layer);
+	tw = tile_width(node, layer, tile_x);
 	mod_dst = layer_modulo(node, layer);
 	for(y = 0; y < th; y++, get += mod_src, put += mod_dst)
-		memcpy(put, get, mod_src);
+		memcpy(put, get, tw);
 	NOTIFY(node, DATA);
 
 /*	if(layer->type == VN_B_LAYER_UINT1)
