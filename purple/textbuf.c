@@ -83,7 +83,7 @@ void textbuf_insert(TextBuf *tb, size_t offset, const char *text)
 			return;
 		}
 	}
-	memmove(tb->buf + offset + len, tb->buf + offset, len);
+	memmove(tb->buf + offset + len, tb->buf + offset, tb->length - offset);
 	memcpy(tb->buf + offset, text, len);
 	tb->length += len;
 	tb->buf[tb->length] = '\0';
