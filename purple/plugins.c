@@ -82,6 +82,7 @@ struct PInputSet
 	size_t		size;
 	uint32		*use;
 	PInputValue	*value;
+	PPInput		*port;		/* Passed to plug-in compute(). NULL for unassigned inputs. */
 };
 
 static struct
@@ -580,12 +581,29 @@ PInputSet * plugin_inputset_new(const Plugin *p)
 	if(size == 0)
 		return NULL;
 	num = (size + 31) / 32;
-	is = mem_alloc(sizeof *is + num * sizeof *is->use + size * sizeof *is->value);
+	is = mem_alloc(sizeof *is + num * sizeof *is->use + size * (sizeof *is->value + sizeof *is->port));
 	is->size  = size;
 	is->use   = (uint32 *) (is + 1);
 	is->value = (PInputValue *) (is->use + num);
+	is->port  = (PPInput *) (is->value + size);
 	memset(is->use, 0, num * sizeof *is->use);
 	return is;
+}
+
+const PPInput * plugin_inputset_ports(PInputSet *is)
+{
+	size_t	i;
+
+	if(is == NULL)
+		return NULL;
+	for(i = 0; i < is->size; i++)
+	{
+		if(is->use[i / 32] & (1 << (i % 32)))
+			is->port[i] = is->value + i;
+		else
+			is->port[i] = NULL;
+	}
+	return is->port;
 }
 
 void plugin_inputset_set_va(PInputSet *is, unsigned int index, PInputType type, va_list arg)
@@ -633,8 +651,19 @@ void plugin_inputset_describe(const PInputSet *is, DynStr *d)
 
 void plugin_inputset_destroy(PInputSet *is)
 {
-	if(is != NULL)
-		mem_free(is);
+	size_t	i;
+
+	if(is == NULL)
+		return;
+	for(i = 0; i < is->size; i++)
+	{
+		if(is->use[i / 32] & (1 << (i % 32)))
+		{
+			if(is->value[i].type == P_INPUT_STRING)
+				mem_free(is->value[i].v.vstring);
+		}
+	}
+	mem_free(is);
 }
 
 /* ----------------------------------------------------------------------------------------- */
