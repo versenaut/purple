@@ -703,13 +703,13 @@ static void cb_node_output_notify(Node *node, NodeNotifyEvent e, void *user)
 {
 	Module	*m = MODULE_FROM_PORT(((Node *) user)->creator.port);
 
-	printf("Got name of watched node owned by %s instance: '%s'\n", plugin_name(m->plugin), node->name);
+/*	printf("Got name of watched node owned by %s instance: '%s'\n", plugin_name(m->plugin), node->name);*/
 	module_describe(m);
 }
 
 void graph_port_output_create_notify(const Node *local)
 {
-	printf("Node resulting from port %p is %u\n", local->creator.port, local->creator.remote->id);
+/*	printf("Node resulting from port %p is %u\n", local->creator.port, local->creator.remote->id);*/
 	nodedb_notify_node_add(local->creator.remote, cb_node_output_notify, (void *) local);
 }
 
