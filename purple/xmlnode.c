@@ -442,3 +442,18 @@ void xmlnode_print_outline(const XmlNode *root)
 {
 	do_print_outline(root, 0);
 }
+
+void xmlnode_destroy(XmlNode *root)
+{
+	List	*iter;
+
+	if(root == NULL)
+		return;
+
+	for(iter = root->children; iter != NULL; iter = list_next(iter))
+		xmlnode_destroy(list_data(iter));
+	list_destroy(root->children);
+	mem_free(root->text);
+	mem_free(root->attrib);
+	mem_free(root);
+}
