@@ -74,12 +74,23 @@ void nodedb_g_destruct(NodeGeometry *n)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static void cb_def_layer(unsigned int index, void *element, void *user)
+{
+	NdbGLayer	*layer = element;
+
+	layer->name[0] = '\0';
+	layer->data = NULL;
+}
+
 void nodedb_g_layer_create(NodeGeometry *node, VLayerID layer_id, const char *name, VNGLayerType type)
 {
 	NdbGLayer	*layer;
 
 	if(node->layers == NULL)
+	{
 		node->layers = dynarr_new(sizeof *layer, 2);
+		dynarr_set_default_func(node->layers, cb_def_layer, NULL);
+	}
 	if(node->layers == NULL)
 		return;
 	if(layer_id == (uint16) ~0)
@@ -155,7 +166,7 @@ static void cb_g_layer_create(void *user, VNodeID node_id, VLayerID layer_id, co
 			fprintf(stderr, "Missing code here, geo layer needs to be reborn\n");	/* FIXME */
 	}
 	else
-	{
+	{	
 		nodedb_g_layer_create(node, layer_id, name, type);
 		if((layer = nodedb_g_layer_lookup(node, name)) != NULL)
 		{
