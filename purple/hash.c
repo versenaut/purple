@@ -83,7 +83,7 @@ static unsigned int string_hash(const void *key)
 
 static int string_compare(const void *key1, const void *key2)
 {
-	return !strcmp(key1, key2);
+	return strcmp(key1, key2) == 0;
 }
 
 /* ----------------------------------------------------------------------------------------- */
