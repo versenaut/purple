@@ -120,6 +120,27 @@ void nodedb_o_destruct(NodeObject *n)
 	dynarr_destroy(n->method_groups);
 }
 
+void nodedb_o_light_set(NodeObject *n, real64 red, real64 green, real64 blue)
+{
+	if(n == NULL)
+		return;
+	n->light[0] = red;
+	n->light[1] = green;
+	n->light[2] = blue;
+}
+
+void nodedb_o_light_get(const NodeObject *n, real64 *red, real64 *green, real64 *blue)
+{
+	if(n == NULL)
+		return;
+	if(red != NULL)
+		*red = n->light[0];
+	if(green != NULL)
+		*green = n->light[1];
+	if(blue != NULL)
+		*blue = n->light[2];
+}
+
 void nodedb_o_link_set(NodeObject *n, uint16 link_id, VNodeID link, const char *label, uint32 target_id)
 {
 	NdbOLink	*l;

@@ -142,6 +142,16 @@ void p_node_tag_destroy_path(PONode *node, const char *path)
 
 /* ----------------------------------------------------------------------------------------- */
 
+void p_node_o_light_set(PONode *node, real64 red, real64 green, real64 blue)
+{
+	nodedb_o_light_set(node, red, green, blue);
+}
+
+void p_node_o_light_get(PINode *node, real64 *red, real64 *green, real64 *blue)
+{
+	nodedb_o_light_get(node, red, green, blue);
+}
+
 void p_node_o_link_set(PONode *node, const PONode *link, const char *label, uint32 target_id)
 {
 	if(node != NULL && link != NULL && label != NULL)

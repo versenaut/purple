@@ -64,7 +64,7 @@ void		p_init_input(int index, PValueType type, const char *name, ...);
 void		p_init_meta(const char *category, const char *text);
 
 /* Each instance can have its own unique state, passed to compute(). Opaque, specify size in bytes.
- * The constructor() and destructor() functions will be called when plug-in is instantiated/de-inst:ed.
+ * The constructor() and destructor() functions will be called when plug-in are instantiated/de-inst:ed.
  * If the constructor is NULL, the state will be initialized by Purple to "all bits zero".
  */
 void		p_init_state(size_t size,
@@ -118,6 +118,9 @@ void		p_node_tag_create(PNTagGroup *group, const char *name, VNTagType type, con
 void		p_node_tag_create_path(PONode *node, const char *path, VNTagType type, ...);
 void		p_node_tag_destroy(PNTagGroup *group, const char *name);
 void		p_node_tag_destroy_path(PONode *node, const char *path);
+
+void		p_node_o_light_set(PONode *node, real64 red, real64 green, real64 blue);
+void		p_node_o_light_get(PINode *node, real64 *red, real64 *green, real64 *blue);
 
 void		p_node_o_link_set(PONode *node, const PONode *link, const char *label, uint32 target_id);
 PINode *	p_node_o_link_get(const PONode *node, const char *label, uint32 target_id);
