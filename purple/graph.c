@@ -11,6 +11,7 @@
 #include "dynarr.h"
 #include "dynstr.h"
 #include "hash.h"
+#include "idlist.h"
 #include "idset.h"
 #include "list.h"
 #include "log.h"
@@ -36,6 +37,7 @@ typedef struct
 	Plugin		*plugin;
 	PInstance	instance;
 	PPort		output;		/* Result is stored here. */
+	IdList		dependants;	/* Modules referencing this module's output. */
 
 	uint32		start, length;	/* Region in graph XML buffer used for this module. */
 } Module;
@@ -123,6 +125,10 @@ static struct
 
 	MemChunk	*chunk_module;
 } graph_info = { sizeof method_info / sizeof *method_info };
+
+/* ----------------------------------------------------------------------------------------- */
+
+static void	module_input_clear_links_to(Graph *g, uint32 module_id, uint32 rm);
 
 /* ----------------------------------------------------------------------------------------- */
 
@@ -271,6 +277,47 @@ static void graph_destroy(uint32 id)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static void module_dep_add(const Graph *g, uint32 module_id, uint32 dep_new)
+{
+	Module	*m;
+
+	if((m = idset_lookup(g->modules, module_id)) == NULL)
+		return;
+	idlist_insert(&m->dependants, dep_new);
+	printf("dep %u added\n", dep_new);
+}
+
+static void module_dep_remove(const Graph *g, uint32 module_id, uint32 dep_old)
+{
+	Module	*m;
+
+	if((m = idset_lookup(g->modules, module_id)) == NULL)
+		return;
+	idlist_remove(&m->dependants, dep_old);
+	printf("dep %u removed\n", dep_old);
+}
+
+/* Module <m> is about to be destroyed. Notify all dependants, in both directions. Not too expensive. */
+static void module_dep_destroy_warning(Graph *g, Module *m)
+{
+	IdListIter	iter;
+	size_t		num, i;
+	uint32		lt;
+
+	/* First, remove input links to this module from others, the dependants. */
+	for(idlist_foreach_init(&m->dependants, &iter); idlist_foreach_step(&m->dependants, &iter); )
+		module_input_clear_links_to(g, iter.id, m->id);
+	/* Second, tell sources this module no longer depends on them. */
+	num = plugin_portset_size(m->instance.inputs);
+	for(i = 0; i < num; i++)
+	{
+		if(plugin_portset_get_module(m->instance.inputs, i, &lt))
+			module_dep_remove(g, lt, m->id);
+	}
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 /* Information used while traversing modules checking for cycles, helps keep argument count down. */
 struct traverse_info
 {
@@ -403,6 +450,7 @@ static void module_create(uint32 graph_id, uint32 plugin_id)
 	plugin_instance_init(m->plugin, &m->instance);
 	plugin_instance_set_output(&m->instance, &m->output);
 	plugin_instance_set_link_resolver(&m->instance, cb_module_lookup, g);
+	idlist_construct(&m->dependants);
 	m->start = m->length = 0;
 	if(g->modules == NULL)
 		g->modules = idset_new(0);
@@ -431,8 +479,10 @@ static void module_destroy(uint32 graph_id, uint32 module_id)
 		LOG_WARN(("Attempted to destroy unknown module %u in graph %u, aborting", module_id, graph_id));
 		return;
 	}
+	module_dep_destroy_warning(g, m);
 	idset_remove(g->modules, module_id);
 	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, NULL);
+	idlist_destruct(&m->dependants);
 	plugin_instance_free(m->plugin, &m->instance);
 	memchunk_free(graph_info.chunk_module, m);
 	graph_modules_desc_start_update(g);
@@ -465,6 +515,15 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 	dynstr_destroy(desc, 1);
 	graph_modules_desc_start_update(g);
 
+	/* Did we just set a link to someone? Then notify that someone about new dependant. */
+	if(type == P_VALUE_MODULE)
+	{
+		uint32	other;
+
+		plugin_portset_get_module(m->instance.inputs, input_index, &other);
+		module_dep_add(g, other, module_id);
+	}
+
 	plugin_instance_compute(m->plugin, &m->instance);
 }
 
@@ -474,6 +533,8 @@ static void module_input_clear(uint32 graph_id, uint32 module_id, uint8 input_in
 	Graph	*g;
 	Module	*m;
 	DynStr	*desc;
+	boolean	was_link;
+	uint32	old_link;
 
 	if((g = idset_lookup(graph_info.graphs, graph_id)) == NULL)
 	{
@@ -485,12 +546,50 @@ static void module_input_clear(uint32 graph_id, uint32 module_id, uint8 input_in
 		LOG_WARN(("Attempted to clear module input in non-existant module %u.%u", graph_id, module_id));
 		return;
 	}
+	was_link = plugin_portset_get_module(m->instance.inputs, input_index, &old_link);
 	plugin_portset_clear(m->instance.inputs, input_index);
 	desc = module_build_desc(m);
 	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, dynstr_string(desc));
 	m->length = dynstr_length(desc);
 	dynstr_destroy(desc, 1);
 	graph_modules_desc_start_update(g);
+
+	/* If a link was cleared, notify other end it has one less dependants. */
+	if(was_link)
+		module_dep_remove(g, old_link, m->id);
+}
+
+/* Go through module's inputs, and clear any inputs that refer to module <rm>. This typically happens
+ * because it (rm) is about to be deleted, and we don't want any dangling links afterwards.
+*/
+static void module_input_clear_links_to(Graph *g, uint32 module_id, uint32 rm)
+{
+	Module	*m;
+	size_t	ni, i;
+	boolean	refresh = FALSE;
+	uint32	lt;
+
+	if((m = idset_lookup(g->modules, module_id)) == NULL)
+		return;
+	ni = plugin_portset_size(m->instance.inputs);
+	for(i = 0; i < ni; i++)
+	{
+		if(plugin_portset_get_module(m->instance.inputs, i, &lt) && lt == rm)
+		{
+			plugin_portset_clear(m->instance.inputs, i);
+			refresh = TRUE;
+		}
+	}
+	if(refresh)
+	{
+		DynStr	*desc;
+
+		desc = module_build_desc(m);
+		verse_send_t_text_set(g->node, g->buffer, m->start, m->length, dynstr_string(desc));
+		m->length = dynstr_length(desc);
+		dynstr_destroy(desc, 1);
+		graph_modules_desc_start_update(g);
+	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
