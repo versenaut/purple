@@ -249,7 +249,7 @@ size_t dynstr_length(const DynStr *str)
 
 void dynstr_trim(DynStr *str)
 {
-	int	i, trim;
+	unsigned int	i, trim;
 
 	if(str == NULL)
 		return;
