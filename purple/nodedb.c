@@ -6,14 +6,15 @@
 
 #include "verse.h"
 
+#include "dynarr.h"
 #include "hash.h"
 #include "list.h"
 #include "log.h"
 #include "memchunk.h"
 #include "strutil.h"
 
-#include "node.h"
 #include "nodedb.h"
+#include "nodedb-internal.h"
 
 /* ----------------------------------------------------------------------------------------- */
 
@@ -50,9 +51,7 @@ NodeText * nodedb_lookup_text(VNodeID node_id)
 
 /* ----------------------------------------------------------------------------------------- */
 
-#define	NOTIFY(n, e)	notify_mine_check((Node *) (n), NODEDB_NOTIFY_ ## e);
-
-static void notify_mine_check(Node *n, NodeNotifyEvent ev)
+void nodedb_internal_notify_mine_check(Node *n, NodeNotifyEvent ev)
 {
 	if(nodedb_info.notify_mine != NULL && n->owner == nodedb_info.avatar)
 	{
@@ -78,6 +77,14 @@ static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeID 
 		n->name[0] = '\0';
 		n->owner = owner_id;
 		n->tag_groups = NULL;
+		switch(n->type)
+		{
+		case V_NT_TEXT:
+			nodedb_t_init((NodeText *) n);
+			break;
+		default:
+			LOG_WARN(("Missing node-specific init code for type %d", type));
+		}
 		hash_insert(nodedb_info.nodes, (const void *) n->id, n);
 		LOG_MSG(("Stored node %u, type %d", node_id, type));
 		if(n->owner == nodedb_info.avatar)
@@ -103,18 +110,6 @@ static void cb_node_name_set(void *user, VNodeID node_id, const char *name)
 	}
 	else
 		LOG_WARN(("Couldn't set name of node %u, not found in database", node_id));
-}
-
-/* ----------------------------------------------------------------------------------------- */
-
-static void cb_t_buffer_create(void *user, VNodeID node_id, uint16 buffer_id, const char *name)
-{
-	NodeText	*n;
-
-	if((n = nodedb_lookup_text(node_id)) != NULL)
-	{
-		NOTIFY(n, STRUCTURE);
-	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -145,7 +140,7 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 	verse_callback_set(verse_send_node_create,	cb_node_create,	NULL);
 	verse_callback_set(verse_send_node_name_set,	cb_node_name_set, NULL);
 
-	verse_callback_set(verse_send_t_buffer_create,	cb_t_buffer_create, NULL);
+	nodedb_t_register_callbacks();
 
  	verse_send_node_list(mask);
 }
