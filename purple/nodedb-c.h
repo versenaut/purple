@@ -40,6 +40,7 @@ typedef struct
 
 extern void		nodedb_c_construct(NodeCurve *n);
 extern void		nodedb_c_copy(NodeCurve *n, const NodeCurve *src);
+extern void		nodedb_c_set(NodeCurve *n, const NodeCurve *src);
 extern void		nodedb_c_destruct(NodeCurve *n);
 
 extern unsigned int	nodedb_c_curve_num(const NodeCurve *curve);
