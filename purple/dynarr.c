@@ -105,9 +105,12 @@ void dynarr_set(DynArr *da, unsigned int index, const void *element)
 		da->next = index + 1;
 }
 
-void dynarr_append(DynArr *da, const void *element)
+unsigned int dynarr_append(DynArr *da, const void *element)
 {
-	dynarr_set(da, da->next, element);
+	unsigned int	i = da->next;
+
+	dynarr_set(da, i, element);
+	return i;
 }
 
 size_t dynarr_size(const DynArr *da)

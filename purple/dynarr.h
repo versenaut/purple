@@ -28,8 +28,8 @@ extern void *	dynarr_index(const DynArr *da, unsigned index);
 */
 extern void	dynarr_set(DynArr *da, unsigned int index, const void *element);
 
-/* Does a set on the next non-allocated index. */
-extern void	dynarr_append(DynArr *da, const void *element);
+/* Does a set on the next non-allocated index. Returns index. */
+extern unsigned int	dynarr_append(DynArr *da, const void *element);
 
 /* Returns the number of slots in the array. */
 extern size_t	dynarr_size(const DynArr *da);
