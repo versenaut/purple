@@ -216,7 +216,6 @@ static void graph_index_renumber(void)
 static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 {
 	unsigned int	id, i, pos;
-	Node		*node;
 	Graph		*g, *me;
 	char		xml[256];
 
