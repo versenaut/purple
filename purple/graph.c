@@ -307,7 +307,7 @@ static boolean traverse_module(const Graph *g, uint32 module_id, uint32 source_i
 	return TRUE;
 }
 
-/* Answer the fairly specific question: does the graph <graph_id> becomes cyclic if module
+/* Answer the fairly specific question: does the graph <graph_id> become cyclic if module
  * <module_id>'s <input>:th input is set to be <source>? Used to disallow such setting.
  * This implementation is totally naive, and requires O(n^2) for a graph with n nodes.
 */
