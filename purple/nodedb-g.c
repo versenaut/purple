@@ -236,6 +236,38 @@ POLYGON_FACE(real64)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static void cb_g_bone_create(void *user, VNodeID node_id, uint16 bone_id, const char *weight, const char *reference,
+			     uint32 parent, real64 pos_x, real64 pos_y, real64 pos_z,
+			     real64 rot_x, real64 rot_y, real64 rot_z, real64 rot_w)
+{
+	NodeGeometry	*node;
+	NdbGBone	*bone;
+
+	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
+		return;
+	if(node->bones == NULL)
+		node->bones = dynarr_new(sizeof *bone, 8);
+	if(node->bones != NULL)
+	{
+		if((bone = dynarr_set(node->bones, bone_id, NULL)) != NULL)
+		{
+			stu_strncpy(bone->weight, sizeof bone->weight, weight);
+			stu_strncpy(bone->reference, sizeof bone->reference, reference);
+			bone->parent = parent;
+			bone->pos[0] = pos_x;
+			bone->pos[1] = pos_y;
+			bone->pos[2] = pos_z;
+			bone->rot[0] = rot_x;
+			bone->rot[1] = rot_y;
+			bone->rot[2] = rot_z;
+			bone->rot[3] = rot_w;
+			NOTIFY(node, DATA);
+		}
+	}
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 void nodedb_g_register_callbacks(void)
 {
 	verse_callback_set(verse_send_g_layer_create,		cb_g_layer_create,	NULL);
@@ -255,4 +287,6 @@ void nodedb_g_register_callbacks(void)
 	verse_callback_set(verse_send_g_polygon_set_face_uint32,	cb_g_polygon_set_face_uint32,	NULL);
 	verse_callback_set(verse_send_g_polygon_set_face_real32,	cb_g_polygon_set_face_real32,	NULL);
 	verse_callback_set(verse_send_g_polygon_set_face_real64,	cb_g_polygon_set_face_real64,	NULL);
+
+	verse_callback_set(verse_send_g_bone_create,	cb_g_bone_create, NULL);
 }
