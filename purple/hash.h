@@ -5,7 +5,7 @@
 typedef struct Hash	Hash;
 
 typedef unsigned int (*HashFunc)(const void *key);
-typedef int	     (*HashHasKey)(const void *key, const void *data);
+typedef int	     (*HashKeyEqFunc)(const void *key1, const void *key2);
 
 extern void	hash_init(void);
 
@@ -13,7 +13,7 @@ extern void	hash_init(void);
  * as a good distribution as possible. The <efunc> should answer if the given key belongs with the
  * given data or not, by returning 0 for non-match and non-zero for a match.
 */
-extern Hash *	hash_new(HashFunc hfunc, HashHasKey efunc);
+extern Hash *	hash_new(HashFunc hfunc, HashKeyEqFunc kefunc);
 
 /* Return a hash table for strings. Inserted elements must begin with a zero-terminated string. */
 extern Hash *	hash_new_string(void);
