@@ -147,17 +147,6 @@ static void test_filelist(void)
 	filelist_destroy(fl);
 }
 
-static void test_strutil(void)
-{
-	char	**p;
-	int	i;
-
-	p = stu_split("/home/emil/data/projects/purple/plugins/:/usr/share/purple/lib/plugins/", ':');
-	for(i = 0; p[i]; i++)
-		printf("%2d: '%s'\n", i, p[i]);
-	mem_free(p);
-}
-
 static void test_textbuf(void)
 {
 	TextBuf	*tb;
@@ -571,7 +560,6 @@ int main(void)
 	test_dynarr();
 	test_hash();
 	test_filelist();
-	test_strutil();
 	test_textbuf();
 	test_xmlnode();
 	test_idset();
