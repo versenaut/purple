@@ -23,6 +23,7 @@ typedef struct
 
 extern void		nodedb_m_construct(NodeMaterial *n);
 extern void		nodedb_m_copy(NodeMaterial *n, const NodeMaterial *src);
+extern void		nodedb_m_set(NodeMaterial *n, const NodeMaterial *src);
 extern void		nodedb_m_destruct(NodeMaterial *n);
 
 extern unsigned int	nodedb_m_fragment_num(const NodeMaterial *node);
