@@ -41,19 +41,33 @@ typedef struct
 	VNodeID	node;
 	uint16	buffer;
 	uint32	desc_start;	/* Base location in graph XML buffer, first module starts here. */
+	IdSet	*modules;
 } Graph;
 
-static const VNOParamType	create_type[]   = { VN_O_METHOD_PTYPE_NODE, VN_O_METHOD_PTYPE_LAYER,
-							VN_O_METHOD_PTYPE_STRING },
-				rename_type[]   = { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_STRING },
-				destroy_type[]  = { VN_O_METHOD_PTYPE_UINT32 };
-static char			*create_name[]  = { "node", "buffer", "name" },
-				*rename_name[]  = { "graph", "name" },
-				*destroy_name[] = { "graph" };
+typedef struct
+{
+	uint8		   id;
+	const char	   *name;
+	size_t		   param_count;
+	const VNOParamType param_type[4];	/* Wastes a bit, but simplifies code. */
+	const char	   *param_name[4];
+} MethodInfo;
+
+enum { CREATE, RENAME, DESTROY };
+
+static MethodInfo method_info[] = {
+	{ 0, "create",  3, { VN_O_METHOD_PTYPE_NODE, VN_O_METHOD_PTYPE_LAYER, VN_O_METHOD_PTYPE_STRING },
+			{ "node_id", "buffer_id", "name" }},
+	{ 0, "rename",  2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_STRING },
+			{ "graph_id", "name" } },
+	{ 0, "destroy",	1, { VN_O_METHOD_PTYPE_UINT32 }, { "graph_id" } },
+	
+/*	{ 0, "mod_create",  2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "plugin_id" } },
+	{ 0, "mod_destroy", 2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "module_id" } }
+*/};
 
 static struct
 {
-	uint8	mid_create, mid_rename, mid_destroy;
 	IdSet	*graphs;
 	Hash	*graphs_name;	/* Graphs hashed on name. */
 } graph_info = { 0 };
@@ -68,26 +82,32 @@ void graph_init(void)
 
 void graph_method_send_creates(uint32 avatar, uint8 group_id)
 {
-	verse_send_o_method_create(avatar, group_id, -1, "graph_create",
-				   sizeof create_type / sizeof *create_type, create_type, create_name);
-	verse_send_o_method_create(avatar, group_id, -2, "graph_rename", 
-				   sizeof rename_type / sizeof *rename_type, rename_type, rename_name);
-	verse_send_o_method_create(avatar, group_id, -3, "graph_destroy", 
-				   sizeof destroy_type / sizeof *destroy_type, destroy_type, destroy_name);
+	int	i;
+
+	for(i = 0; i < sizeof method_info / sizeof *method_info; i++)
+	{
+		verse_send_o_method_create(avatar, group_id, -(1 + i), method_info[i].name,
+					   method_info[i].param_count,
+					   method_info[i].param_type,
+					   method_info[i].param_name);
+	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
 
 void graph_method_receive_create(uint8 id, const char *name)
 {
-	if(strcmp(name, "graph_create") == 0)
-		graph_info.mid_create = id;
-	else if(strcmp(name, "graph_rename") == 0)
-		graph_info.mid_rename = id;
-	else if(strcmp(name, "graph_destroy") == 0)
-		graph_info.mid_destroy = id;
-	else
-		LOG_WARN(("Received unknown (non graph-related?) method creation, %s()", name));
+	int	i;
+
+	for(i = 0; i < sizeof method_info / sizeof *method_info; i++)
+	{
+		if(strcmp(method_info[i].name, name) == 0)
+		{
+			method_info[i].id = id;
+			return;
+		}
+	}
+	LOG_WARN(("Received unknown (non graph-related?) method creation, %s()", name));
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -195,58 +215,65 @@ static void graph_destroy(uint32 id)
 
 /* ----------------------------------------------------------------------------------------- */
 
+void send_method_create(int method, const VNOParam *param)
+{
+	const MethodInfo *mi;
+	void *pack;
+
+	if(method < 0 || method >= sizeof method_info / sizeof *method_info)
+		return;
+	mi = method_info + method;
+	if((pack = verse_method_call_pack(mi->param_count, mi->param_type, param)) != NULL)
+		verse_send_o_method_call(client_info.avatar, client_info.gid_control, mi->id, 0, pack);
+}
+
 void graph_method_send_call_create(VNodeID node, VLayerID buffer, const char *name)
 {
-	VNOParam	param[sizeof create_type / sizeof *create_type];
-	void		*pack;
+	VNOParam	param[3];
 
 	param[0].vnode   = node;
 	param[1].vlayer  = buffer;
 	param[2].vstring = name;
-	if((pack = verse_method_call_pack(sizeof create_type / sizeof *create_type, create_type, param)) != NULL)
-		verse_send_o_method_call(client_info.avatar, client_info.gid_control, graph_info.mid_create, 0, pack);
+	send_method_create(CREATE, param);
 }
 
 void graph_method_send_call_rename(uint32 id, const char *name)
 {
-	VNOParam	param[sizeof rename_type / sizeof *rename_type];
-	void		*pack;
+	VNOParam	param[2];
 
 	param[0].vuint32 = id;
 	param[1].vstring = name;
-	if((pack = verse_method_call_pack(sizeof rename_type / sizeof *rename_type, rename_type, param)) != NULL)
-		verse_send_o_method_call(client_info.avatar, client_info.gid_control, graph_info.mid_rename, 0, pack);
+	send_method_create(RENAME, param);
 }
 
 void graph_method_send_call_destroy(uint32 id)
 {
-	VNOParam	param[sizeof destroy_type / sizeof *destroy_type];
-	void		*pack;
+	VNOParam	param[1];
 
 	param[0].vuint32 = id;
-	if((pack = verse_method_call_pack(sizeof param / sizeof *param, destroy_type, param)) != NULL)
-		verse_send_o_method_call(client_info.avatar, client_info.gid_control, graph_info.mid_destroy, 0, pack);
+	send_method_create(DESTROY, param);
 }
 
 void graph_method_receive_call(uint8 id, const void *param)
 {
-	VNOParam	arg[sizeof create_type / sizeof *create_type];
+	VNOParam	arg[8];
+	int		i;
 
-	if(id == graph_info.mid_create)
+	for(i = 0; i < sizeof method_info / sizeof *method_info; i++)
 	{
-		if(verse_method_call_unpack(param, sizeof create_type / sizeof *create_type, create_type, arg))
-			graph_create(arg[0].vnode, arg[1].vlayer, arg[2].vstring);
+		const MethodInfo	*mi = method_info + i;
+
+		if(id == mi->id)
+		{
+			verse_method_call_unpack(param, mi->param_count, mi->param_type, arg);
+			switch(i)
+			{
+			case CREATE:	graph_create(arg[0].vnode, arg[1].vlayer, arg[2].vstring);	break;
+			case RENAME:	graph_rename(arg[0].vuint32, arg[1].vstring);			break;
+			case DESTROY:	graph_destroy(arg[0].vuint32);					break;
+			}
+			return;
+		}
 	}
-	else if(id == graph_info.mid_rename)
-	{
-		if(verse_method_call_unpack(param, sizeof rename_type / sizeof *rename_type, rename_type, arg))
-			graph_rename(arg[0].vuint32, arg[1].vstring);
-	}
-	else if(id == graph_info.mid_destroy)
-	{
-		if(verse_method_call_unpack(param, sizeof destroy_type / sizeof *destroy_type, destroy_type, arg))
-			graph_destroy(arg[0].vuint32);
-	}
-	else
-		LOG_WARN(("Received call to unknown graph method %u", id));
+	LOG_WARN(("Received call to unknown graph method %u", id));
 }
