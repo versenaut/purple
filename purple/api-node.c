@@ -410,7 +410,6 @@ PNMFragment * p_node_m_fragment_create_noise(PONode *node, VNMNoiseType type, co
 	return nodedb_m_fragment_create_noise((NodeMaterial *) node, type, mapping);
 }
 
-
 PNMFragment * p_node_m_fragment_create_blender(PONode *node, VNMBlendType type,
 					       const PNMFragment *data_a, const PNMFragment *data_b, const PNMFragment *ctrl)
 {
