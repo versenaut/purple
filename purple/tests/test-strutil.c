@@ -66,5 +66,24 @@ int main(void)
 	}
 	test_end();
 
+	test_begin("split()");
+	{
+		char	**arg;
+		int	ok = 0;
+
+		if((arg = stu_split("this|is|a|test", '|')) != NULL)
+		{
+			if(strcmp(arg[0], "this") == 0 &&
+			   strcmp(arg[1], "is") == 0 &&
+			   strcmp(arg[2], "a") == 0 &&
+			   strcmp(arg[3], "test") == 0 &&
+			   arg[4] == NULL)
+				ok = 1;
+			mem_free(arg);
+		}
+		test_result(ok);
+	}
+	test_end();
+
 	return test_package_end();
 }
