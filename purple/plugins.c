@@ -138,7 +138,7 @@ void plugin_set_input(Plugin *p, int index, PValueType type, const char *name, v
 		LOG_ERR(("Plug-in \"%s\" attempted to set input \"%s\" with bad index %d--ignored", p->name, name, index));
 		return;
 	}
-	if(type < P_VALUE_BOOLEAN || type > P_VALUE_STRING)
+	if(type < P_VALUE_BOOLEAN || type > P_VALUE_MODULE)
 	{
 		LOG_ERR(("Plug-in \"%s\" attempted to set input %d with bad type %d--ignored", p->name, index, type));
 		return;
