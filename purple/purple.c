@@ -479,6 +479,7 @@ int main(void)
 	plugins_build_xml();
 
 	client_init();
+	sync_init();
 
 	if(client_connect("localhost"))
 	{
