@@ -91,7 +91,7 @@ NodeText * nodedb_lookup_text(VNodeID node_id)
 
 void nodedb_internal_notify_mine_check(Node *n, NodeNotifyEvent ev)
 {
-	if(nodedb_info.notify_mine != NULL && (n->owner == nodedb_info.avatar || n->id == nodedb_info.avatar))
+	if(nodedb_info.notify_mine != NULL && (n->owner == VN_OWNER_MINE))
 	{
 		const List	*iter;
 
@@ -146,6 +146,15 @@ Node * nodedb_new(VNodeType type)
 	return NULL;
 }
 
+static void cb_copy_tag_group(void *d, const void *s)
+{
+	const TagGroup	*src = s;
+	TagGroup	*dst = d;
+
+	strcpy(dst->name, src->name);
+	dst->tags = dynarr_new_copy(src->tags, NULL);	/* Tags are memcpy():able, let dynarr do it. */
+}
+
 Node * nodedb_new_copy(const Node *src)
 {
 	Node	*n;
@@ -158,7 +167,7 @@ Node * nodedb_new_copy(const Node *src)
 		n->type = src->type;
 		strcpy(n->name, src->name);
 		n->owner = src->owner;
-		/* FIXME: Copy tag groups, here. */
+		n->tag_groups = dynarr_new_copy(src->tag_groups, cb_copy_tag_group);
 		switch(n->type)
 		{
 		case V_NT_OBJECT:
@@ -220,17 +229,17 @@ void nodedb_rename(Node *node, const char *name)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeID owner_id)
+static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeOwner ownership)
 {
 	Node	*n;
 
 	if((n = nodedb_new(type)) != NULL)
 	{
 		n->id    = node_id;
-		n->owner = owner_id;
+		n->owner = ownership;
 		hash_insert(nodedb_info.nodes, (const void *) n->id, n);
 		LOG_MSG(("Stored node %u, type %d", node_id, type));
-		if(n->owner == nodedb_info.avatar)
+		if(n->owner == VN_OWNER_MINE)
 		{
 			hash_insert(nodedb_info.nodes_mine, (const void *) n->id, n);
 			NOTIFY(n, CREATE);
