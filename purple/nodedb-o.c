@@ -39,6 +39,21 @@ NdbOMethodGroup * nodedb_o_method_group_lookup(NodeObject *node, const char *nam
 	return NULL;
 }
 
+const NdbOMethod * nodedb_o_method_lookup(const NdbOMethodGroup *group, const char *name)
+{
+	unsigned int	i;
+	NdbOMethod	*m;
+
+	if(group == NULL || name == NULL || *name == '\0')
+		return NULL;
+	for(i = 0; (m = dynarr_index(group->methods, i)) != NULL; i++)
+	{
+		if(strcmp(m->name, name) == 0)
+			return m;
+	}
+	return NULL;
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 static void cb_o_link_set(void *user, VNodeID node_id, uint16 link_id, uint32 link, const char *name, uint32 target_id)
@@ -143,6 +158,9 @@ static void cb_o_method_create(void *user, VNodeID node_id, uint16 group_id, uin
 				unsigned int	i;
 				char		*put;
 				size_t		size;
+
+				m->id = method_id;
+				stu_strncpy(m->name, sizeof m->name, name);
 
 				size = param_count * (sizeof *m->param_type + sizeof *m->param_name);
 				for(i = 0; i < param_count; i++)
