@@ -348,7 +348,7 @@ static void module_destroy(uint32 graph_id, uint32 module_id)
 	}
 	if((m = idset_lookup(g->modules, module_id)) == NULL)
 	{
-		LOG_WARN(("Attempted to destroy unknown module %u in graph %, aborting", module_id, graph_id));
+		LOG_WARN(("Attempted to destroy unknown module %u in graph %u, aborting", module_id, graph_id));
 		return;
 	}
 	idset_remove(g->modules, module_id);
