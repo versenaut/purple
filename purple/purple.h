@@ -76,8 +76,12 @@ void		p_init_input(int index, PInputType type, const char *name, ...);
 
 void		p_init_meta(const char *category, const char *text);
 
-/* Each instance can have its own unique state, passed to compute(). Opaque, specify size in bytes. */
-void		p_init_state(size_t size);
+/* Each instance can have its own unique state, passed to compute(). Opaque, specify size in bytes.
+ * The constructor() and destructor() functions will be called when plug-in is instantiated/de-inst:ed.
+*/
+void		p_init_state(size_t size,
+			     void (*constructor)(void *state),
+			     void (*destructor)(void *state));
 
 /* "Ports" are used to model inputs and outputs. */
 typedef void 		PPort;
