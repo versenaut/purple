@@ -1,5 +1,5 @@
 /*
- * 
+ * Graph editing module.
 */
 
 #include <stdio.h>
@@ -218,8 +218,6 @@ static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 	unsigned int	id, i, pos;
 	Graph		*g, *me;
 	char		xml[256];
-
-	printf("create graph %s\n", name);
 
 	/* Make sure name is unique. */
 	if(hash_lookup(graph_info.graphs_name, name) != NULL)
@@ -571,7 +569,7 @@ void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32
 		method = MOD_INPUT_SET_STRING;
 		break;
 	default:
-		printf("Can't prepare input setting, type %d\n", value->type);
+		LOG_WARN(("Can't prepare input setting, type %d", value->type));
 		return;
 	}
 	if((pack = verse_method_call_pack(4, type, param)) != NULL)
