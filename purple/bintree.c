@@ -43,6 +43,41 @@ void bintree_init(void)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static Node * tree_minimum(const Node *node)
+{
+	if(node == NULL)
+		return NULL;
+	while(node->left != NULL)
+		node = node->left;
+	return (Node *) node;
+}
+
+static Node * tree_maximum(const Node *node)
+{
+	if(node == NULL)
+		return NULL;
+	while(node->right != NULL)
+		node = node->right;
+	return (Node *) node;
+}
+
+static Node * tree_successor(const Node *node)
+{
+	Node	*y;
+
+	if(node->right != NULL)
+		return tree_minimum(node->right);
+	y = node->parent;
+	while(y != NULL && node == y->right)
+	{
+		node = y;
+		y = y->parent;
+	}
+	return y;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 BinTree * bintree_new(int (*compare)(const void *key1, const void *key2))
 {
 	BinTree	*t;
@@ -57,6 +92,33 @@ BinTree * bintree_new(int (*compare)(const void *key1, const void *key2))
 
 	return t;
 }
+
+/* ----------------------------------------------------------------------------------------- */
+
+BinTree * bintree_new_copy(const BinTree *src, void * (*element_copy)(const void *key, const void *element, void *user), void *user)
+{
+	BinTree	*t;
+	Node	*n;
+
+	if(src == NULL || element_copy == NULL)
+		return NULL;
+	t = mem_alloc(sizeof *t);
+	t->root    = NULL;
+	t->size    = 0;
+	t->compare = src->compare;
+
+	printf("copying binary tree at %p\n", src);
+	/* FIXME: This **really** unbalances the tree, and thus is pessimal. */
+	for(n = tree_minimum(src->root); n != NULL; n = tree_successor(n))
+	{
+		void	*el = element_copy(n->key, n->element, user);
+
+		bintree_insert(t, n->key, el);
+	}
+	return t;
+}
+
+/* ----------------------------------------------------------------------------------------- */
 
 static const Node * tree_lookup(const BinTree *tree, const Node *root, const void *key)
 {
@@ -128,32 +190,6 @@ static void do_print(const Node *root)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static Node * tree_minimum(const Node *node)
-{
-	if(node == NULL)
-		return NULL;
-	while(node->left != NULL)
-	{
-		node = node->left;
-	}
-	return (Node *) node;
-}
-
-static Node * tree_successor(const Node *node)
-{
-	Node	*y;
-
-	if(node->right != NULL)
-		return tree_minimum(node->right);
-	y = node->parent;
-	while(y != NULL && node == y->right)
-	{
-		node = y;
-		y = y->parent;
-	}
-	return y;
-}
-
 void bintree_remove(BinTree *tree, const void *key)
 {
 	Node	*x, *y, *z;
@@ -197,6 +233,69 @@ size_t bintree_size(const BinTree *tree)
 {
 	return tree != NULL ? tree->size : 0;
 }
+
+const void * bintree_key_minimum(const BinTree *tree)
+{
+	if(tree != NULL)
+	{
+		Node	*min = tree_minimum(tree->root);
+
+		if(min != NULL)
+			return min->key;
+	}
+	return NULL;
+}
+
+const void * bintree_key_maximum(const BinTree *tree)
+{
+	if(tree != NULL)
+	{
+		Node	*max = tree_maximum(tree->root);
+
+		if(max != NULL)
+			return max->key;
+	}
+	return NULL;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
+const void * bintree_iter_first(const BinTree *tree, BinTreeIter *iter)
+{
+	const Node	*first;
+
+	if(tree == NULL || iter == NULL)
+		return NULL;
+	first = tree_minimum(tree->root);
+	*iter = first;
+
+	return first->key;
+}
+
+void * bintree_iter_element(const BinTreeIter iter)
+{
+	if(iter != NULL)
+		return ((Node *) iter)->element;
+	return NULL;
+}
+
+const void * bintree_iter_next(BinTreeIter *iter)
+{
+	const Node	*next;
+
+	if(iter == NULL || *iter == NULL)
+		return NULL;
+
+	next = tree_successor(*iter);
+	if(next != NULL)
+	{
+		*iter = next;
+		return next->key;
+	}
+	return NULL;
+}
+
+/* ----------------------------------------------------------------------------------------- */
 
 void bintree_print(const BinTree *tree)
 {
