@@ -684,7 +684,7 @@ void plugin_run_compute(Plugin *p, PInputSet *is)
 		{
 			if(port[i] == NULL && in->spec.req)
 			{
-				printf("Can't run compute() in %s, missing required input %u\n", p->name, i);
+				LOG_MSG(("Can't run compute() in %s, missing required input %u\n", p->name, i));
 				return;
 			}
 		}
