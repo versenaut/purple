@@ -101,3 +101,33 @@ void p_node_g_crease_set_edge(PONode *node, const char *layer, uint32 def)
 		return;
 	nodedb_g_crease_set_edge((NodeGeometry *) node, layer, def);
 }
+
+/* ----------------------------------------------------------------------------------------- */
+
+void p_node_b_dimensions_set(PONode *node, uint16 width, uint16 height, uint16 depth)
+{
+	if(node == NULL)
+		return;
+	nodedb_b_dimensions_set((NodeBitmap *) node, width, height, depth);
+}
+
+PNBLayer * p_node_b_layer_create(PONode *node, const char *name, VNBLayerType type)
+{
+	PNBLayer	*l;
+
+	if(node == NULL)
+		return NULL;
+	if((l = nodedb_b_layer_lookup((NodeBitmap *) node, name)) != NULL)
+		return l;
+	return nodedb_b_layer_create((NodeBitmap *) node, ~0, name, type);
+}
+
+void * p_node_b_layer_access_begin(PONode *node, PNBLayer *layer)
+{
+	return nodedb_b_layer_access_begin((NodeBitmap *) node, layer);
+}
+
+void p_node_b_layer_access_end(PONode *node, PNBLayer *layer, void *framebuffer)
+{
+	nodedb_b_layer_access_end((NodeBitmap *) node, layer, framebuffer);
+}
