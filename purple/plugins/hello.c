@@ -6,9 +6,11 @@
 #include "purple-plugin.h"
 
 /* It's more fun to compute. */
-static void compute(PPInput *input, PPOutput *output, void *state)
+static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
 	printf("Hello!\n");
+
+	return P_COMPUTE_DONE;
 }
 
 void init(void)
