@@ -31,7 +31,7 @@ Todo:
 * Design and implement corresponding plug-in APIs for dealing with
   node data.
 * Design and implement NodeSet for value-structure.
-* Implement scheduler for actually running plug-in code, and pass
+* Implement scheduler for actually running plug-in code, and passing
   data between them.
 * Implement node comparison capability to find changes in outputs.
 * Send changes in nodes back to Verse server.
