@@ -254,7 +254,7 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer)
 		else
 			break;
 	}
-	return NULL;
+	return parent;
 }
 
 XmlNode * xmlnode_new(const char *buffer)
