@@ -23,11 +23,13 @@ struct IdSet
 
 IdSet * idset_new(unsigned int offset)
 {
-	IdSet	*is;
+	IdSet		*is;
+	static void	*def = NULL;
 
 	is = mem_alloc(sizeof *is);
 	is->offset = offset;
 	is->arr = dynarr_new(sizeof (void *), 4);
+	dynarr_set_default(is->arr, &def);
 	is->removed = NULL;
 	is->size = 0;
 	is->max  = 0;
