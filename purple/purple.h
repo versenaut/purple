@@ -99,10 +99,42 @@ const char *	p_input_string(PPInput input);
 PINode *	p_input_node(PPInput input);			/* Inputs the "first" node, somehow. */
 PINode *	p_input_node_nth(PPInput input, int index);	/* Input n:th node, or NULL. */
 
+/* General-purpose iterator structure. All fields private, this is
+ * public only to support automatic (on-stack) allocations.
+ * Use like this:
+ * 
+ * PIter iter;
+ *
+ * for(p_whatever_iter(whatever, &iter); (el = p_iter_get(&iter)) != NULL; p_iter_next(&iter))
+ * 	/* process element <el> here. */
+*/
+typedef struct
+{
+	unsigned short	flags;
+	unsigned short	offset;
+	unsigned int	index;
+	union
+	{
+	struct
+	{
+	void		*arr;
+	unsigned int	index;
+	}		dynarr;
+	void		*list;
+	}		data;
+} PIter;
+
+/* Dereference iterator, returns next element or NULL if end of sequence. */
+void *		p_iter_data(PIter *iter);
+/* Returns index of current element, counting from zero and up. */
+unsigned int	p_iter_index(const PIter *iter);
+/* Advance the iterator to point at the next element (if there is one). */
+void		p_iter_next(PIter *iter);
+
+
 /* Node manipulation functions. Getters work on both input and output
  * nodes, setting requires output.
 */
-
 VNodeType	p_node_type_get(const Node *node);
 
 const char *	p_node_name_get(const Node *node);
@@ -114,6 +146,7 @@ typedef void	PNTagGroup;
 unsigned int	p_node_tag_group_num(PINode *node);
 PNTagGroup *	p_node_tag_group_nth(PINode *node, unsigned int n);
 PNTagGroup *	p_node_tag_group_find(PINode *node, const char *name);
+
 PNTagGroup *	p_node_tag_group_create(PONode *node, const char *name);
 void		p_node_tag_group_destroy(PONode *node, PNTagGroup *group);
 void		p_node_tag_group_tag_num(PNTagGroup *group);
