@@ -21,7 +21,7 @@ void port_init(PPort *port)
 void port_clear(PPort *port)
 {
 	value_clear(&port->value);
-	value_clear(&port->value);
+	value_clear(&port->cache);
 	/* FIXME: Can't clear node set. */
 }
 
