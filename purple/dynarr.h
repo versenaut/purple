@@ -1,5 +1,9 @@
 /*
  * A dynamic array, to save me some boring realloc() logic all over the place.
+ *
+ * NOTE: This doesn't pay attention to alignment restrictions very much, but
+ * typially that shouldn't be a problem. Might bite when compiling on non-x86
+ * hardware, perhaps...
 */
 
 typedef struct DynArr	DynArr;
