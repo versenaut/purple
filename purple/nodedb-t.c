@@ -14,6 +14,7 @@
 
 #include "dynarr.h"
 #include "list.h"
+#include "log.h"
 #include "strutil.h"
 #include "textbuf.h"
 
@@ -24,7 +25,7 @@
 
 void nodedb_t_construct(NodeText *n)
 {
-	n->buffers = dynarr_new(sizeof (NdbTBuffer), 2);
+	n->buffers = NULL;
 }
 
 static void cb_copy_buffer(void *d, const void *s, void *user)
@@ -117,12 +118,23 @@ NdbTBuffer * nodedb_t_buffer_get_named(const NodeText *node, const char *name)
 	return NULL;
 }
 
+static void cb_def_buffer(unsigned int index, void *element, void *user)
+{
+	NdbTBuffer	*buffer = element;
+
+	buffer->name[0] = '\0';
+	buffer->text = NULL;
+}
+
 NdbTBuffer * nodedb_t_buffer_create(NodeText *node, VLayerID buffer_id, const char *name)
 {
 	NdbTBuffer	*buffer;
 
 	if(node->buffers == NULL)
+	{
 		node->buffers = dynarr_new(sizeof *buffer, 2);
+		dynarr_set_default_func(node->buffers, cb_def_buffer, NULL);
+	}
 	if(node->buffers == NULL)
 		return NULL;
 	if(buffer_id == (VLayerID) ~0)
@@ -200,19 +212,32 @@ char * nodedb_t_buffer_read_line(NdbTBuffer *buffer, unsigned int line, char *pu
 		nodedb_t_buffer_read_end(buffer);
 		return put;
 	}
+	else
+		printf("skabröp\n");
 	return NULL;
 }
 
 void nodedb_t_buffer_insert(NdbTBuffer *buffer, size_t pos, const char *text)
 {
 	if(buffer != NULL)
+	{
+		if(buffer->text == NULL)
+			buffer->text = textbuf_new(1024);
 		textbuf_insert(buffer->text, pos, text);
+	}
 }
 
 void nodedb_t_buffer_delete(NdbTBuffer *buffer, size_t pos, size_t length)
 {
 	if(buffer != NULL)
 		textbuf_delete(buffer->text, pos, length);
+}
+
+void nodedb_t_buffer_append(NdbTBuffer *buffer, const char *text)
+{
+	if(buffer == NULL || text == NULL || *text == '\0')
+		return;
+	nodedb_t_buffer_insert(buffer, textbuf_length(buffer->text), text);
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -231,8 +256,24 @@ static void cb_t_set_language(void *user, VNodeID node_id, const char *language)
 static void cb_t_buffer_create(void *user, VNodeID node_id, uint16 buffer_id, uint16 index, const char *name)
 {
 	NodeText	*n;
+	NdbTBuffer	*buffer;
 
-	if((n = nodedb_lookup_text(node_id)) != NULL)
+	printf("text callback: create buffer %u (%s) in %u\n", buffer_id, name, node_id);
+	if((n = (NodeText *) nodedb_lookup_with_type(node_id, V_NT_TEXT)) == NULL)
+		return;
+	if((buffer = dynarr_index(n->buffers, buffer_id)) != NULL && buffer->name[0] != '\0')
+	{
+		LOG_WARN(("Missing code, text buffer needs to be reborn"));
+		return;
+	}
+	else
+	{
+		printf("text buffer %s created\n", name);
+		nodedb_t_buffer_create(n, buffer_id, name);
+		NOTIFY(n, STRUCTURE);
+		verse_send_t_buffer_subscribe(node_id, buffer_id);
+	}
+/*	if((n = nodedb_lookup_text(node_id)) != NULL)
 	{
 		NdbTBuffer	*tb;
 
@@ -245,6 +286,7 @@ static void cb_t_buffer_create(void *user, VNodeID node_id, uint16 buffer_id, ui
 			NOTIFY(n, STRUCTURE);
 		}
 	}
+*/
 }
 
 static void cb_t_buffer_destroy(void *user, VNodeID node_id, uint16 buffer_id, uint16 index, const char *name)
@@ -276,22 +318,10 @@ static void cb_t_text_set(void *user, VNodeID node_id, uint16 buffer_id, uint32 
 
 		if((tb = dynarr_index(n->buffers, buffer_id)) != NULL)
 		{
-			printf("text set in buffer %u.%u\n", node_id, buffer_id);
-			textbuf_delete(tb->text, pos, len);
-			textbuf_insert(tb->text, pos, text);
+/*			printf("text set in buffer %u.%u\n", node_id, buffer_id);*/
+			nodedb_t_buffer_delete(tb, pos, len);
+			nodedb_t_buffer_insert(tb, pos, text);
 			NOTIFY(n, DATA);
-
-			{
-				char	line[1024];
-				int	i;
-
-				printf("First 8 lines:\n");
-				for(i = 0; i < 8; i++)
-				{
-					if(nodedb_t_buffer_read_line(tb, i, line, sizeof line) != NULL)
-						printf("%d: '%s'\n", i, line);
-				}
-			}
 		}
 	}
 }
