@@ -14,3 +14,5 @@ extern void	idlist_remove(IdList *il, unsigned int id);
 extern void	idlist_foreach(const IdList *il, int (*callback)(unsigned int id, void *data), void *data);
 
 extern void	idlist_destroy(IdList *il);
+
+extern void	idlist_test_as_string(const IdList *il, char *buf, size_t buf_max);

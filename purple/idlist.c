@@ -4,6 +4,7 @@
 
 #include "verse.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -81,4 +82,33 @@ void idlist_destroy(IdList *il)
 		list_destroy(il->slow);
 		mem_free(il);
 	}
+}
+
+static int cb_test_as_string(unsigned int id, void *data)
+{
+	void	**d = data;
+	char	num[32];
+	size_t	len;
+
+	len = sprintf(num, "%s%u", d[2] ? " " : "", id);
+	d[2] = (void *) 1;
+	if((size_t) d[1] >= len)
+	{
+		strcat(d[0], num);
+		d[1] -= len;
+		return TRUE;
+	}
+	return FALSE;
+}
+
+void idlist_test_as_string(const IdList *il, char *buf, size_t buf_max)
+{
+	void	*data[3];
+
+	data[0] = buf;
+	data[1] = (void *) buf_max;
+	data[2] = 0;
+
+	buf[0] = '\0';
+	idlist_foreach(il, cb_test_as_string, data);
 }
