@@ -12,6 +12,7 @@ typedef struct
 	VNMFragmentType	type;
 	VMatFrag	frag;
 	const Node	*node;		/* Used only by light and texture fragments. Messy. See sync. */
+	unsigned int	pending;	/* Create-call has been issued, and is pending. */
 } NdbMFragment;
 
 typedef struct
