@@ -355,6 +355,14 @@ int value_set_from_string(PValue *v, PValueType type, const char *value)
 				LOG_WARN(("Couldn't parse '%s' as real64 value", value));
 		}
 		break;
+	case P_VALUE_MODULE:
+		{
+			uint32	t;
+			if(sscanf(value, "%u", &t) == 1)
+				return value_set(v, type, t);
+			else
+				LOG_WARN(("Couldn't parse '%s' as module ID value", value));
+		}
 	default:
 		LOG_WARN(("No code for setting value type %s from string--failing", type_map_by_value[type].name));
 	}
