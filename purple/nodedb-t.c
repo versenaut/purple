@@ -266,7 +266,7 @@ static void cb_t_set_language(void *user, VNodeID node_id, const char *language)
 	}
 }
 
-static void cb_t_buffer_create(void *user, VNodeID node_id, uint16 buffer_id, uint16 index, const char *name)
+static void cb_t_buffer_create(void *user, VNodeID node_id, uint16 buffer_id, const char *name)
 {
 	NodeText	*n;
 	NdbTBuffer	*buffer;
