@@ -13,7 +13,16 @@ typedef struct
 typedef struct
 {
 	uint16	id;
+	VNodeID	link;
 	char	name[16];
+	uint32	target;
+} NdbOLink;
+
+typedef struct
+{
+	uint16	id;
+	char	name[16];
+	DynArr	*links;
 	DynArr	*methods;
 } NdbOMethodGroup;
 
