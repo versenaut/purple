@@ -84,6 +84,7 @@ typedef struct
 
 struct Plugin
 {
+	uint32	id;
 	char	name[64];
 	Library	*library;
 
@@ -101,10 +102,21 @@ static struct
 
 	MemChunk	*chunk_meta;
 
+	uint32		next_id;
 	Hash		*plugins;		/* All currently loaded, available plugins. */
 } plugins_info = { NULL };
 
 /* ----------------------------------------------------------------------------------------- */
+
+static void plugins_id_reset(void)
+{
+	plugins_info.next_id = 1;
+}
+
+static uint32 plugins_id_get(void)
+{
+	return plugins_info.next_id++;
+}
 
 Plugin * plugin_new(const char *name)
 {
@@ -115,6 +127,7 @@ Plugin * plugin_new(const char *name)
 
 	if((p = mem_alloc(sizeof *p)) != NULL)
 	{
+		p->id = plugins_id_get();
 		stu_strncpy(p->name, sizeof p->name, name);
 		p->library = NULL;
 		p->meta = NULL;
@@ -309,7 +322,7 @@ void plugin_describe_append(const Plugin *p, DynStr *d)
 		return;
 
 	/* Head. */
-	dynstr_append_printf(d, "<plug-in name=\"%s\"", p->name);
+	dynstr_append_printf(d, "<plug-in id=\"%u\" name=\"%s\"", p->id, p->name);
 	dynstr_append_printf(d, ">\n");
 
 	/* Any inputs? */
@@ -460,6 +473,7 @@ void plugins_libraries_load(void)
 #else
 		const char	*suffix = ".so";
 #endif
+		plugins_id_reset();
 		if((fl = filelist_new(plugins_info.paths[i], suffix)) != NULL)
 		{
 			int	j;
