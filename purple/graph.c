@@ -70,7 +70,7 @@ static MethodInfo method_info[] = {
 	
 	{ 0, "mod_create",  2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "plugin_id" } },
 	{ 0, "mod_input_clear", 3, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8 },
-		{ "graph_id", "plugin_id", "input" }	},
+			{ "graph_id", "plugin_id", "input" }	},
 	MI_INPUT(real32, REAL32),
 /*	{ 0, "mod_destroy", 2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "module_id" } }
 */};
