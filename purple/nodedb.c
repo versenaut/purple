@@ -158,6 +158,9 @@ Node * nodedb_new(VNodeType type)
 		case V_NT_OBJECT:
 			nodedb_o_construct((NodeObject *) n);
 			break;
+		case V_NT_MATERIAL:
+			nodedb_m_construct((NodeMaterial *) n);
+			break;
 		case V_NT_TEXT:
 			nodedb_t_construct((NodeText *) n);
 			break;
