@@ -30,6 +30,7 @@
 #include "xmlnode.h"
 #include "xmlutil.h"
 
+#include "nodedb.h"
 #include "client.h"
 
 #include "command-structs.h"
@@ -346,14 +347,6 @@ static void console_update(void)
 				if(sscanf(line, "gc %u %u %s", &node, &buf, name) == 3)
 					graph_method_send_call_create(node, buf, name);
 			}
-			else if(strncmp(line, "gr ", 3) == 0)
-			{
-				uint32	id;
-				char	name[64];
-
-				if(sscanf(line, "gr %u %s", &id, name) == 2)
-					graph_method_send_call_rename(id, name);
-			}
 			else if(strncmp(line, "gd ", 3) == 0)
 			{
 				uint32	id;
@@ -396,6 +389,14 @@ static void console_update(void)
 
 				if(sscanf(line, "ns %u", &node) == 1)
 					verse_send_node_subscribe(node);
+			}
+			else if(strncmp(line, "nns ", 4) == 0)
+			{
+				VNodeID	node;
+				char	name[64];
+
+				if(sscanf(line, "nns %u %s", &node, name) == 2)
+					verse_send_node_name_set(node, name);
 			}
 			else if(strncmp(line, "tbc ", 4) == 0)
 			{
