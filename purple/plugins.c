@@ -81,6 +81,7 @@ struct PInputSet
 {
 	size_t		size;
 	uint32		*use;
+	PInputType	*type;
 	PInputValue	*value;
 };
 
@@ -446,26 +447,20 @@ PInputSet * plugin_inputset_new(const Plugin *p)
 	if(size == 0)
 		return NULL;
 	num = (size + 31) / 32;
-	is = mem_alloc(sizeof *is + num * sizeof *is->use + size * sizeof *is->value);
+	is = mem_alloc(sizeof *is + num * sizeof *is->use + size * (sizeof *is->type + sizeof *is->value));
 	is->size  = size;
 	is->use   = (uint32 *) (is + 1);
-	is->value = (PInputValue *) (is->use + num);
+	is->type  = (PInputType *) (is->use + num);
+	is->value = (PInputValue *) (is->type + size);
 	memset(is->use, 0, num * sizeof *is->use);
 	return is;
-}
-
-void plugin_inputset_set(PInputSet *is, unsigned int index, const PInputValue *value)
-{
-	if(is == NULL || index >= is->size)
-		return;
-	is->use[index / 32] |= 1 << (index % 32);
-	is->value[index] = *value;
 }
 
 void plugin_inputset_set_va(PInputSet *is, unsigned int index, PInputType type, va_list arg)
 {
 	if(is == NULL || index >= is->size)
 		return;
+	is->type[index] = type;
 	switch(type)
 	{
 	case P_INPUT_REAL32:
