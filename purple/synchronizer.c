@@ -2,6 +2,8 @@
  * 
 */
 
+#include <stdio.h>
+
 #include "verse.h"
 
 #include "dynarr.h"
@@ -22,6 +24,23 @@ static struct
 
 /* ----------------------------------------------------------------------------------------- */
 
+static void cb_notify(Node *node, NodeNotifyEvent ev)
+{
+	if(ev != NODEDB_NOTIFY_CREATE)
+	{
+		printf("Nodedb ignoring non-create event\n");
+		return;
+	}
+	printf("A node of type %d was created, could it be mine?\n", node->type);
+}
+
+void sync_init(void)
+{
+	nodedb_notify_add(NODEDB_OWNERSHIP_MINE, cb_notify);
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 void sync_node_add(const Node *node)
 {
 	if(node == NULL)
@@ -34,4 +53,5 @@ void sync_node_add(const Node *node)
 
 void sync_update(double slice)
 {
+	
 }
