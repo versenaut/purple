@@ -1445,7 +1445,12 @@ CLASS="literal"
 >"</SPAN
 > to indicate that
 the element contains the ID of a module whose output should be connected to the input being defined. It is
-an error to define a cyclic graph, and the Purple engine will never write illegal graph descriptions.
+an error to define a cyclic graph, and the Purple engine will never write illegal graph descriptions. Links
+cannot be <SPAN
+CLASS="QUOTE"
+>"floating"</SPAN
+>, the referenced module must always exist. If a referenced module is deleted,
+Purple will also delete the link, so as not to create a floating dependency.
 </P
 ></DIV
 ></DIV
