@@ -146,8 +146,10 @@ static void cb_connect_accept(void *user, VNodeID avatar, void *address, void *c
 		client_info.connection = connection;
 
 		LOG_MSG(("Connected to Verse server, as avatar %u", avatar));
-		nodedb_register_callbacks(avatar, (1 << V_NT_OBJECT) | (1 << V_NT_TEXT) | (1 << V_NT_BITMAP) | (1 << V_NT_GEOMETRY));
-/*		verse_send_node_list(1 << V_NT_OBJECT);*/
+		nodedb_register_callbacks(avatar,
+					  (1 << V_NT_OBJECT) | (1 << V_NT_TEXT) |
+					  (1 << V_NT_BITMAP) | (1 << V_NT_GEOMETRY) |
+					  (1 << V_NT_CURVE)  | (1 << V_NT_MATERIAL));
 		verse_send_node_subscribe(avatar);
 		verse_send_node_name_set(avatar, "PurpleEngine");
 		verse_send_o_method_group_create(avatar, 0, METHOD_GROUP_CONTROL_NAME);
