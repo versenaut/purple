@@ -17,6 +17,12 @@ typedef struct IdSet	IdSet;
 extern IdSet *		idset_new(unsigned int offset);
 
 extern unsigned int	idset_insert(IdSet *is, void *object);
+
+/* Insert object with pre-determined ID. Assumes you know what you're doing, and
+ * is rather costly since it simulates deletion of all IDs in any "gaps" created.
+*/
+extern unsigned int	idset_insert_with_id(IdSet *is, unsigned int id, void *object);
+
 extern void		idset_remove(IdSet *is, unsigned int id);
 
 /* The size of the set is the number of contained items. Duh. */
@@ -26,7 +32,7 @@ extern void *		idset_lookup(const IdSet *is, unsigned int id);
 
 /*
  * Foreach-functions, to traverse over all members of an IdSet. Use as follows:
- * 
+ *
  * const IdSet *is;
  * unsigned int	id;
  * void *obj;

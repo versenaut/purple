@@ -10,6 +10,7 @@
 
 #include "dynarr.h"
 #include "list.h"
+#include "log.h"
 #include "mem.h"
 
 #include "idset.h"
@@ -58,6 +59,46 @@ unsigned int idset_insert(IdSet *is, void *object)
 	is->size++;
 	is->max = index > is->max ? index : is->max;
 	return index + is->offset;
+}
+
+unsigned int idset_insert_with_id(IdSet *is, unsigned int id, void *object)
+{
+	unsigned int	dist, i;
+
+	if(is == NULL || object == NULL)
+		return 0;
+	id -= is->offset;
+	if(id <= is->max)
+	{
+		List	*iter;
+		/* The requested ID is inside the space of previously used IDs. Hopefully,
+		 * it's because it's been used and then removed, in which case we can reuse it.
+		*/
+		for(iter = is->removed; iter != NULL; iter = list_next(iter))
+		{
+			if(((unsigned int) list_data(iter)) == id)
+			{
+				dynarr_set(is->arr, id, &object);
+				is->removed = list_unlink(is->removed, iter);
+				list_destroy(iter);
+				return id + is->offset;
+			}
+		}
+		if(is->max > 0)	/* Complain if not found and set not empty. */
+			LOG_WARN(("idset_insert_with_id id=%u (offset=%u max=%u) collides with existing data--appending instead", id + is->offset, is->offset, is->max));
+		return idset_insert(is, object);
+	}
+	/* Desired ID is beyond the current range. Extend with fake removes. */
+	dist = id - is->max;
+	LOG_MSG(("Inserting in idset with known ID %u, distance from max %u is %u\n", id, is->max, dist));
+	i = id - 1;
+	do
+	{
+		is->removed = list_prepend(is->removed, (void *) i);
+	} while(i-- > is->max);
+	dynarr_set(is->arr, id, &object);
+	is->max = id;
+	return id + is->offset;
 }
 
 void idset_remove(IdSet *is, unsigned int id)
