@@ -92,16 +92,19 @@ NdbMFragment * nodedb_m_fragment_lookup(const NodeMaterial *node, VNMFragmentID 
 /* ----------------------------------------------------------------------------------------- */
 
 /* Set node reference in a material fragment. */
-static void node_ref_set(NdbMFragment *frag, VNodeID *reffield, const Node *node)
+static void node_ref_set(NdbMFragment *frag, size_t refoff, const Node *node)
 {
-	if(frag == NULL || reffield == NULL)
+	VNodeID	*ref;
+
+	if(frag == NULL)
 		return;
+	ref = (VNodeID *) (((unsigned char *) &frag->frag) + refoff);
 	if(node != NULL)
-		*reffield = node->id;
+		*ref = node->id;
 	else
-		*reffield = (VNodeID) ~0;
+		*ref = (VNodeID) ~0;
 	frag->node = node;	/* Very little work to do; the importance here is in the formalism. */
-	printf("set fragment; frag=%p field=%u node=%p\n", frag, *reffield, frag->node);
+	printf("set fragment; frag=%p field=%u node=%p\n", frag, *ref, frag->node);
 }
 
 /* Compare node references in two material fragments, knowing that they have an embedded
@@ -332,7 +335,7 @@ NdbMFragment * nodedb_m_fragment_create_light(NodeMaterial *node, VNMLightType t
 	stu_strncpy_accept_null(frag.light.brdf_g, sizeof frag.light.brdf_g, brdf_g);
 	stu_strncpy_accept_null(frag.light.brdf_b, sizeof frag.light.brdf_b, brdf_b);
 	f = nodedb_m_fragment_create(node, ~0, VN_M_FT_LIGHT, &frag);
-	node_ref_set(f, &f->frag.light.brdf, brdf);
+	node_ref_set(f, offsetof(VMatFrag, light.brdf), brdf);
 	return f;
 }
 
@@ -401,7 +404,7 @@ NdbMFragment * nodedb_m_fragment_create_texture(NodeMaterial *node, const Node *
 	stu_strncpy_accept_null(frag.texture.layer_b, sizeof frag.texture.layer_b, layer_b);
 	link_set(&frag.texture.mapping, mapping);
 	f = nodedb_m_fragment_create(node, ~0, VN_M_FT_TEXTURE, &frag);
-	node_ref_set(f, &f->frag.texture.bitmap, bitmap);
+	node_ref_set(f, offsetof(VMatFrag, texture.bitmap), bitmap);
 	return f;
 }
 
