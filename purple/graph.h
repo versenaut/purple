@@ -28,5 +28,7 @@ extern void	graph_method_check_created(NodeObject *node);
 extern void	graph_method_receive_call(uint8 id, const void *param);
 
 /* Output API uses this to set the output port. Gives us a chance to notify graph. */
+extern void	graph_port_output_begin(PPOutput port);
 extern void	graph_port_output_set(PPOutput port, PValueType type, ...);
 extern void	graph_port_output_set_node(PPOutput port, PONode *node);
+extern void	graph_port_output_end(PPOutput port);
