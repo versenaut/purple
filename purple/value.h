@@ -71,6 +71,22 @@ extern boolean		value_get_real64_mat16(const PValue *v, PValue *cache, const rea
 extern boolean		value_get_string(const PValue *v, PValue *cache, const char **out);
 extern uint32		value_get_module(const PValue *v, PValue *cache);
 
+extern boolean		value_get_default_boolean(void);
+extern int32		value_get_default_int32(void);
+extern uint32		value_get_default_uint32(void);
+extern real32		value_get_default_real32(void);
+extern const real32 *	value_get_default_real32_vec2(void);
+extern const real32 *	value_get_default_real32_vec3(void);
+extern const real32 *	value_get_default_real32_vec4(void);
+extern const real32 *	value_get_default_real32_mat16(void);
+extern real64		value_get_default_real64(void);
+extern const real64 *	value_get_default_real64_vec2(void);
+extern const real64 *	value_get_default_real64_vec3(void);
+extern const real64 *	value_get_default_real64_vec4(void);
+extern const real64 *	value_get_default_real64_mat16(void);
+extern const char *	value_get_default_string(void);
+
+
 /* Create string representation of <v>, which is assumed to contain a value of a
  * single type only. Useful in creating external representations, and also inten-
  * ally when getting as string. No clever size handling is done on the buffer,

@@ -597,6 +597,25 @@ uint32 value_get_module(const PValue *v, PValue *cache)
 
 /* ----------------------------------------------------------------------------------------- */
 
+#define	DEF(n,t,d,v)	t value_get_default_ ##n(void) { d; return v; }
+
+DEF(boolean, boolean,, FALSE)
+DEF(int32,   int32,,   0)
+DEF(uint32,  uint32,,  0)
+DEF(real32,  real32,, 0.0)
+DEF(real32_vec2, const real32 *, static real32 def[2] = { 0.0 }, def)
+DEF(real32_vec3, const real32 *, static real32 def[3] = { 0.0 }, def)
+DEF(real32_vec4, const real32 *, static real32 def[4] = { 0.0 }, def)
+DEF(real32_mat16, const real32 *, static real32 def[16] = { 0.0 }, def)
+DEF(real64,  real64,, 0.0)
+DEF(real64_vec2, const real64 *, static real64 def[2] = { 0.0 }, def)
+DEF(real64_vec3, const real64 *, static real64 def[3] = { 0.0 }, def)
+DEF(real64_vec4, const real64 *, static real64 def[4] = { 0.0 }, def)
+DEF(real64_mat16, const real64 *, static real64 def[16] = { 0.0 }, def)
+DEF(string, const char *,, "")
+
+/* ----------------------------------------------------------------------------------------- */
+
 const char * value_as_string(const PValue *v, char *buf, size_t buf_max, size_t *used)
 {
 	int	put;
