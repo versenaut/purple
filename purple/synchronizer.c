@@ -60,15 +60,17 @@ void sync_init(void)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer, size_t size,
-				const NodeGeometry *target, const NdbGLayer *tlayer, size_t tsize)
+static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
+				const NodeGeometry *target, const NdbGLayer *tlayer)
 {
 	const unsigned char	*data, *tdata;
-	size_t		i, esize;
+	size_t		size, tsize, i, esize;
 	int		send = 0;
 
 	esize = tlayer->type == VN_G_LAYER_VERTEX_XYZ ? (3 * sizeof (real64)) : (4 * sizeof (uint32));
 
+	size  = dynarr_size(layer->data);
+	tsize = dynarr_size(layer->data);
 	data  = dynarr_index(layer->data, 0);
 	tdata = dynarr_index(tlayer->data, 0);
 	for(i = 0; i < size; i++)
@@ -141,14 +143,7 @@ static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 			else if(layer->def_real != tlayer->def_real)
 				printf("  but the default real is wrong\n");
 			else	/* "Envelope" is fine, inspect contents. */
-			{
-				size_t	len, tlen;
-
-				/* Vertex data must be identical for this to pass; order is significant. */
-				len  = dynarr_size(layer->data);
-				tlen = dynarr_size(tlayer->data);
-				sync &= !sync_geometry_layer(n, layer, len, target, tlayer, tlen);
-			}
+				sync &= !sync_geometry_layer(n, layer, target, tlayer);
 		}
 		else
 		{
