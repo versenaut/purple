@@ -374,16 +374,32 @@ void p_node_t_langauge_set(PONode *node, const char *language)
 	nodedb_t_language_set((NodeText *) node, language);
 }
 
-size_t p_node_t_buffer_get_count(PINode *node)
+unsigned int p_node_t_buffer_get_num(PINode *node)
 {
-	return nodedb_t_buffer_get_count((NodeText *) node);
+	return nodedb_t_buffer_num((NodeText *) node);
+}
+
+PNTBuffer * p_node_t_buffer_nth(PINode *node, unsigned int n)
+{
+	return nodedb_t_buffer_nth((NodeText *) node, n);
+}
+
+PNTBuffer * p_node_t_buffer_find(PINode *node, const char *name)
+{
+	return p_node_t_buffer_find((NodeText *) node, name);
+}
+
+const char * p_node_t_buffer_get_name(const PNTBuffer *buffer)
+{
+	if(buffer != NULL)
+		return ((NdbTBuffer *) buffer)->name;
 }
 
 PNTBuffer * p_node_t_buffer_create(PONode *node, const char *name)
 {
 	PNTBuffer	*b;
 
-	if((b = nodedb_t_buffer_get_named((NodeText *) node, name)) != NULL)
+	if((b = nodedb_t_buffer_find((NodeText *) node, name)) != NULL)
 	{
 		nodedb_t_buffer_clear(b);
 		return b;
