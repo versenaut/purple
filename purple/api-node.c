@@ -394,13 +394,14 @@ PNTBuffer * p_node_t_buffer_nth(PINode *node, unsigned int n)
 
 PNTBuffer * p_node_t_buffer_find(PINode *node, const char *name)
 {
-	return p_node_t_buffer_find((NodeText *) node, name);
+	return nodedb_t_buffer_find((NodeText *) node, name);
 }
 
 const char * p_node_t_buffer_get_name(const PNTBuffer *buffer)
 {
 	if(buffer != NULL)
 		return ((NdbTBuffer *) buffer)->name;
+	return NULL;
 }
 
 PNTBuffer * p_node_t_buffer_create(PONode *node, const char *name)
