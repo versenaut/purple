@@ -279,7 +279,7 @@ static void test_idset(void)
 	void		*p;
 	unsigned int	id;
 
-	is = idset_new();
+	is = idset_new(33);
 	printf("inserting a at %p\n", a);
 	idset_insert(is, a);
 	idset_insert(is, b);
@@ -288,13 +288,14 @@ static void test_idset(void)
 	{
 		printf("%u: %s\n", id, (const char *) p);
 	}
-	printf("removing 1, 0\n");
-	idset_remove(is, 1);
-	idset_remove(is, 0);
+	printf("removing 34, 33\n");
+	idset_remove(is, 34);
+	idset_remove(is, 33);
 	for(id = idset_foreach_first(is); (p = idset_lookup(is, id)) != NULL; id = idset_foreach_next(is, id))
 	{
 		printf("%u: %s\n", id, (const char *) p);
 	}
+	printf("re-inserting\n");
 	idset_insert(is, b);
 	idset_insert(is, a);
 	for(id = idset_foreach_first(is); (p = idset_lookup(is, id)) != NULL; id = idset_foreach_next(is, id))
@@ -359,6 +360,13 @@ static void console_update(void)
 				if(sscanf(line, "gd %u", &id) == 1)
 					graph_method_send_call_destroy(id);
 			}
+			else if(strncmp(line, "mc ", 3) == 0)
+			{
+				uint32	g, p;
+
+				if(sscanf(line, "mc %u %u", &g, &p) == 2)
+					graph_method_send_call_mod_create(g, p);
+			}
 			else if(strncmp(line, "nc ", 3) == 0)
 			{
 				if(strcmp(line + 3, "text") == 0)
@@ -380,6 +388,17 @@ static void console_update(void)
 
 				if(sscanf(line, "tbc %u %s", &node, name) == 2)
 					verse_send_t_buffer_create(node, ~0, 0, name);
+			}
+			else if(strncmp(line, "tbs ", 4) == 0)
+			{
+				VNodeID	node;
+				VLayerID buffer;
+
+				if(sscanf(line, "tbs %u %hu", &node, &buffer) == 2)
+				{
+					printf("sending subscribe to text buffer %u,%u\n", node, buffer);
+					verse_send_t_buffer_subscribe(node, buffer);
+				}
 			}
 			else if(strncmp(line, "tsl ", 4) == 0)
 			{
