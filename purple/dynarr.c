@@ -21,7 +21,8 @@ struct DynArr
 	size_t		alloc;
 	size_t		next;
 	const void	*def;
-	void		(*def_func)(unsigned int index, void *element);
+	void		(*def_func)(unsigned int index, void *element, void *user);
+	void		*def_func_user;
 };
 
 static MemChunk *the_chunk = NULL;
@@ -63,7 +64,7 @@ DynArr * dynarr_new_copy(const DynArr *src, void (*element_copy)(void *dst, cons
 		return NULL;
 	da = dynarr_new(src->elem_size, src->page_size);
 	dynarr_set_default(da, src->def);
-	dynarr_set_default_func(da, src->def_func);
+	dynarr_set_default_func(da, src->def_func, src->def_func_user);
 	if(src->next > 0)		/* Sneakily "pre-warm" the array, to minimize allocations in loop below. */
 		dynarr_set(da, src->next - 1, NULL);
 	for(i = 0; i < src->next; i++)
@@ -87,10 +88,13 @@ void dynarr_set_default(DynArr *da, const void *def)
 		da->def = def;
 }
 
-void dynarr_set_default_func(DynArr *da, void (*func)(unsigned int, void *element))
+void dynarr_set_default_func(DynArr *da, void (*func)(unsigned int, void *element, void *user), void *user)
 {
 	if(da != NULL)
+	{
 		da->def_func = func;
+		da->def_func_user = user;
+	}
 }
 
 void * dynarr_index(const DynArr *da, unsigned index)
@@ -137,7 +141,7 @@ void * dynarr_set(DynArr *da, unsigned int index, const void *element)
 				{
 					if(i == index)
 						continue;
-					da->def_func(i, (char *) nd + i * da->elem_size);
+					da->def_func(i, (char *) nd + i * da->elem_size, da->def_func_user);
 				}
 			}
 			da->data  = nd;
