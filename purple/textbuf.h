@@ -16,7 +16,9 @@ extern TextBuf *	textbuf_new(size_t initial_size);
 */
 extern void		textbuf_insert(TextBuf *tb, size_t offset, const char *text);
 
-/* Delete region [offset, offset+length-1]. */
+/* Delete region [offset, offset+length-1]. If <offset> is outside text, nothing
+ * happens.
+*/
 extern void		textbuf_delete(TextBuf *tb, size_t offset, size_t length);
 
 /* Return the text, as an ordinary C string with NUL termination and everything.
