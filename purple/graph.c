@@ -66,14 +66,14 @@ enum
 	MOD_INPUT_SET_BOOLEAN, MOD_INPUT_SET_INT32, MOD_INPUT_SET_UINT32,
 	MOD_INPUT_SET_REAL32, MOD_INPUT_SET_REAL32_VEC2, MOD_INPUT_SET_REAL32_VEC3, MOD_INPUT_SET_REAL32_VEC4, MOD_INPUT_SET_REAL32_MAT16,
 	MOD_INPUT_SET_REAL64, MOD_INPUT_SET_REAL64_VEC2, MOD_INPUT_SET_REAL64_VEC3, MOD_INPUT_SET_REAL64_VEC4, MOD_INPUT_SET_REAL64_MAT16,
+	MOD_INPUT_SET_STRING,
 	MOD_INPUT_SET_MODULE,
-	MOD_INPUT_SET_STRING
 };
 
 /* Create name of input-setting method. */
 #define	MI_INPUT_NAME(lct)	"mod_set_" #lct
 
-/* Create initializer for ordniary scalar input setting method. */
+/* Create initializer for ordinary scalar input setting method. */
 #define	MI_INPUT(lct, uct)	\
 	{ MI_INPUT_NAME(lct), 4, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8, \
 		VN_O_METHOD_PTYPE_ ##uct }, { "graph_id", "module_id", "input", "value" } }
@@ -108,8 +108,8 @@ static MethodInfo method_info[] = {
 	MI_INPUT_VEC(r64, REAL64, 3),
 	MI_INPUT_VEC(r64, REAL64, 4),
 	MI_INPUT(r64_m16, REAL64_MAT16),
-	MI_INPUT(module, UINT32),
-	MI_INPUT(string, STRING)
+	MI_INPUT(string, STRING),
+	MI_INPUT(module, UINT32)
 };
 
 static struct
@@ -268,6 +268,72 @@ static void graph_destroy(uint32 id)
 
 /* ----------------------------------------------------------------------------------------- */
 
+/* Information used while traversing modules checking for cycles, helps keep argument count down. */
+struct traverse_info
+{
+	uint32	module_id;
+	uint8	input;
+	uint32	source;
+};
+
+/* Traverse module links from <module_id>, looking for <source_id>. Returns FALSE if cyclic link found. */
+static boolean traverse_module(const Graph *g, uint32 module_id, uint32 source_id, const struct traverse_info *ti)
+{
+	const Module	*m;
+
+	if((m = idset_lookup(g->modules, module_id)) != NULL)
+	{
+		unsigned int	i;
+
+		for(i = plugin_inputset_size(m->inputs); i-- > 0;)
+		{
+			uint32	link;
+
+			if(module_id == ti->module_id && i == ti->input)
+				link = ti->source;
+			else if(plugin_inputset_get_module(m->inputs, i, &link) && idset_lookup(g->modules, link))
+				;
+			else
+				continue;
+			if(link == source_id)
+				return FALSE;
+			if(!traverse_module(g, link, source_id, ti))
+				return FALSE;
+		}
+	}
+	return TRUE;
+}
+
+/* Answer the fairly specific question: does the graph <graph_id> becomes cyclic if module
+ * <module_id>'s <input>:th input is set to be <source>? Used to disallow such setting.
+ * This implementation is totally naive, and requires O(n^2) for a graph with n nodes.
+*/
+static boolean graph_cyclic_after(uint32 graph_id, uint32 module_id, uint8 input, uint32 source)
+{
+	const Graph	*g;
+	unsigned int	i;
+	size_t		num;
+	struct traverse_info	ti;
+
+	if((g = idset_lookup(graph_info.graphs, graph_id)) == NULL)
+		return FALSE;
+
+	num = idset_size(g->modules);
+
+	ti.module_id = module_id;
+	ti.input     = input;
+	ti.source    = source;
+
+	for(i = 0; i < num; i++)
+	{
+		if(!traverse_module(g, i, i, &ti))
+			return TRUE;
+	}
+	return FALSE;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 /* Build description of a single module, as a freshly created dynamic string. */
 static DynStr * module_build_desc(const Module *m)
 {
@@ -365,6 +431,7 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 	Graph	*g;
 	Module	*m;
 	DynStr	*desc;
+	int	done;
 
 	if((g = idset_lookup(graph_info.graphs, graph_id)) == NULL)
 	{
@@ -384,6 +451,8 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 	m->length = dynstr_length(desc);
 	dynstr_destroy(desc, 1);
 	graph_modules_desc_start_update(g);
+
+/*	plugin_run_compute(m->plugin, m->inputs);*/
 }
 
 /* Clear a module input, i.e. remove any assigned value and leave it "floating" as after module creation. */
@@ -648,7 +717,8 @@ void graph_method_receive_call(uint8 id, const void *param)
 			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_REAL64_MAT16, &arg[3].vreal64_mat);
 			break;
 		case MOD_INPUT_SET_MODULE:
-			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_MODULE, arg[3].vuint32);
+			if(!graph_cyclic_after(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, arg[3].vuint32))
+				module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_MODULE, arg[3].vuint32);
 			break;
 		case MOD_INPUT_SET_STRING:
 			module_input_set(arg[0].vuint32, arg[1].vuint32, arg[2].vuint8, P_INPUT_STRING, arg[3].vstring);
