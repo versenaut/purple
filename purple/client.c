@@ -10,6 +10,7 @@
 
 #include "cron.h"
 #include "dynarr.h"
+#include "list.h"
 #include "log.h"
 #include "mem.h"
 #include "textbuf.h"
