@@ -2,6 +2,24 @@
  * Bitmap node database implementation.
 */
 
+/* This is used to avoid copying tiles back and forth when sychronizing, by
+ * instead providing enough access information to let it at the bytes.
+*/
+typedef struct
+{
+	struct
+	{
+		uint16	x, y, z;
+	}	in;
+	struct
+	{
+		uint8	*ptr;
+		size_t	mod_row;
+		size_t	mod_tile;
+		size_t	height;		/* Effective height; last row can be cropped. */
+	}	out;
+} NdbBTileDesc;
+
 typedef struct
 {
 	uint16		id;
@@ -21,7 +39,15 @@ extern void		nodedb_b_construct(NodeBitmap *n);
 extern void		nodedb_b_copy(NodeBitmap *n, const NodeBitmap *src);
 extern void		nodedb_b_destruct(NodeBitmap *n);
 
+extern int		nodedb_b_dimensions_set(NodeBitmap *node, uint16 width, uint16 height, uint16 depth);
+
+extern NdbBLayer *	nodedb_b_layer_create(NodeBitmap *node, VLayerID layer_id, const char *name, VNBLayerType type);
 extern NdbBLayer *	nodedb_b_layer_lookup(const NodeBitmap *node, const char *name);
 extern NdbBLayer *	nodedb_b_layer_lookup_id(const NodeBitmap *node, uint16 buffer_id);
+
+extern void *		nodedb_b_layer_access_begin(NodeBitmap *node, NdbBLayer *layer);
+extern void		nodedb_b_layer_access_end(NodeBitmap *node, NdbBLayer *layer, void *framebuffer);
+
+extern void		nodedb_b_tile_describe(const NodeBitmap *node, const NdbBLayer *layer, NdbBTileDesc *desc);
 
 extern void		nodedb_b_register_callbacks(void);

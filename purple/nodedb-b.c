@@ -3,6 +3,10 @@
  * the required layers, nothing very fancy at all. One-bit-per-pixel layers are stored using
  * 8-bit bytes as the smallest unit of allocation, and never using any single byte for pixels
  * from two different rows, so a 10x10 layer requires 20 bytes.
+ * 
+ * Layers are always stored with space for a whole number of tiles horizontally, but the number
+ * of scanlines is always the proper one (node->height), no rounding takes place there. This
+ * means we can waste at most 7 pixels per scanline (for a REAL64 layer), i.e. 56 bytes.
 */
 
 #include <stdio.h>
@@ -35,6 +39,24 @@ static size_t pixel_size(VNBLayerType type)
 	case VN_B_LAYER_REAL64:	return 64;
 	}
 	return 0;
+}
+
+static size_t tile_modulo(const NodeBitmap *node, const NdbBLayer *layer)
+{
+	static const size_t	mod[] = { 1, VN_B_TILE_SIZE, 2 * VN_B_TILE_SIZE, 4 * VN_B_TILE_SIZE, 8 * VN_B_TILE_SIZE };
+
+	return mod[layer->type];
+}
+
+static size_t layer_modulo(const NodeBitmap *node, const NdbBLayer *layer)
+{
+	static const size_t	bpp[] = { 0, 1, 2, 4, 8 };
+	size_t			wit;	/* Width in tiles, geddit? */
+
+	wit = VN_B_TILE_SIZE * ((node->width + VN_B_TILE_SIZE - 1) / VN_B_TILE_SIZE);
+	if(layer->type == VN_B_LAYER_UINT1)
+		return wit / 8;		/* WARNING: Basically assumes that VN_B_TILE_SIZE % 8 == 0. */
+	return wit * bpp[layer->type];
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -90,17 +112,16 @@ void nodedb_b_destruct(NodeBitmap *n)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_b_dimensions_set(void *user, VNodeID node_id, uint16 width, uint16 height, uint16 depth)
+int nodedb_b_dimensions_set(NodeBitmap *node, uint16 width, uint16 height, uint16 depth)
 {
-	NodeBitmap	*node;
 	NdbBLayer	*layer;
 	size_t		i, y, z, ps, layer_size, dss, sss;
 	unsigned char	*fb;
 
-	if((node = (NodeBitmap *) nodedb_lookup_with_type(node_id, V_NT_BITMAP)) == NULL)
-		return;
 	if(width == node->width && height == node->height && depth == node->depth)
-		return;
+		return 0;
+	printf("setting dimensions to %ux%ux%u\n", width, height, depth);
+	/* Resize all layers. Heavy lifting. */
 	for(i = 0; i < dynarr_size(node->layers); i++)
 	{
 		if((layer = dynarr_index(node->layers, i)) == NULL || layer->name[0] == '\0')
@@ -113,7 +134,7 @@ static void cb_b_dimensions_set(void *user, VNodeID node_id, uint16 width, uint1
 		if(fb == NULL)
 		{
 			LOG_WARN(("Couldn't allocate new framebuffer for layer %u.%u (%s)--out of memory",
-				  node_id, layer->id, layer->name));
+				  node->node.id, layer->id, layer->name));
 			continue;
 		}
 		/* Copy scanlines from old buffer into new. */
@@ -139,7 +160,110 @@ static void cb_b_dimensions_set(void *user, VNodeID node_id, uint16 width, uint1
 	node->width  = width;
 	node->height = height;
 	node->depth  = depth;
-	NOTIFY(node, STRUCTURE);
+	return 1;
+}
+
+static void cb_def_layer(unsigned int index, void *element, void *user)
+{
+	NdbBLayer	*layer = element;
+
+	layer->name[0] = '\0';
+	layer->framebuffer = NULL;
+}
+
+NdbBLayer * nodedb_b_layer_create(NodeBitmap *node, VLayerID layer_id, const char *name, VNBLayerType type)
+{
+	NdbBLayer	*layer;
+
+	if(node == NULL || name == NULL)
+		return NULL;
+	if(node->layers == NULL)
+	{
+		node->layers = dynarr_new(sizeof *layer, 4);
+		dynarr_set_default_func(node->layers, cb_def_layer, NULL);
+	}
+	if(layer_id == (VLayerID) ~0)
+		layer = dynarr_append(node->layers, NULL, NULL);
+	else
+		layer = dynarr_set(node->layers, layer_id, NULL);
+	if(layer != NULL)
+	{
+		layer->id   = layer_id;
+		stu_strncpy(layer->name, sizeof layer->name, name);
+		layer->type = type;
+		layer->framebuffer = NULL;
+	}
+	return layer;
+}
+
+NdbBLayer * nodedb_b_layer_lookup(const NodeBitmap *node, const char *name)
+{
+	size_t		i;
+	NdbBLayer	*layer;
+
+	if(node == NULL || name == NULL)
+		return NULL;
+	for(i = 0; (layer = dynarr_index(node->layers, i)) != NULL; i++)
+	{
+		if(strcmp(layer->name, name) == 0)
+			return layer;
+	}
+	return NULL;
+}
+
+void * nodedb_b_layer_access_begin(NodeBitmap *node, NdbBLayer *layer)
+{
+	if(node == NULL || layer == NULL)
+		return NULL;
+	if(layer->framebuffer == NULL)
+	{
+		size_t	ps, layer_size;
+
+		ps = pixel_size(layer->type);
+		layer_size = ((node->width * ps + 7) / 8) * node->height * node->depth;
+		layer->framebuffer = mem_alloc(layer_size);
+	}
+	return layer->framebuffer;
+}
+
+void nodedb_b_layer_access_end(NodeBitmap *node, NdbBLayer *layer, void *framebuffer)
+{
+	/* Nothing much to do, here. */
+}
+
+void * nodedb_b_layer_tile_find(const NodeBitmap *node, const NdbBLayer *layer,
+			     uint16 tile_x, uint16 tile_y, uint16 tile_z)
+{
+	if(layer->framebuffer != NULL)
+	{
+		size_t	ps = pixel_size(layer->type),
+			mod = layer_modulo(node, layer),
+			size = (node->width * ps + 7 / 8) * node->height;
+		return layer->framebuffer + tile_y * VN_B_TILE_SIZE * mod +
+			(tile_x * VN_B_TILE_SIZE * ps + 7) / 8 + size * tile_z;
+	}
+	return NULL;
+}
+
+void nodedb_b_tile_describe(const NodeBitmap *node, const NdbBLayer *layer, NdbBTileDesc *desc)
+{
+	desc->out.mod_row  = layer_modulo(node, layer);
+	desc->out.mod_tile = tile_modulo(node, layer);
+	desc->out.height   = (desc->in.y * VN_B_TILE_SIZE + 3 >= node->height) ?
+				node->height % VN_B_TILE_SIZE : VN_B_TILE_SIZE;
+	desc->out.ptr = nodedb_b_layer_tile_find(node, layer, desc->in.x, desc->in.y, desc->in.z);
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
+static void cb_b_dimensions_set(void *user, VNodeID node_id, uint16 width, uint16 height, uint16 depth)
+{
+	NodeBitmap	*node;
+
+	if((node = (NodeBitmap *) nodedb_lookup_with_type(node_id, V_NT_BITMAP)) == NULL)
+		return;
+	if(nodedb_b_dimensions_set(node, width, height, depth))
+		NOTIFY(node, STRUCTURE);
 }
 
 static void cb_b_layer_create(void *user, VNodeID node_id, VLayerID layer_id, const char *name, VNBLayerType type)
@@ -147,24 +271,22 @@ static void cb_b_layer_create(void *user, VNodeID node_id, VLayerID layer_id, co
 	NodeBitmap	*node;
 	NdbBLayer	*layer;
 
+	printf("now in cb_layer_create, node_id=%u layer_id=%u (%s)\n", node_id, layer_id, name);
 	if((node = (NodeBitmap *) nodedb_lookup_with_type(node_id, V_NT_BITMAP)) == NULL)
+	{
+		printf(" node not found in database\n");
 		return;
-	if((layer = dynarr_index(node->layers, layer_id)) != NULL && strcmp(layer->name, name) != 0)
+	}
+	if((layer = dynarr_index(node->layers, layer_id)) != NULL && layer->name[0] != '\0' && strcmp(layer->name, name) != 0)
 	{
 		LOG_WARN(("Layer already exists--unhandled case"));
 		return;
 	}
-	if(node->layers == NULL)
-		node->layers = dynarr_new(sizeof *layer, 4);
-	if((layer = dynarr_set(node->layers, layer_id, NULL)) != NULL)
+	if((layer = nodedb_b_layer_create(node, layer_id, name, type)) != NULL)
 	{
-		layer->id   = layer_id;
-		stu_strncpy(layer->name, sizeof layer->name, name);
-		layer->type = type;
-		layer->framebuffer = NULL;
 		verse_send_b_layer_subscribe(node_id, layer_id, 0);
 		NOTIFY(node, STRUCTURE);
-	}
+	}	
 }
 
 static void cb_b_layer_destroy(void *user, VNodeID node_id, VLayerID layer_id)
@@ -187,8 +309,11 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 {
 	NodeBitmap	*node;
 	NdbBLayer	*layer;
-	size_t		ps;
+	size_t		ps, th, y, mod_src, mod_dst;
+	const uint8	*get;
+	uint8		*put;
 
+/*	printf("got tile_set in %u.%u.(%u,%u,%u)\n", node_id, layer_id, tile_x, tile_y, tile_z);*/
 	if((node = (NodeBitmap *) nodedb_lookup_with_type(node_id, V_NT_BITMAP)) == NULL)
 		return;
 	if((layer = dynarr_index(node->layers, layer_id)) == NULL || layer->name[0] == '\0')
@@ -201,8 +326,7 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 	ps = pixel_size(layer->type);
 	if(layer->framebuffer == NULL)
 	{
-		size_t	layer_size = ((node->width * ps + 7) / 8) * node->height * node->depth;
-
+		size_t	layer_size = layer_modulo(node, layer) * node->height * node->depth;
 		layer->framebuffer = mem_alloc(layer_size);
 		memset(layer->framebuffer, layer_size, 0);
 	}
@@ -211,74 +335,15 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 		LOG_WARN(("No framebuffer in layer %u (%s)--out of memory?", layer->id, layer->name));
 		return;
 	}
-	if(type == VN_B_LAYER_UINT1)	/* Copying a 1bpp tile involves nibble operations. Yummy. */
-	{
-		size_t	line_size = (node->width * ps + 7) / 8,
-			z_size = line_size * node->height;
-		uint8	*put = layer->framebuffer + tile_z * z_size + tile_y * 4 * line_size + tile_x / 2, nibble, y, th;
-/*		printf("line_size is %u, z_size is %u\n", line_size, z_size);
-		printf("put of tile (%u,%u,%u), %04x, at %u bytes into frame\n", tile_x, tile_y, tile_z, tile->vuint1,
-		       (uint8 *) put - (uint8 *) layer->framebuffer);
-*/		th = (tile_y * 4 + 3 >= node->height) ? node->height % 4 : 4;	/* Clamp tile height against node. */
-		for(y = 0; y < th; y++, put += line_size)
-		{
-			nibble = (tile->vuint1 >> (12 - 4 * y)) & 0xf;
-			if(!(tile_x & 1))	/* Left? (High) */
-			{
-				*put &= 0x0f;
-				*put |= nibble << 4;
-			}
-			else			/* Right? (Low) */
-			{
-				*put &= 0xf0;
-				*put |= nibble;
-			}
-		}
 
-/*		{
-			const uint8	*get = layer->framebuffer;
-			int		x, y;
-
-			printf("Bitmap now:\n");
-			for(y = 0; y < node->height; y++)
-			{
-				for(x = 0; x < (node->width + 7) / 8; x++)
-					printf("%02X", *get++);
-				printf("\n");
-			}
-		}
-*/	}
-	else
-	{
-		uint8	*put, y, th;
-
-		ps /= 8;	/* We know the size is a whole number of bytes. */
-		put = layer->framebuffer + 4 * ps * tile_x +
-				4 * ps * node->width * tile_y +
-				ps * node->width * node->height * tile_z;
-		th = (tile_y * 4 + 3 >= node->height) ? node->height % 4 : 4;	/* Clamp tile height against node. */
-		for(y = 0; y < th; y++)
-		{
-			switch(type)
-			{
-			case VN_B_LAYER_UINT8:
-				memcpy(put, tile->vuint8 + 4 * y, 4 * ps);
-				break;
-			case VN_B_LAYER_UINT16:
-				memcpy(put, tile->vuint16 + 4 * y, 4 * ps);
-				break;
-			case VN_B_LAYER_REAL32:
-				memcpy(put, tile->vreal32 + 4 * y, 4 * ps);
-				break;
-			case VN_B_LAYER_REAL64:
-				memcpy(put, tile->vreal64 + 4 * y, 4 * ps);
-				break;
-			default:
-				;
-			}
-			put += 4 * ps * node->width;
-		}
-	}
+	th = (tile_y * VN_B_TILE_SIZE + 3 >= node->height) ?
+			node->height % VN_B_TILE_SIZE : VN_B_TILE_SIZE;	/* Clamp tile height against node. */
+	get = (uint8 *) tile;		/* It's a union. */
+	put = nodedb_b_layer_tile_find(node, layer, tile_x, tile_y, tile_z);
+	mod_src = tile_modulo(node, layer);
+	mod_dst = layer_modulo(node, layer);
+	for(y = 0; y < th; y++, get += mod_src, put += mod_dst)
+		memcpy(put, get, mod_src);
 	NOTIFY(node, DATA);
 }
 
