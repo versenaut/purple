@@ -54,6 +54,18 @@ NodeSet * nodeset_add(NodeSet *ns, PONode *n)
 	return ns;
 }
 
+void nodeset_clear(NodeSet *ns)
+{
+	List	*iter;
+
+	if(ns == NULL)
+		return;
+	for(iter = ns->nodes; iter != NULL; iter = list_next(iter))
+		nodedb_destroy((Node *) list_data(iter));
+	list_destroy(ns->nodes);
+	ns->nodes = NULL;
+}
+
 PINode * nodeset_retreive(const NodeSet *ns)
 {
 	if(ns == NULL)
