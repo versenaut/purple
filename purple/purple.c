@@ -457,6 +457,13 @@ static void console_update(void)
 				if(sscanf(line, "mc %u %u", &g, &p) == 2)
 					graph_method_send_call_mod_create(g, p);
 			}
+			else if(strncmp(line, "md ", 3) == 0)
+			{
+				uint32	g, p;
+
+				if(sscanf(line, "md %u %u", &g, &p) == 2)
+					graph_method_send_call_mod_destroy(g, p);
+			}
 			else if(strncmp(line, "mis", 3) == 0)
 				console_parse_module_input_set(line);
 			else if(strncmp(line, "mic ", 4) == 0)
