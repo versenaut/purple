@@ -7,6 +7,7 @@ typedef struct
 	Node	node;
 	real64	xform[3][3];
 	real64	light[3];
+	DynArr	*links;
 	DynArr	*method_groups;
 } NodeObject;
 
@@ -22,7 +23,6 @@ typedef struct
 {
 	uint16	id;
 	char	name[16];
-	DynArr	*links;
 	DynArr	*methods;
 } NdbOMethodGroup;
 
