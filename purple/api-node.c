@@ -24,6 +24,11 @@ void p_node_name_set(PONode *node, const char *name)
 	nodedb_rename(node, name);
 }
 
+VNodeType p_node_type_get(PINode *node)
+{
+	return nodedb_type_get(node);
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 void p_node_o_link_set(PONode *node, const PONode *link, const char *label, uint32 target_id)
@@ -43,11 +48,25 @@ PNGLayer * p_node_g_layer_lookup(PONode *node, const char *name)
 	return nodedb_g_layer_lookup((NodeGeometry *) node, name);
 }
 
-void p_node_g_vertex_set_xyz(PONode *node, PNGLayer *layer, uint32 index, real64 x, real64 y, real64 z)
+size_t p_node_g_layer_size(const PONode *node, const PNGLayer *layer)
+{
+	if(node == NULL || layer == NULL)
+		return 0;
+	return nodedb_g_layer_size((const NodeGeometry *) node, layer);
+}
+
+void p_node_g_vertex_set_xyz(PONode *node, PNGLayer *layer, uint32 id, real64 x, real64 y, real64 z)
 {
 	if(node == NULL || layer == NULL || node->type != V_NT_GEOMETRY)
 		return;
-	nodedb_g_vertex_set_xyz((NodeGeometry *) node, layer, index, x, y, z);
+	nodedb_g_vertex_set_xyz((NodeGeometry *) node, layer, id, x, y, z);
+}
+
+void p_node_g_vertex_get_xyz(const PONode *node, const PNGLayer *layer, uint32 id, real64 *x, real64 *y, real64 *z)
+{
+	if(node == NULL || layer == NULL || node->type != V_NT_GEOMETRY)
+		return;
+	nodedb_g_vertex_get_xyz((const NodeGeometry *) node, layer, id, x, y, z);
 }
 
 void p_node_g_polygon_set_corner_uint32(PONode *node, PNGLayer *layer, uint32 index,  uint32 v0, uint32 v1, uint32 v2, uint32 v3)
