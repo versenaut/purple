@@ -1,14 +1,13 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <HTML
 ><HEAD
 ><TITLE
 >The Engine</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.64
-"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
 REL="HOME"
-HREF="purple.html"><LINK
+HREF="index.html"><LINK
 REL="PREVIOUS"
 TITLE="Inter-Client Communications"
 HREF="comms.html"><LINK
@@ -25,6 +24,7 @@ ALINK="#0000FF"
 ><DIV
 CLASS="NAVHEADER"
 ><TABLE
+SUMMARY="Header navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -33,7 +33,7 @@ CELLSPACING="0"
 ><TH
 COLSPAN="3"
 ALIGN="center"
-></TH
+>: Verse Scripting System</TH
 ></TR
 ><TR
 ><TD
@@ -42,7 +42,8 @@ ALIGN="left"
 VALIGN="bottom"
 ><A
 HREF="comms.html"
->&#60;&#60;&#60; Previous</A
+ACCESSKEY="P"
+>Prev</A
 ></TD
 ><TD
 WIDTH="80%"
@@ -55,7 +56,8 @@ ALIGN="right"
 VALIGN="bottom"
 ><A
 HREF="ui.html"
->Next &#62;&#62;&#62;</A
+ACCESSKEY="N"
+>Next</A
 ></TD
 ></TR
 ></TABLE
@@ -68,8 +70,8 @@ CLASS="sect1"
 CLASS="sect1"
 ><A
 NAME="engine"
->The Engine</A
-></H1
+></A
+>6. The Engine</H1
 ><P
 >&#13;The Purple engine has the following responsibilities:
 <P
@@ -113,8 +115,8 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="AEN762"
->Plug-In Loading</A
-></H2
+></A
+>6.1. Plug-In Loading</H2
 ><P
 >&#13;Plug-ins will physically reside, in compiled form, somewhere on the same machine that runs the Purple engine. They
 will be compiled into shared objects (<SPAN
@@ -154,8 +156,8 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="AEN771"
->Graph Editing</A
-></H2
+></A
+>6.2. Graph Editing</H2
 ><P
 >&#13;The engine, being a Verse client, will have a object node associated with it on the Verse host. Verse object
 nodes can contain method groups that in turn contain methods, which are named procedure-like entry points that can
@@ -203,8 +205,8 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="AEN783"
->Data Flow Computations</A
-></H2
+></A
+>6.3. Data Flow Computations</H2
 ><P
 >&#13;Computation in Purple is based solely on a data flow model. Modules are assumed to depend only on their inputs;
 it is not valid to write a plug-in with i.e. an internal dependency on time or some other <SPAN
@@ -240,6 +242,7 @@ CLASS="NAVFOOTER"
 ><HR
 ALIGN="LEFT"
 WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -251,14 +254,16 @@ ALIGN="left"
 VALIGN="top"
 ><A
 HREF="comms.html"
->&#60;&#60;&#60; Previous</A
+ACCESSKEY="P"
+>Prev</A
 ></TD
 ><TD
 WIDTH="34%"
 ALIGN="center"
 VALIGN="top"
 ><A
-HREF="purple.html"
+HREF="index.html"
+ACCESSKEY="H"
 >Home</A
 ></TD
 ><TD
@@ -267,7 +272,8 @@ ALIGN="right"
 VALIGN="top"
 ><A
 HREF="ui.html"
->Next &#62;&#62;&#62;</A
+ACCESSKEY="N"
+>Next</A
 ></TD
 ></TR
 ><TR

@@ -1,14 +1,13 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <HTML
 ><HEAD
 ><TITLE
 >Data Flow</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.64
-"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
 REL="HOME"
-HREF="purple.html"><LINK
+HREF="index.html"><LINK
 REL="PREVIOUS"
 TITLE="System Overview; Terminology"
 HREF="systemview.html"><LINK
@@ -25,6 +24,7 @@ ALINK="#0000FF"
 ><DIV
 CLASS="NAVHEADER"
 ><TABLE
+SUMMARY="Header navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -33,7 +33,7 @@ CELLSPACING="0"
 ><TH
 COLSPAN="3"
 ALIGN="center"
-></TH
+>: Verse Scripting System</TH
 ></TR
 ><TR
 ><TD
@@ -42,7 +42,8 @@ ALIGN="left"
 VALIGN="bottom"
 ><A
 HREF="systemview.html"
->&#60;&#60;&#60; Previous</A
+ACCESSKEY="P"
+>Prev</A
 ></TD
 ><TD
 WIDTH="80%"
@@ -55,7 +56,8 @@ ALIGN="right"
 VALIGN="bottom"
 ><A
 HREF="api.html"
->Next &#62;&#62;&#62;</A
+ACCESSKEY="N"
+>Next</A
 ></TD
 ></TR
 ></TABLE
@@ -68,8 +70,8 @@ CLASS="sect1"
 CLASS="sect1"
 ><A
 NAME="dataflow"
->Data Flow</A
-></H1
+></A
+>3. Data Flow</H1
 ><P
 >&#13;Purple is about connecting modules so that interesting data can flow, so a few words about the actual flow
 of data are needed. To help the discussion, consider the following figure which shows a pair of modules
@@ -79,18 +81,16 @@ CLASS="figure"
 ><A
 NAME="AEN56"
 ></A
-><DIV
-CLASS="mediaobject"
-><P
-><IMG
-SRC="sphere-bend.png"
-></IMG
-></P
-></DIV
 ><P
 ><B
 >Figure 2. Data Flow Example</B
 ></P
+><DIV
+CLASS="mediaobject"
+><P
+><IMG
+SRC="sphere-bend.png"></P
+></DIV
 ></DIV
 >
 Seen here is a little graph consisting of two modules; one instance of a plug-in named <SPAN
@@ -152,22 +152,28 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="AEN72"
->Operating on Node Data</A
-></H2
+></A
+>3.1. Operating on Node Data</H2
 ><P
 >&#13;The example above pictures a module, Sphere, that acts as a data creation point, or source: the code in the
-corresponding plug-in actually <I
+corresponding plug-in actually <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >creates</I
+></SPAN
 > new geometry data from scratch, using built-in
 hard-coded <SPAN
 CLASS="QUOTE"
 >"knowledge"</SPAN
 > of what is to be created, and letting a couple of parameters control the
 process. While this is a useful paradigm, it is also very desirable to be able to connect Purple modules to
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >existing</I
+></SPAN
 > data in order to modify what has already been created.
 </P
 ><DIV
@@ -176,12 +182,15 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="AEN78"
->The Input Plug-in</A
-></H3
+></A
+>3.1.1. The Input Plug-in</H3
 ><P
->&#13;Verse data is accessed through the use of a built-in <I
+>&#13;Verse data is accessed through the use of a built-in <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >input plug-in</I
+></SPAN
 >. This plug-in is
 kind of magical, in that it is not possible to use the Purple API to implement the same functionality.
 The plug-in takes as an input a string, that names the target node. It outputs the named node, or nothing
@@ -200,18 +209,16 @@ CLASS="figure"
 ><A
 NAME="input-bend"
 ></A
-><DIV
-CLASS="mediaobject"
-><P
-><IMG
-SRC="input-bend.png"
-></IMG
-></P
-></DIV
 ><P
 ><B
 >Figure 3. Node Input Example</B
 ></P
+><DIV
+CLASS="mediaobject"
+><P
+><IMG
+SRC="input-bend.png"></P
+></DIV
 ></DIV
 ><P
 >&#13;<A
@@ -235,8 +242,8 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="AEN93"
->The Output Plug-in</A
-></H3
+></A
+>3.1.2. The Output Plug-in</H3
 ><P
 >&#13;As its name suggests, the Output plug-in is used to send data <SPAN
 CLASS="QUOTE"
@@ -289,8 +296,8 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="AEN108"
->Self-Modifying Graphs</A
-></H3
+></A
+>3.1.3. Self-Modifying Graphs</H3
 ><P
 >&#13;Once we have both the Input and Output plug-ins, it becomes possible to create a loop via the Verse server:
 use an Input module to pick out a node, modify it using some general processing module, and then stream it
@@ -325,6 +332,7 @@ CLASS="NAVFOOTER"
 ><HR
 ALIGN="LEFT"
 WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -336,14 +344,16 @@ ALIGN="left"
 VALIGN="top"
 ><A
 HREF="systemview.html"
->&#60;&#60;&#60; Previous</A
+ACCESSKEY="P"
+>Prev</A
 ></TD
 ><TD
 WIDTH="34%"
 ALIGN="center"
 VALIGN="top"
 ><A
-HREF="purple.html"
+HREF="index.html"
+ACCESSKEY="H"
 >Home</A
 ></TD
 ><TD
@@ -352,7 +362,8 @@ ALIGN="right"
 VALIGN="top"
 ><A
 HREF="api.html"
->Next &#62;&#62;&#62;</A
+ACCESSKEY="N"
+>Next</A
 ></TD
 ></TR
 ><TR

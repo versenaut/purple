@@ -1,16 +1,15 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <HTML
 ><HEAD
 ><TITLE
 >System Overview; Terminology</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.64
-"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
 REL="HOME"
-HREF="purple.html"><LINK
+HREF="index.html"><LINK
 REL="PREVIOUS"
-HREF="purple.html"><LINK
+HREF="index.html"><LINK
 REL="NEXT"
 TITLE="Data Flow"
 HREF="dataflow.html"></HEAD
@@ -24,6 +23,7 @@ ALINK="#0000FF"
 ><DIV
 CLASS="NAVHEADER"
 ><TABLE
+SUMMARY="Header navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -32,7 +32,7 @@ CELLSPACING="0"
 ><TH
 COLSPAN="3"
 ALIGN="center"
-></TH
+>: Verse Scripting System</TH
 ></TR
 ><TR
 ><TD
@@ -40,8 +40,9 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="bottom"
 ><A
-HREF="purple.html"
->&#60;&#60;&#60; Previous</A
+HREF="index.html"
+ACCESSKEY="P"
+>Prev</A
 ></TD
 ><TD
 WIDTH="80%"
@@ -54,7 +55,8 @@ ALIGN="right"
 VALIGN="bottom"
 ><A
 HREF="dataflow.html"
->Next &#62;&#62;&#62;</A
+ACCESSKEY="N"
+>Next</A
 ></TD
 ></TR
 ></TABLE
@@ -67,8 +69,8 @@ CLASS="sect1"
 CLASS="sect1"
 ><A
 NAME="systemview"
->System Overview; Terminology</A
-></H1
+></A
+>2. System Overview; Terminology</H1
 ><P
 >&#13;The Purple system is fairly complicated. This section establishes some basic properties of the system, and
 introduces and defines the terms used in the rest of this document.
@@ -79,8 +81,8 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="sysview"
->System Overview</A
-></H2
+></A
+>2.1. System Overview</H2
 ><P
 >&#13;The following figure shows, at a rather coarse level, the Purple system's organization:
 <DIV
@@ -88,18 +90,16 @@ CLASS="figure"
 ><A
 NAME="AEN22"
 ></A
-><DIV
-CLASS="mediaobject"
-><P
-><IMG
-SRC="overview.png"
-></IMG
-></P
-></DIV
 ><P
 ><B
 >Figure 1. System Overview</B
 ></P
+><DIV
+CLASS="mediaobject"
+><P
+><IMG
+SRC="overview.png"></P
+></DIV
 ></DIV
 >
 The most important point here is that there are two actual Verse clients, talking to the same host. One of the
@@ -116,8 +116,8 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="terms"
->Terminology</A
-></H2
+></A
+>2.2. Terminology</H2
 ><P
 >&#13;These are some of the primary terms and concepts used in this document:
 <P
@@ -165,17 +165,26 @@ CLASS="QUOTE"
 >module</DT
 ><DD
 ><P
->&#13; Modules are <I
+>&#13; Modules are <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >instantiated</I
+></SPAN
 > plug-ins. There can be any number of modules using each plug-in,
  that all reference the same block of functionality. Modules are connected together and collected into graphs,
- see above. The terms <I
+ see above. The terms <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >node</I
-> and <I
+></SPAN
+> and <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >vertex</I
+></SPAN
 >, that are both commonly used to
  refer to parts of graphs, are not being used since the risk of confusion with Verse nodes and Verse geometry
  vertices as deemed to be too high.
@@ -192,6 +201,7 @@ CLASS="NAVFOOTER"
 ><HR
 ALIGN="LEFT"
 WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -202,15 +212,17 @@ WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="purple.html"
->&#60;&#60;&#60; Previous</A
+HREF="index.html"
+ACCESSKEY="P"
+>Prev</A
 ></TD
 ><TD
 WIDTH="34%"
 ALIGN="center"
 VALIGN="top"
 ><A
-HREF="purple.html"
+HREF="index.html"
+ACCESSKEY="H"
 >Home</A
 ></TD
 ><TD
@@ -219,7 +231,8 @@ ALIGN="right"
 VALIGN="top"
 ><A
 HREF="dataflow.html"
->Next &#62;&#62;&#62;</A
+ACCESSKEY="N"
+>Next</A
 ></TD
 ></TR
 ><TR

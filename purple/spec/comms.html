@@ -1,14 +1,13 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <HTML
 ><HEAD
 ><TITLE
 >Inter-Client Communications</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.64
-"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
 REL="HOME"
-HREF="purple.html"><LINK
+HREF="index.html"><LINK
 REL="PREVIOUS"
 TITLE="The Plug-In API"
 HREF="api.html"><LINK
@@ -25,6 +24,7 @@ ALINK="#0000FF"
 ><DIV
 CLASS="NAVHEADER"
 ><TABLE
+SUMMARY="Header navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -33,7 +33,7 @@ CELLSPACING="0"
 ><TH
 COLSPAN="3"
 ALIGN="center"
-></TH
+>: Verse Scripting System</TH
 ></TR
 ><TR
 ><TD
@@ -42,7 +42,8 @@ ALIGN="left"
 VALIGN="bottom"
 ><A
 HREF="api.html"
->&#60;&#60;&#60; Previous</A
+ACCESSKEY="P"
+>Prev</A
 ></TD
 ><TD
 WIDTH="80%"
@@ -55,7 +56,8 @@ ALIGN="right"
 VALIGN="bottom"
 ><A
 HREF="engine.html"
->Next &#62;&#62;&#62;</A
+ACCESSKEY="N"
+>Next</A
 ></TD
 ></TR
 ></TABLE
@@ -68,8 +70,8 @@ CLASS="sect1"
 CLASS="sect1"
 ><A
 NAME="comms"
->Inter-Client Communications</A
-></H1
+></A
+>5. Inter-Client Communications</H1
 ><P
 >&#13;This section talks about the communication between the various parts of the overall Purple architecture. It lists
 the needs, and describes how each was mapped to use a suitable part of the Verse data model.
@@ -80,8 +82,8 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="AEN284"
->Needs and Possibilities</A
-></H2
+></A
+>5.1. Needs and Possibilities</H2
 ><P
 >&#13;There are at least four different communication requirements between the engine and front-end clients. There must be:
 <P
@@ -99,9 +101,12 @@ which graph to work with (assuming the user wishes to continue working on an exi
 ></LI
 ><LI
 ><P
->A way to ask the engine to <I
+>A way to ask the engine to <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >create</I
+></SPAN
 > a new module instance, change the connections
 between existing instances, and so on. Graph editing, in short.</P
 ></LI
@@ -159,9 +164,6 @@ NAME="AEN311"
 ></P
 ><TABLE
 BORDER="1"
-BGCOLOR="#E0E0E0"
-CELLSPACING="0"
-CELLPADDING="4"
 CLASS="CALSTABLE"
 ><THEAD
 ><TR
@@ -240,9 +242,12 @@ graph editing.
 </P
 ><P
 >&#13;The two first text node usages, for plug-in and graph descriptions, reside in different buffers of a single text
-node created by the Purple engine and linked to from its avatar. This text node is called the <I
+node created by the Purple engine and linked to from its avatar. This text node is called the <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >meta</I
+></SPAN
 >
 text node.
 </P
@@ -253,8 +258,8 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="comms-plugins"
->Details: Plug-in Descriptions</A
-></H2
+></A
+>5.2. Details: Plug-in Descriptions</H2
 ><P
 >&#13;Plug-in descriptions exist to export and make visible the set of plug-ins available in a running instance of the
 Purple engine. The information is primarily intended user interface clients, that need it in order to present it
@@ -291,8 +296,8 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="AEN346"
->An XML Document Type for Plug-in Descriptions</A
-></H3
+></A
+>5.2.1. An XML Document Type for Plug-in Descriptions</H3
 ><P
 >&#13;We'll do this by example, for now. All examples are shown without any XML headers, document type information,
 and (possibly) namespace prefixes.
@@ -308,20 +313,11 @@ NAME="AEN349"
 ></P
 ><P
 >&#13;Here's the simplest possible plug-in. It has no inputs, and no meta information at all:
-<TABLE
-BORDER="0"
-BGCOLOR="#E0E0E0"
-WIDTH="100%"
-><TR
-><TD
-><PRE
+<PRE
 CLASS="programlisting"
 >&#60;plugin id="7" name="test1"&#62;
 &#60;/plugin&#62;
 </PRE
-></TD
-></TR
-></TABLE
 >
 </P
 ><P
@@ -339,7 +335,7 @@ WIDTH="25"
 ALIGN="CENTER"
 VALIGN="TOP"
 ><IMG
-SRC="./stylesheet-images/note.gif"
+SRC="../images/note.gif"
 HSPACE="5"
 ALT="Note"></TD
 ><TD
@@ -364,9 +360,12 @@ e.g. instantiating it, whereas the name is mainly for building user interfaces.
 ></TABLE
 ></DIV
 >
-Such a plug-in might seem pointless, but since there is no telling what the plug-in code <I
+Such a plug-in might seem pointless, but since there is no telling what the plug-in code <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >does</I
+></SPAN
 >,
 that is not at all true. This plug-in might emit a gorgeous three-million polygon representation of the Uni-Verse
 logo and just suffer from poor naming.
@@ -382,13 +381,7 @@ NAME="ex-module-hello"
 >Example 2. A Plug-in With Meta-Data</B
 ></P
 ><P
->&#13;<TABLE
-BORDER="0"
-BGCOLOR="#E0E0E0"
-WIDTH="100%"
-><TR
-><TD
-><PRE
+>&#13;<PRE
 CLASS="programlisting"
 >&#60;plugin id="11" name="hello"&#62;
  &#60;meta&#62;
@@ -397,9 +390,6 @@ CLASS="programlisting"
  &#60;/meta&#62;
 &#60;/plugin&#62;
 </PRE
-></TD
-></TR
-></TABLE
 >
 </P
 ><P
@@ -441,13 +431,7 @@ NAME="AEN372"
 ></P
 ><P
 >&#13;The following example shows how to express an input:
-<TABLE
-BORDER="0"
-BGCOLOR="#E0E0E0"
-WIDTH="100%"
-><TR
-><TD
-><PRE
+<PRE
 CLASS="programlisting"
 >&#60;plugin id="17" name="test3"&#62;
  &#60;inputs&#62;
@@ -455,9 +439,6 @@ CLASS="programlisting"
  &#60;/inputs&#62;
 &#60;/plugin&#62;
 </PRE
-></TD
-></TR
-></TABLE
 >
 </P
 ><P
@@ -472,9 +453,12 @@ CLASS="symbol"
 ><P
 >&#13;Because inputs are referenced by numerical IDs, even naming them is optional. However, since having no names makes task
 of building a graphical interface to present to end users that much harder, providing a name is
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >strongly</I
+></SPAN
 > recommended.
 </P
 ></DIV
@@ -490,13 +474,7 @@ NAME="ex-module-multiply"
 ><P
 >&#13;The following example shows the interface for a plug-in that performs a multiplication of its two inputs, interpreted
 as real numbers:
-<TABLE
-BORDER="0"
-BGCOLOR="#E0E0E0"
-WIDTH="100%"
-><TR
-><TD
-><PRE
+<PRE
 CLASS="programlisting"
 >&#60;plugin id="42" name="multiply"&#62;
  &#60;inputs&#62;
@@ -514,9 +492,6 @@ CLASS="programlisting"
  &#60;/meta&#62;
 &#60;/plugin&#62;
 </PRE
-></TD
-></TR
-></TABLE
 >
 </P
 ><P
@@ -553,8 +528,8 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="AEN392"
->Plug-in Descriptions: Goals and Requirements</A
-></H3
+></A
+>5.2.2. Plug-in Descriptions: Goals and Requirements</H3
 ><P
 >&#13;These are the primary goals and requirements of the plug-in description format, that are all covered by the
 planned XML solution:
@@ -579,19 +554,28 @@ planned XML solution:
 ></LI
 ></UL
 >
-Note that there are several things that are <I
+Note that there are several things that are <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >not</I
+></SPAN
 > needed, and thus are excluded from the
 planned format. There is no way to set values for inputs, since doing so for plug-ins is wrong; plug-ins have
-not yet been instantiated and thus have only <I
+not yet been instantiated and thus have only <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >formal</I
+></SPAN
 > inputs that can not have values
 associated with them. Assigning values to inputs is done in the graph description, where plug-ins are instantiated
-into <I
+into <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >modules</I
+></SPAN
 >.
 </P
 ></DIV
@@ -602,8 +586,8 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="comms-graph-dir"
->Details: Graph Index</A
-></H2
+></A
+>5.3. Details: Graph Index</H2
 ><P
 >&#13;This section describes the directory of existing graphs that is maintained by the Purple engine. This directory
 is needed, because (as is shown below) graphs reside in various places that are chosen by clients. A central
@@ -621,12 +605,6 @@ NAME="AEN411"
 ><B
 >Example 5. Graph Index Example</B
 ></P
-><TABLE
-BORDER="0"
-BGCOLOR="#E0E0E0"
-WIDTH="100%"
-><TR
-><TD
 ><PRE
 CLASS="programlisting"
 >&#60;?xml version="1.0" standalone="yes"?&#62;
@@ -640,9 +618,6 @@ CLASS="programlisting"
  &#60;/graph&#62;
 &#60;/purple-graphs&#62;
 </PRE
-></TD
-></TR
-></TABLE
 ><P
 >&#13;Here, the graph <TT
 CLASS="literal"
@@ -685,8 +660,8 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="comms-methods"
->Details: Graph Editing Method API</A
-></H2
+></A
+>5.4. Details: Graph Editing Method API</H2
 ><P
 >&#13;This section describes the method API used to edit graphs of instantiated plug-ins (<SPAN
 CLASS="QUOTE"
@@ -699,9 +674,12 @@ CLASS="literal"
 object node.
 </P
 ><P
->&#13;Verse methods are really <I
+>&#13;Verse methods are really <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >procedures</I
+></SPAN
 >, in that they do not have return values. This is a
 design trade-off to simplify the Verse network layer. For this application, the result of e.g. instantiating a
 plug-in will be a change in the graph description text buffer, so the <SPAN
@@ -720,8 +698,8 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="AEN432"
->Creating/Destroying Graphs</A
-></H3
+></A
+>5.4.1. Creating/Destroying Graphs</H3
 ><P
 >&#13;These are methods for creating and destroying graphs, i.e. containers in which plug-ins can be instantiated.
 Graphs serve as <SPAN
@@ -751,21 +729,8 @@ NAME="AEN440"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->create</TT
-></CODE
->(string <TT
-CLASS="parameter"
-><I
->node</I
-></TT
->, uint16 <TT
-CLASS="parameter"
-><I
->buffer</I
-></TT
->);</CODE
+>create</CODE
+>(string node, uint16 buffer);</CODE
 ></P
 ><P
 ></P
@@ -779,9 +744,12 @@ overwritten by the Purple engine. The node is identified by name rather than num
 must be shared across Verse sessions and numerical IDs are local. The name of the buffer should be used as the name
 of the graph.</P
 ><P
->&#13;This will update the graph index, and assign the graph a numerical ID which <I
+>&#13;This will update the graph index, and assign the graph a numerical ID which <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >is</I
+></SPAN
 > sharable across
 sessions.
 </P
@@ -798,16 +766,8 @@ NAME="AEN454"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->destroy</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->);</CODE
+>destroy</CODE
+>(uint32 graph);</CODE
 ></P
 ><P
 ></P
@@ -833,8 +793,8 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="AEN463"
->Creating/Destroying Modules</A
-></H3
+></A
+>5.4.2. Creating/Destroying Modules</H3
 ><P
 >&#13;These are methods for creating and destroying modules, i.e. instances of plug-ins:
 <P
@@ -854,21 +814,8 @@ NAME="AEN469"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_create</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->plugin</I
-></TT
->);</CODE
+>mod_create</CODE
+>(uint32 graph, uint32 plugin);</CODE
 ></P
 ><P
 ></P
@@ -893,21 +840,8 @@ NAME="AEN481"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_destroy</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->module</I
-></TT
->);</CODE
+>mod_destroy</CODE
+>(uint32 graph, uint32 module);</CODE
 ></P
 ><P
 ></P
@@ -932,13 +866,16 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="AEN491"
->Setting Module Inputs</A
-></H3
+></A
+>5.4.3. Setting Module Inputs</H3
 ><P
 >&#13;These are methods for assigning values to the inputs of modules. They are also used to create connections
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >between</I
+></SPAN
 > modules. The number of input-setting functions is rather large, there is one
 method for each input type supported by the Purple API.
 
@@ -959,31 +896,8 @@ NAME="AEN498"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_input_set_boolean</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->module</I
-></TT
->, uint8 <TT
-CLASS="parameter"
-><I
->input</I
-></TT
->, boolean <TT
-CLASS="parameter"
-><I
->value</I
-></TT
->);</CODE
+>mod_input_set_boolean</CODE
+>(uint32 graph, uint32 module, uint8 input, boolean value);</CODE
 ></P
 ><P
 ></P
@@ -1000,31 +914,8 @@ NAME="AEN510"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_input_set_int32</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->module</I
-></TT
->, uint8 <TT
-CLASS="parameter"
-><I
->input</I
-></TT
->, int32 <TT
-CLASS="parameter"
-><I
->value</I
-></TT
->);</CODE
+>mod_input_set_int32</CODE
+>(uint32 graph, uint32 module, uint8 input, int32 value);</CODE
 ></P
 ><P
 ></P
@@ -1041,31 +932,8 @@ NAME="AEN522"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_input_set_uint32</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->module</I
-></TT
->, uint8 <TT
-CLASS="parameter"
-><I
->input</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->value</I
-></TT
->);</CODE
+>mod_input_set_uint32</CODE
+>(uint32 graph, uint32 module, uint8 input, uint32 value);</CODE
 ></P
 ><P
 ></P
@@ -1082,31 +950,8 @@ NAME="AEN534"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_input_set_real32</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->module</I
-></TT
->, uint8 <TT
-CLASS="parameter"
-><I
->input</I
-></TT
->, real32 <TT
-CLASS="parameter"
-><I
->value</I
-></TT
->);</CODE
+>mod_input_set_real32</CODE
+>(uint32 graph, uint32 module, uint8 input, real32 value);</CODE
 ></P
 ><P
 ></P
@@ -1123,31 +968,8 @@ NAME="AEN546"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_input_set_real32_vec2</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->module</I
-></TT
->, uint8 <TT
-CLASS="parameter"
-><I
->input</I
-></TT
->, real32_vec2 <TT
-CLASS="parameter"
-><I
->value</I
-></TT
->);</CODE
+>mod_input_set_real32_vec2</CODE
+>(uint32 graph, uint32 module, uint8 input, real32_vec2 value);</CODE
 ></P
 ><P
 ></P
@@ -1164,31 +986,8 @@ NAME="AEN558"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_input_set_real32_vec3</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->module</I
-></TT
->, uint8 <TT
-CLASS="parameter"
-><I
->input</I
-></TT
->, real32_vec3 <TT
-CLASS="parameter"
-><I
->value</I
-></TT
->);</CODE
+>mod_input_set_real32_vec3</CODE
+>(uint32 graph, uint32 module, uint8 input, real32_vec3 value);</CODE
 ></P
 ><P
 ></P
@@ -1205,31 +1004,8 @@ NAME="AEN570"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_input_set_real32_vec4</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->module</I
-></TT
->, uint8 <TT
-CLASS="parameter"
-><I
->input</I
-></TT
->, real32_vec4 <TT
-CLASS="parameter"
-><I
->value</I
-></TT
->);</CODE
+>mod_input_set_real32_vec4</CODE
+>(uint32 graph, uint32 module, uint8 input, real32_vec4 value);</CODE
 ></P
 ><P
 ></P
@@ -1246,31 +1022,8 @@ NAME="AEN582"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_input_set_real32_mat16</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->module</I
-></TT
->, uint8 <TT
-CLASS="parameter"
-><I
->input</I
-></TT
->, real32_mat16 <TT
-CLASS="parameter"
-><I
->value</I
-></TT
->);</CODE
+>mod_input_set_real32_mat16</CODE
+>(uint32 graph, uint32 module, uint8 input, real32_mat16 value);</CODE
 ></P
 ><P
 ></P
@@ -1287,31 +1040,8 @@ NAME="AEN594"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_input_set_real64</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->module</I
-></TT
->, uint8 <TT
-CLASS="parameter"
-><I
->input</I
-></TT
->, real64 <TT
-CLASS="parameter"
-><I
->value</I
-></TT
->);</CODE
+>mod_input_set_real64</CODE
+>(uint32 graph, uint32 module, uint8 input, real64 value);</CODE
 ></P
 ><P
 ></P
@@ -1328,31 +1058,8 @@ NAME="AEN606"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_input_set_real64_vec2</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->module</I
-></TT
->, uint8 <TT
-CLASS="parameter"
-><I
->input</I
-></TT
->, real64_vec2 <TT
-CLASS="parameter"
-><I
->value</I
-></TT
->);</CODE
+>mod_input_set_real64_vec2</CODE
+>(uint32 graph, uint32 module, uint8 input, real64_vec2 value);</CODE
 ></P
 ><P
 ></P
@@ -1369,31 +1076,8 @@ NAME="AEN618"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_input_set_real64_vec3</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->module</I
-></TT
->, uint8 <TT
-CLASS="parameter"
-><I
->input</I
-></TT
->, real64_vec3 <TT
-CLASS="parameter"
-><I
->value</I
-></TT
->);</CODE
+>mod_input_set_real64_vec3</CODE
+>(uint32 graph, uint32 module, uint8 input, real64_vec3 value);</CODE
 ></P
 ><P
 ></P
@@ -1410,31 +1094,8 @@ NAME="AEN630"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_input_set_real64_vec4</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->module</I
-></TT
->, uint8 <TT
-CLASS="parameter"
-><I
->input</I
-></TT
->, real64_vec4 <TT
-CLASS="parameter"
-><I
->value</I
-></TT
->);</CODE
+>mod_input_set_real64_vec4</CODE
+>(uint32 graph, uint32 module, uint8 input, real64_vec4 value);</CODE
 ></P
 ><P
 ></P
@@ -1451,31 +1112,8 @@ NAME="AEN642"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_input_set_real64_mat16</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->module</I
-></TT
->, uint8 <TT
-CLASS="parameter"
-><I
->input</I
-></TT
->, real64_mat16 <TT
-CLASS="parameter"
-><I
->value</I
-></TT
->);</CODE
+>mod_input_set_real64_mat16</CODE
+>(uint32 graph, uint32 module, uint8 input, real64_mat16 value);</CODE
 ></P
 ><P
 ></P
@@ -1492,31 +1130,8 @@ NAME="AEN654"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_input_set_module</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->module</I
-></TT
->, uint8 <TT
-CLASS="parameter"
-><I
->input</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->value</I
-></TT
->);</CODE
+>mod_input_set_module</CODE
+>(uint32 graph, uint32 module, uint8 input, uint32 value);</CODE
 ></P
 ><P
 ></P
@@ -1533,31 +1148,8 @@ NAME="AEN666"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_input_set_string</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->module</I
-></TT
->, uint8 <TT
-CLASS="parameter"
-><I
->input</I
-></TT
->, string <TT
-CLASS="parameter"
-><I
->value</I
-></TT
->);</CODE
+>mod_input_set_string</CODE
+>(uint32 graph, uint32 module, uint8 input, string value);</CODE
 ></P
 ><P
 ></P
@@ -1594,16 +1186,19 @@ CLASS="sect4"
 CLASS="sect4"
 ><A
 NAME="AEN683"
->Setting an Input to Nothing</A
-></H4
+></A
+>5.4.3.1. Setting an Input to Nothing</H4
 ><P
 >Besides setting an input to an absolute value, or the output of another module, as the methods above allow
 you to do, it is also necessary to <SPAN
 CLASS="QUOTE"
 >"disconnect"</SPAN
-> a module input and <I
+> a module input and <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >not</I
+></SPAN
 > assign
 it any particular value. This is done by the following method:
 <P
@@ -1623,26 +1218,8 @@ NAME="AEN691"
 ><CODE
 ><CODE
 CLASS="FUNCDEF"
-><TT
-CLASS="function"
->mod_input_clear</TT
-></CODE
->(uint32 <TT
-CLASS="parameter"
-><I
->graph</I
-></TT
->, uint32 <TT
-CLASS="parameter"
-><I
->plugin</I
-></TT
->, uint8 <TT
-CLASS="parameter"
-><I
->input</I
-></TT
->);</CODE
+>mod_input_clear</CODE
+>(uint32 graph, uint32 plugin, uint8 input);</CODE
 ></P
 ><P
 ></P
@@ -1672,13 +1249,16 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="comms-graphs"
->Details: Graph Description</A
-></H2
+></A
+>5.5. Details: Graph Description</H2
 ><P
 >&#13;Graph descriptions exist to represent the work done by a user: the graph is built up by instantiating plug-ins 
-(forming <I
+(forming <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >modules</I
+></SPAN
 >) and assigning values their inputs either through literals or by connecting
 the output of one module to the input of another.
 </P
@@ -1692,8 +1272,8 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="AEN709"
->An XML Document Type for Graph Descriptions</A
-></H3
+></A
+>5.5.1. An XML Document Type for Graph Descriptions</H3
 ><P
 >&#13;Initially, I will do this by example. To start of easily, here is the simplest legal graph:
 <DIV
@@ -1705,20 +1285,11 @@ NAME="AEN712"
 ><B
 >Example 6. The Empty Graph</B
 ></P
-><TABLE
-BORDER="0"
-BGCOLOR="#E0E0E0"
-WIDTH="100%"
-><TR
-><TD
 ><PRE
 CLASS="programlisting"
 >&#60;graph id="0"&#62;
 &#60;/graph&#62;
 </PRE
-></TD
-></TR
-></TABLE
 ></DIV
 >
 </P
@@ -1736,21 +1307,12 @@ NAME="AEN717"
 ><B
 >Example 7. Hello, World</B
 ></P
-><TABLE
-BORDER="0"
-BGCOLOR="#E0E0E0"
-WIDTH="100%"
-><TR
-><TD
 ><PRE
 CLASS="programlisting"
 >&#60;graph id="55"&#62;
  &#60;module id="0" plug-in="11"/&#62;
 &#60;/graph&#62;
 </PRE
-></TD
-></TR
-></TABLE
 ></DIV
 >
 </P
@@ -1802,13 +1364,7 @@ HREF="comms.html#ex-module-multiply"
 CLASS="literal"
 >42</TT
 >:
-<TABLE
-BORDER="0"
-BGCOLOR="#E0E0E0"
-WIDTH="100%"
-><TR
-><TD
-><PRE
+<PRE
 CLASS="programlisting"
 >&#60;graph id="37"&#62;
  &#60;module id="0" plug-in="42"&#62;
@@ -1817,9 +1373,6 @@ CLASS="programlisting"
  &#60;/module&#62;
 &#60;/graph&#62;
 </PRE
-></TD
-></TR
-></TABLE
 >
 </P
 ><P
@@ -1830,9 +1383,12 @@ CLASS="symbol"
 CLASS="symbol"
 >set</SPAN
 > elements
-refers <I
+refers <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >only</I
+></SPAN
 > to the type of the value contained in the element; it has a very lose coupling
 to the types of the inputs that are being targeted. Purple does automatic type-conversion of values whenever possible.
 A typical end user interface will use information from the plug-in descriptions to ensure that the types will
@@ -1857,13 +1413,7 @@ CLASS="literal"
 >2</SUP
 >. The point of the example is to show how module outputs are connected
 to module inputs.
-<TABLE
-BORDER="0"
-BGCOLOR="#E0E0E0"
-WIDTH="100%"
-><TR
-><TD
-><PRE
+<PRE
 CLASS="programlisting"
 >&#60;graph id="19"&#62;
  &#60;module id="0" plug-in="42"&#62;
@@ -1880,9 +1430,6 @@ CLASS="programlisting"
  &#60;/module&#62;
 &#60;/graph&#62;
 </PRE
-></TD
-></TR
-></TABLE
 >
 </P
 ><P
@@ -1909,6 +1456,7 @@ CLASS="NAVFOOTER"
 ><HR
 ALIGN="LEFT"
 WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -1920,14 +1468,16 @@ ALIGN="left"
 VALIGN="top"
 ><A
 HREF="api.html"
->&#60;&#60;&#60; Previous</A
+ACCESSKEY="P"
+>Prev</A
 ></TD
 ><TD
 WIDTH="34%"
 ALIGN="center"
 VALIGN="top"
 ><A
-HREF="purple.html"
+HREF="index.html"
+ACCESSKEY="H"
 >Home</A
 ></TD
 ><TD
@@ -1936,7 +1486,8 @@ ALIGN="right"
 VALIGN="top"
 ><A
 HREF="engine.html"
->Next &#62;&#62;&#62;</A
+ACCESSKEY="N"
+>Next</A
 ></TD
 ></TR
 ><TR

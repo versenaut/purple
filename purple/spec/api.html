@@ -1,14 +1,13 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <HTML
 ><HEAD
 ><TITLE
 >The Plug-In API</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.64
-"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
 REL="HOME"
-HREF="purple.html"><LINK
+HREF="index.html"><LINK
 REL="PREVIOUS"
 TITLE="Data Flow"
 HREF="dataflow.html"><LINK
@@ -25,6 +24,7 @@ ALINK="#0000FF"
 ><DIV
 CLASS="NAVHEADER"
 ><TABLE
+SUMMARY="Header navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -33,7 +33,7 @@ CELLSPACING="0"
 ><TH
 COLSPAN="3"
 ALIGN="center"
-></TH
+>: Verse Scripting System</TH
 ></TR
 ><TR
 ><TD
@@ -42,7 +42,8 @@ ALIGN="left"
 VALIGN="bottom"
 ><A
 HREF="dataflow.html"
->&#60;&#60;&#60; Previous</A
+ACCESSKEY="P"
+>Prev</A
 ></TD
 ><TD
 WIDTH="80%"
@@ -55,7 +56,8 @@ ALIGN="right"
 VALIGN="bottom"
 ><A
 HREF="comms.html"
->Next &#62;&#62;&#62;</A
+ACCESSKEY="N"
+>Next</A
 ></TD
 ></TR
 ></TABLE
@@ -68,8 +70,8 @@ CLASS="sect1"
 CLASS="sect1"
 ><A
 NAME="api"
->The Plug-In API</A
-></H1
+></A
+>4. The Plug-In API</H1
 ><P
 >&#13;The plug-in API is used to implement plug-ins, that are to be loaded and run by the engine. Plug-ins are written
 by developers, and have full freedom to manipulate Verse data. Plug-ins follow a simple template with two publicly
@@ -81,8 +83,8 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="AEN118"
->Anatomy of a Purple Plug-in</A
-></H2
+></A
+>4.1. Anatomy of a Purple Plug-in</H2
 ><P
 >&#13;A plug-in using the Purple API must define a single public function, called <TT
 CLASS="function"
@@ -95,11 +97,11 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="AEN122"
->The <TT
+></A
+>4.1.1. The <TT
 CLASS="function"
 >init()</TT
-> Entry point</A
-></H3
+> Entry point</H3
 ><P
 >&#13;It is the responsibility of the <TT
 CLASS="function"
@@ -172,11 +174,11 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="AEN144"
->The <TT
+></A
+>4.1.2. The <TT
 CLASS="function"
 >compute()</TT
-> Function</A
-></H3
+> Function</H3
 ><P
 >&#13;The purpose of the <TT
 CLASS="function"
@@ -210,9 +212,12 @@ is desired.</P
 ><LI
 ><P
 >Do the processing, whatever is required. Perhaps access vertices of input nodes, read pixels from
-bitmaps, or whatever. Might also <I
+bitmaps, or whatever. Might also <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >create</I
+></SPAN
 > e.g. new geometry data.</P
 ></LI
 ><LI
@@ -250,8 +255,8 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="api-init"
->API Functions</A
-></H2
+></A
+>4.2. API Functions</H2
 ><P
 >&#13;The API is for C, and has functions in the following categories:
 <P
@@ -289,8 +294,8 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="AEN179"
->Initialization Functions</A
-></H3
+></A
+>4.2.1. Initialization Functions</H3
 ><P
 >&#13;These are functions that are only valid to use in the <TT
 CLASS="function"
@@ -334,39 +339,21 @@ the actual work of the plug-in, and it must be registered.</P
 >
 </P
 ><P
->&#13;<TABLE
-BORDER="0"
-BGCOLOR="#E0E0E0"
-WIDTH="100%"
-><TR
-><TD
-><PRE
+>&#13;<PRE
 CLASS="programlisting"
 >/* Create a plug-in. */
 void p_init_create(const char *name);
 </PRE
-></TD
-></TR
-></TABLE
 >
 This function begins a new plug-in, and registers it with the given name. All the other init-functions act
 on the last created plug-in.
 </P
 ><P
->&#13;<TABLE
-BORDER="0"
-BGCOLOR="#E0E0E0"
-WIDTH="100%"
-><TR
-><TD
-><PRE
+>&#13;<PRE
 CLASS="programlisting"
 >/* Register a plug-in input. */
 void p_init_input(int index, PInputType type, const char *name, ...);
 </PRE
-></TD
-></TR
-></TABLE
 >
 This function adds an input to the plug-in description. The parameters are:
 <P
@@ -456,28 +443,22 @@ in both places should help when matching up the calls.
 ><P
 >&#13;Next, we have:
 
-<TABLE
-BORDER="0"
-BGCOLOR="#E0E0E0"
-WIDTH="100%"
-><TR
-><TD
-><PRE
+<PRE
 CLASS="programlisting"
 >/* Register computational callback. */
 void p_init_compute(void (*compute)(PPInput *input, PPOutput output));
 </PRE
-></TD
-></TR
-></TABLE
 >
 This function registers the <TT
 CLASS="function"
 >compute()</TT
 > function used by the engine to calculate the output, or
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >result</I
+></SPAN
 >, of running the plug-in. It is passed the following arguments:
 <P
 ></P
@@ -497,20 +478,11 @@ see API below.</P
 </P
 ><P
 >&#13;Finally, there is:
-<TABLE
-BORDER="0"
-BGCOLOR="#E0E0E0"
-WIDTH="100%"
-><TR
-><TD
-><PRE
+<PRE
 CLASS="programlisting"
 >/* Register meta information about a plug-in. */
 void p_init_meta(const char *category, const char *text);
 </PRE
-></TD
-></TR
-></TABLE
 >
 This function registers <SPAN
 CLASS="QUOTE"
@@ -563,19 +535,13 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="api-input"
->Input Accessing</A
-></H3
+></A
+>4.2.2. Input Accessing</H3
 ><P
 >&#13;One conceptual half of this group of functions consists of just a single output-polymorph function. Because
 the Purple API is in C, however, where such polymorphism is not supported, the implementation is as a set of
 functions:
-<TABLE
-BORDER="0"
-BGCOLOR="#E0E0E0"
-WIDTH="100%"
-><TR
-><TD
-><PRE
+<PRE
 CLASS="programlisting"
 >/* Retrieve input value. */
 boolean p_input_boolean(PPInput port);
@@ -585,9 +551,6 @@ real32  p_input_real32(PPInput port);
 real64  p_input_real64(PPInput port);
 /* More functions... */ 
 </PRE
-></TD
-></TR
-></TABLE
 >
 These functions simply take PPInput <SPAN
 CLASS="QUOTE"
@@ -597,9 +560,12 @@ present there. If a module is connected to the input, it might be asked to <TT
 CLASS="function"
 >compute()</TT
 > the value, or it
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >might</I
+></SPAN
 > be cached by the Purple engine. If the input is assigned a constant value, it will simply
 be returned.
 </P
@@ -623,20 +589,11 @@ things like <SPAN
 CLASS="QUOTE"
 >"all objects from input N"</SPAN
 >, which is handled by this function:
-<TABLE
-BORDER="0"
-BGCOLOR="#E0E0E0"
-WIDTH="100%"
-><TR
-><TD
-><PRE
+<PRE
 CLASS="programlisting"
 >/* Retrieve input nodes. */
 const PNodeList * p_input_node(PPInput port, VNodeType mask);
 </PRE
-></TD
-></TR
-></TABLE
 >
 This function returns a list of <SPAN
 CLASS="type"
@@ -651,8 +608,8 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="AEN265"
->Data Processing</A
-></H3
+></A
+>4.2.3. Data Processing</H3
 ><P
 >&#13;This is the largest set of functions, but also the ones about which the least is known at the moment. There
 will be functions here for doing plenty of stuff.
@@ -664,19 +621,13 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="api-output"
->Output Setting</A
-></H3
+></A
+>4.2.4. Output Setting</H3
 ><P
 >&#13;Another set of functions that could be represented as a single polymorphic one if the API was implemented in
 a slightly more expressive language than C. These set a single value in the output, as opposed to a whole
 node.
-<TABLE
-BORDER="0"
-BGCOLOR="#E0E0E0"
-WIDTH="100%"
-><TR
-><TD
-><PRE
+<PRE
 CLASS="programlisting"
 >/* Simple outputs. */
 void p_output_boolean(boolean value);
@@ -685,9 +636,6 @@ void p_output_uint32(uint32 value);
 void p_output_string(const char *value);
 /* And so on... */
 </PRE
-></TD
-></TR
-></TABLE
 >
 </P
 ><P
@@ -705,18 +653,9 @@ CLASS="type"
 </P
 ><P
 >&#13;Output nodes are created and sent to the plug-in's output by the same function:
-<TABLE
-BORDER="0"
-BGCOLOR="#E0E0E0"
-WIDTH="100%"
-><TR
-><TD
-><PRE
+<PRE
 CLASS="programlisting"
 >PONode * p_output_node(const PINode *node);</PRE
-></TD
-></TR
-></TABLE
 >
 This will copy the data in the given input node and return an editable representation. It will also
 send the output node, in its final state at the end of the <TT
@@ -746,6 +685,7 @@ CLASS="NAVFOOTER"
 ><HR
 ALIGN="LEFT"
 WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -757,14 +697,16 @@ ALIGN="left"
 VALIGN="top"
 ><A
 HREF="dataflow.html"
->&#60;&#60;&#60; Previous</A
+ACCESSKEY="P"
+>Prev</A
 ></TD
 ><TD
 WIDTH="34%"
 ALIGN="center"
 VALIGN="top"
 ><A
-HREF="purple.html"
+HREF="index.html"
+ACCESSKEY="H"
 >Home</A
 ></TD
 ><TD
@@ -773,7 +715,8 @@ ALIGN="right"
 VALIGN="top"
 ><A
 HREF="comms.html"
->Next &#62;&#62;&#62;</A
+ACCESSKEY="N"
+>Next</A
 ></TD
 ></TR
 ><TR
