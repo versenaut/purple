@@ -236,6 +236,17 @@ size_t dynstr_length(const DynStr *str)
 	return str->len;
 }
 
+void dynstr_truncate(DynStr *str, size_t size)
+{
+	if(str == NULL)
+		return;
+	if(size >= str->len)
+		return;
+	str->len = size;
+	str->str[str->len] = '\0';
+	printf("dynstr at %p truncated to %u\n", str, str->len);
+}
+
 char * dynstr_destroy(DynStr *str, int destroy_buffer)
 {
 	char	*ret = NULL;

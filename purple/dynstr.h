@@ -36,6 +36,9 @@ extern const char * dynstr_string(const DynStr *str);
 /* Return the length of <str>. O(1). */
 extern size_t	dynstr_length(const DynStr *str);
 
+/* Truncate to a given size. */
+extern void	dynstr_truncate(DynStr *str, size_t size);
+
 /* Destroy string <str>. If <destroy_buffer> is non-zero, it will
  * also destroy the actual string buffer. If not, it is returned.
 */
