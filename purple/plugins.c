@@ -78,7 +78,7 @@ struct Plugin
 	Hash		*meta;
 	void		(*ctor)(void *state);
 	void		(*dtor)(void *state);
-	void		(*compute)(PPInput *input, PPOutput output, void *state);
+	PComputeStatus	(*compute)(PPInput *input, PPOutput output, void *state);
 	MemChunk	*state;		/* Instance state blocks allocated from here. */
 };
 
@@ -229,7 +229,7 @@ void plugin_set_state(Plugin *p, size_t size, void (*ctor)(void *state), void (*
 	p->dtor = dtor;
 }
 
-void plugin_set_compute(Plugin *p, void (*compute)(PPInput *input, PPOutput output, void *state))
+void plugin_set_compute(Plugin *p, PComputeStatus (*compute)(PPInput *input, PPOutput output, void *state))
 {
 	if(p != NULL && compute != NULL)
 	{
@@ -487,48 +487,18 @@ void plugin_portset_destroy(PPortSet *ps)
 	mem_free(ps);
 }
 
-static void plugin_run_compute(Plugin *p, PInstance *inst)
-{
-	PPortSet	*ps = inst->inputs;
-	PPInput	*port;
-
-	if(p == NULL || ps == NULL)
-		return;
-	if((port = plugin_portset_ports(ps)) != NULL)
-	{
-		size_t		i;
-		const Input	*in;
-
-		/* Check that all required inputs have values, and re-link ports to outputs for module-inputs. */
-		for(i = 0; (in = dynarr_index(p->input, i)) != NULL; i++)
-		{
-			uint32	module;
-
-			if(in->spec.req && port_is_unset(ps->input +i))
-			{
-				LOG_MSG(("Can't run compute() in %s, missing required input %u", p->name, i));
-				return;
-			}
-			if(plugin_portset_get_module(ps, i, &module))
-			{
-				PPOutput	o;
-
-				if((o = inst->resolver(module, inst->resolver_data)) != NULL)
-					ps->port[i] = o;
-			}
-		}
-		p->compute(port, inst->output, inst->state);
-	}
-}
-
 /* ----------------------------------------------------------------------------------------- */
 
 int plugin_instance_init(Plugin *p, PInstance *inst)
 {
 	if(p == NULL || inst == NULL)
 		return 0;
+	inst->plugin = p;
 	if((inst->inputs = plugin_portset_new(p)) == NULL)
+	{
+		LOG_WARN(("Couldn't get portset for instance of %s", plugin_name(p)));
 		return 0;
+	}
 	if(p->state != NULL)
 	{
 		if((inst->state = memchunk_alloc(p->state)) != NULL)
@@ -560,14 +530,48 @@ void plugin_instance_set_link_resolver(PInstance *inst, PPOutput (*get_module)(u
 	}
 }
 
-void plugin_instance_compute(Plugin *p, PInstance *inst)
+PluginStatus plugin_instance_compute(PInstance *inst)
 {
-	plugin_run_compute(p, inst);
+	PPortSet	*ps = inst->inputs;
+	Plugin		*p;
+	PPInput		*port;
+
+	if(ps == NULL)
+		return PLUGIN_STOP_FAILURE;
+	p = inst->plugin;
+	if((port = plugin_portset_ports(ps)) != NULL)
+	{
+		size_t		i;
+		const Input	*in;
+
+		/* Check that all required inputs have values, and re-link ports to outputs for module-inputs. */
+		for(i = 0; (in = dynarr_index(p->input, i)) != NULL; i++)
+		{
+			uint32	module;
+
+			if(in->spec.req && port_is_unset(ps->input +i))
+			{
+				LOG_MSG(("Can't run compute() in %s, missing required input %u", p->name, i));
+				return PLUGIN_RETRY_INPUT_MISSING;
+			}
+			if(plugin_portset_get_module(ps, i, &module))
+			{
+				PPOutput	o;
+
+				if((o = inst->resolver(module, inst->resolver_data)) != NULL)
+					ps->port[i] = o;
+			}
+		}
+		if(p->compute(port, inst->output, inst->state) == P_COMPUTE_DONE)
+			return PLUGIN_STOP_COMPLETE;
+		return PLUGIN_RETRY_INCOMPLETE;
+	}
+	return PLUGIN_STOP_FAILURE;
 }
 
-void plugin_instance_free(Plugin *p, PInstance *inst)
+void plugin_instance_free(PInstance *inst)
 {
-	if(p == NULL || inst == NULL)
+	if(inst == NULL)
 		return;
 	if(inst->inputs != NULL)
 	{
@@ -576,9 +580,9 @@ void plugin_instance_free(Plugin *p, PInstance *inst)
 	}
 	if(inst->state != NULL)
 	{
-		if(p->dtor != NULL)
-			p->dtor(inst->state);
-		memchunk_free(p->state, inst->state);
+		if(inst->plugin->dtor != NULL)
+			inst->plugin->dtor(inst->state);
+		memchunk_free(inst->plugin->state, inst->state);
 		inst->state = NULL;
 	}
 }
