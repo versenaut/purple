@@ -319,7 +319,7 @@ static int cron_handler(void *data)
 
 static void console_parse_module_input_set(const char *line)
 {
-	char		tcode;
+	char		tcode[32];
 	const char	*literal,
 			tsel[] = "bdurRs", *tpos;
 	const PInputType tarr[] = {
@@ -331,7 +331,7 @@ static void console_parse_module_input_set(const char *line)
 	PInputType	type;
 	PInputValue	value;
 
-	if(sscanf(line, "mis%c %u %u %u", &tcode, &g, &m, &i) != 4 || (literal = strchr(line, ':')) == NULL)
+	if(sscanf(line, "mis%s %u %u %u", tcode, &g, &m, &i) != 4 || (literal = strchr(line, ':')) == NULL)
 	{
 		printf("Syntax: mis<TYPE> <GRAPH> <MODULE> <INPUT> : <VALUE>\n");
 		printf(" Valid types: 'r' -- real number\n");
@@ -339,32 +339,69 @@ static void console_parse_module_input_set(const char *line)
 	}
 	literal++;
 
-	if((tpos = strchr(tsel, tcode)) == NULL)
+	if((tpos = strchr(tsel, tcode[0])) == NULL)
 	{
-		printf("Unknown type character '%c' in mis command--use one of %s\n", tcode, tsel);
+		printf("Unknown type character '%c' in mis command--use one of %s\n", tcode[0], tsel);
 		return;
 	}
 	value.type = tarr[tpos - tsel];
+	if(value.type == P_INPUT_REAL32 || value.type == P_INPUT_REAL64)
+	{
+		if(tcode[1] == '2')
+			value.type += 1;
+		else if(tcode[1] == '3')
+			value.type += 2;
+		else if(tcode[1] == '4')
+			value.type += 3;
+		else
+		{
+			printf("No vector\n");
+			return;
+		}
+		literal++;
+	}
 
 	switch(value.type)
 	{
 	case P_INPUT_BOOLEAN:
-		got = sscanf(literal, "%u", &value.v.vboolean);
+		got = sscanf(literal, "%u", &value.v.vboolean) == 1;
 		break;
 	case P_INPUT_INT32:
-		got = sscanf(literal, "%d", &value.v.vint32);
+		got = sscanf(literal, "%d", &value.v.vint32) == 1;
 		break;
 	case P_INPUT_UINT32:
-		got = sscanf(literal, "%u", &value.v.vuint32);
+		got = sscanf(literal, "%u", &value.v.vuint32) == 1;
 		break;
 	case P_INPUT_REAL32:
-		got = sscanf(literal, "%g", &value.v.vreal32);
+		got = sscanf(literal, "%g", &value.v.vreal32) == 1;
+		break;
+	case P_INPUT_REAL32_VEC2:
+		got = sscanf(literal, "%g %g", &value.v.vreal32_vec2[0], &value.v.vreal32_vec2[1]) == 2;
+		break;
+	case P_INPUT_REAL32_VEC3:
+		got = sscanf(literal, "%g %g %g", &value.v.vreal32_vec3[0], &value.v.vreal32_vec3[1],
+			     &value.v.vreal32_vec3[2]) == 3;
+		break;
+	case P_INPUT_REAL32_VEC4:
+		got = sscanf(literal, "%g %g %g %g", &value.v.vreal32_vec4[0], &value.v.vreal32_vec4[1],
+			     &value.v.vreal32_vec4[2], &value.v.vreal32_vec4[3]) == 4;
 		break;
 	case P_INPUT_REAL64:
-		got = sscanf(literal, "%lg", &value.v.vreal64);
+		got = sscanf(literal, "%lg", &value.v.vreal64) == 1;
+		break;
+	case P_INPUT_REAL64_VEC2:
+		got = sscanf(literal, "%lg %lg", &value.v.vreal64_vec2[0], &value.v.vreal64_vec2[1]) == 2;
+		break;
+	case P_INPUT_REAL64_VEC3:
+		got = sscanf(literal, "%lg %lg %lg", &value.v.vreal64_vec3[0], &value.v.vreal64_vec3[1],
+			     &value.v.vreal64_vec3[2]) == 3;
+		break;
+	case P_INPUT_REAL64_VEC4:
+		got = sscanf(literal, "%lg %lg %lg %lg", &value.v.vreal64_vec4[0], &value.v.vreal64_vec4[1],
+			     &value.v.vreal64_vec4[2], &value.v.vreal64_vec4[3]) == 4;
 		break;
 	case P_INPUT_STRING:
-		got = sscanf(literal, " \"%[^\"]\"", string);
+		got = sscanf(literal, " \"%[^\"]\"", string) == 1;
 		value.v.vstring = string;
 		break;
 	default:
@@ -373,7 +410,7 @@ static void console_parse_module_input_set(const char *line)
 	if(got == 1)
 		graph_method_send_call_mod_input_set(g, m, i, &value);
 	else
-		printf("mis couldn't parse %s as type %c literal\n", literal, tcode);
+		printf("mis couldn't parse %s as type %d literal\n", literal, tcode);
 }
 
 static void console_update(void)
