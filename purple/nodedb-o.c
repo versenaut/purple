@@ -181,7 +181,7 @@ void nodedb_o_link_set_local(NodeObject *n, const PONode *link, const char *labe
 		}
 	}
 	else
-*/	if(link->id == ~0)	/* Don't duplicate local links. */
+*/	if(link->id == (VNodeID) ~0)	/* Don't duplicate local links. */
 	{
 		const List	*iter;
 

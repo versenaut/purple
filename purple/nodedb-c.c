@@ -264,7 +264,7 @@ NdbCKey * nodedb_c_key_create(NdbCCurve *curve, uint32 key_id,
 	}
 	if(curve->keys == NULL)
 		return NULL;
-	if(key_id == ~0)
+	if(key_id == ~0u)
 	{
 		/* If creating a new key, make sure it's not clobbering an existing position. Search. */
 		List	*old;
