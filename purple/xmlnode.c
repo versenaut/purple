@@ -462,7 +462,8 @@ static void do_print_outline(const XmlNode *root, int indent)
 
 void xmlnode_print_outline(const XmlNode *root)
 {
-	do_print_outline(root, 0);
+	if(root != NULL)
+		do_print_outline(root, 0);
 }
 
 void xmlnode_destroy(XmlNode *root)
