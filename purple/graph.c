@@ -414,6 +414,46 @@ PONode * graph_port_output_node_create(PPOutput port, VNodeType type, uint32 lab
 	return NULL;
 }
 
+PONode * graph_port_output_node_copy(PPOutput port, PINode *node, uint32 label)
+{
+	Module	*m = MODULE_FROM_PORT(port);
+	Node	**store = NULL;
+
+	if(label < m->out.nodes.next)	/* Lookup of existing? */
+	{
+		if(m->out.nodes.node == NULL)
+			return NULL;
+		if((store = dynarr_index(m->out.nodes.node, label)) != NULL)
+		{
+			printf("Returning previously copied node with label %u\n", label);
+			graph_port_output_set_node(port, *store);
+			return *store;
+		}
+		return NULL;
+	}
+	else if(label == m->out.nodes.next)
+	{
+		printf("This would be a good time to create a new node and label it %u\n", label);
+		if(m->out.nodes.node == NULL)
+			m->out.nodes.node = dynarr_new(sizeof *node, 1);
+		if(m->out.nodes.node != NULL)
+		{
+			if((store = dynarr_set(m->out.nodes.node, m->out.nodes.next, NULL)) != NULL)
+			{
+				if((*store = nodedb_new_copy(node)) != NULL)
+				{
+					m->out.nodes.next++;
+					nodedb_ref(*store);
+				}
+			}
+		}
+		if(store != NULL)
+			graph_port_output_set_node(port, *store);
+		return store != NULL ? *store : NULL;
+	}
+	return NULL;
+}
+
 void graph_port_output_end(PPOutput port)
 {
 	Module		*m = MODULE_FROM_PORT(port), *dep;

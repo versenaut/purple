@@ -32,4 +32,5 @@ extern void	graph_port_output_begin(PPOutput port);
 extern void	graph_port_output_set(PPOutput port, PValueType type, ...);
 extern void	graph_port_output_set_node(PPOutput port, PONode *node);
 extern PONode *	graph_port_output_node_create(PPOutput port, VNodeType type, uint32 label);
+extern PONode *	graph_port_output_node_copy(PPOutput port, PINode *node, uint32 label);
 extern void	graph_port_output_end(PPOutput port);
