@@ -68,15 +68,40 @@ void sync_init(void)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static int sync_head_tags(const Node *n, const Node *target)
+{
+	unsigned int	i, sync = 1;
+	NdbTagGroup	*g, *tg;
+
+	for(i = 0; (g = dynarr_index(n->tag_groups, i)) != NULL; i++)
+	{
+		if(g->name[0] == '\0')
+			continue;
+		if((tg = nodedb_tag_group_lookup(target, g->name)) != NULL)
+		{
+		}
+		else
+		{
+			verse_send_tag_group_create(target->id, ~0, target->name);
+			sync = 0;
+		}
+	}
+	return sync;
+}
+
 /* Synchronize node "head" data, i.e. name and tags. */
 static int sync_head(const Node *n, const Node *target)
 {
+	int	sync = 1;
+
+	/* Compare names. */
 	if(strcmp(n->name, target->name) != 0)
 	{
 		verse_send_node_name_set(target->id, n->name);
-		return 0;
+		sync = 0;
 	}
-	return 1;
+	sync &= sync_head_tags(n, target);
+	return sync;
 }
 
 /* ----------------------------------------------------------------------------------------- */
