@@ -434,6 +434,11 @@ PNMFragment * p_node_m_fragment_create_animation(PONode *node, const char *label
 	return nodedb_m_fragment_create_animation((NodeMaterial *) node, label);
 }
 
+PNMFragment * p_node_m_fragment_create_alternative(PONode *node, const PNMFragment *alt_a, const PNMFragment *alt_b)
+{
+	return nodedb_m_fragment_create_alternative((NodeMaterial *) node, alt_a, alt_b);
+}
+
 PNMFragment * p_node_m_fragment_create_output(PONode *node, const char *label, const PNMFragment *front, const PNMFragment *back)
 {
 	return nodedb_m_fragment_create_output((NodeMaterial *) node, label, front, back);
