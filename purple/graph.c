@@ -83,40 +83,11 @@ void graph_method_receive_create(uint8 id, const char *name)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void graph_build_xml(void)
-{
-	size_t	i, max;
-	DynStr	*xml;
-	Graph	*g;
-
-	max = dynarr_size(graph_info.graphs);
-
-	xml = dynstr_new_sized(32 + max * 128);
-	dynstr_append(xml, "<?xml version=\"1.0\" standalone=\"yes\"?>\n\n");
-
-	for(i = 0; i < max; i++)
-	{
-		g = dynarr_index(graph_info.graphs, i);
-		if(g == NULL)
-			continue;
-		g->xml_start = dynstr_length(xml);
-		dynstr_append_printf(xml,
-				     "<graph id=\"%u\" name=\"%s\">\n"
-				     " <at>\n"
-				     "  <node>%u</node>\n"
-				     "  <buffer>%u</buffer>\n"
-				     " </at>\n"
-				     "</graph>\n", i, g->name, g->node, g->buffer);
-		g->xml_length = dynstr_length(xml) - g->xml_start;
-		printf("%s: %d,%d\n", g->name, g->xml_start, g->xml_length);
-	}
-	printf("XML:\n%s\n", dynstr_string(xml));
-	dynstr_destroy(xml, 1);
-}
-
 static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 {
-	Graph	g;
+	unsigned int	id, i, pos;
+	Graph		g, *gg;
+	char		xml[256];
 
 	printf("Create graph named '%s' in node %u, buffer %u\n", name, node_id, buffer_id);
 	/* Make sure name is unique. */
@@ -128,17 +99,37 @@ static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 	g.buffer = buffer_id;
 	if(graph_info.free_ids != NULL)
 	{
-		uint32	id = (uint32) list_data(graph_info.free_ids);
+		id = (uint32) list_data(graph_info.free_ids);
 		graph_info.free_ids = list_tail(graph_info.free_ids);
 		dynarr_set(graph_info.graphs, id, &g);
 	}
 	else
-		dynarr_append(graph_info.graphs, &g);
+		id = dynarr_append(graph_info.graphs, &g);
+
+	for(i = 0, pos = client_info.graphs.start; i < id; i++)
+	{
+		gg = dynarr_index(graph_info.graphs, i);
+		if(gg == NULL || gg->name[0] == '\0')
+			continue;
+		pos += gg->xml_length;
+	}
+	gg = dynarr_index(graph_info.graphs, id);
+	gg->xml_start = pos;
+	snprintf(xml, sizeof xml, "<graph id=\"%u\" name=\"%s\">\n"
+					  " <at>\n"
+					  "  <node>%u</node>\n"
+					  "  <buffer>%u</buffer>\n"
+					  " </at>\n"
+					  "</graph>\n", id, gg->name, gg->node, gg->buffer);
+	gg->xml_length = strlen(xml);
+	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, gg->xml_start, 0, xml);
+	hash_insert(graph_info.graphs_name, gg->name, gg);
 }
 
 static void graph_destroy(uint32 id)
 {
-	Graph	*g;
+	Graph		*g;
+	unsigned int	i, pos;
 
 	if((g = dynarr_index(graph_info.graphs, id)) == NULL || g->name[0] == '\0')
 	{
@@ -148,6 +139,15 @@ static void graph_destroy(uint32 id)
 	g->name[0] = '\0';
 	graph_info.free_ids = list_prepend(graph_info.free_ids, (void *) id);
 	hash_remove(graph_info.graphs_name, g->name);
+	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, g->xml_start, g->xml_length, NULL);
+
+	for(i = 0, pos = client_info.graphs.start; i < dynarr_size(graph_info.graphs); i++)
+	{
+		if((g = dynarr_index(graph_info.graphs, i)) == NULL || g->name[0] == '\0')
+			continue;
+		g->xml_start = pos;
+		pos += g->xml_length;
+	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
