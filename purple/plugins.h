@@ -42,6 +42,8 @@ extern PPInput *	plugin_inputset_ports(PInputSet *is);
 extern void		plugin_inputset_set_va(PInputSet *is, unsigned int index, PInputType type, va_list arg);
 extern void		plugin_inputset_clear(PInputSet *is, unsigned int index);
 extern boolean		plugin_inputset_is_set(const PInputSet *is, unsigned int index);
+extern size_t		plugin_inputset_size(const PInputSet *is);
+extern boolean		plugin_inputset_get_module(const PInputSet *is, unsigned int index, uint32 *module_id);
 extern void		plugin_inputset_describe(const PInputSet *is, DynStr *d);
 extern void		plugin_inputset_destroy(PInputSet *is);
 

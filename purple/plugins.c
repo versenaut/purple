@@ -637,6 +637,27 @@ boolean plugin_inputset_is_set(const PInputSet *is, unsigned int index)
 	return (is->use[index / 32] & (1 << (index % 32))) != 0;
 }
 
+size_t plugin_inputset_size(const PInputSet *is)
+{
+	return is != NULL ? is->size : 0;
+}
+
+boolean plugin_inputset_get_module(const PInputSet *is, unsigned int index, uint32 *module_id)
+{
+	if(is == NULL || index >= is->size)
+		return FALSE;
+	if(is->use[index / 32] & (1 << (index % 32)))
+	{
+		if(is->value[index].type == P_INPUT_MODULE)
+		{
+			if(module_id != NULL)
+				*module_id = is->value[index].v.vmodule;
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
 void plugin_inputset_describe(const PInputSet *is, DynStr *d)
 {
 	int	i;
