@@ -442,6 +442,18 @@ NdbMFragment * nodedb_m_fragment_create_animation(NodeMaterial *node, const char
 	return nodedb_m_fragment_create(node, ~0, VN_M_FT_ANIMATION, &frag);
 }
 
+NdbMFragment * nodedb_m_fragment_create_alternative(NodeMaterial *node, const NdbMFragment *alt_a,
+						    const NdbMFragment *alt_b)
+{
+	VMatFrag	frag;
+
+	if(node == NULL)
+		return NULL;
+	link_set(&frag.alternative.alt_a, alt_a);
+	link_set(&frag.alternative.alt_b, alt_b);
+	return nodedb_m_fragment_create(node, ~0, VN_M_FT_ALTERNATIVE, &frag);
+}
+
 NdbMFragment * nodedb_m_fragment_create_output(NodeMaterial *node, const char *label,
 					       const NdbMFragment *front, const NdbMFragment *back)
 {
