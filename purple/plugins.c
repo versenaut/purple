@@ -118,6 +118,7 @@ Plugin * plugin_new(const char *name)
 
 	if((p = mem_alloc(sizeof *p)) != NULL)
 	{
+		p->id = 0;
 		stu_strncpy(p->name, sizeof p->name, name);
 		p->library = NULL;
 		p->meta = NULL;
@@ -367,6 +368,16 @@ void plugin_describe_append(const Plugin *p, DynStr *d)
 	
 	/* Done. */
 	dynstr_append(d, "</plug-in>\n");
+}
+
+const Plugin * plugin_lookup(unsigned int id)
+{
+	return idset_lookup(plugins_info.plugins, id);
+}
+
+const char * plugin_name(const Plugin *p)
+{
+	return p != NULL ? p->name : NULL;
 }
 
 void plugin_destroy(Plugin *p)
