@@ -20,6 +20,8 @@
 #include "memchunk.h"
 #include "plugins.h"
 #include "strutil.h"
+#include "textbuf.h"
+#include "xmlnode.h"
 #include "xmlutil.h"
 
 #include "command-structs.h"
@@ -205,6 +207,64 @@ static void test_dynstr(void)
 	dynstr_destroy(ds, TRUE);
 }
 
+static void test_textbuf(void)
+{
+	TextBuf	*tb;
+
+	tb = textbuf_new(32);
+	textbuf_insert(tb, 100, "apapapa");
+	printf("Contents: '%s'\n", textbuf_text(tb));
+
+	textbuf_insert(tb, 3, "-a");
+	textbuf_insert(tb, 7, "-a");
+	printf("Contents: '%s'\n", textbuf_text(tb));
+
+	textbuf_delete(tb, 4, 3);
+	printf("Contents: '%s'\n", textbuf_text(tb));
+
+	textbuf_insert(tb, 1000, "--monster--");
+	printf("Contents: '%s'\n", textbuf_text(tb));
+
+	textbuf_delete(tb, 2, 1000);
+	textbuf_insert(tb, -1, "skalle");
+	printf("Contents: '%s'\n", textbuf_text(tb));
+	textbuf_delete(tb, 2, 2);
+	printf("Contents: '%s'\n", textbuf_text(tb));
+	textbuf_insert(tb, 2, "b");
+	printf("Contents: '%s'\n", textbuf_text(tb));
+
+	textbuf_delete(tb, 5, 100);
+	printf("Contents: '%s'\n", textbuf_text(tb));
+
+	textbuf_insert(tb, 100, "t");
+	printf("Contents: '%s'\n", textbuf_text(tb));
+
+	textbuf_delete(tb, 0, ~0);
+	printf("Contents: '%s'\n", textbuf_text(tb));
+
+	textbuf_destroy(tb);
+}
+
+static void test_xmlnode(void)
+{
+	XmlNode	*node;
+
+/*	node = xmlnode_new("<?xml version=\"1.0\"?>\n"
+		    "<this flavor='crazy &amp; dude'     quote='\"' \t\t\t less='more'>"
+		    "<!-- ignore me, please -->\n"
+		    "is a &quot;test&quot;"
+		    "</this>");*/
+	if((node = xmlnode_new("<a x='y' a='whiz' dork='fine' nrg='total' master='yes' fine='undo'>hello</a>")) != NULL)
+	{
+		printf("a=%s\n", xmlnode_attrib_get(node, "a"));
+		printf("dork=%s\n", xmlnode_attrib_get(node, "dork"));
+		xmlnode_print_outline(node);
+		xmlnode_destroy(node);
+
+/*		xmlnode_nodeset_get(node, XMLNODE_AXIS_CHILD, TEST_NAME("dork"), TEST_ATTRIB_VALUE("size", "30"));*/
+	}
+}
+
 static int cron_handler(void *data)
 {
 	static int	count = 3;
@@ -229,6 +289,9 @@ int main(void)
 	test_filelist();
 	test_strutil();
 	test_dynstr();
+	test_textbuf();
+	test_xmlnode();
+	return 0;
 */
 	plugins_libraries_load();
 	plugins_libraries_init();
