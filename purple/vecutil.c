@@ -1,5 +1,5 @@
 /*
- *
+ * Vector (and matrix) math routines.
 */
 
 #include <math.h>
