@@ -14,6 +14,7 @@
 
 #include "dynarr.h"
 #include "list.h"
+#include "iter.h"
 #include "strutil.h"
 #include "textbuf.h"
 
@@ -53,9 +54,38 @@ PNTagGroup * p_node_tag_group_find(PINode *node, const char *name)
 	return nodedb_tag_group_find(node, name);
 }
 
+void p_node_tag_group_iter(PINode *node, PIter *iter)
+{
+	iter_init_dynarr_string(iter, ((Node *) node)->tag_groups, offsetof(NdbTagGroup, name));
+}
+
+const char * p_node_tag_group_get_name(const PNTagGroup *group)
+{
+	if(group != NULL)
+		return ((NdbTagGroup *) group)->name;
+	return NULL;
+}
+
 PNTagGroup * p_node_tag_group_create(PONode *node, const char *name)
 {
 	return nodedb_tag_group_create(node, ~0, name);
+}
+
+unsigned int p_node_tag_group_tag_num(const PNTagGroup *group)
+{
+	return nodedb_tag_group_tag_num((NdbTagGroup *) group);
+}
+
+PNTag * p_node_tag_group_tag_nth(const PNTagGroup *group, unsigned int n)
+{
+	return nodedb_tag_group_tag_nth((NdbTagGroup *) group, n);
+}
+
+void p_node_tag_group_tag_iter(const PNTagGroup *group, PIter *iter)
+{
+	if(group == NULL)
+		return;
+	iter_init_dynarr_string(iter, ((NdbTagGroup *) group)->tags, offsetof(NdbTag, name));
 }
 
 void p_node_tag_create(PNTagGroup *group, const char *name, VNTagType type, const VNTag *value)
@@ -120,7 +150,7 @@ void p_node_tag_create_path(PONode *node, const char *path, VNTagType type, ...)
 		}
 		va_end(arg);
 		/* If tag exists, just (re)set the value, else create it. */
-		if((tag = nodedb_tag_lookup(tg, path)) != NULL)
+		if((tag = nodedb_tag_group_tag_find(tg, path)) != NULL)
 			nodedb_tag_value_set(tag, type, &value);
 		else
 			nodedb_tag_create(tg, ~0, path, type, &value);
@@ -146,8 +176,13 @@ void p_node_tag_destroy_path(PONode *node, const char *path)
 		else if(*path == '*')		/* If asterisk, destroy all tags but leave group. */
 			nodedb_tag_destroy_all(g);
 		else				/* Else destroy named tag only. */
-			nodedb_tag_destroy(g, nodedb_tag_lookup(g, path));
+			nodedb_tag_destroy(g, nodedb_tag_group_tag_find(g, path));
 	}
+}
+
+const char * p_node_tag_get_name(const PNTag *tag)
+{
+	return nodedb_tag_get_name(tag);
 }
 
 /* ----------------------------------------------------------------------------------------- */
