@@ -542,7 +542,7 @@ void plugin_destroy(Plugin *p)
 
 PPortSet * plugin_portset_new(const Plugin *p)
 {
-	PPortSet	*is;
+	PPortSet	*ps;
 	size_t		size, num, i;
 
 	if(p == NULL)
@@ -551,122 +551,122 @@ PPortSet * plugin_portset_new(const Plugin *p)
 	if(size == 0)
 		return NULL;
 	num = (size + 31) / 32;
-	is = mem_alloc(sizeof *is + num * sizeof *is->use + size * (sizeof *is->input + sizeof *is->port));
-	is->size  = size;
-	is->use   = (uint32 *) (is + 1);
-	is->input = (PPort *) (is->use + num);
-	is->port  = (PPInput *) (is->input + size);
-	memset(is->use, 0, num * sizeof *is->use);
-	for(i = 0;i < is->size; i++)
+	ps = mem_alloc(sizeof *ps + num * sizeof *ps->use + size * (sizeof *ps->input + sizeof *ps->port));
+	ps->size  = size;
+	ps->use   = (uint32 *) (ps + 1);
+	ps->input = (PPort *) (ps->use + num);
+	ps->port  = (PPInput *) (ps->input + size);
+	memset(ps->use, 0, num * sizeof *ps->use);
+	for(i = 0;i < ps->size; i++)
 	{
-		port_init(&is->input[i]);
-		is->port[i] = NULL;
+		port_init(&ps->input[i]);
+		ps->port[i] = NULL;
 	}
-	return is;
+	return ps;
 }
 
-PPInput * plugin_portset_ports(PPortSet *is)
+PPInput * plugin_portset_ports(PPortSet *ps)
 {
 	size_t	i;
 
-	if(is == NULL)
+	if(ps == NULL)
 		return NULL;
-	for(i = 0; i < is->size; i++)
+	for(i = 0; i < ps->size; i++)
 	{
-		if(is->use[i / 32] & (1 << (i % 32)))
-			is->port[i] = (PPInput) (is->input + i);
+		if(ps->use[i / 32] & (1 << (i % 32)))
+			ps->port[i] = (PPInput) (ps->input + i);
 		else
-			is->port[i] = NULL;
+			ps->port[i] = NULL;
 	}
-	return is->port;
+	return ps->port;
 }
 
-void plugin_portset_set_va(PPortSet *is, unsigned int index, PValueType type, va_list arg)
+void plugin_portset_set_va(PPortSet *ps, unsigned int index, PValueType type, va_list arg)
 {
-	if(is == NULL || index >= is->size)
+	if(ps == NULL || index >= ps->size)
 		return;
-	if(port_set_va(is->input + index, type, arg) == 0)
+	if(port_set_va(ps->input + index, type, arg) == 0)
 		LOG_WARN(("Input setting failed"));
 	else
-		is->use[index / 32] |= 1 << (index % 32);
+		ps->use[index / 32] |= 1 << (index % 32);
 }
 
-void plugin_portset_clear(PPortSet *is, unsigned int index)
+void plugin_portset_clear(PPortSet *ps, unsigned int index)
 {
 	uint32	pos, mask;
-	if(is == NULL || index >= is->size)
+	if(ps == NULL || index >= ps->size)
 		return;
 	pos  = index / 32;
 	mask = 1 << (index % 32);
-	if(is->use[pos] & mask)
+	if(ps->use[pos] & mask)
 	{
-		port_clear(is->input + index);
-		is->use[pos] &= ~mask;
+		port_clear(ps->input + index);
+		ps->use[pos] &= ~mask;
 	}
 }
 
-boolean plugin_portset_is_set(const PPortSet *is, unsigned int index)
+boolean plugin_portset_is_set(const PPortSet *ps, unsigned int index)
 {
-	if(is == NULL || index >= is->size)
+	if(ps == NULL || index >= ps->size)
 		return 0;
-	return (is->use[index / 32] & (1 << (index % 32))) != 0;
+	return (ps->use[index / 32] & (1 << (index % 32))) != 0;
 }
 
-size_t plugin_portset_size(const PPortSet *is)
+size_t plugin_portset_size(const PPortSet *ps)
 {
-	return is != NULL ? is->size : 0;
+	return ps != NULL ? ps->size : 0;
 }
 
-boolean plugin_portset_get_module(const PPortSet *is, unsigned int index, uint32 *module_id)
+boolean plugin_portset_get_module(const PPortSet *ps, unsigned int index, uint32 *module_id)
 {
-	if(is == NULL || index >= is->size)
+	if(ps == NULL || index >= ps->size)
 		return FALSE;
-	if(is->use[index / 32] & (1 << (index % 32)))
+	if(ps->use[index / 32] & (1 << (index % 32)))
 	{
-		if(port_peek_module(is->input + index, module_id))
+		if(port_peek_module(ps->input + index, module_id))
 			return TRUE;
 	}
 	return FALSE;
 }
 
-void plugin_portset_describe(const PPortSet *is, DynStr *d)
+void plugin_portset_describe(const PPortSet *ps, DynStr *d)
 {
 	int	i;
 
-	if(is == NULL || d == NULL)
+	if(ps == NULL || d == NULL)
 		return;
 
-	for(i = 0; i < is->size; i++)
+	for(i = 0; i < ps->size; i++)
 	{
-		if(is->use[i / 32] & (1 << (i % 32)))
+		if(ps->use[i / 32] & (1 << (i % 32)))
 		{
 			dynstr_append_printf(d, "  <set input=\"%u\" type=\"", i);
-			dynstr_append(d, port_get_type_name(is->port + i));
+			dynstr_append(d, port_get_type_name(&ps->input[i]));
 			dynstr_append_printf(d, "\">");
-			port_append_value(is->port + i, d);
+			port_append_value(&ps->input[i], d);
 			dynstr_append(d, "</set>\n");
 		}
 	}
 }
 
-void plugin_portset_destroy(PPortSet *is)
+void plugin_portset_destroy(PPortSet *ps)
 {
 	size_t	i;
 
-	if(is == NULL)
+	if(ps == NULL)
 		return;
-	for(i = 0; i < is->size; i++)
-		plugin_portset_clear(is, i);	/* A bit costly, but destroy is rather infrequent, so... */
-	mem_free(is);
+	for(i = 0; i < ps->size; i++)
+		plugin_portset_clear(ps, i);	/* A bit costly, but destroy is rather infrequent, so... */
+	mem_free(ps);
 }
 
-void plugin_run_compute(Plugin *p, PPortSet *is, void *state)
+void plugin_run_compute(Plugin *p, PPortSet *ps, void *state)
 {
 	PPInput	*port;
 
-	if(p == NULL || is == NULL)
+	if(p == NULL || ps == NULL)
 		return;
-	if((port = plugin_portset_ports(is)) != NULL)
+	if((port = plugin_portset_ports(ps)) != NULL)
 	{
 		size_t		i;
 		const Input	*in;
@@ -674,7 +674,7 @@ void plugin_run_compute(Plugin *p, PPortSet *is, void *state)
 		/* Check that all required inputs have values. */
 		for(i = 0; (in = dynarr_index(p->input, i)) != NULL; i++)
 		{
-			if(in->spec.req && port_is_unset(is->input +i))
+			if(in->spec.req && port_is_unset(ps->input +i))
 			{
 				LOG_MSG(("Can't run compute() in %s, missing required input %u", p->name, i));
 				return;
