@@ -349,74 +349,96 @@ static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 		if(!nodedb_m_fragment_find_equal(target, n, f))
 		{
 			VMatFrag	tmp;
+			int		send = 0;
 
 			printf("no, attempting create\n");
 			switch(f->type)
 			{
 			case VN_M_FT_COLOR:
-				printf("it's a color, this'll be simple\n");
-				tmp.color.red   = f->frag.color.red;
-				tmp.color.green = f->frag.color.green;
-				tmp.color.blue  = f->frag.color.blue;
+				tmp.color = f->frag.color;
+				send = 1;
 				break;
 			case VN_M_FT_LIGHT:
 				break;
 			case VN_M_FT_REFLECTION:
+				tmp.reflection = f->frag.reflection;
+				send = 1;
 				break;
 			case VN_M_FT_TRANSPARENCY:
+				tmp.transparency = f->frag.transparency;
+				send = 1;
 				break;
 			case VN_M_FT_VOLUME:
+				if(nodedb_m_fragment_resolve(&tmp.volume.color, target, n, f->frag.volume.color))
+				{
+					tmp.volume.diffusion = f->frag.volume.diffusion;
+					tmp.volume.col_r = f->frag.volume.col_r;
+					tmp.volume.col_g = f->frag.volume.col_g;
+					tmp.volume.col_b = f->frag.volume.col_b;
+					send = 1;
+				}
 				break;
 			case VN_M_FT_GEOMETRY:
+				tmp.geometry = f->frag.geometry;
+				send = 1;
 				break;
 			case VN_M_FT_TEXTURE:
 				break;
 			case VN_M_FT_NOISE:
+				if(nodedb_m_fragment_resolve(&tmp.noise.mapping, target, n, f->frag.noise.mapping))
+				{
+					tmp.noise.type = f->frag.noise.type;
+					send = 1;
+				}
 				break;
 			case VN_M_FT_BLENDER:
+				if(nodedb_m_fragment_resolve(&tmp.blender.data_a, target, n, f->frag.blender.data_a)
+				   && nodedb_m_fragment_resolve(&tmp.blender.data_b, target, n, f->frag.blender.data_b)
+				   && nodedb_m_fragment_resolve(&tmp.blender.control, target, n, f->frag.blender.control))
 				{
-					printf("resolving blender fragment deps\n");
-					if(nodedb_m_fragment_resolve(&tmp.blender.data_a, target, n, f->frag.blender.data_a)
-					   && nodedb_m_fragment_resolve(&tmp.blender.data_b, target, n, f->frag.blender.data_b)
-					   && nodedb_m_fragment_resolve(&tmp.blender.control, target, n, f->frag.blender.control))
-					{
-						printf("got'em, sending create\n");
-						tmp.blender.type = f->frag.blender.type;
-					}
+					tmp.blender.type = f->frag.blender.type;
+					send = 1;
 				}
 				break;
 			case VN_M_FT_MATRIX:
+				if(nodedb_m_fragment_resolve(&tmp.matrix.data, target, n, f->frag.matrix.data))
 				{
-					printf("resolving matrix fragment deps\n");
-					if(nodedb_m_fragment_resolve(&tmp.matrix.data, target, n, f->frag.matrix.data))
-					{
-						printf(" got it, sending create\n");
-						memcpy(tmp.matrix.matrix, f->frag.matrix.matrix, sizeof tmp.matrix.matrix);
-					}
+					memcpy(tmp.matrix.matrix, f->frag.matrix.matrix, sizeof tmp.matrix.matrix);
+					send = 1;
 				}
 				break;
 			case VN_M_FT_RAMP:
-				break;
-			case VN_M_FT_ANIMATION:
-				break;
-			case VN_M_FT_ALTERNATIVE:
-				break;
-			case VN_M_FT_OUTPUT:
+				if(nodedb_m_fragment_resolve(&tmp.ramp.mapping, target, n, f->frag.ramp.mapping))
 				{
-					printf("resolving output fragment deps\n");
-					if(nodedb_m_fragment_resolve(&tmp.output.front, target, n, f->frag.output.front) &&
-					   nodedb_m_fragment_resolve(&tmp.output.back,  target, n, f->frag.output.back))
-					{
-						strcpy(tmp.output.label, f->frag.output.label);
-					}
+					tmp.ramp.type = f->frag.ramp.type;
+					tmp.ramp.channel = f->frag.ramp.channel;
+					tmp.ramp.point_count = f->frag.ramp.point_count;
+					memcpy(tmp.ramp.ramp, f->frag.ramp.ramp, tmp.ramp.point_count * sizeof *f->frag.ramp.ramp);
+					send = 1;
 				}
 				break;
-			default:
-				printf("Can't sync material fragment type %d\n", f->type);
-				return 1;
+			case VN_M_FT_ANIMATION:
+				tmp.animation = f->frag.animation;
+				send = 1;
+				break;
+			case VN_M_FT_ALTERNATIVE:
+				send = nodedb_m_fragment_resolve(&tmp.alternative.alt_a, target, n, f->frag.alternative.alt_a)
+					&& nodedb_m_fragment_resolve(&tmp.alternative.alt_b, target, n, f->frag.alternative.alt_b);
+				break;
+			case VN_M_FT_OUTPUT:
+				if(nodedb_m_fragment_resolve(&tmp.output.front, target, n, f->frag.output.front) &&
+				   nodedb_m_fragment_resolve(&tmp.output.back,  target, n, f->frag.output.back))
+				{
+					strcpy(tmp.output.label, f->frag.output.label);
+					send = 1;
+				}
+				break;
 			}
-			verse_send_m_fragment_create(target->node.id, ~0, f->type, &tmp);
-			sync = 0;
+			if(send)
+			{
+				verse_send_m_fragment_create(target->node.id, ~0, f->type, &tmp);
+				sync = 0;
+			}
 			break;
 		}
 	}
