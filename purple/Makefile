@@ -23,6 +23,9 @@ purple:		purple.c \
 		port.o scheduler.o strutil.o synchronizer.o textbuf.o timeval.o value.o vecutil.o xmlnode.o xmlutil.o \
 		$(VERSE)/libverse.a
 
+xmlnode.a:	xmlnode.o dynstr.o mem.o memchunk.o list.o strutil.o log.o
+		ar -cr $@ $^
+
 api-init.o:	api-init.c purple.h
 
 api-input.o:	api-input.c purple.h
@@ -63,7 +66,7 @@ nodedb.o:	nodedb.c nodedb.h nodedb-internal.h
 
 nodedb-g.o:	nodedb-g.c nodedb-g.h nodedb.h nodedb-internal.h
 
-nodedb-o.o:	nodedb-b.c nodedb-b.h nodedb.h nodedb-internal.h
+nodedb-b.o:	nodedb-b.c nodedb-b.h nodedb.h nodedb-internal.h
 
 nodedb-o.o:	nodedb-o.c nodedb-o.h nodedb.h nodedb-internal.h
 
