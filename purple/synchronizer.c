@@ -355,7 +355,9 @@ static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 			{
 			case VN_M_FT_COLOR:
 				printf("it's a color, this'll be simple\n");
-				verse_send_m_fragment_create(target->node.id, ~0, VN_M_FT_COLOR, &f->frag.color);
+				tmp.color.red   = f->frag.color.red;
+				tmp.color.green = f->frag.color.green;
+				tmp.color.blue  = f->frag.color.blue;
 				break;
 			case VN_M_FT_BLENDER:
 				{
@@ -366,7 +368,6 @@ static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 					{
 						printf("got'em, sending create\n");
 						tmp.blender.type = f->frag.blender.type;
-						verse_send_m_fragment_create(target->node.id, ~0, VN_M_FT_BLENDER, &tmp);
 					}
 				}
 				break;
@@ -377,7 +378,6 @@ static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 					{
 						printf(" got it, sending create\n");
 						memcpy(tmp.matrix.matrix, f->frag.matrix.matrix, sizeof tmp.matrix.matrix);
-						verse_send_m_fragment_create(target->node.id, ~0, VN_M_FT_MATRIX, &tmp);
 					}
 				}
 				break;
@@ -388,17 +388,17 @@ static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 					   nodedb_m_fragment_resolve(&tmp.output.back,  target, n, f->frag.output.back))
 					{
 						strcpy(tmp.output.label, f->frag.output.label);
-						verse_send_m_fragment_create(target->node.id, ~0, VN_M_FT_OUTPUT, &tmp);
 					}
 				}
 				break;
 			default:
 				printf("Can't sync material fragment type %d\n", f->type);
+				return 1;
 			}
+			verse_send_m_fragment_create(target->node.id, ~0, f->type, &tmp);
 			sync = 0;
+			break;
 		}
-		else
-			printf(" yes yes\n");
 	}
 	return sync;
 }
