@@ -27,6 +27,8 @@ typedef struct
 
 	VNodeID	node;
 	uint16	buffer;
+
+	uint	xml_start, xml_length;
 } Graph;
 
 static const VNOParamType	create_type[]   = { VN_O_METHOD_PTYPE_NODE, VN_O_METHOD_PTYPE_LAYER,
@@ -122,7 +124,26 @@ static Graph * graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 	       " </at>\n"
 	       "</graph>\n", g->name, g->id, node_id, buffer_id);
 
+	hash_insert(graph_info.graphs_id, (void *) g->id, g);
+	hash_insert(graph_info.graphs_name, g->name, g);
+
 	return g;
+}
+
+static void graph_destroy(uint32 id)
+{
+	Graph	*g;
+
+	if((g = hash_lookup(graph_info.graphs_id, id)) == NULL)
+	{
+		LOG_WARN(("Couldn't destroy graph %u, not found", id));
+		return;
+	}
+	graph_info.free_ids = list_prepend(graph_info.free_ids, list_new((void *) g->id));
+
+	hash_remove(graph_info.graphs_id, g->id);
+	hash_remove(graph_info.graphs_id, g->name);
+	mem_free(g);
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -143,6 +164,14 @@ void graph_method_send_call_create(VNodeID node, VLayerID buffer, const char *na
 
 void graph_method_send_call_destroy(uint32 id)
 {
+	VNOParam	param[sizeof destroy_type / sizeof *destroy_type];
+	void		*pack;
+
+	param[0].vuint32 = id;
+	if((pack = verse_method_call_pack(sizeof param / sizeof *param, destroy_type, param)) != NULL)
+	{
+		verse_send_o_method_call(client_info.avatar, client_info.gid_control, graph_info.mid_destroy, 0, pack);
+	}
 }
 
 void graph_method_receive_call(uint8 id, const void *param)
