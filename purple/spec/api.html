@@ -98,7 +98,7 @@ NAME="AEN122"
 >The <TT
 CLASS="function"
 >init()</TT
-> Entrypoint</A
+> Entry point</A
 ></H3
 ><P
 >&#13;It is the responsibility of the <TT
@@ -115,31 +115,31 @@ function will do:
 ><UL
 ><LI
 ><P
->Register global meta information. Any meta information set before the creation of the first entrypoint
-will be inherited by all entrypoints.</P
+>Register global meta information. Any meta information set before the creation of the first entry point
+will be inherited by all entry points.</P
 ></LI
 ></UL
 >
-Then, for each entrypoint:
+Then, for each entry point:
 <P
 ></P
 ><OL
 TYPE="1"
 ><LI
 ><P
->Create the plug-in entrypoint by naming it. Any subsequent init-calls apply to the last named
-entrypoint.
+>Create the plug-in entry point by naming it. Any subsequent init-calls apply to the last named
+entry point.
 </P
 ></LI
 ><LI
 ><P
->Initialize the entrypoint's inputs. This is the most important activity, if a plug-in requires input
+>Initialize the entry point's inputs. This is the most important activity, if a plug-in requires input
 data it must say so by registering inputs.</P
 ></LI
 ><LI
 ><P
 >Set meta information. This includes the plug-in's name, who wrote it, copyright, and various help
-and other descriptive texts. All of these are entierly optional, but to make the plug-in accessible for
+and other descriptive texts. All of these are entirely optional, but to make the plug-in accessible for
 end users it's a good idea to provide as much meta information as possible.</P
 ></LI
 ><LI
@@ -158,7 +158,7 @@ call when the plug-in's output value is needed.
 >&#13;The <TT
 CLASS="function"
 >init()</TT
-> does not recieve any arguments, and does return any value to the engine. All interaction is
+> does not receive any arguments, and does return any value to the engine. All interaction is
 done by calling functions in the init group. Calling functions in other groups has no effect, since the
 plug-in has not yet been instantiated (into a module) when <TT
 CLASS="function"
@@ -263,7 +263,7 @@ NAME="api-init"
 setting the function pointer the engine is to use as the plug-in's <TT
 CLASS="function"
 >compute()</TT
-> entrypoint.</P
+> entry point.</P
 ></LI
 ><LI
 ><P
@@ -516,7 +516,7 @@ This function registers <SPAN
 CLASS="QUOTE"
 >"meta data"</SPAN
 > about the plug-in, using a simple string-based approach.
-Meta data is collected into categories, and categories look like path names in a filesystem (for instance
+Meta data is collected into categories, and categories look like path names in a file system (for instance
 <SPAN
 CLASS="QUOTE"
 >"desc/purpose"</SPAN

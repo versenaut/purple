@@ -83,7 +83,7 @@ NAME="AEN284"
 >Needs and Possibilities</A
 ></H2
 ><P
->&#13;There are at least three different communication requirements between the engine and front-end clients. There must be:
+>&#13;There are at least four different communication requirements between the engine and front-end clients. There must be:
 <P
 ></P
 ><UL
@@ -91,6 +91,11 @@ NAME="AEN284"
 ><P
 >A way for the user interface to learn about which plug-ins are available in the engine, and
 to get meta-data describing each.</P
+></LI
+><LI
+><P
+>A way for a client to learn about which graphs have been created, so it can let a user select
+which graph to work with (assuming the user wishes to continue working on an existing graph).</P
 ></LI
 ><LI
 ><P
@@ -146,7 +151,7 @@ mapping becomes:
 <DIV
 CLASS="table"
 ><A
-NAME="AEN309"
+NAME="AEN311"
 ></A
 ><P
 ><B
@@ -189,6 +194,19 @@ VALIGN="MIDDLE"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><A
+HREF="comms.html#comms-graph-dir"
+>Graph Directory</A
+></TD
+><TD
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+>Text Buffer</TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><A
 HREF="comms.html#comms-methods"
 >Graph Editing</A
 ></TD
@@ -219,6 +237,14 @@ VALIGN="MIDDLE"
 >&#13;Method calls, as noted above, only exist in the context of an object node, which of course begs the question:
 which node is it? The answer is simple: it's the Purple engine client's avatar that exports the method interface for
 graph editing.
+</P
+><P
+>&#13;The two first text node usages, for plug-in and graph descriptions, reside in different buffers of a single text
+node created by the Purple engine and linked to from its avatar. This text node is called the <I
+CLASS="emphasis"
+>meta</I
+>
+text node.
 </P
 ></DIV
 ><DIV
@@ -264,7 +290,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN338"
+NAME="AEN346"
 >An XML Document Type for Plug-in Descriptions</A
 ></H3
 ><P
@@ -274,7 +300,7 @@ and (possibly) namespace prefixes.
 ><DIV
 CLASS="example"
 ><A
-NAME="AEN341"
+NAME="AEN349"
 ></A
 ><P
 ><B
@@ -290,7 +316,7 @@ WIDTH="100%"
 ><TD
 ><PRE
 CLASS="programlisting"
->&#60;plugin name="test1"&#62;
+>&#60;plugin id="7" name="test1"&#62;
 &#60;/plugin&#62;
 </PRE
 ></TD
@@ -322,8 +348,17 @@ VALIGN="TOP"
 ><P
 >The <SPAN
 CLASS="symbol"
+>id</SPAN
+> and <SPAN
+CLASS="symbol"
 >name</SPAN
-> attribute is required, and no two plug-ins can have the same name.</P
+> attributes are always present, and their values will
+be unique for all plug-ins. The numerical <SPAN
+CLASS="symbol"
+>id</SPAN
+> value is used when refering to the plug-in when
+e.g. instantiating it, whereas the name is mainly for building user interfaces.
+</P
 ></TD
 ></TR
 ></TABLE
@@ -333,8 +368,8 @@ Such a plug-in might seem pointless, but since there is no telling what the plug
 CLASS="emphasis"
 >does</I
 >,
-that is not at all true. This plug-in might emit a three-million polygon representation of the Uni-Verse logo
-and just suffer from poor naming.
+that is not at all true. This plug-in might emit a gorgeous three-million polygon representation of the Uni-Verse
+logo and just suffer from poor naming.
 </P
 ></DIV
 ><DIV
@@ -355,7 +390,7 @@ WIDTH="100%"
 ><TD
 ><PRE
 CLASS="programlisting"
->&#60;plugin name="hello"&#62;
+>&#60;plugin id="11" name="hello"&#62;
  &#60;meta&#62;
   &#60;field category="author"&#62;J. Random Hacker&#60;/field&#62;
   &#60;field category="help/desc"&#62;Outputs the constant string "Hello, World".&#60;/field&#62;
@@ -398,7 +433,7 @@ meta fields; this has yet to be determined.
 ><DIV
 CLASS="example"
 ><A
-NAME="AEN362"
+NAME="AEN372"
 ></A
 ><P
 ><B
@@ -414,7 +449,7 @@ WIDTH="100%"
 ><TD
 ><PRE
 CLASS="programlisting"
->&#60;plugin name="test3"&#62;
+>&#60;plugin id="17" name="test3"&#62;
  &#60;inputs&#62;
   &#60;input type="real32"/&#62;
  &#60;/inputs&#62;
@@ -463,7 +498,7 @@ WIDTH="100%"
 ><TD
 ><PRE
 CLASS="programlisting"
->&#60;plugin name="multiply"&#62;
+>&#60;plugin id="42" name="multiply"&#62;
  &#60;inputs&#62;
   &#60;input type="real32"&#62;
    &#60;name&#62;a&#60;/name&#62;
@@ -495,7 +530,7 @@ CLASS="symbol"
 >name</SPAN
 > element is used to name the inputs. Names are not interpreted at all by
 the Purple architecture, so they need not be unique although it is highly recommended as colliding names are quite
-to confuse end users.
+likely to confuse end users.
 </P
 ></LI
 ><LI
@@ -517,7 +552,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN382"
+NAME="AEN392"
 >Plug-in Descriptions: Goals and Requirements</A
 ></H3
 ><P
@@ -566,6 +601,21 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
+NAME="comms-graph-dir"
+>Details: Graph Directory</A
+></H2
+><P
+>&#13;This section describes the directory of existing graphs that is maintained by the Purple engine. This directory
+is needed, because (as is shown below) graphs reside in various places that are chosen by clients. A central
+location that contains an up to date listing of which graphs exist is necessary to allow interface clients to
+present e.g. a list of graphs from which a user can pick one to edit.
+</P
+></DIV
+><DIV
+CLASS="sect2"
+><H2
+CLASS="sect2"
+><A
 NAME="comms-methods"
 >Details: Graph Editing Method API</A
 ></H2
@@ -593,7 +643,7 @@ CLASS="QUOTE"
 </P
 ><P
 >&#13;By using method calls in the ui-to-engine direction and shared text in the other direction, we move the most
-complexcity (that of generating proper descriptions of available plug-ins and graphs) into the engine, and
+complexity (that of generating proper descriptions of available plug-ins and graphs) into the engine, and
 don't run the risk of having more than one Verse client trying to edit the same text node at the same time.
 </P
 ><DIV
@@ -601,7 +651,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN406"
+NAME="AEN419"
 >Creating/Destroying Graphs</A
 ></H3
 ><P
@@ -610,7 +660,12 @@ Graphs serve as <SPAN
 CLASS="QUOTE"
 >"projects"</SPAN
 > when working with Purple; each graph is owned by a single user. A graph is
-self-contained; modules in a graph can not exchange information directly with modules in different graphs.
+self-contained; modules in a graph can not exchange information directly with modules in different graphs. All
+the methods for working with graphs belong to the <TT
+CLASS="literal"
+>PurpleGraph</TT
+> method group, which exists in the
+Purple engine's avatar object node.
 <P
 ></P
 ><DIV
@@ -620,7 +675,7 @@ CLASS="variablelist"
 ><DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN413"
+NAME="AEN427"
 ></A
 ><P
 ></P
@@ -630,9 +685,19 @@ NAME="AEN413"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->graph_create</TT
+>create</TT
 ></CODE
->(string <TT
+>(VNodeID <TT
+CLASS="parameter"
+><I
+>node</I
+></TT
+>, uint16 <TT
+CLASS="parameter"
+><I
+>buffer</I
+></TT
+>, string <TT
 CLASS="parameter"
 ><I
 >name</I
@@ -645,13 +710,15 @@ CLASS="parameter"
 ></DT
 ><DD
 ><P
->Create a new graph with the given name.</P
+>Create a new graph with the given name. The name must be unique. The node and buffer parameters tell
+the Purple engine where the description of the graph will reside. This should be an text node and buffer,
+and its contents will be completely overwritten by the Purple engine.</P
 ></DD
 ><DT
 ><DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN423"
+NAME="AEN441"
 ></A
 ><P
 ></P
@@ -661,7 +728,7 @@ NAME="AEN423"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->graph_destroy</TT
+>destroy</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -676,13 +743,14 @@ CLASS="parameter"
 ></DT
 ><DD
 ><P
->Destroy the indicated graph.</P
+>Destroy the indicated graph. Since Purple does not own the storage space for the description, as
+specified when creating it, nothing happens to the description.</P
 ></DD
 ><DT
 ><DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN433"
+NAME="AEN451"
 ></A
 ><P
 ></P
@@ -692,7 +760,7 @@ NAME="AEN433"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->graph_rename</TT
+>rename</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -728,7 +796,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN444"
+NAME="AEN462"
 >Creating/Destroying Modules</A
 ></H3
 ><P
@@ -742,7 +810,7 @@ CLASS="variablelist"
 ><DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN450"
+NAME="AEN468"
 ></A
 ><P
 ></P
@@ -752,7 +820,7 @@ NAME="AEN450"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->module_create</TT
+>mod_create</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -781,7 +849,7 @@ representation of the Purple state, see below for details.
 ><DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN462"
+NAME="AEN480"
 ></A
 ><P
 ></P
@@ -791,7 +859,7 @@ NAME="AEN462"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->module_destroy</TT
+>mod_destroy</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -827,7 +895,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN472"
+NAME="AEN490"
 >Setting Module Inputs</A
 ></H3
 ><P
@@ -847,7 +915,7 @@ CLASS="variablelist"
 ><DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN479"
+NAME="AEN497"
 ></A
 ><P
 ></P
@@ -857,7 +925,7 @@ NAME="AEN479"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->module_input_set_boolean</TT
+>mod_input_set_boolean</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -888,7 +956,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN491"
+NAME="AEN509"
 ></A
 ><P
 ></P
@@ -898,7 +966,7 @@ NAME="AEN491"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->module_input_set_int32</TT
+>mod_input_set_int32</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -929,7 +997,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN503"
+NAME="AEN521"
 ></A
 ><P
 ></P
@@ -939,7 +1007,7 @@ NAME="AEN503"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->module_input_set_uint32</TT
+>mod_input_set_uint32</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -970,7 +1038,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN515"
+NAME="AEN533"
 ></A
 ><P
 ></P
@@ -980,7 +1048,7 @@ NAME="AEN515"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->module_input_set_real32</TT
+>mod_input_set_real32</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -1011,7 +1079,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN527"
+NAME="AEN545"
 ></A
 ><P
 ></P
@@ -1021,7 +1089,7 @@ NAME="AEN527"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->module_input_set_real32_vec2</TT
+>mod_input_set_real32_vec2</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -1052,7 +1120,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN539"
+NAME="AEN557"
 ></A
 ><P
 ></P
@@ -1062,7 +1130,7 @@ NAME="AEN539"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->module_input_set_real32_vec3</TT
+>mod_input_set_real32_vec3</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -1093,7 +1161,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN551"
+NAME="AEN569"
 ></A
 ><P
 ></P
@@ -1103,7 +1171,7 @@ NAME="AEN551"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->module_input_set_real32_vec4</TT
+>mod_input_set_real32_vec4</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -1134,7 +1202,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN563"
+NAME="AEN581"
 ></A
 ><P
 ></P
@@ -1144,7 +1212,7 @@ NAME="AEN563"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->module_input_set_real32_mat16</TT
+>mod_input_set_real32_mat16</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -1175,7 +1243,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN575"
+NAME="AEN593"
 ></A
 ><P
 ></P
@@ -1185,7 +1253,7 @@ NAME="AEN575"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->module_input_set_real64</TT
+>mod_input_set_real64</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -1216,7 +1284,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN587"
+NAME="AEN605"
 ></A
 ><P
 ></P
@@ -1226,7 +1294,7 @@ NAME="AEN587"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->module_input_set_real64_vec2</TT
+>mod_input_set_real64_vec2</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -1257,7 +1325,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN599"
+NAME="AEN617"
 ></A
 ><P
 ></P
@@ -1267,7 +1335,7 @@ NAME="AEN599"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->module_input_set_real64_vec3</TT
+>mod_input_set_real64_vec3</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -1298,7 +1366,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN611"
+NAME="AEN629"
 ></A
 ><P
 ></P
@@ -1308,7 +1376,7 @@ NAME="AEN611"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->module_input_set_real64_vec4</TT
+>mod_input_set_real64_vec4</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -1339,7 +1407,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN623"
+NAME="AEN641"
 ></A
 ><P
 ></P
@@ -1349,7 +1417,7 @@ NAME="AEN623"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->module_input_set_real64_mat16</TT
+>mod_input_set_real64_mat16</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -1380,7 +1448,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN635"
+NAME="AEN653"
 ></A
 ><P
 ></P
@@ -1390,7 +1458,7 @@ NAME="AEN635"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->module_input_set_string</TT
+>mod_input_set_string</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -1421,7 +1489,7 @@ CLASS="parameter"
 <DIV
 CLASS="funcsynopsis"
 ><A
-NAME="AEN647"
+NAME="AEN665"
 ></A
 ><P
 ></P
@@ -1431,7 +1499,7 @@ NAME="AEN647"
 CLASS="FUNCDEF"
 ><TT
 CLASS="function"
->module_input_set_module</TT
+>mod_input_set_module</TT
 ></CODE
 >(uint32 <TT
 CLASS="parameter"
@@ -1516,7 +1584,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN670"
+NAME="AEN688"
 >An XML Document Type for Graph Descriptions</A
 ></H3
 ><P
@@ -1524,7 +1592,7 @@ NAME="AEN670"
 <DIV
 CLASS="example"
 ><A
-NAME="AEN673"
+NAME="AEN691"
 ></A
 ><P
 ><B
@@ -1538,7 +1606,7 @@ WIDTH="100%"
 ><TD
 ><PRE
 CLASS="programlisting"
->&#60;graph id="0"&#62;
+>&#60;graph id="0" name="foo"&#62;
 &#60;/graph&#62;
 </PRE
 ></TD
@@ -1549,13 +1617,17 @@ CLASS="programlisting"
 </P
 ><P
 >&#13;This description establishes that there exists a graph, known by the numerical ID of zero. The graph is empty, i.e.
-it contains no modules, and was not given a name when it was created.
+it contains no modules, and is named <TT
+CLASS="literal"
+>foo</TT
+>. Graphs are always named, and names are always
+unique for the instance of the Purple engine.
 </P
 ><P
 >&#13;<DIV
 CLASS="example"
 ><A
-NAME="AEN678"
+NAME="AEN697"
 ></A
 ><P
 ><B
@@ -1603,7 +1675,7 @@ within the graph. Specifying a non-existing plug-in name is legal.
 ><DIV
 CLASS="example"
 ><A
-NAME="AEN687"
+NAME="AEN706"
 ></A
 ><P
 ><B
@@ -1653,7 +1725,7 @@ refers <I
 CLASS="emphasis"
 >only</I
 > to the type of the value contained in the element; it has a very lose coupling
-to the types of the inputs that are being tageted. Purple does automatic type-conversion of values whenever possible.
+to the types of the inputs that are being targeted. Purple does automatic type-conversion of values whenever possible.
 A typical end user interface will use information from the plug-in descriptions to ensure that the types will
 match in practice, but this is not a requirement of the underlying basic technology.
 </P
@@ -1661,7 +1733,7 @@ match in practice, but this is not a requirement of the underlying basic technol
 ><DIV
 CLASS="example"
 ><A
-NAME="AEN698"
+NAME="AEN717"
 ></A
 ><P
 ><B
