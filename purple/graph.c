@@ -364,9 +364,7 @@ Graph * graph_create_resume(const XmlNode *gdesc, const unsigned int *pmap)
 	*/
 	printf("We can now create the graph '%s', in node %lu, buffer %lu\n", name, (unsigned long) node->node.id, bufid);
 	g = graph_create(gid, node->node.id, bufid, name);
-	printf("Graph created, time to populate it with happy modules\n");
 	mods = xmlnode_nodeset_get(graph, XMLNODE_AXIS_CHILD, XMLNODE_NAME("module"), XMLNODE_DONE);
-	printf(" modules:\n");
 	/* First create all required modules. */
 	for(iter = mods; iter != NULL; iter = list_next(iter))
 	{
@@ -388,7 +386,6 @@ Graph * graph_create_resume(const XmlNode *gdesc, const unsigned int *pmap)
 			LOG_ERR(("Couldn't parse numerical plug-in ID from '%s'", tmp));
 			continue;
 		}
-		printf("  %lu is %lu (maps to %u)\n", id, pi, pmap[pi]);
 		module_create(id, gid, pmap[pi]);
 	}
 	/* Now that the modules exist, go through again and set inputs. This is best done
@@ -422,7 +419,7 @@ Graph * graph_create_resume(const XmlNode *gdesc, const unsigned int *pmap)
 			tname = xmlnode_eval_single(set, "@type");
 			type  = value_type_from_name(tname);
 			value = xmlnode_eval_single(set, "");
-			printf("  set input %lu.%s to %s, type %d\n", id, xmlnode_eval_single(set, "@input"), xmlnode_eval_single(set, ""), type);
+/*			printf("  set input %lu.%s to %s, type %d\n", id, xmlnode_eval_single(set, "@input"), xmlnode_eval_single(set, ""), type);*/
 			module_input_set_from_string(g, id, index, type, value);
 		}
 		list_destroy(sets);
@@ -438,6 +435,7 @@ Graph * graph_create_resume(const XmlNode *gdesc, const unsigned int *pmap)
 			const XmlNode	*out = list_data(siter);
 			uint32		label;
 
+			printf("parsing out\n");
 			if((tmp = xmlnode_eval_single(out, "@label")) != NULL)
 			{
 				label = strtoul(tmp, &eptr, 10);
@@ -446,6 +444,7 @@ Graph * graph_create_resume(const XmlNode *gdesc, const unsigned int *pmap)
 					LOG_ERR(("Couldn't parse numerical label from '%s'", tmp));
 					continue;
 				}
+				printf(" label %u\n", label);
 				if((tmp = xmlnode_eval_single(out, "@name")) != NULL)
 				{
 					OResume	*r;
@@ -455,6 +454,7 @@ Graph * graph_create_resume(const XmlNode *gdesc, const unsigned int *pmap)
 					stu_strncpy(r->name, sizeof r->name, tmp);
 					
 					m->out.resume = list_prepend(m->out.resume, r);
+					printf("  stored, name '%s'\n", r->name);
 				}
 			}
 			else
@@ -580,6 +580,7 @@ static int node_create_check_resume(Module *m, Node *node, VNodeType type, uint3
 					mem_free(res);
 					list_destroy(iter);
 					LOG_MSG(("Node resumed to %u", node->id));
+					graph_port_output_create_notify(node);
 					return 1;
 				}
 			}
@@ -702,8 +703,7 @@ static void cb_node_output_notify(Node *node, NodeNotifyEvent e, void *user)
 {
 	Module	*m = MODULE_FROM_PORT(((Node *) user)->creator.port);
 
-	printf("name of watched node owned by %s instance: '%s'\n", plugin_name(m->plugin), node->name);
-	printf("  now would be a good time to rebuild XML\n");
+	printf("Got name of watched node owned by %s instance: '%s'\n", plugin_name(m->plugin), node->name);
 	module_describe(m);
 }
 
@@ -865,7 +865,6 @@ static void module_create(unsigned int module_id, uint32 graph_id, uint32 plugin
 		return;
 	}
 	m = memchunk_alloc(graph_info.chunk_module);
-	printf("Module with ID %u created at %p\n", module_id, m);
 	if(m == NULL)
 	{
 		LOG_WARN(("Module allocation failed in graph %u, plug-in %u", graph_id, plugin_id));
