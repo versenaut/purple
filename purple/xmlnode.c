@@ -10,6 +10,7 @@
 #include "dynstr.h"
 #include "list.h"
 #include "log.h"
+#include "mem.h"
 
 #include "xmlnode.h"
 
@@ -148,23 +149,69 @@ static const char * token_get(const char *buffer, DynStr **token, int skip_space
 
 /* ----------------------------------------------------------------------------------------- */
 
-static XmlNode * node_new(const char *elem)
+static XmlNode * node_new(const char *token)
 {
+	size_t	elen;
+
+	for(elen = 0; token[elen] && !isspace(token[elen]); elen++)
+		;
+	if(elen > 0)
+	{
+		XmlNode	*node;
+
+		printf("element name length from '%s' is %u\n", token, elen);
+		if((node = mem_alloc(sizeof *node + elen + 1)) != NULL)
+		{
+			char	*put = (char *) (node + 1);
+			int	i;
+
+			for(i = 0; i < elen; i++)
+				*put++ = token[i];
+			*put = '\0';
+			node->element = (const char *) (node + 1);
+			node->text     = NULL;
+			node->attribs  = NULL;
+			node->children = NULL;
+			printf("created element '%s'\n", node->element);
+			return node;
+		}
+	}
+	return NULL;
 }
 
 static int node_closes(const XmlNode *parent, const char *tag)
 {
+	const char	*src;
+
+	if(parent == NULL || tag == NULL || *tag == '\0' || *tag != '/')
+		return 0;
+	src = parent->element;
+	tag++;		/* Skip the slash. */
+	printf("close-testing: '%s' vs '%s'\n", src, tag);
+	for(; *src && *tag && *src == *tag; src++, tag++)
+	{
+		if(isspace(*tag))
+			return 0;
+	}
+	return 1;
 }
 
-static XmlNode * build_tree(XmlNode *parent, const char *buffer)
+static void node_child_add(XmlNode *parent, XmlNode *child)
+{
+	if(parent == NULL || child == NULL)
+		return;
+	parent->children = list_append(parent->children, child);
+}
+
+static XmlNode * build_tree(XmlNode *parent, const char **buffer)
 {
 	DynStr	*token = NULL;
 
-	for(; *buffer;)
+	for(; **buffer;)
 	{
 		TokenStatus	st;
 
-		buffer = token_get(buffer, &token, 0, &st);
+		*buffer = token_get(*buffer, &token, 0, &st);
 		if(token != NULL)
 		{
 			if(st == TAG)
@@ -174,15 +221,28 @@ static XmlNode * build_tree(XmlNode *parent, const char *buffer)
 				printf("got tag: '%s'\n", tag);
 				if(tag[0] == '?' || strncmp(tag, "!--", 3) == 0)
 					dynstr_truncate(token, 0);
-				else
+				else if(tag[0] == '/')
 				{
 					if(node_closes(parent, tag))
 					{
 						printf("match!\n");
+						return parent;
 					}
+					LOG_ERR(("Element nesting error in XML source, aborting"));
+					return parent;
 				}
-				dynstr_destroy(token, 1);
-				token = NULL;
+				else
+				{
+					XmlNode	*child = node_new(tag), *subtree;
+					dynstr_destroy(token, 1);
+					token = NULL;
+
+					subtree = build_tree(child, buffer);
+					if(parent != NULL)
+						node_child_add(parent, child);
+					else
+						parent = child;
+				}
 			}
 			else if(st == TEXT)
 			{
@@ -201,7 +261,7 @@ XmlNode * xmlnode_new(const char *buffer)
 {
 	if(buffer == NULL)
 		return NULL;
-	return build_tree(NULL, buffer);
+	return build_tree(NULL, &buffer);
 }
 
 const char * xmlnode_attrib_get(const XmlNode *node, const char *name)
