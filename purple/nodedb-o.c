@@ -26,6 +26,68 @@ void nodedb_o_construct(NodeObject *n)
 	n->method_groups = NULL;
 }
 
+static void cb_copy_link(void *dst, const void *src)
+{
+	NdbOLink	*dl = dst;
+	const NdbOLink	*sl = src;
+
+	memcpy(dl, sl, sizeof *dl);
+}
+
+/* A helper function that initializes a freshly allocated method from a bunch of parameters. Equally
+ * useful in create()-callback and when copying an existing method.
+*/
+static void method_set(NdbOMethod *m, uint16 method_id, const char *name, uint8 param_count,
+		       const VNOParamType *param_type, const char *param_name[])
+{
+	unsigned int	i;
+	char		*put;
+	size_t		size;
+
+	m->id = method_id;
+	stu_strncpy(m->name, sizeof m->name, name);
+
+	size = param_count * (sizeof *m->param_type + sizeof *m->param_name);
+	for(i = 0; i < param_count; i++)
+		size += strlen(param_name[i]) + 1;
+	m->param_type = mem_alloc(size);
+	memcpy(m->param_type, param_type, param_count * sizeof *m->param_type);
+	m->param_name = (char **) (m->param_type + param_count);
+	put = (char *) (m->param_name + param_count);
+	for(i = 0; i < param_count; i++)
+	{
+		m->param_name[i] = put;
+		strcpy(put, param_name[i]);
+		put += strlen(param_name[i]) + 1;
+	}
+}
+
+static void cb_copy_method(void *d, const void *s)
+{
+	const NdbOMethod	*src = s;
+
+	method_set(d, src->id, src->name, src->param_count, src->param_type, (const char **) src->param_name);
+}
+
+static void cb_copy_method_group(void *d, const void *s)
+{
+	const NdbOMethodGroup	*src = s;
+	NdbOMethodGroup		*dst = d;
+
+	dst->id = src->id;
+	strcpy(dst->name, src->name);
+	dst->methods = dynarr_new_copy(src->methods, cb_copy_method);
+}
+
+void nodedb_o_copy(NodeObject *n, const NodeObject *src)
+{
+	memcpy(n->xform, src->xform, sizeof *n->xform);
+	memcpy(n->light, src->light, sizeof *n->light);
+
+	n->links = dynarr_new_copy(src->links, cb_copy_link);
+	n->method_groups = dynarr_new_copy(src->method_groups, cb_copy_method_group);
+}
+
 void nodedb_o_destruct(NodeObject *n)
 {
 	unsigned int	i;
@@ -194,26 +256,7 @@ static void cb_o_method_create(void *user, VNodeID node_id, uint16 group_id, uin
 				g->methods = dynarr_new(sizeof (NdbOMethod), 4);
 			if((m = dynarr_set(g->methods, method_id, NULL)) != NULL)
 			{
-				unsigned int	i;
-				char		*put;
-				size_t		size;
-
-				m->id = method_id;
-				stu_strncpy(m->name, sizeof m->name, name);
-
-				size = param_count * (sizeof *m->param_type + sizeof *m->param_name);
-				for(i = 0; i < param_count; i++)
-					size += strlen(param_name[i]) + 1;
-				m->param_type = mem_alloc(size);
-				memcpy(m->param_type, param_type, param_count * sizeof *m->param_type);
-				m->param_name = (char **) (m->param_type + param_count);
-				put = (char *) (m->param_name + param_count);
-				for(i = 0; i < param_count; i++)
-				{
-					m->param_name[i] = put;
-					strcpy(put, param_name[i]);
-					put += strlen(param_name[i]) + 1;
-				}
+				method_set(m, method_id, name, param_count, param_type, param_name);
 				NOTIFY(n, STRUCTURE);
 			}
 		}
