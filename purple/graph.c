@@ -2,6 +2,7 @@
  * Graph editing module.
 */
 
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -319,6 +320,19 @@ static void module_dep_destroy_warning(Graph *g, Module *m)
 		if(plugin_portset_get_module(m->instance.inputs, i, &lt))
 			module_dep_remove(g, lt, m->id);
 	}
+}
+
+#define	MODULE_FROM_PORT(p)	(Module *) ((char *) (p) - offsetof(Module, out.port))
+
+void graph_port_output_set(PPOutput port, PValueType type, ...)
+{
+	Module	*m = MODULE_FROM_PORT(port);
+	va_list	arg;
+
+	printf("This is module %u\n", m->id);
+	va_start(arg, type);
+	port_set_va(port, type, arg);
+	va_end(arg);
 }
 
 /* ----------------------------------------------------------------------------------------- */

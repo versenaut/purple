@@ -24,3 +24,6 @@ extern void	graph_method_check_created(NodeObject *node);
 
 /* A method call was received, check if it's one of the graph editing calls, and if so take action. */
 extern void	graph_method_receive_call(uint8 id, const void *param);
+
+/* Output API uses this to set the output port. Gives us a chance to notify graph. */
+extern void	graph_port_output_set(PPOutput port, PValueType type, ...);
