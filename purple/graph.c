@@ -161,7 +161,7 @@ void graph_method_send_creates(uint32 avatar, uint8 group_id)
 
 	for(i = 0; i < sizeof method_info / sizeof *method_info; i++)
 	{
-		verse_send_o_method_create(avatar, group_id, -(1 + i), method_info[i].name,
+		verse_send_o_method_create(avatar, group_id, ~0, method_info[i].name,
 					   method_info[i].param_count,
 					   (VNOParamType *) method_info[i].param_type,
 					   (char **) method_info[i].param_name);
