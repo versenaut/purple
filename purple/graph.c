@@ -529,6 +529,7 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 	Graph	*g;
 	Module	*m;
 	DynStr	*desc;
+	uint32	old_link;
 
 	if((g = idset_lookup(graph_info.graphs, graph_id)) == NULL)
 	{
@@ -540,6 +541,11 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 		LOG_WARN(("Attempted to set module input in non-existant module %u.%u", graph_id, module_id));
 		return;
 	}
+
+	/* Remove any existing dependency by this input. */
+	if(plugin_portset_get_module(m->instance.inputs, input_index, &old_link))
+		module_dep_remove(g, old_link, m->id);
+
 	va_start(arg, type);
 	plugin_portset_set_va(m->instance.inputs, input_index, type, arg);
 	va_end(arg);
