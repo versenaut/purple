@@ -81,7 +81,8 @@ static const char * token_get(const char *buffer, DynStr **token, int skip_space
 		char	here, last = 0;
 		int	in_str = 0;
 
-		d = dynstr_new_sized(32);
+		if((d = *token) == NULL)
+			d = dynstr_new_sized(32);
 		for(buffer++; *buffer; last = here)
 		{
 			here = *buffer++;
@@ -118,7 +119,8 @@ static const char * token_get(const char *buffer, DynStr **token, int skip_space
 	}
 	else
 	{
-		d = dynstr_new_sized(16);
+		if((d = *token) == NULL)
+			d = dynstr_new_sized(16);
 		for(; *buffer;)
 		{
 			char	here = *buffer;
@@ -144,21 +146,62 @@ static const char * token_get(const char *buffer, DynStr **token, int skip_space
 	return NULL;
 }
 
-XmlNode * xmlnode_new(const char *buffer)
-{
-	DynStr		*token = NULL;
-	TokenStatus	status;
+/* ----------------------------------------------------------------------------------------- */
 
-	if(buffer == NULL)
-		return NULL;
+static XmlNode * node_new(const char *elem)
+{
+}
+
+static int node_closes(const XmlNode *parent, const char *tag)
+{
+}
+
+static XmlNode * build_tree(XmlNode *parent, const char *buffer)
+{
+	DynStr	*token = NULL;
+
 	for(; *buffer;)
 	{
-		buffer = token_get(buffer, &token, 1, &status);
+		TokenStatus	st;
+
+		buffer = token_get(buffer, &token, 0, &st);
 		if(token != NULL)
-			printf("got token: '%s'\n", dynstr_string(token));
-		dynstr_destroy(token, 1);
+		{
+			if(st == TAG)
+			{
+				const char	*tag = dynstr_string(token);
+
+				printf("got tag: '%s'\n", tag);
+				if(tag[0] == '?' || strncmp(tag, "!--", 3) == 0)
+					dynstr_truncate(token, 0);
+				else
+				{
+					if(node_closes(parent, tag))
+					{
+						printf("match!\n");
+					}
+				}
+				dynstr_destroy(token, 1);
+				token = NULL;
+			}
+			else if(st == TEXT)
+			{
+				printf("got text: '%s'\n", dynstr_string(token));
+				dynstr_destroy(token, 1);
+				token = NULL;
+			}
+		}
+		else
+			break;
 	}
 	return NULL;
+}
+
+XmlNode * xmlnode_new(const char *buffer)
+{
+	if(buffer == NULL)
+		return NULL;
+	return build_tree(NULL, buffer);
 }
 
 const char * xmlnode_attrib_get(const XmlNode *node, const char *name)
