@@ -366,7 +366,7 @@ VNMFragmentType p_node_m_fragment_get_type(const PNMFragment *fragment)
 
 PNMFragment * p_node_m_fragment_create_color(PONode *node, real64 red, real64 green, real64 blue)
 {
-	return nodedb_m_fragment_create_color(node, red, green, blue);
+	return nodedb_m_fragment_create_color((NodeMaterial *) node, red, green, blue);
 }
 
 PNMFragment * p_node_m_fragment_create_light(PONode *node, VNMLightType type, real64 normal_falloff,
@@ -384,6 +384,12 @@ PNMFragment * p_node_m_fragment_create_reflection(PONode *node, real64 normal_fa
 PNMFragment * p_node_m_fragment_create_transparency(PONode *node, real64 normal_falloff, real64 refraction_index)
 {
 	return nodedb_m_fragment_create_transparency((NodeMaterial *) node, normal_falloff, refraction_index);
+}
+
+PNMFragment * p_node_m_fragment_create_volume(PONode *node,  real64 diffusion, real64 col_r, real64 col_g, real64 col_b,
+							const PNMFragment *color)
+{
+	return nodedb_m_fragment_create_volume((NodeMaterial *) node, diffusion, col_r, col_g, col_b, color);
 }
 
 PNMFragment * p_node_m_fragment_create_blender(PONode *node, VNMBlendType type,
