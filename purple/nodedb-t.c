@@ -2,6 +2,9 @@
  *
 */
 
+#include <stdio.h>
+#include <string.h>
+
 #include "verse.h"
 
 #include "dynarr.h"
@@ -37,6 +40,17 @@ NdbTBuffer * nodedb_t_buffer_lookup(const NodeText *node, const char *name)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static void cb_t_set_language(void *user, VNodeID node_id, const char *language)
+{
+	NodeText	*n;
+
+	if((n = nodedb_lookup_text(node_id)) != NULL)
+	{
+		stu_strncpy(n->language, sizeof n->language, language);
+		NOTIFY(n, DATA);
+	}
+}
+
 static void cb_t_buffer_create(void *user, VNodeID node_id, uint16 buffer_id, uint16 index, const char *name)
 {
 	NodeText	*n;
@@ -59,5 +73,6 @@ static void cb_t_buffer_create(void *user, VNodeID node_id, uint16 buffer_id, ui
 
 void nodedb_t_register_callbacks(void)
 {
+	verse_callback_set(verse_send_t_set_language,	cb_t_set_language, NULL);
 	verse_callback_set(verse_send_t_buffer_create,	cb_t_buffer_create, NULL);
 }
