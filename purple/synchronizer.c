@@ -162,7 +162,7 @@ static int sync_object(NodeObject *n, const NodeObject *target)
 		NdbOLinkLocal	*link = list_data(iter);
 
 		next = list_next(iter);
-		if(link->link->id == ~0)
+		if(link->link->id == (uint16) ~0)
 		{
 /*			printf("can't sync link '%s', target not known yet\n", link->label);*/
 			sync = 0;
@@ -336,7 +336,71 @@ static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 
 static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 {
-	return 0;
+	unsigned int	i, sync = 1;
+	NdbMFragment	*f;
+
+	if((unsigned int) 12 < 0)	printf("apa\n");
+
+	for(i = 0; (f = dynarr_index(n->fragments, i)) != NULL; i++)
+	{
+		if(f->id == (VNMFragmentID) ~0)
+			continue;
+		printf("There's a source fragment type %d, can we find it in destination?\n", f->type);
+		if(!nodedb_m_fragment_find_equal(target, n, f))
+		{
+			VMatFrag	tmp;
+
+			printf("no, attempting create\n");
+			switch(f->type)
+			{
+			case VN_M_FT_COLOR:
+				printf("it's a color, this'll be simple\n");
+				verse_send_m_fragment_create(target->node.id, ~0, VN_M_FT_COLOR, &f->frag.color);
+				break;
+			case VN_M_FT_BLENDER:
+				{
+					printf("resolving blender fragment deps\n");
+					if(nodedb_m_fragment_resolve(&tmp.blender.data_a, target, n, f->frag.blender.data_a)
+					   && nodedb_m_fragment_resolve(&tmp.blender.data_b, target, n, f->frag.blender.data_b)
+					   && nodedb_m_fragment_resolve(&tmp.blender.control, target, n, f->frag.blender.control))
+					{
+						printf("got'em, sending create\n");
+						tmp.blender.type = f->frag.blender.type;
+						verse_send_m_fragment_create(target->node.id, ~0, VN_M_FT_BLENDER, &tmp);
+					}
+				}
+				break;
+			case VN_M_FT_MATRIX:
+				{
+					printf("resolving matrix fragment deps\n");
+					if(nodedb_m_fragment_resolve(&tmp.matrix.data, target, n, f->frag.matrix.data))
+					{
+						printf(" got it, sending create\n");
+						memcpy(tmp.matrix.matrix, f->frag.matrix.matrix, sizeof tmp.matrix.matrix);
+						verse_send_m_fragment_create(target->node.id, ~0, VN_M_FT_MATRIX, &tmp);
+					}
+				}
+				break;
+			case VN_M_FT_OUTPUT:
+				{
+					printf("resolving output fragment deps\n");
+					if(nodedb_m_fragment_resolve(&tmp.output.front, target, n, f->frag.output.front) &&
+					   nodedb_m_fragment_resolve(&tmp.output.back,  target, n, f->frag.output.back))
+					{
+						strcpy(tmp.output.label, f->frag.output.label);
+						verse_send_m_fragment_create(target->node.id, ~0, VN_M_FT_OUTPUT, &tmp);
+					}
+				}
+				break;
+			default:
+				printf("Can't sync material fragment type %d\n", f->type);
+			}
+			sync = 0;
+		}
+		else
+			printf(" yes yes\n");
+	}
+	return sync;
 }
 
 /* ----------------------------------------------------------------------------------------- */
