@@ -29,7 +29,7 @@ typedef struct
 	VNodeID	node;
 	uint16	buffer;
 
-	uint	xml_start, xml_length;
+	uint32	index_start, index_length;
 } Graph;
 
 static const VNOParamType	create_type[]   = { VN_O_METHOD_PTYPE_NODE, VN_O_METHOD_PTYPE_LAYER,
@@ -106,8 +106,8 @@ static void graph_index_renumber(void)
 	{
 		if((g = dynarr_index(graph_info.graphs, i)) == NULL || g->name[0] == '\0')
 			continue;
-		g->xml_start = pos;
-		pos += g->xml_length;
+		g->index_start = pos;
+		pos += g->index_length;
 	}
 }
 
@@ -138,13 +138,13 @@ static void graph_create(VNodeID node_id, uint16 buffer_id, const char *name)
 		gg = dynarr_index(graph_info.graphs, i);
 		if(gg == NULL || gg->name[0] == '\0')
 			continue;
-		pos += gg->xml_length;
+		pos += gg->index_length;
 	}
 	gg = dynarr_index(graph_info.graphs, id);
-	gg->xml_start = pos;
+	gg->index_start = pos;
 	graph_index_build(id, gg, xml, sizeof xml);
-	gg->xml_length = strlen(xml);
-	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, gg->xml_start, 0, xml);
+	gg->index_length = strlen(xml);
+	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, gg->index_start, 0, xml);
 	hash_insert(graph_info.graphs_name, gg->name, gg);
 	verse_send_t_text_set(gg->node, gg->buffer, 0, ~0, NULL);
 }
@@ -170,8 +170,8 @@ static void graph_rename(uint32 id, const char *name)
 	stu_strncpy(g->name, sizeof g->name, name);
 	hash_insert(graph_info.graphs_name, g->name, g);
 	graph_index_build(id, g, xml, sizeof xml);
-	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, g->xml_start, g->xml_length, xml);
-	g->xml_length = strlen(xml);
+	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, g->index_start, g->index_length, xml);
+	g->index_length = strlen(xml);
 	graph_index_renumber();
 }
 
@@ -187,7 +187,7 @@ static void graph_destroy(uint32 id)
 	g->name[0] = '\0';
 	graph_info.free_ids = list_prepend(graph_info.free_ids, (void *) id);
 	hash_remove(graph_info.graphs_name, g->name);
-	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, g->xml_start, g->xml_length, NULL);
+	verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, g->index_start, g->index_length, NULL);
 	graph_index_renumber();
 }
 
