@@ -39,6 +39,9 @@ extern NdbMFragment *	nodedb_m_fragment_create_color(NodeMaterial *node, real64 
 extern NdbMFragment *	nodedb_m_fragment_create_light(NodeMaterial *node, VNMLightType type,
 						       real64 normal_falloff, const Node *brdf,
 						       const char *brdf_r, const char *brdf_g, const char *brdf_b);
+extern NdbMFragment *	nodedb_m_fragment_create_blender(NodeMaterial *node, VNMBlendType type,
+						const PNMFragment *data_a, const PNMFragment *data_b, const PNMFragment *ctrl);
+extern NdbMFragment *	nodedb_m_fragment_create_matrix(NodeMaterial *node, const real64 *matrix, const PNMFragment *data);
 extern NdbMFragment *	nodedb_m_fragment_create_output(NodeMaterial *node, const char *label,
 							const NdbMFragment *front, const NdbMFragment *back);
 
