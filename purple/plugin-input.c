@@ -13,6 +13,7 @@
 
 #include "dynarr.h"
 #include "list.h"
+#include "plugins.h"
 #include "textbuf.h"
 #include "nodedb.h"
 
@@ -35,8 +36,10 @@ typedef struct
 */
 static void cb_notify(Node *node, NodeNotifyEvent ev, void *user)
 {
-	printf("Notification in input, node at %p\n", node);
-/*	p_output_node(node);*/
+	State	*state = user;
+
+	printf("node-input: Notification in input, node at %p\n", node);
+	p_output_node(state->output, node);
 }
 
 /* Called when our solitary input changes. Look up the named node,
@@ -93,10 +96,14 @@ static void dtor(void *state_typeless)
 /* This works just as a "real" (library-based) plug-in's init() function. */
 void plugin_input_init(void)
 {
+	api_init_begin(NULL);	/* Normal plug-in init()s don't do this! */
+
 	p_init_create("node-input");
 	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_meta("desc/purpose", "Built-in plug-in, outputs the single node whose name is given");
 	p_init_meta("author", "Emil Brink");
 	p_init_state(sizeof (State), ctor, dtor);
 	p_init_compute(compute);
+
+	api_init_end();
 }
