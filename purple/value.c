@@ -150,7 +150,7 @@ static int do_set(PValue *v, PValueType type, va_list arg)
 	{
 	case P_VALUE_BOOLEAN:
 		v->v.vboolean = (boolean) va_arg(arg, int);
-		return 0;
+		return 1;
 	case P_VALUE_INT32:
 		v->v.vint32 = (int32) va_arg(arg, int32);
 		return 1;
@@ -336,7 +336,7 @@ static boolean get_as_boolean(const PValue *in, boolean *out)
 	else IF_SET(in, REAL32_VEC4)
 		*out = vec_real32_vec4_magnitude(in->v.vreal32_vec4) > 0.0;
 	else IF_SET(in, STRING)
-		*out = strcmp(in->v.vstring, "TRUE") == 0;
+		*out = strcmp(in->v.vstring, "true") == 0;
 	else
 		return FALSE;
 	return TRUE;
@@ -628,7 +628,7 @@ const char * value_as_string(const PValue *v, char *buf, size_t buf_max, size_t 
 	IF_SET(v, STRING)
 		return v->v.vstring;
 	else IF_SET(v, BOOLEAN)
-		put = snprintf(buf, buf_max, "%s", v->v.vboolean ? "TRUE" : "FALSE");
+		put = snprintf(buf, buf_max, "%s", v->v.vboolean ? "true" : "false");
 	else IF_SET(v, INT32)
 		put = snprintf(buf, buf_max, "%d", v->v.vint32);
 	else IF_SET(v, UINT32)
