@@ -233,6 +233,13 @@ static void cb_o_method_group_destroy(void *user, VNodeID node_id, uint16 group_
 	}
 }
 
+static void cb_method_default(unsigned int index, void *element)
+{
+	NdbOMethod	*m = element;
+
+	m->name[0] = '\0';
+}
+
 static void cb_o_method_create(void *user, VNodeID node_id, uint16 group_id, uint8 method_id, const char *name,
 			       uint8 param_count, const VNOParamType *param_type, const char *param_name[])
 {
@@ -247,7 +254,10 @@ static void cb_o_method_create(void *user, VNodeID node_id, uint16 group_id, uin
 			NdbOMethod	*m;
 
 			if(g->methods == NULL)
+			{
 				g->methods = dynarr_new(sizeof (NdbOMethod), 4);
+				dynarr_set_default_func(g->methods, cb_method_default);
+			}
 			if((m = dynarr_set(g->methods, method_id, NULL)) != NULL)
 			{
 				method_set(m, method_id, name, param_count, param_type, param_name);
