@@ -467,7 +467,7 @@ int nodedb_tag_values_equal(const NdbTag *t1, const NdbTag *t2)
 			return 0;
 		if(tag1->vblob.blob == NULL || tag2->vblob.blob == NULL)
 			return 0;
-		return memcmp(tag1->vblob.blob, tag2->vblob.blob, tag1->vblob.size);
+		return memcmp(tag1->vblob.blob, tag2->vblob.blob, tag1->vblob.size) == 0;
 	default:
 		return 0;
 	}
