@@ -156,7 +156,6 @@ static int resume_update(void *data)
 		mem_free(map);
 		return 0;
 	}
-	printf("ready to iterate graphs\n");
 
 	/* 2. For each graph: */
 	/* 2.1. Look up graph node & buffer. */
@@ -164,13 +163,13 @@ static int resume_update(void *data)
 	/* 2.3. Clear text buffer, replace with new description. */
 	gl = xmlnode_nodeset_get(graphs, XMLNODE_AXIS_CHILD, XMLNODE_NAME("graph"), XMLNODE_DONE);
 	for(iter = gl; iter != NULL; iter = list_next(iter))
-	{
 		graph_create_resume(list_data(gl), map);
-	}
 	list_destroy(gl);
 	/* 3. Be happy. */
 	xmlnode_destroy(graphs);
 	mem_free(map);
+
+	client_post_connect();
 
 	return 0;
 }
