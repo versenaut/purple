@@ -480,6 +480,7 @@ const char * value_as_string(const PValue *v, char *buf, size_t buf_max, size_t 
 {
 	int	put;
 
+	/* Check for native string first. */
 	IF_SET(v, STRING)
 		return v->v.vstring;
 	else IF_SET(v, BOOLEAN)
@@ -521,6 +522,9 @@ const char * value_as_string(const PValue *v, char *buf, size_t buf_max, size_t 
 			 v->v.vreal64_mat16[4], v->v.vreal64_mat16[5], v->v.vreal64_mat16[6], v->v.vreal64_mat16[7],
 			 v->v.vreal64_mat16[8], v->v.vreal64_mat16[9], v->v.vreal64_mat16[10], v->v.vreal64_mat16[11],
 			 v->v.vreal64_mat16[12], v->v.vreal64_mat16[13], v->v.vreal64_mat16[14], v->v.vreal64_mat16[15]);
+	else IF_SET(v, MODULE)
+		put = snprintf(buf, buf_max, "%u", v->v.vmodule);
+
 	if(put > 0)
 	{
 		if(used != NULL)
