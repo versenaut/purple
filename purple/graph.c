@@ -15,6 +15,7 @@
 #include "list.h"
 #include "log.h"
 #include "mem.h"
+#include "plugins.h"
 #include "strutil.h"
 #include "textbuf.h"
 
@@ -217,6 +218,18 @@ static void graph_destroy(uint32 id)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static void module_create(uint32 graph_id, uint32 plugin_id)
+{
+	const Plugin	*p;
+
+	if((p = plugin_lookup(plugin_id)) == NULL)
+	{
+	}
+	printf("Adding instance of plugin %u, \"%s\", to graph %u\n", plugin_id, plugin_name(p), graph_id);
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 void send_method_call(int method, const VNOParam *param)
 {
 	const MethodInfo *mi;
@@ -282,6 +295,7 @@ void graph_method_receive_call(uint8 id, const void *param)
 			case CREATE:	graph_create(arg[0].vnode, arg[1].vlayer, arg[2].vstring);	break;
 			case RENAME:	graph_rename(arg[0].vuint32, arg[1].vstring);			break;
 			case DESTROY:	graph_destroy(arg[0].vuint32);					break;
+			case MOD_CREATE: module_create(arg[0].vuint32, arg[1].vuint32);			break;
 			}
 			return;
 		}
