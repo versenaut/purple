@@ -94,10 +94,18 @@ static void cb_m_fragment_create(void *user, VNodeID node_id, VNMFragmentID frag
 
 static void cb_m_fragment_destroy(void *user, VNodeID node_id, VNMFragmentID fragment_id)
 {
-	NodeMaterial	*n;
+	NodeMaterial	*node;
 
-	if((n = (NodeMaterial *) nodedb_lookup_with_type(node_id, V_NT_MATERIAL)) != NULL)
+	if((node = (NodeMaterial *) nodedb_lookup_with_type(node_id, V_NT_MATERIAL)) != NULL)
 	{
+		NdbMFragment	*frag;
+
+		if((frag = dynarr_index(node->fragments, fragment_id)) != NULL)
+		{
+			frag->id   = ~0;
+			frag->type = -1;
+			NOTIFY(node, STRUCTURE);
+		}
 	}
 }
 
