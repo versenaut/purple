@@ -51,39 +51,40 @@ typedef struct
 
 typedef struct
 {
-	uint8		   id;
 	const char	   *name;
 	size_t		   param_count;
 	const VNOParamType param_type[4];	/* Wastes a bit, but simplifies code. */
 	const char	   *param_name[4];
+	const NdbOMethod   *method;		/* Filled-in once created. */ 
 } MethodInfo;
 
 enum { CREATE, DESTROY, MOD_CREATE, MOD_INPUT_CLEAR, MOD_INPUT_SET_REAL32 };
 
 #define	MI_INPUT(lct, uct)	\
-	{ 0, "m_i_set_" #lct, 4, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8, \
-		VN_O_METHOD_PTYPE_ ##uct }, { "graph_id", "plugin_id", "input", "value" } \
+	{ "m_i_set_" #lct, 4, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8, \
+		VN_O_METHOD_PTYPE_ ##uct }, { "graph_id", "plugin_id", "input", "value" }, NULL \
 	}
 
 static MethodInfo method_info[] = {
-	{ 0, "create",  3, { VN_O_METHOD_PTYPE_NODE, VN_O_METHOD_PTYPE_LAYER },
-			{ "node_id", "buffer_id", "name" }},
-	{ 0, "destroy",	1, { VN_O_METHOD_PTYPE_UINT32 }, { "graph_id" } },
+	{ "create",  3, { VN_O_METHOD_PTYPE_NODE, VN_O_METHOD_PTYPE_LAYER },
+			{ "node_id", "buffer_id", "name" }, NULL},
+	{ "destroy",	1, { VN_O_METHOD_PTYPE_UINT32 }, { "graph_id" }, NULL },
 	
-	{ 0, "mod_create",  2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "plugin_id" } },
-	{ 0, "mod_input_clear", 3, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8 },
-			{ "graph_id", "plugin_id", "input" }	},
+	{ "mod_create",  2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "plugin_id" } },
+	{ "mod_input_clear", 3, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8 },
+			{ "graph_id", "plugin_id", "input" }, NULL },
 	MI_INPUT(real32, REAL32),
 /*	{ 0, "mod_destroy", 2, { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32 }, { "graph_id", "module_id" } }
 */};
 
 static struct
 {
+	size_t		to_register;
 	IdSet		*graphs;
 	Hash		*graphs_name;	/* Graphs hashed on name. */
 
 	MemChunk	*chunk_module;
-} graph_info = { 0 };
+} graph_info = { sizeof method_info / sizeof *method_info };
 
 /* ----------------------------------------------------------------------------------------- */
 
@@ -109,20 +110,30 @@ void graph_method_send_creates(uint32 avatar, uint8 group_id)
 
 /* ----------------------------------------------------------------------------------------- */
 
-void graph_method_receive_create(uint8 id, const char *name)
+void graph_method_receive_create(NodeObject *obj)
 {
-	int	i;
+	NdbOMethodGroup	*g;
+	unsigned int	i;
+
+	if(graph_info.to_register == 0)
+		return;
+	if((g = nodedb_o_method_group_lookup(obj, "PurpleGraph")) == NULL)
+		return;
 
 	for(i = 0; i < sizeof method_info / sizeof *method_info; i++)
 	{
-		if(strcmp(method_info[i].name, name) == 0)
+		const NdbOMethod	*m;
+
+		if(method_info[i].method == NULL && (m = nodedb_o_method_lookup(g, method_info[i].name)) != NULL)
 		{
-			printf("Method '%s' has ID %u\n", name, id);
-			method_info[i].id = id;
+			method_info[i].method = m;
+			graph_info.to_register--;
+			if(graph_info.to_register == 0)
+				LOG_MSG(("Caught all %u methods, ready to send calls", sizeof method_info / sizeof *method_info));
 			return;
 		}
 	}
-	LOG_WARN(("Received unknown (non graph-related?) method creation, %s()", name));
+	LOG_WARN(("Received unknown (non graph-related?) method creation"));
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -335,7 +346,7 @@ void send_method_call(int method, const VNOParam *param)
 		return;
 	mi = method_info + method;
 	if((pack = verse_method_call_pack(mi->param_count, mi->param_type, param)) != NULL)
-		verse_send_o_method_call(client_info.avatar, client_info.gid_control, mi->id, 0, pack);
+		verse_send_o_method_call(client_info.avatar, client_info.gid_control, mi->method->id, 0, pack);
 }
 
 void graph_method_send_call_create(VNodeID node, VLayerID buffer, const char *name)
@@ -382,10 +393,14 @@ void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32
 		param[3].vreal32 = (real32) va_arg(arg, double);
 		type[3] = VN_O_METHOD_PTYPE_REAL32;
 		break;
+	default:
+		LOG_WARN(("Input-setting type %d not implemented", vtype));
+		break;
 	}
 	va_end(arg);
-	if((pack = verse_method_call_pack(4, type, param)) != NULL)
-		verse_send_o_method_call(client_info.avatar, client_info.gid_control, method_info[MOD_INPUT_SET_REAL32].id, 0, pack);
+/*	if((pack = verse_method_call_pack(4, type, param)) != NULL)
+		verse_send_o_method_call(client_info.avatar, client_info.gid_control->id, method_info[MOD_INPUT_SET_REAL32].id, 0, pack);
+*/
 }
 
 void graph_method_send_call_mod_input_clear(uint32 graph_id, uint32 module_id, uint32 input)
@@ -407,7 +422,7 @@ void graph_method_receive_call(uint8 id, const void *param)
 	{
 		const MethodInfo	*mi = method_info + i;
 
-		if(id == mi->id)
+		if(id == mi->method->id)
 		{
 			verse_method_call_unpack(param, mi->param_count, mi->param_type, arg);
 			switch(i)
