@@ -8,6 +8,9 @@
 
 /* ----------------------------------------------------------------------------------------- */
 
+/* Flush working buffer if non-empty, and emit <escape> if non-NULL. Returns <buf> to
+ * simplify call, see below.
+ */
 static char * buf_flush(DynStr *d, char *buf, char *put, const char *escape)
 {
 	if(put > buf)
@@ -42,7 +45,7 @@ void xml_dynstr_append(DynStr *d, const char *text)
 		{
 			if(put >= end)
 				put = buf_flush(d, buf, put, NULL);
-			*put++ = here;
+			*put++ = here;	/* Collect chars in local buffer for performance. */
 		}
 	}
 	buf_flush(d, buf, put, NULL);
