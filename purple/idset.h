@@ -15,6 +15,7 @@ extern IdSet *		idset_new(unsigned int offset);
 extern unsigned int	idset_insert(IdSet *is, void *object);
 extern void		idset_remove(IdSet *is, unsigned int id);
 
+/* The size of the set is the number of contained items. Duh. */
 extern size_t		idset_size(const IdSet *is);
 
 extern void *		idset_lookup(const IdSet *is, unsigned int id);
