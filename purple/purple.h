@@ -160,6 +160,10 @@ void		p_output_real32_vec3(PPOutput out, const real32 *value);
 void		p_output_real32_vec4(PPOutput out, const real32 *value);
 void		p_output_real32_mat16(PPOutput out, const real32 *value);
 void		p_output_real64(PPOutput out, real64 value);
+void		p_output_real64_vec2(PPOutput out, const real64 *v);
+void		p_output_real64_vec3(PPOutput out, const real64 *v);
+void		p_output_real64_vec4(PPOutput out, const real64 *v);
+void		p_output_real64_mat16(PPOutput out, const real64 *v);
 void		p_output_string(PPOutput out, const char *value);
 
 #endif		/* PURPLE_H */
