@@ -407,7 +407,6 @@ void send_method_call(int method, const VNOParam *param)
 	const MethodInfo *mi;
 	void *pack;
 
-	printf("sending method %d\n", method);
 	if(method < 0 || method >= sizeof method_info / sizeof *method_info)
 		return;
 	mi = method_info + method;
