@@ -19,6 +19,7 @@
 #include "mem.h"
 #include "memchunk.h"
 #include "strutil.h"
+#include "xmlutil.h"
 
 #include "plugins.h"
 
