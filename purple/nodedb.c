@@ -163,8 +163,8 @@ Node * nodedb_new(VNodeType type)
 
 static void cb_copy_tag_group(void *d, const void *s, void *user)
 {
-	const TagGroup	*src = s;
-	TagGroup	*dst = d;
+	const NdbTagGroup	*src = s;
+	NdbTagGroup		*dst = d;
 
 	strcpy(dst->name, src->name);
 	dst->tags = dynarr_new_copy(src->tags, NULL, NULL);	/* Tags are memcpy():able, let dynarr do it. */
@@ -235,7 +235,7 @@ void nodedb_destroy(Node *n)
 		num = dynarr_size(n->tag_groups);
 		for(i = 0; i < num; i++)
 		{
-			TagGroup	*tg;
+			NdbTagGroup	*tg;
 
 			if((tg = dynarr_index(n->tag_groups, i)) != NULL && tg->name[0] != '\0')
 				dynarr_destroy(tg->tags);
@@ -293,6 +293,82 @@ static void cb_node_name_set(void *user, VNodeID node_id, const char *name)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static void cb_tag_group_create(void *user, VNodeID node_id, uint16 group_id, const char *name)
+{
+	Node	*n;
+
+	if((n = nodedb_lookup(node_id)) != NULL)
+	{
+		NdbTagGroup	*tg;
+
+		if(n->tag_groups == NULL)
+			n->tag_groups = dynarr_new(sizeof *tg, 2);
+		if((tg = dynarr_set(n->tag_groups, group_id, NULL)) != NULL)
+		{
+			stu_strncpy(tg->name, sizeof tg->name, name);
+			tg->tags = NULL;
+			NOTIFY(n, STRUCTURE);
+		}
+	}
+}
+
+static void cb_tag_group_destroy(void *user, VNodeID node_id, uint16 group_id)
+{
+	Node	*n;
+
+	if((n = nodedb_lookup(node_id)) != NULL)
+	{
+		NdbTagGroup	*tg;
+
+		if((tg = dynarr_index(n->tag_groups, group_id)) != NULL)
+		{
+			tg->name[0] = '\0';
+			dynarr_destroy(tg->tags);
+			tg->tags = NULL;
+			NOTIFY(n, STRUCTURE);
+		}
+	}
+}
+
+static void cb_tag_create(void *user, VNodeID node_id, uint16 group_id, uint16 tag_id, const char *name, VNTagType type, const VNTag *value)
+{
+	Node		*n;
+	NdbTagGroup	*tg;
+	NdbTag		*tag;
+
+	if((n = nodedb_lookup(node_id)) == NULL)
+		return;
+	if((tg = dynarr_index(n->tag_groups, group_id)) == NULL || tg->name[0] == '\0')
+		return;
+	if(tg->tags == NULL)
+		tg->tags = dynarr_new(sizeof *tag, 4);
+	if((tag = dynarr_set(tg->tags, tag_id, NULL)) != NULL)
+	{
+		stu_strncpy(tag->name, sizeof tag->name, name);
+		tag->type  = type;
+		tag->value = *value;
+	}
+}
+
+static void cb_tag_destroy(void *user, VNodeID node_id, uint16 group_id, uint16 tag_id)
+{
+	Node		*n;
+	NdbTagGroup	*tg;
+	NdbTag		*tag;
+
+	if((n = nodedb_lookup(node_id)) == NULL)
+		return;
+	if((tg = dynarr_index(n->tag_groups, group_id)) == NULL || tg->name[0] == '\0')
+		return;
+	if((tag = dynarr_index(tg->tags, tag_id)) != NULL)
+	{
+		tag->name[0] = '\0';
+		tag->type = -1;
+	}
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 static unsigned int node_hash(const void *p)
 {
 	return (unsigned int) p;
@@ -321,8 +397,12 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 
 	nodedb_info.chunk_notify = memchunk_new("chunk-node-notify", sizeof (NotifyInfo), 16);
 
-	verse_callback_set(verse_send_node_create,	cb_node_create,	NULL);
-	verse_callback_set(verse_send_node_name_set,	cb_node_name_set, NULL);
+	verse_callback_set(verse_send_node_create,		cb_node_create,	NULL);
+	verse_callback_set(verse_send_node_name_set,		cb_node_name_set, NULL);
+	verse_callback_set(verse_send_tag_group_create,		cb_tag_group_create, NULL);
+	verse_callback_set(verse_send_tag_group_destroy,	cb_tag_group_destroy, NULL);
+	verse_callback_set(verse_send_tag_create,		cb_tag_create, NULL);
+	verse_callback_set(verse_send_tag_destroy,		cb_tag_destroy, NULL);
 
 	nodedb_b_register_callbacks();
 	nodedb_g_register_callbacks();
