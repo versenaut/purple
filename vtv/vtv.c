@@ -147,10 +147,28 @@ static TextBuffer * node_text_buffer_new(MainInfo *min, VNodeID node_id, uint16 
 
 /* ----------------------------------------------------------------------------------------- */
 
+static void combo_box_clear(GtkComboBox *combo)
+{
+	GtkTreeModel	*tm = gtk_combo_box_get_model(combo);
+	GtkTreeIter	iter;
+	gboolean	valid;
+	gint		rows = 0;
+
+	valid = gtk_tree_model_get_iter_first(tm, &iter);
+	while(valid)
+	{
+		rows ++;
+		valid = gtk_tree_model_iter_next(tm, &iter);
+	}
+	while(rows > 0)
+		gtk_combo_box_remove_text(combo, --rows);
+}
+
 static void combo_nodes_refresh(MainInfo *min)
 {
 	GList	*iter;
-	
+
+	combo_box_clear(GTK_COMBO_BOX(min->combo_nodes));
 	for(iter = min->nodes; iter != NULL; iter = g_list_next(iter))
 		gtk_combo_box_append_text(GTK_COMBO_BOX(min->combo_nodes), ((NodeText *) iter->data)->name);
 }
@@ -162,14 +180,9 @@ static void combo_buffers_refresh(MainInfo *min)
 
 	if((node = node_lookup(min, min->cur_node)) == NULL)
 		return;
-	printf("refreshing\n");
+	combo_box_clear(GTK_COMBO_BOX(min->combo_buffers));
 	for(iter = node->buffers; iter != NULL; iter = g_list_next(iter))
 		gtk_combo_box_append_text(GTK_COMBO_BOX(min->combo_buffers), ((TextBuffer *) iter->data)->name);
-/*	{
-		gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(min->combo_buffers)->entry), "");
-		gtk_list_clear_items(GTK_LIST(GTK_COMBO(min->combo_buffers)->list), 0, 1 << 30);
-	}
-*/
 }
 
 /* ----------------------------------------------------------------------------------------- */
