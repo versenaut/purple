@@ -55,20 +55,20 @@ extern const char *	value_type_name(const PValue *v);
 /* Get a value, reading from (and updating) the optional cache if the source value does
  * not hold the desired type. Data ownership is always in the value or the cache.
 */
-extern boolean		value_get_boolean(const PValue *v, PValue *cache);
-extern int32		value_get_int32(const PValue *v, PValue *cache);
-extern uint32		value_get_uint32(const PValue *v, PValue *cache);
-extern real32		value_get_real32(const PValue *v, PValue *cache);
-extern const real32 *	value_get_real32_vec2(const PValue *v, PValue *cache);
-extern const real32 *	value_get_real32_vec3(const PValue *v, PValue *cache);
-extern const real32 *	value_get_real32_vec4(const PValue *v, PValue *cache);
-extern const real32 *	value_get_real32_mat16(const PValue *v, PValue *cache);
-extern real64		value_get_real64(const PValue *v, PValue *cache);
-extern const real64 *	value_get_real64_vec2(const PValue *v, PValue *cache);
-extern const real64 *	value_get_real64_vec3(const PValue *v, PValue *cache);
-extern const real64 *	value_get_real64_vec4(const PValue *v, PValue *cache);
-extern const real64 *	value_get_real64_mat16(const PValue *v, PValue *cache);
-extern const char *	value_get_string(const PValue *v, PValue *cache);
+extern boolean		value_get_boolean(const PValue *v, PValue *cache, boolean *out);
+extern boolean		value_get_int32(const PValue *v, PValue *cache, int32 *out);
+extern boolean		value_get_uint32(const PValue *v, PValue *cache, uint32 *out);
+extern boolean		value_get_real32(const PValue *v, PValue *cache, real32 *out);
+extern boolean		value_get_real32_vec2(const PValue *v, PValue *cache, const real32 **out);
+extern boolean		value_get_real32_vec3(const PValue *v, PValue *cache, const real32 **out);
+extern boolean		value_get_real32_vec4(const PValue *v, PValue *cache, const real32 **out);
+extern boolean		value_get_real32_mat16(const PValue *v, PValue *cache, const real32 **out);
+extern boolean		value_get_real64(const PValue *v, PValue *cache, real64 *out);
+extern boolean		value_get_real64_vec2(const PValue *v, PValue *cache, const real64 **out);
+extern boolean		value_get_real64_vec3(const PValue *v, PValue *cache, const real64 **out);
+extern boolean		value_get_real64_vec4(const PValue *v, PValue *cache, const real64 **out);
+extern boolean		value_get_real64_mat16(const PValue *v, PValue *cache, const real64 **out);
+extern boolean		value_get_string(const PValue *v, PValue *cache, const char **out);
 extern uint32		value_get_module(const PValue *v, PValue *cache);
 
 /* Create string representation of <v>, which is assumed to contain a value of a

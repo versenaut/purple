@@ -303,318 +303,262 @@ int value_set_defminmax_va(PValue *v, PValueType type, va_list arg)
 
 #define	GET_FAIL(v,t,d)	LOG_WARN(("Failed to parse set %u as %s", (v)->set, t)); return d;
 
-static boolean get_as_boolean(const PValue *v)
+static boolean get_as_boolean(const PValue *in, boolean *out)
 {
-	if(v == NULL)
+	if(in == NULL || out == NULL)
 		return FALSE;
-	if(v->set == 0)
+	if(in->set == 0)
 		return FALSE;
-	else IF_SET(v, BOOLEAN)
-		return v->v.vboolean;
-	else IF_SET(v, UINT32)
-		return v->v.vuint32 > 0;
-	else IF_SET(v, INT32)
-		return v->v.vint32 != 0;
-	else IF_SET(v, REAL64)
-		return v->v.vreal64 > 0.0;
-	else IF_SET(v, REAL32)
-		return v->v.vreal32 > 0.0f;
-	else IF_SET(v, REAL64_VEC2)
-		return vec_real64_vec2_magnitude(v->v.vreal64_vec2) > 0.0;
-	else IF_SET(v, REAL64_VEC3)
-		return vec_real64_vec3_magnitude(v->v.vreal64_vec3) > 0.0;
-	else IF_SET(v, REAL64_VEC4)
-		return vec_real64_vec4_magnitude(v->v.vreal64_vec4) > 0.0;
-	else IF_SET(v, REAL32_VEC2)
-		return vec_real32_vec2_magnitude(v->v.vreal32_vec2) > 0.0;
-	else IF_SET(v, REAL32_VEC3)
-		return vec_real32_vec3_magnitude(v->v.vreal32_vec3) > 0.0;
-	else IF_SET(v, REAL32_VEC4)
-		return vec_real32_vec4_magnitude(v->v.vreal32_vec4) > 0.0;
-	else IF_SET(v, STRING)
-		return strcmp(v->v.vstring, "TRUE") == 0;
-	GET_FAIL(v, "boolean", FALSE);
+	else IF_SET(in, BOOLEAN)
+		*out = in->v.vboolean;
+	else IF_SET(in, UINT32)
+		*out = in->v.vuint32 > 0;
+	else IF_SET(in, INT32)
+		*out =  in->v.vint32 != 0;
+	else IF_SET(in, REAL64)
+		*out = in->v.vreal64 > 0.0;
+	else IF_SET(in, REAL32)
+		*out =  in->v.vreal32 > 0.0f;
+	else IF_SET(in, REAL64_VEC2)
+		*out =  vec_real64_vec2_magnitude(in->v.vreal64_vec2) > 0.0;
+	else IF_SET(in, REAL64_VEC3)
+		*out =  vec_real64_vec3_magnitude(in->v.vreal64_vec3) > 0.0;
+	else IF_SET(in, REAL64_VEC4)
+		*out = vec_real64_vec4_magnitude(in->v.vreal64_vec4) > 0.0;
+	else IF_SET(in, REAL32_VEC2)
+		*out = vec_real32_vec2_magnitude(in->v.vreal32_vec2) > 0.0;
+	else IF_SET(in, REAL32_VEC3)
+		*out = vec_real32_vec3_magnitude(in->v.vreal32_vec3) > 0.0;
+	else IF_SET(in, REAL32_VEC4)
+		*out = vec_real32_vec4_magnitude(in->v.vreal32_vec4) > 0.0;
+	else IF_SET(in, STRING)
+		*out = strcmp(in->v.vstring, "TRUE") == 0;
+	else
+		return FALSE;
+	return TRUE;
 }
 
-boolean value_get_boolean(const PValue *v, PValue *cache)
+static boolean get_as_int32(const PValue *in, int32 *out)
 {
-	if(v == NULL)
+	if(in == NULL || out == NULL)
 		return FALSE;
-	IF_SET(v, BOOLEAN)
-		return v->v.vboolean;
-	else if(cache != NULL)
-	{
-		IF_SET(cache, BOOLEAN)
-			return cache->v.vboolean;
-		DO_SET(cache, BOOLEAN);
-		return cache->v.vboolean = get_as_boolean(v);
-	}
-	return get_as_boolean(v);
-}
-
-static int32 get_as_int32(const PValue *v)
-{
-	if(v == NULL)
-		return 0;
-	if(v->set == 0)
-		return 0;
-	else IF_SET(v, INT32)
-		return v->v.vint32;
-	else IF_SET(v, REAL32)
-		return v->v.vreal32;
-	else IF_SET(v, REAL64)
-		return v->v.vreal64;
-	else IF_SET(v, REAL32_VEC2)
-		return vec_real32_vec2_magnitude(v->v.vreal32_vec2);
-	else IF_SET(v, REAL32_VEC3)
-		return vec_real32_vec3_magnitude(v->v.vreal32_vec3);
-	else IF_SET(v, REAL32_VEC4)
-		return vec_real32_vec4_magnitude(v->v.vreal32_vec4);
-	else IF_SET(v, REAL64_VEC2)
-		return vec_real64_vec2_magnitude(v->v.vreal64_vec2);
-	else IF_SET(v, REAL64_VEC3)
-		return vec_real64_vec3_magnitude(v->v.vreal64_vec3);
-	else IF_SET(v, REAL64_VEC4)
-		return vec_real64_vec4_magnitude(v->v.vreal64_vec4);
-	else IF_SET(v, STRING)
-		return strtol(v->v.vstring, NULL, 0);
-	else IF_SET(v, UINT32)
-		return v->v.vuint32;
-	else IF_SET(v, BOOLEAN)
-		return v->v.vboolean;
-	GET_FAIL(v, "int32", 0);
-}
-
-int32 value_get_int32(const PValue *v, PValue *cache)
-{
-	if(v == NULL)
+	if(in->set == 0)
 		return FALSE;
-	IF_SET(v, INT32)
-		return v->v.vint32;
-	else if(cache != NULL)
-	{
-		IF_SET(cache, INT32)
-			return cache->v.vint32;
-		DO_SET(cache, INT32);
-		return cache->v.vint32 = get_as_int32(v);
-	}
-	return get_as_int32(v);
-}
-
-static uint32 get_as_uint32(const PValue *v)
-{
-	if(v == NULL)
-		return 0;
-	if(v->set == 0)
-		return 0;
-	else IF_SET(v, UINT32)
-		return v->v.vuint32;
-	else IF_SET(v, INT32)
-		return v->v.vint32;
-	else IF_SET(v, REAL32)
-		return v->v.vreal32;
-	else IF_SET(v, REAL64)
-		return v->v.vreal64;
-	else IF_SET(v, REAL32_VEC2)
-		return vec_real32_vec2_magnitude(v->v.vreal32_vec2);
-	else IF_SET(v, REAL32_VEC3)
-		return vec_real32_vec3_magnitude(v->v.vreal32_vec3);
-	else IF_SET(v, REAL32_VEC4)
-		return vec_real32_vec4_magnitude(v->v.vreal32_vec4);
-	else IF_SET(v, REAL64_VEC2)
-		return vec_real64_vec2_magnitude(v->v.vreal64_vec2);
-	else IF_SET(v, REAL64_VEC3)
-		return vec_real64_vec3_magnitude(v->v.vreal64_vec3);
-	else IF_SET(v, REAL64_VEC4)
-		return vec_real64_vec4_magnitude(v->v.vreal64_vec4);
-	else IF_SET(v, STRING)
-		return strtol(v->v.vstring, NULL, 0);
-	else IF_SET(v, BOOLEAN)
-		return v->v.vboolean;
-	GET_FAIL(v, "uint32", 0u);
-}
-
-uint32 value_get_uint32(const PValue *v, PValue *cache)
-{
-	if(v == NULL)
+	else IF_SET(in, INT32)
+		*out = in->v.vint32;
+	else IF_SET(in, REAL32)
+		*out = in->v.vreal32;
+	else IF_SET(in, REAL64)
+		*out = in->v.vreal64;
+	else IF_SET(in, REAL32_VEC2)
+		*out =vec_real32_vec2_magnitude(in->v.vreal32_vec2);
+	else IF_SET(in, REAL32_VEC3)
+		*out =vec_real32_vec3_magnitude(in->v.vreal32_vec3);
+	else IF_SET(in, REAL32_VEC4)
+		*out =vec_real32_vec4_magnitude(in->v.vreal32_vec4);
+	else IF_SET(in, REAL64_VEC2)
+		*out =vec_real64_vec2_magnitude(in->v.vreal64_vec2);
+	else IF_SET(in, REAL64_VEC3)
+		*out =vec_real64_vec3_magnitude(in->v.vreal64_vec3);
+	else IF_SET(in, REAL64_VEC4)
+		*out =vec_real64_vec4_magnitude(in->v.vreal64_vec4);
+	else IF_SET(in, STRING)
+		*out = strtol(in->v.vstring, NULL, 0);
+	else IF_SET(in, UINT32)
+		*out = in->v.vuint32;
+	else IF_SET(in, BOOLEAN)
+		*out = in->v.vboolean;
+	else
 		return FALSE;
-	IF_SET(v, UINT32)
-		return v->v.vuint32;
-	else if(cache != NULL)
-	{
-		IF_SET(cache, UINT32)
-			return cache->v.vuint32;
-		DO_SET(cache, UINT32);
-		return cache->v.vuint32 = get_as_uint32(v);
-	}
-	return get_as_uint32(v);
+	return TRUE;
+}
+
+static boolean get_as_uint32(const PValue *in, uint32 *out)
+{
+	if(in == NULL || out == NULL)
+		return FALSE;
+	if(in->set == 0)
+		return FALSE;
+	else IF_SET(in, UINT32)
+		*out = in->v.vuint32;
+	else IF_SET(in, INT32)
+		*out = in->v.vint32;
+	else IF_SET(in, REAL32)
+		*out = in->v.vreal32;
+	else IF_SET(in, REAL64)
+		*out = in->v.vreal64;
+	else IF_SET(in, REAL32_VEC2)
+		*out = vec_real32_vec2_magnitude(in->v.vreal32_vec2);
+	else IF_SET(in, REAL32_VEC3)
+		*out = vec_real32_vec3_magnitude(in->v.vreal32_vec3);
+	else IF_SET(in, REAL32_VEC4)
+		*out = vec_real32_vec4_magnitude(in->v.vreal32_vec4);
+	else IF_SET(in, REAL64_VEC2)
+		*out = vec_real64_vec2_magnitude(in->v.vreal64_vec2);
+	else IF_SET(in, REAL64_VEC3)
+		*out = vec_real64_vec3_magnitude(in->v.vreal64_vec3);
+	else IF_SET(in, REAL64_VEC4)
+		*out = vec_real64_vec4_magnitude(in->v.vreal64_vec4);
+	else IF_SET(in, STRING)
+		*out = strtol(in->v.vstring, NULL, 0);
+	else IF_SET(in, BOOLEAN)
+		*out = in->v.vboolean;
+	else
+		return FALSE;
+	return TRUE;
 }
 
 /* Get a value as the largest scalar type, real64. This is then used to implement
  * the other scalar getters. Will mash vectors and matrices down to a single scalar.
 */
-static real64 get_as_real64(const PValue *v)
+static boolean get_as_real64(const PValue *in, real64 *out)
 {
-	if(v == NULL)
-		return 0.0;
-	if(v->set == 0)	/* This should probably not be possible due to checks higher up. */
-		return 0.0;
-	else IF_SET(v, REAL64)
-		return v->v.vreal64;
-	else IF_SET(v, REAL64_VEC2)
-		return vec_real64_vec2_magnitude(v->v.vreal64_vec2);
-	else IF_SET(v, REAL64_VEC3)
-		return vec_real64_vec3_magnitude(v->v.vreal64_vec3);
-	else IF_SET(v, REAL64_VEC4)
-		return vec_real64_vec4_magnitude(v->v.vreal64_vec4);
-	else IF_SET(v, REAL32)
-		return v->v.vreal32;
-	else IF_SET(v, REAL32_VEC2)
-		return vec_real32_vec2_magnitude(v->v.vreal32_vec2);
-	else IF_SET(v, REAL32_VEC3)
-		return vec_real32_vec3_magnitude(v->v.vreal32_vec3);
-	else IF_SET(v, REAL32_VEC4)
-		return vec_real32_vec4_magnitude(v->v.vreal32_vec4);
-	else IF_SET(v, INT32)
-		return v->v.vint32;
-	else IF_SET(v, UINT32)
-		return v->v.vuint32;
-	else IF_SET(v, REAL64_MAT16)
-		return vec_real64_mat16_determinant(v->v.vreal64_mat16);
-	else IF_SET(v, REAL32_MAT16)
-		return vec_real32_mat16_determinant(v->v.vreal32_mat16);
-	else IF_SET(v, STRING)
-		return strtod(v->v.vstring, NULL);
-	GET_FAIL(v, "real64", 0.0);
+	if(in == NULL || out == NULL)
+		return FALSE;
+	if(in->set == 0)
+		return FALSE;
+	else IF_SET(in, REAL64)
+		*out = in->v.vreal64;
+	else IF_SET(in, REAL64_VEC2)
+		*out = vec_real64_vec2_magnitude(in->v.vreal64_vec2);
+	else IF_SET(in, REAL64_VEC3)
+		*out = vec_real64_vec3_magnitude(in->v.vreal64_vec3);
+	else IF_SET(in, REAL64_VEC4)
+		*out = vec_real64_vec4_magnitude(in->v.vreal64_vec4);
+	else IF_SET(in, REAL32)
+		*out = in->v.vreal32;
+	else IF_SET(in, REAL32_VEC2)
+		*out = vec_real32_vec2_magnitude(in->v.vreal32_vec2);
+	else IF_SET(in, REAL32_VEC3)
+		*out = vec_real32_vec3_magnitude(in->v.vreal32_vec3);
+	else IF_SET(in, REAL32_VEC4)
+		*out = vec_real32_vec4_magnitude(in->v.vreal32_vec4);
+	else IF_SET(in, INT32)
+		*out = in->v.vint32;
+	else IF_SET(in, UINT32)
+		*out = in->v.vuint32;
+	else IF_SET(in, REAL64_MAT16)
+		*out = vec_real64_mat16_determinant(in->v.vreal64_mat16);
+	else IF_SET(in, REAL32_MAT16)
+		*out = vec_real32_mat16_determinant(in->v.vreal32_mat16);
+	else IF_SET(in, STRING)
+		*out = strtod(in->v.vstring, NULL);
+	else
+		return FALSE;
+	return TRUE;
 }
 
-real32 value_get_real32(const PValue *v, PValue *cache)
+static boolean get_as_real32(const PValue *in, real32 *out)
 {
-	if(v == NULL)
-		return 0.0;
-	IF_SET(v, REAL32)
-		return v->v.vreal32;
-	else if(cache != NULL)
+	real64	tmp;
+
+	if(get_as_real64(in, &tmp))
 	{
-		IF_SET(cache, REAL32)
-			return cache->v.vreal32;
-		DO_SET(cache, REAL32);
-		return cache->v.vreal32 = get_as_real64(v);	/* Drop precision. */
+		*out = tmp;
+		return TRUE;
 	}
-	return get_as_real64(v);
+	return FALSE;
 }
 
-const real32 * value_get_real32_vec2(const PValue *v, PValue *cache)
-{
-	if(v == NULL)
-		return NULL;
-	IF_SET(v, REAL32_VEC2)
-		return v->v.vreal32_vec2;
-	return NULL;	/* FIXME: Implement heuristics. */
-}
-
-const real32 * value_get_real32_vec3(const PValue *v, PValue *cache)
-{
-	if(v == NULL)
-		return NULL;
-	IF_SET(v, REAL32_VEC3)
-		return v->v.vreal32_vec3;
-	return NULL;	/* FIXME: Implement heuristics. */
-}
-
-const real32 * value_get_real32_vec4(const PValue *v, PValue *cache)
-{
-	if(v == NULL)
-		return NULL;
-	IF_SET(v, REAL32_VEC4)
-		return v->v.vreal32_vec4;
-	return NULL;	/* FIXME: Implement heuristics. */
-}
-
-const real32 * value_get_real32_mat16(const PValue *v, PValue *cache)
-{
-	if(v == NULL)
-		return NULL;
-	IF_SET(v, REAL32_MAT16)
-		return v->v.vreal32_mat16;
-	return NULL;	/* FIXME: Implement heuristics. */
-}
-
-real64 value_get_real64(const PValue *v, PValue *cache)
-{
-	if(v == NULL)
-		return 0.0;
-	IF_SET(v, REAL64)
-		return v->v.vreal64;
-	else if(cache != NULL)
-	{
-		IF_SET(cache, REAL64)
-			return cache->v.vreal64;
-		DO_SET(cache, REAL64);
-		return cache->v.vreal64 = get_as_real64(v);
-	}
-	return get_as_real64(v);
-}
-
-static boolean get_as_real64_vec2(const PValue *v, real64 *vec)
+static boolean get_as_real32_vec2(const PValue *in, real32 *out)
 {
 	return FALSE;
 }
 
-const real64 * value_get_real64_vec2(const PValue *v, PValue *cache)
+static boolean get_as_real32_vec3(const PValue *in, real32 out[])
 {
-	if(v == NULL)
-		return NULL;
-	IF_SET(v, REAL64_VEC2)
-		return v->v.vreal64_vec2;
-	else if(cache != NULL)
-	{
-		IF_SET(cache, REAL64_VEC2)
-			return v->v.vreal64_vec2;
-		if(get_as_real64_vec2(v, &cache->v.vreal64))
-		{
-			DO_SET(cache, REAL64_VEC2);
-			return v->v.vreal64_vec2;
-		}
-	}
-	return NULL;	/* FIXME: Implement heuristics. */
+	return FALSE;
 }
 
-const real64 * value_get_real64_vec3(const PValue *v, PValue *cache)
+static boolean get_as_real32_vec4(const PValue *in, real32 out[])
 {
-	if(v == NULL)
-		return NULL;
-	IF_SET(v, REAL64_VEC3)
-		return v->v.vreal64_vec3;
-	return NULL;	/* FIXME: Implement heuristics. */
+	return FALSE;
 }
 
-const real64 * value_get_real64_vec4(const PValue *v, PValue *cache)
+static boolean get_as_real32_mat16(const PValue *in, real32 out[])
 {
-	if(v == NULL)
-		return NULL;
-	IF_SET(v, REAL64_VEC4)
-		return v->v.vreal64_vec4;
-	return NULL;	/* FIXME: Implement heuristics. */
+	return FALSE;
 }
 
-const real64 * value_get_real64_mat16(const PValue *v, PValue *cache)
+static boolean get_as_real64_vec2(const PValue *in, real64 out[])
 {
-	if(v == NULL)
-		return NULL;
-	IF_SET(v, REAL64_MAT16)
-		return v->v.vreal64_mat16;
-	return NULL;	/* FIXME: Implement heuristics. */
+	return FALSE;
 }
 
-const char * value_get_string(const PValue *v, PValue *cache)
+static boolean get_as_real64_vec3(const PValue *in, real64 out[])
 {
-	if(v == NULL)
-		return "";
+	return FALSE;
+}
+
+static boolean get_as_real64_vec4(const PValue *in, real64 out[])
+{
+	return FALSE;
+}
+
+static boolean get_as_real64_mat16(const PValue *in, real64 out[])
+{
+	return FALSE;
+}
+
+/* A macro to avoid writing N very simliar functions. Should cut down on the number of
+ * stupid errors.
+*/
+#define	GETTER(n,f,t,pt)	\
+boolean value_get_ ##n (const PValue *v, PValue *cache, t *out) \
+{ \
+	if(v == NULL || out == NULL) \
+		return FALSE; \
+	IF_SET(v, f) \
+	{ \
+		*out = (t) v->v.v##n; \
+		return TRUE; \
+	} \
+	else if(cache != NULL) \
+	{ \
+		IF_SET(cache, f) \
+		{ \
+			*out = cache->v.v##n; \
+			return TRUE; \
+		} \
+		if(get_as_##n(v, (pt) &cache->v.v##n)) /* Cast to get around &a<->a problem for array types. */ \
+		{ \
+			DO_SET(cache, f); \
+			*out = cache->v.v##n; \
+			return TRUE; \
+		} \
+	} \
+	return FALSE; \
+}
+
+/* Use the above macro to define accessor functions for the types needed. */
+GETTER(boolean, BOOLEAN, boolean, boolean *)
+GETTER(int32, INT32, int32, int32 *)
+GETTER(uint32, UINT32, uint32, uint32 *)
+GETTER(real32, REAL32, real32, real32 *)
+GETTER(real32_vec2, REAL32_VEC2, const real32 *, real32 *)
+GETTER(real32_vec3, REAL32_VEC3, const real32 *, real32 *)
+GETTER(real32_vec4, REAL32_VEC4, const real32 *, real32 *)
+GETTER(real32_mat16, REAL32_MAT16, const real32 *, real32 *)
+GETTER(real64, REAL64, real64, real64 *)
+GETTER(real64_vec2, REAL64_VEC2, const real64 *, real64 *)
+GETTER(real64_vec3, REAL64_VEC3, const real64 *, real64 *)
+GETTER(real64_vec4, REAL64_VEC4, const real64 *, real64 *)
+GETTER(real64_mat16, REAL64_MAT16, const real64 *, real64 *)
+
+/* String-getting needs hand-written accessor function, since it has
+ * different buffering semantics for cache misses.
+*/
+boolean value_get_string(const PValue *v, PValue *cache, const char **out)
+{
+	if(v == NULL || out == NULL)
+		return FALSE;
 	if(v->set == 0)
-		return NULL;
+		return FALSE;
 	IF_SET(v, STRING)
-		return v->v.vstring;
+	{
+		*out = v->v.vstring;
+		return TRUE;
+	}
 	else if(cache != NULL)
 	{
 		char		buf[1024];	/* Used for temporary formatting, then copied dynamically. Not free. */
@@ -622,17 +566,20 @@ const char * value_get_string(const PValue *v, PValue *cache)
 		size_t		used;
 
 		IF_SET(cache, STRING)
-			return cache->v.vstring;
+		{
+			*out = cache->v.vstring;
+			return TRUE;
+		}
 		else if((p = value_as_string(v, buf, sizeof buf, &used)) != NULL)	/* Never returns v->v.vstring. */
 		{
 			cache->v.vstring = mem_alloc(used);
 			memcpy(cache->v.vstring, p, used);
 			DO_SET(cache, STRING);
-			return cache->v.vstring;
+			*out = cache->v.vstring;
+			return TRUE;
 		}
-		GET_FAIL(v, "string", "");
 	}
-	return NULL;
+	return FALSE;
 }
 
 uint32 value_get_module(const PValue *v, PValue *cache)
@@ -647,6 +594,8 @@ uint32 value_get_module(const PValue *v, PValue *cache)
 	GET_FAIL(v, "module", 0);
 	return 0;
 }
+
+/* ----------------------------------------------------------------------------------------- */
 
 const char * value_as_string(const PValue *v, char *buf, size_t buf_max, size_t *used)
 {
