@@ -68,6 +68,19 @@ void sync_init(void)
 
 /* ----------------------------------------------------------------------------------------- */
 
+/* Synchronize node "head" data, i.e. name and tags. */
+static int sync_head(const Node *n, const Node *target)
+{
+	if(strcmp(n->name, target->name) != 0)
+	{
+		verse_send_node_name_set(target->id, n->name);
+		return 0;
+	}
+	return 1;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 static int object_link_exists(const NodeObject *n, VNodeID link, const char *label, uint32 target_id)
 {
 	unsigned int	i;
@@ -461,6 +474,8 @@ static int sync_node(Node *n)
 		LOG_WARN(("Couldn't look up existing (target) node for %u--aborting sync", n->id));
 		return 0;
 	}
+	/* First sync node-head data, such as name and tags. */
+	sync_head(n, target);
 	switch(n->type)
 	{
 	case V_NT_OBJECT:
