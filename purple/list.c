@@ -204,6 +204,12 @@ void * list_data(const List *list)
 	return NULL;
 }
 
+void list_data_set(List *list, void *data)
+{
+	if(list != NULL)
+		list->data = data;
+}
+
 List * list_prev(const List *list)
 {
 	if(list != NULL)
