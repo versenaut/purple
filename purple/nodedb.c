@@ -154,7 +154,7 @@ Node * nodedb_new(VNodeType type)
 			nodedb_t_construct((NodeText *) n);
 			break;
 		case V_NT_CURVE:
-			nodedb_t_construct((NodeCurve *) n);
+			nodedb_c_construct((NodeCurve *) n);
 			break;
 		default:
 			LOG_WARN(("Missing node-specific init code for type %d", type));
