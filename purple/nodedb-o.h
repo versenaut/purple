@@ -5,7 +5,7 @@
 typedef struct
 {
 	Node	node;
-	real64	xform[4][3];
+	real64	xform[3][3];
 	real64	light[3];
 	DynArr	*method_groups;
 } NodeObject;
