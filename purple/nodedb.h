@@ -70,6 +70,7 @@ extern VNodeType	nodedb_type_get(const Node *node);
 
 extern NdbTagGroup *	nodedb_tag_group_lookup(const Node *node, const char *name);
 extern NdbTag *		nodedb_tag_lookup(NdbTagGroup *group, const char *name);
+extern int		nodedb_tag_values_equal(const NdbTag *t1, const NdbTag *t2);
 
 typedef enum { NODEDB_OWNERSHIP_ALL, NODEDB_OWNERSHIP_MINE, NODEDB_OWNERSHIP_OTHERS } NodeOwnership;
 typedef enum { NODEDB_NOTIFY_CREATE, NODEDB_NOTIFY_STRUCTURE, NODEDB_NOTIFY_DATA, NODEDB_NOTIFY_DESTROY } NodeNotifyEvent;

@@ -332,6 +332,47 @@ NdbTag * nodedb_tag_lookup(NdbTagGroup *group, const char *name)
 	return NULL;
 }
 
+/* Compare two tags. Does *not* check the name, only the type and actual values. Returns boolean equality. */
+int nodedb_tag_values_equal(const NdbTag *t1, const NdbTag *t2)
+{
+	const VNTag	*tag1, *tag2;
+
+	if(t1 == NULL || t2 == NULL)
+		return 0;
+	if(t1->type != t2->type)
+		return 0;
+	tag1 = &t1->value;
+	tag2 = &t2->value;
+	switch(t1->type)
+	{
+	case VN_TAG_BOOLEAN:
+		return tag1->vboolean == tag2->vboolean;
+	case VN_TAG_UINT32:
+		return tag1->vuint32 == tag2->vuint32;
+	case VN_TAG_REAL64:
+		return tag1->vreal64 == tag2->vreal64;
+	case VN_TAG_STRING:
+		if(tag1->vstring == NULL || tag2->vstring == NULL)
+			return 0;
+		return strcmp(tag1->vstring, tag2->vstring) == 0;
+	case VN_TAG_REAL64_VEC3:
+		return memcmp(tag1->vreal64_vec3, tag2->vreal64_vec3, sizeof tag1->vreal64_vec3) == 0;
+	case VN_TAG_LINK:
+		return tag1->vlink == tag2->vlink;
+	case VN_TAG_ANIMATION:
+		return memcmp(&tag1->vanimation, &tag2->vanimation, sizeof tag1->vanimation) == 0;
+	case VN_TAG_BLOB:
+		if(tag1->vblob.size != tag2->vblob.size)
+			return 0;
+		if(tag1->vblob.blob == NULL || tag2->vblob.blob == NULL)
+			return 0;
+		return memcmp(tag1->vblob.blob, tag2->vblob.blob, tag1->vblob.size);
+	default:
+		return 0;
+	}
+	return 0;
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeOwner ownership)
