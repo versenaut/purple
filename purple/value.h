@@ -1,5 +1,9 @@
 /*
- * 
+ * Value handling module. Values are containers that at any point can hold a set of values,
+ * each having a distinct type. They are used to form "ports", which model plug-in inputs and
+ * outputs. If the world was slightly more perfect, input ports would be implemented as unions,
+ * since you cannot assign multiple literal values to an input. You can, however, store more
+ * than one value in an output, so it was easier to make them based on the same value structure.
 */
 
 /* A Purple simple value. Things that are not full nodes are considered "simple". */
@@ -27,6 +31,7 @@ typedef struct
 	}	v;
 } PValue;
 
+/* Handy helper functions. */
 extern const char *	value_type_to_name(PValueType type);
 extern PValueType	value_type_from_name(const char *name);
 
@@ -44,10 +49,6 @@ extern boolean		value_type_present(const PValue *v, PValueType type);
 
 /* Return name of the type the value is set to. Only works if there is exactly one type set. */
 extern const char *	value_type_name(const PValue *v);
-
-#if 0
-extern void		value_append(const PValue *v, DynStr *d);
-#endif
 
 /* Get a value, reading from (and updating) the optional cache if the source value does
  * not hold the desired type. Data ownership is always in the value or the cache.
