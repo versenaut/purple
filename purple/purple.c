@@ -65,6 +65,15 @@ static void test_chunk(void)
 	memchunk_destroy(c);
 }
 
+static int cmp_int(const void *data1, const void *data2)
+{
+	int	a = (int) data1, b = (int) data2;
+
+	printf("comparing %d vs %d\n", a, b);
+
+	return a < b ? -1 : a > b;
+}
+
 static int cb_print_int(void *data, void *userdata)
 {
 	printf(" %d", (int) data);
@@ -78,7 +87,7 @@ static void test_list(void)
 	size_t	i;
 
 	list_init();
-	ints = list_append(ints, (void *) 0);
+/*	ints = list_append(ints, (void *) 0);
 	ints = list_append(ints, (void *) 1);
 	ints = list_append(ints, (void *) 2);
 	ints = list_append(ints, (void *) 3);
@@ -119,6 +128,20 @@ static void test_list(void)
 	n = list_last(ints);
 	printf("%p\n", list_data(n));
 	printf("%p\n", list_data(list_prev(n)));
+
+	list_destroy(ints);
+*/
+	ints = list_insert_sorted(NULL, (void *) 3, cmp_int);
+	ints = list_insert_sorted(ints, (void *) 6, cmp_int);
+	ints = list_insert_sorted(ints, (void *) 4, cmp_int);
+	ints = list_insert_sorted(ints, (void *) 1, cmp_int);
+	ints = list_insert_sorted(ints, (void *) 0, cmp_int);
+	ints = list_insert_sorted(ints, (void *) 7, cmp_int);
+	ints = list_insert_sorted(ints, (void *) 11, cmp_int);
+	ints = list_insert_sorted(ints, (void *) 5, cmp_int);
+	printf("[");
+	list_foreach(ints, cb_print_int, NULL);
+	printf(" ]\n");
 }
 
 static void test_dynarr(void)
@@ -312,9 +335,9 @@ static void test_idset(void)
 
 static void test_idlist(void)
 {
-	IdList	*il;
-	char	buf[1024];
-
+	IdList		*il;
+	IdListIter	iter;
+	char		buf[1024];
 
 	il = idlist_new();
 	idlist_insert(il, 0);
@@ -328,6 +351,17 @@ static void test_idlist(void)
 	idlist_remove(il, 200);
 	idlist_test_as_string(il, buf, sizeof buf);
 	printf("[%s]\n", buf);
+
+	idlist_insert(il, 40);
+	idlist_insert(il, 150);
+	idlist_insert(il, 90);
+
+	printf("iter: [");
+	for(idlist_foreach_init(il, &iter); idlist_foreach_step(il, &iter);)
+	{
+		printf(" %u ", iter.id);
+	}
+	printf(" ]\n");
 
 	idlist_destroy(il);
 }
@@ -627,8 +661,8 @@ int main(void)
 	test_xmlnode();
 	test_idset();
 	test_idlist();
-	return 0;
-*/
+*/	return 0;
+
 	plugins_libraries_load();
 	plugins_libraries_init();
 
