@@ -462,12 +462,10 @@ int main(void)
 	graph_init();
 
 /*	test_chunk();
-	test_dynarr();
 	test_filelist();
 	test_textbuf();
 	test_xmlnode();
 	test_idset();
-	test_idlist();
 	return 0;
 */
 	plugins_libraries_load();
