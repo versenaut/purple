@@ -73,6 +73,8 @@ struct Plugin
 	DynArr		*input;
 
 	Hash		*meta;
+	void		(*ctor)(void *state);
+	void		(*dtor)(void *state);
 	void		(*compute)(PPInput *input, PPOutput output, void *state);
 	MemChunk	*state;		/* Instance state blocks allocated from here. */
 };
@@ -365,7 +367,7 @@ void plugin_set_meta(Plugin *p, const char *category, const char *text)
 	}
 }
 
-void plugin_set_state(Plugin *p, size_t size)
+void plugin_set_state(Plugin *p, size_t size, void (*ctor)(void *state), void (*dtor)(void *state))
 {
 	if(p == NULL)
 		return;
@@ -376,6 +378,8 @@ void plugin_set_state(Plugin *p, size_t size)
 	}
 	if(size > 0)
 		p->state = memchunk_new(p->name, size, 4);
+	p->ctor = ctor;
+	p->dtor = dtor;
 }
 
 void plugin_set_compute(Plugin *p, void (*compute)(PPInput *input, PPOutput output, void *state))
@@ -737,7 +741,8 @@ int plugin_instance_init(Plugin *p, PInstance *inst)
 	{
 		if((inst->state = memchunk_alloc(p->state)) != NULL)
 		{
-			memset(inst->state, 0, memchunk_chunk_size(p->state));
+			if(p->ctor != NULL)
+				p->ctor(inst->state);
 			return 1;
 		}
 		plugin_inputset_destroy(inst->inputs);
@@ -746,6 +751,11 @@ int plugin_instance_init(Plugin *p, PInstance *inst)
 	}
 	inst->state = NULL;
 	return 1;
+}
+
+void plugin_instance_compute(Plugin *p, const PInstance *inst)
+{
+	plugin_run_compute(p, inst->inputs, inst->state);
 }
 
 void plugin_instance_free(Plugin *p, PInstance *inst)
@@ -759,6 +769,8 @@ void plugin_instance_free(Plugin *p, PInstance *inst)
 	}
 	if(inst->state != NULL)
 	{
+		if(p->dtor != NULL)
+			p->dtor(inst->state);
 		memchunk_free(p->state, inst->state);
 		inst->state = NULL;
 	}
