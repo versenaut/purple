@@ -77,6 +77,21 @@ int main(void)
 		list_destroy(l);
 	}
 	test_end();
+	
+	test_begin("Indexing");
+	{
+		a = list_new("foo");
+		b = list_new("bar");
+		c = list_new("baz");
+
+		l = list_concat(a, b);
+		l = list_concat(l, c);
+
+		test_result(list_index(a) == 0 &&
+			    list_index(b) == 1 &&
+			    list_index(c) == 2);
+	}
+	test_end();
 
 	test_begin("Append integrity, n:th accessor");
 	{
