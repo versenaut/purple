@@ -153,16 +153,29 @@ void idlist_destroy(IdList *il)
 
 void idlist_test_as_string(const IdList *il, char *buf, size_t buf_max)
 {
-	List	*iter;
+	List	*prev, *iter;
+	char	piece[32], *put = buf;
+	size_t	size;
 
-	printf("idlist contents: (%u) [", list_length(il->entries));
-	for(iter = il->entries; iter != NULL; iter = list_next(iter))
+	*put++ = '[';
+	*put = '\0';
+	buf_max -= 2;
+	for(prev = NULL, iter = il->entries; iter != NULL; prev = iter, iter = list_next(iter))
 	{
 		uint32	d = (uint32) list_data(iter), id, count;
 
 		id    = (d & MASK_ID) >> SHIFT_ID;
 		count = (d & MASK_COUNT) >> SHIFT_COUNT;
-		printf(" (%u;%u)", id, count);
+		size = snprintf(piece, sizeof piece, "%s(%u;%u)", prev != NULL ? " " : "", id, count);
+		if(buf_max >= size)
+		{
+			strcat(put, piece);
+			put += size;
+			buf_max -= size;
+		}
+		else
+			break;
 	}
-	printf(" ]\n");
+	if(buf_max)
+		strcpy(put, "]");
 }
