@@ -690,22 +690,25 @@ and (possibly) namespace prefixes.
 <title>The Simplest Possible Plug-in</title>
 <para>
 Here's the simplest possible plug-in. It has no inputs, and no meta information at all:
-<programlisting>&lt;plugin name="test1">
+<programlisting>&lt;plugin id="7" name="test1">
 &lt;/plugin>
 </programlisting>
 </para>
 <para>
-<note><para>The <symbol>name</symbol> attribute is required, and no two plug-ins can have the same name.</para></note>
+<note><para>The <symbol>id</symbol> and <symbol>name</symbol> attributes are always present, and their values will
+be unique for all plug-ins. The numerical <symbol>id</symbol> value is used when refering to the plug-in when
+e.g. instantiating it, whereas the name is mainly for building user interfaces.
+</para></note>
 Such a plug-in might seem pointless, but since there is no telling what the plug-in code <emphasis>does</emphasis>,
-that is not at all true. This plug-in might emit a three-million polygon representation of the Uni-Verse logo
-and just suffer from poor naming.
+that is not at all true. This plug-in might emit a gorgeous three-million polygon representation of the Uni-Verse
+logo and just suffer from poor naming.
 </para>
 </example>
 
 <example id='ex-module-hello'>
 <title>A Plug-in With Meta-Data</title>
 <para>
-<programlisting>&lt;plugin name="hello">
+<programlisting>&lt;plugin id="11" name="hello">
  &lt;meta>
   &lt;field category="author">J. Random Hacker&lt;/field>
   &lt;field category="help/desc">Outputs the constant string "Hello, World".&lt;/field>
@@ -728,7 +731,7 @@ meta fields; this has yet to be determined.
 <title>A Plug-In With An Input</title>
 <para>
 The following example shows how to express an input:
-<programlisting>&lt;plugin name="test3">
+<programlisting>&lt;plugin id="17" name="test3">
  &lt;inputs>
   &lt;input type="real32"/>
  &lt;/inputs>
@@ -753,7 +756,7 @@ of building a graphical interface to present to end users that much harder, prov
 <para>
 The following example shows the interface for a plug-in that performs a multiplication of its two inputs, interpreted
 as real numbers:
-<programlisting>&lt;plugin name="multiply">
+<programlisting>&lt;plugin id="42" name="multiply">
  &lt;inputs>
   &lt;input type="real32">
    &lt;name>a&lt;/name>
@@ -776,7 +779,7 @@ as real numbers:
 <para>
 Seen here is how the <symbol>name</symbol> element is used to name the inputs. Names are not interpreted at all by
 the Purple architecture, so they need not be unique although it is highly recommended as colliding names are quite
-to confuse end users.
+likely to confuse end users.
 </para>
 </listitem>
 <listitem>
@@ -977,11 +980,40 @@ The engine will convert the available value to the requested type.
 </variablelist>
 
 </para>
+
+<sect4>
+<title>Setting an Input to Nothing</title>
+<para>Besides setting an input to an absolute value, or the output of another module, as the methods above allow
+you to do, it is also necessary to <quote>disconnect</quote> a module input and <emphasis>not</emphasis> assign
+it any particular value. This is done by the following method:
+<variablelist>
+<varlistentry>
+<term>
+<funcsynopsis>
+<funcprototype>
+ <funcdef><function>mod_input_clear</function></funcdef>
+ <paramdef>uint32 <parameter>graph</parameter></paramdef>
+ <paramdef>uint32 <parameter>plugin</parameter></paramdef>
+ <paramdef>uint8 <parameter>inputa</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+</term>
+<listitem>
+<para>
+This method removes any assigned value from a module's input.
+</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</para>
 <para>
 Executing any of the above methods will, assuming the execution is actually granted by the engine, result in
 changes to the graph description (addition/removal of a module, or change of a module's input). These changes
 will be done by the engine, and replicated through the use of a shared text buffer. See below.
 </para>
+</sect4>
+
 </sect3>
 
 </sect2>
