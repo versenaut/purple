@@ -86,7 +86,7 @@ static int sync_head_tags(const Node *n, const Node *target)
 			{
 				if(tag->name[0] == '\0')
 					continue;
-				ttag = nodedb_tag_lookup(tg, tag->name);
+				ttag = nodedb_tag_group_tag_find(tg, tag->name);
 				if(ttag != NULL)
 				{
 					/* Tag exists, see if fields match. */
