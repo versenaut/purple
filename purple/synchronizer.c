@@ -836,6 +836,70 @@ static int sync_curve(const NodeCurve *n, const NodeCurve *target)
 
 /* ----------------------------------------------------------------------------------------- */
 
+static int sync_audio_layer(const NodeAudio *n, const NdbALayer *layer,
+			    const NodeAudio *target, const NdbALayer *tlayer)
+{
+	unsigned int	sync = 1, index;
+	BinTreeIter	iter;
+	const NdbABlk	*blk, *tblk;
+
+	printf("syncing audio layer %s\n", layer->name);
+	for(bintree_iter_init(layer->blocks, &iter); bintree_iter_valid(iter); bintree_iter_next(&iter))
+	{
+		index = (unsigned int) bintree_iter_key(iter);
+		blk = bintree_iter_element(iter);
+		if((tblk = bintree_lookup(tlayer->blocks, (void *) index)) != NULL)
+		{
+			if(nodedb_a_blocks_equal(layer->type, blk, tblk))
+				printf(" Block %u equal, doing nothing\n", index);
+			else
+			{
+				printf(" Block %u differs, sending new version\n", index);
+				verse_send_a_block_set(target->node.id, tlayer->id, index, tlayer->type, blk->data);
+				sync = 0;
+			}
+		}
+		else
+		{
+			printf(" Target node missing block %u, setting it\n", index);
+			verse_send_a_block_set(target->node.id, tlayer->id, index, tlayer->type, blk->data);
+		}
+	}
+	printf(" returning %d\n", sync);
+	return sync;
+}
+
+static int sync_audio(const NodeAudio *n, const NodeAudio *target)
+{
+	unsigned int	i, sync = 1;
+	const NdbALayer	*layer, *tlayer;
+
+	for(i = 0; (layer = dynarr_index(n->layers, i)) != NULL; i++)
+	{
+		if(layer->name[0] == '\0')
+			continue;
+		if((tlayer = nodedb_a_layer_find(target, layer->name)) != NULL)
+		{
+			printf("layer: type=%d freq=%g  target: type=%d freq=%g\n",
+			       layer->type, layer->frequency,
+			       tlayer->type, tlayer->frequency);
+			if(layer->type == tlayer->type && layer->frequency == tlayer->frequency)
+				sync &= sync_audio_layer(n, layer, target, tlayer);
+			else
+				printf("can't sync mismatched (type/freq) audio layers!\n");	/* FIXME: Do it. */
+		}
+		else
+		{
+			printf("sync sending create of layer '%s' in %u\n", layer->name, target->node.id);
+			verse_send_a_layer_create(target->node.id, ~0, layer->name, layer->type, layer->frequency);
+			sync = 0;
+		}
+	}
+	return sync;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 static int sync_node(Node *n)
 {
 	Node	*target;
@@ -867,6 +931,9 @@ static int sync_node(Node *n)
 		break;
 	case V_NT_CURVE:
 		sync &= sync_curve((NodeCurve *) n, (NodeCurve *) target);
+		break;
+	case V_NT_AUDIO:
+		sync &= sync_audio((NodeAudio *) n, (NodeAudio *) target);
 		break;
 	default:
 		printf("Can't sync node of type %d\n", n->type);
