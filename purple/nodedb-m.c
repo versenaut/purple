@@ -432,6 +432,16 @@ NdbMFragment * nodedb_m_fragment_create_ramp(NodeMaterial *node, VNMRampType typ
 	return nodedb_m_fragment_create(node, ~0, VN_M_FT_RAMP, &frag);
 }
 
+NdbMFragment * nodedb_m_fragment_create_animation(NodeMaterial *node, const char *label)
+{
+	VMatFrag	frag;
+
+	if(node == NULL || label == NULL || *label == '\0')
+		return NULL;
+	stu_strncpy(frag.animation.label, sizeof frag.animation.label, label);
+	return nodedb_m_fragment_create(node, ~0, VN_M_FT_ANIMATION, &frag);
+}
+
 NdbMFragment * nodedb_m_fragment_create_output(NodeMaterial *node, const char *label,
 					       const NdbMFragment *front, const NdbMFragment *back)
 {
