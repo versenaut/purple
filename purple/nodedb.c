@@ -104,7 +104,7 @@ NodeText * nodedb_lookup_text(VNodeID node_id)
 
 void nodedb_internal_notify_mine_check(Node *n, NodeNotifyEvent ev)
 {
-	if(nodedb_info.notify_mine != NULL && (n->owner == VN_OWNER_MINE))
+	if(nodedb_info.notify_mine != NULL/* && (n->owner == VN_OWNER_MINE)*/)	/* FIXME: Server needs fixing. */
 	{
 		const List	*iter;
 
