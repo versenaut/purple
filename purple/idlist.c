@@ -35,14 +35,22 @@ void idlist_construct(IdList *il)
 	}
 }
 
+/* Compare IDs, for sorted insert in list. */
+static int cmp_id(const void *data1, const void *data2)
+{
+	unsigned int	a = (unsigned int) data1, b = (unsigned int) data2;
+
+	return a < b ? -1 : a > b;
+}
+
 void idlist_insert(IdList *il, unsigned int id)
 {
 	if(il == NULL)
 		return;
 	if(id < QUICK_MAX)
 		il->quick[id / 32] |= 1 << (id % 32);
-	else
-		il->slow = list_append(il->slow, (void *) id);
+	else if(list_find_sorted(il->slow, (void *) id, cmp_id) == NULL)	/* No dupes. */
+		il->slow = list_insert_sorted(il->slow, (void *) id, cmp_id);
 }
 
 void idlist_remove(IdList *il, unsigned int id)
