@@ -323,9 +323,9 @@ PNCCurve * p_node_c_curve_create(PONode *node, const char *name, uint8 dimension
 	return nodedb_c_curve_create((NodeCurve *) node, ~0, name, dimensions);
 }
 
-PNCCurve * p_node_c_curve_lookup(PINode *node, const char *name)
+PNCCurve * p_node_c_curve_find(PINode *node, const char *name)
 {
-	return nodedb_c_curve_lookup((NodeCurve *) node, name);
+	return nodedb_c_curve_find((NodeCurve *) node, name);
 }
 
 uint8 p_node_c_curve_dimensions_get(const PNCCurve *curve)

@@ -178,8 +178,11 @@ void		p_node_b_layer_destroy(PONode *node, PNBLayer *layer);
 /* Curve-node manipulation functions. */
 typedef void	PNCCurve, PNCKey;
 
+unsigned int	p_node_c_curve_num(PINode *node);
+PNCCurve *	p_node_c_curve_nth(PINode *node, unsigned int n);
+PNCCurve *	p_node_c_curve_find(PINode *node, const char *name);
+
 PNCCurve *	p_node_c_curve_create(PONode *node, const char *name, uint8 dimensions);
-PNCCurve *	p_node_c_curve_lookup(PINode *node, const char *name);
 uint8		p_node_c_curve_dimensions_get(const PNCCurve *curve);
 size_t		p_node_c_curve_key_get_count(const PNCCurve *curve);
 PNCKey *	p_node_c_curve_key_get_nth(const PNCCurve *curve, unsigned int n);
