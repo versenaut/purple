@@ -79,7 +79,7 @@ List * list_insert_before(List *list, List *parent, void *data)
 	List	*el, *prev;
 
 	if(list == NULL)
-		return NULL;
+		return list_new(data);
 	if(parent == NULL)
 		return list_append(list, data);
 	el = list_new(data);
