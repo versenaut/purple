@@ -15,6 +15,9 @@ typedef struct PInputSet	PInputSet;
 
 extern void	plugins_init(const char *paths);
 
+extern const char *	plugin_input_type_to_name(PInputType t);
+extern PInputType	plugin_input_type_from_name(const char *name);
+
 extern Plugin *	plugin_new(const char *name);
 extern void	plugin_set_input(Plugin *p, int index, PInputType type, const char *name, va_list taglist);
 extern void	plugin_set_meta(Plugin *p, const char *category, const char *text);

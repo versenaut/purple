@@ -96,29 +96,57 @@ static struct
 	Hash		*plugins_name;		/* All currently loaded, available plugins. */
 } plugins_info = { NULL };
 
+static struct TypeName
+{
+	PInputType	type;
+	const char	*name;
+} type_map_by_value[] = {
+	{ P_INPUT_BOOLEAN,	"boolean" },
+	{ P_INPUT_INT32,	"int32" },
+	{ P_INPUT_UINT32,	"uint32" },
+	{ P_INPUT_REAL32,	"real32" },
+	{ P_INPUT_REAL32_VEC2,	"real32_vec2" },
+	{ P_INPUT_REAL32_VEC3,	"real32_vec3" },
+	{ P_INPUT_REAL32_VEC4,	"real32_vec4" },
+	{ P_INPUT_REAL32_MAT16,	"real32_mat16" },
+	{ P_INPUT_REAL64,	"real64" },
+	{ P_INPUT_REAL64_VEC2,	"real64_vec2" },
+	{ P_INPUT_REAL64_VEC3,	"real64_vec3" },
+	{ P_INPUT_REAL64_VEC4,	"real64_vec4" },
+	{ P_INPUT_REAL64_MAT16,	"real64_mat16" },
+	{ P_INPUT_STRING,	"string" },
+	{ P_INPUT_NODE,		"node" }
+	}, type_map_by_name[sizeof type_map_by_value / sizeof *type_map_by_value];
+
 /* ----------------------------------------------------------------------------------------- */
 
 const char * plugin_input_type_to_name(PInputType t)
 {
-	switch(t)
-	{
-	case P_INPUT_BOOLEAN:		return "boolean";
-	case P_INPUT_INT32:		return "int32";
-	case P_INPUT_UINT32:		return "uint32";
-	case P_INPUT_REAL32:		return "real32";
-	case P_INPUT_REAL32_VEC2:	return "real32_vec2";
-	case P_INPUT_REAL32_VEC3:	return "real32_vec3";
-	case P_INPUT_REAL32_VEC4:	return "real32_vec4";
-	case P_INPUT_REAL32_MAT16:	return "real32_mat16";
-	case P_INPUT_REAL64:		return "real64";
-	case P_INPUT_REAL64_VEC2:	return "real64_vec2";
-	case P_INPUT_REAL64_VEC3:	return "real64_vec3";
-	case P_INPUT_REAL64_VEC4:	return "real64_vec4";
-	case P_INPUT_REAL64_MAT16:	return "real64_mat16";
-	case P_INPUT_STRING:		return "string";
-	case P_INPUT_NODE:		return "node";
-	}
-	return "!unknown!";
+	return type_map_by_value[t].name;
+}
+
+/* bsearch() callback for comparing a string, <key>, with a struct TypeName. */
+static int srch_type_name(const void *key, const void *t)
+{
+	return strcmp(key, ((const struct TypeName *) t)->name);
+}
+
+PInputType plugin_input_type_from_name(const char *name)
+{
+	struct TypeName	*m = bsearch(name, type_map_by_name,
+			     sizeof type_map_by_name / sizeof *type_map_by_name,
+			     sizeof type_map_by_name, srch_type_name);
+	if(m != NULL)
+		return m->type;
+	return -1;
+}
+
+/* qsort() callback for sorting the by-name mapping. */
+static int cmp_type_name(const void *a, const void *b)
+{
+	const struct TypeName	*na = a, *nb = b;
+
+	return strcmp(na->name, nb->name);
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -553,6 +581,8 @@ void plugins_init(const char *paths)
 	plugins_info.plugins = idset_new(1);
 	plugins_info.plugins_name = hash_new_string();
 	plugins_info.chunk_meta  = memchunk_new("Meta", sizeof (MetaEntry), 4);
+
+	qsort(type_map_by_name, sizeof type_map_by_name / sizeof *type_map_by_name, sizeof *type_map_by_name, cmp_type_name);
 }
 
 static int library_known(const char *name)
