@@ -172,8 +172,8 @@ static void cb_b_layer_destroy(void *user, VNodeID node_id, VLayerID layer_id)
 	if((layer = dynarr_index(node->layers, layer_id)) == NULL || layer->name[0] == '\0')
 		return;
 	layer->name[0] = '\0';
-	mem_free(layer->framebuffer);
 	layer->type = -1;
+	mem_free(layer->framebuffer);
 }
 
 static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16 tile_x, uint16 tile_y, uint16 tile_z,
@@ -244,13 +244,14 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 */	}
 	else
 	{
-		uint8	*put, y;
+		uint8	*put, y, th;
 
 		ps /= 8;	/* We know the size is a whole number of bytes. */
 		put = layer->framebuffer + 4 * ps * tile_x +
 				4 * ps * node->width * tile_y +
 				ps * node->width * node->height * tile_z;
-		for(y = 0; y < 4; y++)
+		th = (tile_y * 4 + 3 >= node->height) ? node->height % 4 : 4;	/* Clamp tile height against node. */
+		for(y = 0; y < th; y++)
 		{
 			switch(type)
 			{
