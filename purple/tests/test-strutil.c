@@ -66,6 +66,26 @@ int main(void)
 	}
 	test_end();
 
+	test_begin("strncpy() corners");
+	{
+		char	buf[4] = { 99, 1, 2, 3 };
+		int	ok = 1;
+
+		stu_strncpy(buf, 0, "foo");
+		if(buf[0] == 99)
+		{
+			stu_strncpy(buf, 1, "foo");
+			if(buf[0] == 0 && buf[1] == 1)
+			{
+				stu_strncpy(buf, 2, "foo");
+				if(buf[0] == 'f' && buf[1] == '\0' && buf[2] == 2)
+					ok = 1;
+			}
+		}
+		test_result(ok);
+	}
+	test_end();
+
 	test_begin("split()");
 	{
 		char	**arg;
