@@ -392,7 +392,7 @@ PNMFragment * p_node_m_fragment_create_volume(PONode *node,  real64 diffusion, r
 	return nodedb_m_fragment_create_volume((NodeMaterial *) node, diffusion, col_r, col_g, col_b, color);
 }
 
-PNMFragment * p_node_m_fragment_create_geometry(NodeMaterial *node,
+PNMFragment * p_node_m_fragment_create_geometry(PONode *node,
 						const char *layer_r, const char *layer_g, const char *layer_b)
 {
 	return nodedb_m_fragment_create_geometry((NodeMaterial *) node, layer_r, layer_g, layer_b);
