@@ -106,7 +106,7 @@ PINode *	p_input_node_nth(PPInput input, int index);	/* Input n:th node, or NULL
  * PIter iter;
  *
  * for(p_whatever_iter(whatever, &iter); (el = p_iter_get(&iter)) != NULL; p_iter_next(&iter))
- * 	{ process element <el> here }
+ * { process element <el> here }
 */
 typedef struct
 {
@@ -309,6 +309,12 @@ unsigned int	p_node_a_layer_num(PINode *node);
 PNALayer *	p_node_a_layer_nth(PINode *node, unsigned int n);
 PNALayer *	p_node_a_layer_find(PINode *node, const char *name);
 const char *	p_node_a_layer_get_name(const PNALayer *layer);
+unsigned int	p_node_a_layer_get_length(const PNALayer *layer);
+
+PNALayer *	p_node_a_layer_create(PONode *node, const char *name, VNALayerType type, real64 frequency);
+
+unsigned int	p_node_a_layer_read_samples(const PNALayer *layer, unsigned int start, real64 *buffer, unsigned int len);
+void		p_node_a_layer_write_samples(PNALayer *layer, unsigned int start, const real64 *buffer, unsigned int len);
 
 /* Duplicates an input node, and returns something you can actually edit. */
 PONode *	p_output_node(PPOutput out, PINode *node);
