@@ -159,14 +159,11 @@ static void cb_t_buffer_create(void *user, VNodeID node_id, VNMBufferID buffer_i
 				      "<purple-graphs>\n"
 				      "</purple-graphs>\n";
 
-		printf(" It's the graphs index buffer\n");
 		client_info.graphs.buffer = buffer_id;
 		verse_send_t_buffer_subscribe(client_info.meta, client_info.graphs.buffer);
-		if(client_info.graphs.cron == 0)
-			client_info.graphs.cron = cron_add(CRON_PERIODIC, 1.0E9, cb_graphs_refresh, NULL);
 		client_info.graphs.text = textbuf_new(2048);
 		verse_send_t_text_set(client_info.meta, client_info.graphs.buffer, 0, 0, header);
-		client_info.graphs.start = strchr(header, '/') - header - 2;
+		client_info.graphs.start = strchr(header, '/') - header - 1;
 	}
 	else
 		printf(" Unknown, ignoring\n");
@@ -188,8 +185,8 @@ static void cb_t_text_set(void *user, VNodeID node_id, VNMBufferID buffer_id, ui
 	{
 		textbuf_delete(client_info.graphs.text, pos, len);
 		textbuf_insert(client_info.graphs.text, pos, text);
-		if(client_info.graphs.cron != 0)
-			cron_set(client_info.graphs.cron, 1.0, cb_graphs_refresh, NULL);
+		if(client_info.graphs.cron == 0)
+			client_info.graphs.cron = cron_add(CRON_ONESHOT, 0.1, cb_graphs_refresh, NULL);
 	}
 }
 
