@@ -103,6 +103,28 @@ NdbCCurve * nodedb_c_curve_create(NodeCurve *node, VLayerID curve_id, const char
 	return curve;
 }
 
+NdbCCurve * nodedb_c_curve_lookup(const NodeCurve *node, const char *name)
+{
+	unsigned int	i;
+	NdbCCurve	*curve;
+
+	if(node == NULL || name == NULL)
+		return NULL;
+	for(i = 0; ((curve = dynarr_index(node->curves, i)) != NULL); i++)
+	{
+		if(strcmp(curve->name, name) == 0)
+			return curve;
+	}
+	return NULL;
+}
+
+uint8 nodedb_c_curve_dimensions_get(const NdbCCurve *curve)
+{
+	if(curve == NULL)
+		return 0;
+	return curve->dimensions;
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 static void cb_c_curve_create(void *user, VNodeID node_id, VLayerID curve_id, const char *name, uint8 dimensions)
