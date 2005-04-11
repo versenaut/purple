@@ -47,7 +47,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 void init(void)
 {
 	p_init_create("plane");
-	p_init_input(0, P_VALUE_REAL32, "size",   P_INPUT_REQUIRED, P_INPUT_DONE);
-	p_init_input(1, P_VALUE_UINT32, "splits", P_INPUT_DEFAULT(1), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_REAL32, "size",   P_INPUT_REQUIRED, P_INPUT_DEFAULT(10.0), P_INPUT_DONE);
+	p_init_input(1, P_VALUE_UINT32, "splits", P_INPUT_DEFAULT(1), P_INPUT_DEFAULT(1), P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_compute(compute);
 }
