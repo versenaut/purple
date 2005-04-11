@@ -204,13 +204,25 @@ static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeID 
 	node_text_new(user, node_id);
 }
 
+/*
+static void cb_get_time(void *user, uint32 time)
+{
+	printf("time: %u\n", time);
+}
+*/
+
+static void cb_ping(void *user, const char *address, const char *text)
+{
+	printf("ping from '%s': '%s'\n", address, text);
+}
+
 static void cb_node_name_set(void *user, VNodeID node_id, const char *name)
 {
 	node_name_set(user, node_id, name);
 	combo_nodes_refresh(user);
 }
 
-static void cb_node_t_buffer_create(void *user, VNodeID node_id, uint16 buffer_id, uint16 index, const char *name)
+static void cb_node_t_buffer_create(void *user, VNodeID node_id, uint16 buffer_id, const char *name)
 {
 	node_text_buffer_new(user, node_id, buffer_id, name);
 	if(((MainInfo *) user)->cur_node == node_id)
@@ -389,6 +401,12 @@ static gboolean evt_window_keypress(GtkWidget *win, GdkEventKey *evt, gpointer u
 	return TRUE;
 }
 
+static void evt_ping(GtkWidget *win, gpointer user)
+{
+	printf("Pinging server\n");
+	verse_send_ping("localhost", "foobar");
+}
+
 static void evt_window_delete(GtkWidget *win, GdkEvent *evt, gpointer user)
 {
 	gtk_main_quit();
@@ -437,6 +455,14 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(btn), "clicked", G_CALLBACK(evt_window_delete), &min);
 	gtk_box_pack_end(GTK_BOX(hbox), btn, FALSE, FALSE, 0);
 
+/*	btn = gtk_button_new_with_label("Get Time");
+	g_signal_connect(G_OBJECT(btn), "clicked", G_CALLBACK(evt_get_time), &min);
+	gtk_box_pack_end(GTK_BOX(hbox), btn, FALSE, FALSE, 0);
+*/
+	btn = gtk_button_new_with_label("Ping");
+	g_signal_connect(G_OBJECT(btn), "clicked", G_CALLBACK(evt_ping), &min);
+	gtk_box_pack_end(GTK_BOX(hbox), btn, FALSE, FALSE, 0);
+
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 
 	min.notebook = gtk_notebook_new();
@@ -449,6 +475,8 @@ int main(int argc, char *argv[])
 
 	verse_callback_set(verse_send_connect_accept,	cb_connect_accept, &min);
 	verse_callback_set(verse_send_node_create,	cb_node_create,	&min);
+/*	verse_callback_set(verse_send_get_time,		cb_get_time, &min);*/
+	verse_callback_set(verse_send_ping,		cb_ping, &min);
 	verse_callback_set(verse_send_node_name_set,	cb_node_name_set, &min);
 	verse_callback_set(verse_send_t_buffer_create,	cb_node_t_buffer_create, &min);
 	verse_callback_set(verse_send_t_text_set,	cb_t_text_set, &min);
