@@ -704,50 +704,50 @@ char * p_node_t_buffer_read_line(PNTBuffer *buffer, unsigned int line, char *put
 
 /* ----------------------------------------------------------------------------------------- */
 
-unsigned int p_node_a_layer_get_num(PINode *node)
+unsigned int p_node_a_buffer_get_num(PINode *node)
 {
-	return nodedb_a_layer_num((NodeAudio *) node);
+	return nodedb_a_buffer_num((NodeAudio *) node);
 }
 
-PNALayer * p_node_a_layer_nth(PINode *node, unsigned int n)
+PNABuffer * p_node_a_buffer_nth(PINode *node, unsigned int n)
 {
-	return nodedb_a_layer_nth((NodeAudio *) node, n);
+	return nodedb_a_buffer_nth((NodeAudio *) node, n);
 }
 
-PNALayer * p_node_a_layer_find(PINode *node, const char *name)
+PNABuffer * p_node_a_buffer_find(PINode *node, const char *name)
 {
-	return nodedb_a_layer_find((NodeAudio *) node, name);
+	return nodedb_a_buffer_find((NodeAudio *) node, name);
 }
 
-const char * p_node_a_layer_get_name(const PNALayer *layer)
+const char * p_node_a_buffer_get_name(const PNABuffer *layer)
 {
 	if(layer != NULL)
-		return ((NdbALayer *) layer)->name;
+		return ((NdbABuffer *) layer)->name;
 	return NULL;
 }
 
-real64 p_node_a_layer_get_frequency(const PNALayer *layer)
+real64 p_node_a_buffer_get_frequency(const PNABuffer *layer)
 {
-	return layer != NULL ? ((NdbALayer *) layer)->frequency : 0.0;
+	return layer != NULL ? ((NdbABuffer *) layer)->frequency : 0.0;
 }
 
-PNALayer * p_node_a_layer_create(PONode *node, const char *name, VNALayerType type, real64 frequency)
+PNABuffer * p_node_a_buffer_create(PONode *node, const char *name, VNABlockType type, real64 frequency)
 {
-	PNALayer	*l;
+	PNABuffer	*l;
 
 	if(node == NULL)
 		return NULL;
-	if((l = nodedb_a_layer_find((NodeAudio *) node, name)) != NULL)
+	if((l = nodedb_a_buffer_find((NodeAudio *) node, name)) != NULL)
 		return l;
-	return nodedb_a_layer_create((NodeAudio *) node, ~0, name, type, frequency);
+	return nodedb_a_buffer_create((NodeAudio *) node, ~0, name, type, frequency);
 }
 
-unsigned int p_node_a_layer_read_samples(const PNALayer *layer, unsigned int start, real64 *buffer, unsigned int length)
+unsigned int p_node_a_buffer_read_samples(const PNABuffer *buffer, unsigned int start, real64 *samples, unsigned int length)
 {
-	return nodedb_a_layer_read_samples((NdbALayer *) layer, start, buffer, length);
+	return nodedb_a_buffer_read_samples((NdbABuffer *) buffer, start, samples, length);
 }
 
-void p_node_a_layer_write_samples(PNALayer *layer, unsigned int start, const real64 *buffer, unsigned int length)
+void p_node_a_buffer_write_samples(PNABuffer *buffer, unsigned int start, const real64 *samples, unsigned int length)
 {
-	nodedb_a_layer_write_samples((NdbALayer *) layer, start, buffer, length);
+	nodedb_a_buffer_write_samples((NdbABuffer *) buffer, start, samples, length);
 }

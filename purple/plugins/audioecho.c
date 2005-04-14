@@ -10,7 +10,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
 	PINode		*in;
 	PONode		*out;
-	PNALayer	*layer;
+	PNABuffer	*buffer;
 	real64		bin[768], bout[768], delay, factor = 0.333;
 	unsigned int	i, spos, slen, dpos, dlen, j, tot = 0;
 
@@ -24,25 +24,25 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	delay = p_input_real32(input[1]);
 
 	printf("In audioecho compute(), in=%p out=%p delay=%f\n", in, out, delay);
-	for(i = 0; (layer = p_node_a_layer_nth(out, i)) != NULL; i++)
+	for(i = 0; (buffer = p_node_a_buffer_nth(out, i)) != NULL; i++)
 	{
-		real64	f = p_node_a_layer_get_frequency(layer);
+		real64	f = p_node_a_buffer_get_frequency(buffer);
 		uint32	dist = delay * f;
 
-		printf(" layer has freq %g Hz -> dist=%u samples\n", f, dist);
-		/* Loop through the layer, asking Purple for convenient-sized blocks of samples. */
+		printf(" buffer has freq %g Hz -> dist=%u samples\n", f, dist);
+		/* Loop through the buffer, asking Purple for convenient-sized blocks of samples. */
 		for(spos = 0;
-		    (slen = p_node_a_layer_read_samples(layer, spos, bin, sizeof bin / sizeof *bin)) != 0;
+		    (slen = p_node_a_buffer_read_samples(buffer, spos, bin, sizeof bin / sizeof *bin)) != 0;
 		    spos += slen)
 		{
 			printf("  got %u samples at %u, reading out ahead\n", slen, spos);
-			dlen = p_node_a_layer_read_samples(layer, spos + dist, bout, sizeof bout / sizeof *bout);
+			dlen = p_node_a_buffer_read_samples(buffer, spos + dist, bout, sizeof bout / sizeof *bout);
 			if(dlen > 0)
 			{
 				printf("   got %u samples at %u to add echo to\n", dlen, spos + dist);
 				for(i = 0; i < dlen; i++)
 					bout[i] = bout[i] + factor * bin[i];
-				p_node_a_layer_write_samples(layer, spos + dist, bout, dlen);
+				p_node_a_buffer_write_samples(buffer, spos + dist, bout, dlen);
 			}
 		}
 	}

@@ -10,7 +10,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
 	PINode		*in;
 	PONode		*out;
-	PNALayer	*layer;
+	PNABuffer	*buffer;
 	real64		buf[768], scale;
 	unsigned int	i, pos, len, j, tot = 0;
 
@@ -25,18 +25,18 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	scale = p_input_real32(input[1]);
 
 	printf("In compute(), in=%p out=%p scale=%f\n", in, out, scale);
-	for(i = 0; (layer = p_node_a_layer_nth(out, i)) != NULL; i++)
+	for(i = 0; (buffer = p_node_a_buffer_nth(out, i)) != NULL; i++)
 	{
-		/* Loop through the layer, asking Purple for convenient-sized blocks of samples. */
-		for(pos = 0; (len = p_node_a_layer_read_samples(layer, pos, buf, sizeof buf / sizeof *buf)) != 0; pos += len)
+		/* Loop through the buffer, asking Purple for convenient-sized blocks of samples. */
+		for(pos = 0; (len = p_node_a_buffer_read_samples(buffer, pos, buf, sizeof buf / sizeof *buf)) != 0; pos += len)
 		{
 			/* Perform the rescaling, this is why we're here. */
 			for(i = 0; i < len; i++)
 				buf[i] *= scale;
 			/* And let Purple have the data back. */
-			p_node_a_layer_write_samples(layer, pos, buf, len);
+			p_node_a_buffer_write_samples(buffer, pos, buf, len);
 		}
-		printf("Done with layer '%s', processed %u bytes\n", p_node_a_layer_get_name(layer), pos);
+		printf("Done with buffer '%s', processed %u bytes\n", p_node_a_buffer_get_name(buffer), pos);
 	}
 	return P_COMPUTE_DONE;
 }
