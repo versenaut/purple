@@ -303,19 +303,19 @@ void		p_node_t_buffer_delete(PNTBuffer *buffer, size_t pos, size_t length);
 void		p_node_t_buffer_append(PNTBuffer *buffer, const char *text);
 
 /* Audio-node manipulation functions. */
-typedef void	PNALayer;
+typedef void	PNABuffer;
 
-unsigned int	p_node_a_layer_num(PINode *node);
-PNALayer *	p_node_a_layer_nth(PINode *node, unsigned int n);
-PNALayer *	p_node_a_layer_find(PINode *node, const char *name);
-const char *	p_node_a_layer_get_name(const PNALayer *layer);
-real64		p_node_a_layer_get_frequency(const PNALayer *layer);
-unsigned int	p_node_a_layer_get_length(const PNALayer *layer);
+unsigned int	p_node_a_buffer_num(PINode *node);
+PNABuffer *	p_node_a_buffer_nth(PINode *node, unsigned int n);
+PNABuffer *	p_node_a_buffer_find(PINode *node, const char *name);
+const char *	p_node_a_buffer_get_name(const PNABuffer *layer);
+real64		p_node_a_buffer_get_frequency(const PNABuffer *layer);
+unsigned int	p_node_a_buffer_get_length(const PNABuffer *layer);
 
-PNALayer *	p_node_a_layer_create(PONode *node, const char *name, VNALayerType type, real64 frequency);
+PNABuffer *	p_node_a_buffer_create(PONode *node, const char *name, VNABlockType type, real64 frequency);
 
-unsigned int	p_node_a_layer_read_samples(const PNALayer *layer, unsigned int start, real64 *buffer, unsigned int len);
-void		p_node_a_layer_write_samples(PNALayer *layer, unsigned int start, const real64 *buffer, unsigned int len);
+unsigned int	p_node_a_buffer_read_samples(const PNABuffer *buffer, unsigned int start, real64 *samples, unsigned int len);
+void		p_node_a_buffer_write_samples(PNABuffer *buffer, unsigned int start, const real64 *samples, unsigned int len);
 
 /* Duplicates an input node, and returns something you can actually edit. */
 PONode *	p_output_node(PPOutput out, PINode *node);
