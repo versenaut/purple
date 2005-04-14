@@ -869,31 +869,31 @@ static int sync_curve(const NodeCurve *n, const NodeCurve *target)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static int sync_audio_layer(const NodeAudio *n, const NdbALayer *layer,
-			    const NodeAudio *target, const NdbALayer *tlayer)
+static int sync_audio_buffer(const NodeAudio *n, const NdbABuffer *buffer,
+			    const NodeAudio *target, const NdbABuffer *tbuffer)
 {
 	unsigned int	sync = 1, index;
 	BinTreeIter	iter;
 	const NdbABlk	*blk, *tblk;
 
-	printf("syncing audio layer %s\n", layer->name);
-	for(bintree_iter_init(layer->blocks, &iter); bintree_iter_valid(iter); bintree_iter_next(&iter))
+	printf("syncing audio buffer %s\n", buffer->name);
+	for(bintree_iter_init(buffer->blocks, &iter); bintree_iter_valid(iter); bintree_iter_next(&iter))
 	{
 		index = (unsigned int) bintree_iter_key(iter);
 		blk = bintree_iter_element(iter);
-		if((tblk = bintree_lookup(tlayer->blocks, (void *) index)) != NULL)
+		if((tblk = bintree_lookup(tbuffer->blocks, (void *) index)) != NULL)
 		{
-			if(!nodedb_a_blocks_equal(layer->type, blk, tblk))
+			if(!nodedb_a_blocks_equal(buffer->type, blk, tblk))
 			{
 /*				printf(" Block %u differs, sending new version\n", index);*/
-				verse_send_a_block_set(target->node.id, tlayer->id, index, tlayer->type, blk->data);
+				verse_send_a_block_set(target->node.id, tbuffer->id, index, tbuffer->type, blk->data);
 				sync = 0;
 			}
 		}
 		else
 		{
 /*			printf(" Target node missing block %u, setting it\n", index);*/
-			verse_send_a_block_set(target->node.id, tlayer->id, index, tlayer->type, blk->data);
+			verse_send_a_block_set(target->node.id, tbuffer->id, index, tbuffer->type, blk->data);
 		}
 	}
 	printf(" block(s) sent\n");
@@ -903,26 +903,26 @@ static int sync_audio_layer(const NodeAudio *n, const NdbALayer *layer,
 static int sync_audio(const NodeAudio *n, const NodeAudio *target)
 {
 	unsigned int	i, sync = 1;
-	const NdbALayer	*layer, *tlayer;
+	const NdbABuffer	*buffer, *tbuffer;
 
-	for(i = 0; (layer = dynarr_index(n->layers, i)) != NULL; i++)
+	for(i = 0; (buffer = dynarr_index(n->buffers, i)) != NULL; i++)
 	{
-		if(layer->name[0] == '\0')
+		if(buffer->name[0] == '\0')
 			continue;
-		if((tlayer = nodedb_a_layer_find(target, layer->name)) != NULL)
+		if((tbuffer = nodedb_a_buffer_find(target, buffer->name)) != NULL)
 		{
-			printf("layer: type=%d freq=%g  target: type=%d freq=%g\n",
-			       layer->type, layer->frequency,
-			       tlayer->type, tlayer->frequency);
-			if(layer->type == tlayer->type && layer->frequency == tlayer->frequency)
-				sync &= sync_audio_layer(n, layer, target, tlayer);
+			printf("buffer: type=%d freq=%g  target: type=%d freq=%g\n",
+			       buffer->type, buffer->frequency,
+			       tbuffer->type, tbuffer->frequency);
+			if(buffer->type == tbuffer->type && buffer->frequency == tbuffer->frequency)
+				sync &= sync_audio_buffer(n, buffer, target, tbuffer);
 			else
-				printf("can't sync mismatched (type/freq) audio layers!\n");	/* FIXME: Do it. */
+				printf("can't sync mismatched (type/freq) audio buffers!\n");	/* FIXME: Do it. */
 		}
 		else
 		{
-			printf("sync sending create of layer '%s' in %u\n", layer->name, target->node.id);
-			verse_send_a_layer_create(target->node.id, ~0, layer->name, layer->type, layer->frequency);
+			printf("sync sending create of buffer '%s' in %u\n", buffer->name, target->node.id);
+			verse_send_a_buffer_create(target->node.id, ~0, buffer->name, buffer->type, buffer->frequency);
 			sync = 0;
 		}
 	}
