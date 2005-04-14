@@ -3,8 +3,7 @@
  * 
  * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
  * 
- * Audio node support. Limited to just layers (buffers), no real-time
- * streaming.
+ * Audio node support. Limited to just buffers, no real-time streaming.
 */
 
 #include <stdio.h>
@@ -25,7 +24,7 @@
 /* ----------------------------------------------------------------------------------------- */
 
 /* Return length of a block in samples, given its type. */
-static size_t block_len(VNALayerType type)
+static size_t block_len(VNABlockType type)
 {
 	static const size_t	len[] = {
 		VN_A_BLOCK_SIZE_INT8, VN_A_BLOCK_SIZE_INT16, VN_A_BLOCK_SIZE_INT24,
@@ -36,12 +35,12 @@ static size_t block_len(VNALayerType type)
 }
 
 /* Return size of a block in bytes, given its type. */
-static size_t block_size(VNALayerType type)
+static size_t block_size(VNABlockType type)
 {
 	static const size_t	size[] = {
 		VN_A_BLOCK_SIZE_INT8   * sizeof (uint8),
-		VN_A_BLOCK_SIZE_INT16  * sizeof (uint16), 
-		VN_A_BLOCK_SIZE_INT24  * 3 * sizeof (uint8),
+		VN_A_BLOCK_SIZE_INT16  * sizeof (uint16),
+		VN_A_BLOCK_SIZE_INT24  * sizeof (uint32),
 		VN_A_BLOCK_SIZE_INT32  * sizeof (uint32),
 		VN_A_BLOCK_SIZE_REAL32 * sizeof (real32),
 		VN_A_BLOCK_SIZE_REAL64 * sizeof (real64)
@@ -60,16 +59,16 @@ static int block_compare(const void *key1, const void *key2)
 
 void nodedb_a_construct(NodeAudio *n)
 {
-	n->layers = NULL;
+	n->buffers = NULL;
 }
 
-static NdbABlk * block_new(const NdbALayer *layer)
+static NdbABlk * block_new(const NdbABuffer *buffer)
 {
 	NdbABlk	*blk;
 
-	if((blk = mem_alloc(sizeof *blk + block_size(layer->type))) != NULL)
+	if((blk = mem_alloc(sizeof *blk + block_size(buffer->type))) != NULL)
 	{
-		blk->type = layer->type;
+		blk->type = buffer->type;
 		blk->data = blk + 1;
 	}
 	return blk;
@@ -77,7 +76,7 @@ static NdbABlk * block_new(const NdbALayer *layer)
 
 static void * block_copy(const void *key, const void *element, void *user)
 {
-	const NdbALayer	*ref = (NdbALayer *) user;
+	const NdbABuffer	*ref = (NdbABuffer *) user;
 	NdbABlk		*blk;
 
 	blk = block_new(ref);
@@ -91,10 +90,10 @@ static void block_destroy(NdbABlk *blk)
 	mem_free(blk);
 }
 
-static void cb_copy_layer(void *d, const void *s, void *user)
+static void cb_copy_buffer(void *d, const void *s, void *user)
 {
-	const NdbALayer	*src = s;
-	NdbALayer	*dst = d;
+	const NdbABuffer	*src = s;
+	NdbABuffer	*dst = d;
 
 	dst->id = src->id;
 	strcpy(dst->name, src->name);
@@ -105,7 +104,7 @@ static void cb_copy_layer(void *d, const void *s, void *user)
 
 void nodedb_a_copy(NodeAudio *n, const NodeAudio *src)
 {
-	n->layers = dynarr_new_copy(src->layers, cb_copy_layer, NULL);
+	n->buffers = dynarr_new_copy(src->buffers, cb_copy_buffer, NULL);
 }
 
 /* Set <n> to equal contents of <src>. */
@@ -125,28 +124,28 @@ void nodedb_a_destruct(NodeAudio *n)
 {
 	unsigned int	i, num;
 
-	num = dynarr_size(n->layers);
+	num = dynarr_size(n->buffers);
 	for(i = 0; i < num; i++)
 	{
-		NdbALayer	*la;
+		NdbABuffer	*la;
 
-		if((la = dynarr_index(n->layers, i)) != NULL && la->name[0] != '\0')
+		if((la = dynarr_index(n->buffers, i)) != NULL && la->name[0] != '\0')
 		{
 			bintree_destroy(la->blocks, cb_block_destroy);
 		}
 	}
-	dynarr_destroy(n->layers);
-	n->layers = NULL;
+	dynarr_destroy(n->buffers);
+	n->buffers = NULL;
 }
 
-unsigned int nodedb_a_layer_num(const NodeAudio *node)
+unsigned int nodedb_a_buffer_num(const NodeAudio *node)
 {
 	unsigned int	i, num;
-	NdbALayer	*la;
+	NdbABuffer	*la;
 
 	if(node == NULL || node->node.type != V_NT_AUDIO)
 		return 0;
-	for(i = num = 0; (la = dynarr_index(node->layers, i)) != NULL; i++)
+	for(i = num = 0; (la = dynarr_index(node->buffers, i)) != NULL; i++)
 	{
 		if(la->name[0] == '\0')
 			continue;
@@ -155,14 +154,14 @@ unsigned int nodedb_a_layer_num(const NodeAudio *node)
 	return num;
 }
 
-NdbALayer * nodedb_a_layer_nth(const NodeAudio *node, unsigned int n)
+NdbABuffer * nodedb_a_buffer_nth(const NodeAudio *node, unsigned int n)
 {
 	unsigned int	i;
-	NdbALayer	*la;
+	NdbABuffer	*la;
 
 	if(node == NULL || node->node.type != V_NT_AUDIO)
 		return 0;
-	for(i = 0; (la = dynarr_index(node->layers, i)) != NULL; i++)
+	for(i = 0; (la = dynarr_index(node->buffers, i)) != NULL; i++)
 	{
 		if(la->name[0] == '\0')
 			continue;
@@ -173,14 +172,14 @@ NdbALayer * nodedb_a_layer_nth(const NodeAudio *node, unsigned int n)
 	return NULL;
 }
 
-NdbALayer * nodedb_a_layer_find(const NodeAudio *node, const char *name)
+NdbABuffer * nodedb_a_buffer_find(const NodeAudio *node, const char *name)
 {
 	unsigned int	i;
-	NdbALayer	*la;
+	NdbABuffer	*la;
 
 	if(node == NULL || name == NULL || *name == '\0')
 		return NULL;
-	for(i = 0; (la = dynarr_index(node->layers, i)) != NULL; i++)
+	for(i = 0; (la = dynarr_index(node->buffers, i)) != NULL; i++)
 	{
 		if(strcmp(la->name, name) == 0)
 			return la;
@@ -188,30 +187,30 @@ NdbALayer * nodedb_a_layer_find(const NodeAudio *node, const char *name)
 	return NULL;
 }
 
-static void cb_def_layer(unsigned int index, void *element, void *user)
+static void cb_def_buffer(unsigned int index, void *element, void *user)
 {
-	NdbALayer	*la = element;
+	NdbABuffer	*la = element;
 
 	la->name[0] = '\0';
 	la->blocks  = NULL;
 }
 
-NdbALayer * nodedb_a_layer_create(NodeAudio *node, VLayerID layer_id, const char *name, VNALayerType type, real64 frequency)
+NdbABuffer * nodedb_a_buffer_create(NodeAudio *node, VBufferID buffer_id, const char *name, VNABlockType type, real64 frequency)
 {
-	NdbALayer	*la;
+	NdbABuffer	*la;
 
-	if(node->layers == NULL)
+	if(node->buffers == NULL)
 	{
-		node->layers = dynarr_new(sizeof *la, 2);
-		dynarr_set_default_func(node->layers, cb_def_layer, NULL);
+		node->buffers = dynarr_new(sizeof *la, 2);
+		dynarr_set_default_func(node->buffers, cb_def_buffer, NULL);
 	}
-	if(node->layers == NULL)
+	if(node->buffers == NULL)
 		return NULL;
-	if(layer_id == (VLayerID) ~0)
-		la = dynarr_append(node->layers, NULL, NULL);
+	if(buffer_id == (VLayerID) ~0)
+		la = dynarr_append(node->buffers, NULL, NULL);
 	else
 	{
-		if((la = dynarr_set(node->layers, layer_id, NULL)) != NULL)
+		if((la = dynarr_set(node->buffers, buffer_id, NULL)) != NULL)
 		{
 			if(la->name[0] != '\0')
 			{
@@ -222,7 +221,7 @@ NdbALayer * nodedb_a_layer_create(NodeAudio *node, VLayerID layer_id, const char
 			}
 		}
 	}
-	la->id = layer_id;
+	la->id = buffer_id;
 	stu_strncpy(la->name, sizeof la->name, name);
 	la->type = type;
 	la->frequency = frequency;
@@ -233,7 +232,7 @@ NdbALayer * nodedb_a_layer_create(NodeAudio *node, VLayerID layer_id, const char
 
 /* ----------------------------------------------------------------------------------------- */
 
-int nodedb_a_blocks_equal(VNALayerType type, const NdbABlk *blk1, const NdbABlk *blk2)
+int nodedb_a_blocks_equal(VNABlockType type, const NdbABlk *blk1, const NdbABlk *blk2)
 {
 	if(blk1 == blk2)
 		return 1;
@@ -248,7 +247,7 @@ int nodedb_a_blocks_equal(VNALayerType type, const NdbABlk *blk1, const NdbABlk 
 	{\
 		int ## bits	*get = blk->data;\
 		for(i = 0, get += offset; i < chunk; i++)\
-			*buffer++ = ((real64) *get++) / (real64) (1 << (bits - 1));\
+			*samples++ = ((real64) *get++) / (real64) (1 << (bits - 1));\
 	}\
 	break
 
@@ -256,20 +255,20 @@ int nodedb_a_blocks_equal(VNALayerType type, const NdbABlk *blk1, const NdbABlk 
 	{\
 		real ## bits	*get = blk->data;\
 		for(i = 0, get += offset; i < chunk; i++)\
-			*buffer++ = *get++;\
+			*samples++ = *get++;\
 	}\
 	break
 
-unsigned int nodedb_a_layer_read_samples(const NdbALayer *layer, unsigned int start, real64 *buffer, unsigned int length)
+unsigned int nodedb_a_buffer_read_samples(const NdbABuffer *buffer, unsigned int start, real64 *samples, unsigned int length)
 {
 	unsigned int	index, pos, offset, bl, i, chunk, to_go = length, max;
 	const NdbABlk	*blk;
 
-	if(layer == NULL || buffer == NULL || length == 0)
+	if(buffer == NULL || buffer == NULL || length == 0)
 		return 0;
-	bl = block_len(layer->type);
+	bl = block_len(buffer->type);
 
-	max = (unsigned long) bintree_key_maximum(layer->blocks);
+	max = (unsigned long) bintree_key_maximum(buffer->blocks);
 
 /*	printf("Reading out %u samples from position %u (max=%u)\n", length, start, max);*/
 
@@ -287,27 +286,26 @@ unsigned int nodedb_a_layer_read_samples(const NdbALayer *layer, unsigned int st
 /*			printf(" Block index too large, there is no more data. Aborting\n");*/
 			return pos - start;
 		}
-		if((blk = bintree_lookup(layer->blocks, (void *) index)) != NULL)
+		if((blk = bintree_lookup(buffer->blocks, (void *) index)) != NULL)
 		{
-			switch(layer->type)
+			switch(buffer->type)
 			{
-			case VN_A_LAYER_INT8:
+			case VN_A_BLOCK_INT8:
 				READINT(8);
-			case VN_A_LAYER_INT16:
+			case VN_A_BLOCK_INT16:
 				READINT(16);
-			case VN_A_LAYER_INT24:
+			case VN_A_BLOCK_INT24:
 				{
 					uint32	*get = blk->data;
-					printf("  converting 24-bit data (FIXME: BROKEN)\n");	/* FIXME! */
 					for(i = 0, get += offset; i < chunk; i++)
-						*buffer++ = ((real64) *get++) / 8388608.0;
+						*samples++ = (*get++ >> 8) * (((real64) (1 << 24)) / 4294967296.0);
 				}
 				break;
-			case VN_A_LAYER_INT32:
+			case VN_A_BLOCK_INT32:
 				READINT(32);
-			case VN_A_LAYER_REAL32:
+			case VN_A_BLOCK_REAL32:
 				READREAL(32);
-			case VN_A_LAYER_REAL64:
+			case VN_A_BLOCK_REAL64:
 				READREAL(64);
 			}
 		}
@@ -315,7 +313,7 @@ unsigned int nodedb_a_layer_read_samples(const NdbALayer *layer, unsigned int st
 		{
 			printf(" Block is clear, setting %u zeroes\n", chunk);
 			for(i = 0; i < chunk; i++)
-				*buffer++ = 0.0;
+				*samples++ = 0.0;
 		}
 	}
 	return pos - start;
@@ -326,7 +324,7 @@ unsigned int nodedb_a_layer_read_samples(const NdbALayer *layer, unsigned int st
 	{\
 		int ## bits	*put = blk->data;\
 		for(i = 0, put += offset; i < chunk; i++)\
-			*put++ = *buffer++ * (real64) (1 << (bits - 1));\
+			*put++ = *samples++ * (real64) (1 << (bits - 1));\
 	}\
 	break
 
@@ -334,22 +332,22 @@ unsigned int nodedb_a_layer_read_samples(const NdbALayer *layer, unsigned int st
 	{\
 		real ## bits	*put = blk->data;\
 		for(i = 0, put += offset; i < chunk; i++)\
-			*put++ = *buffer++;\
+			*put++ = *samples++;\
 	}\
 	break
 
 
-void nodedb_a_layer_write_samples(NdbALayer *layer, unsigned int start, const real64 *buffer, unsigned int length)
+void nodedb_a_buffer_write_samples(NdbABuffer *buffer, unsigned int start, const real64 *samples, unsigned int length)
 {
 	unsigned int	index, pos, offset, bl, i, chunk, to_go = length;
 	NdbABlk		*blk;
 
-	if(layer == NULL || buffer == NULL || length == 0)
+	if(buffer == NULL || buffer == NULL || length == 0)
 		return;
-	bl = block_len(layer->type);
+	bl = block_len(buffer->type);
 
-	if(layer->blocks == NULL)
-		layer->blocks = bintree_new(block_compare);
+	if(buffer->blocks == NULL)
+		buffer->blocks = bintree_new(block_compare);
 
 /*	printf("Writing back %u samples from position %u\n", length, start);*/
 	for(pos = start, to_go = length; pos < start + length; pos += chunk, to_go -= chunk)
@@ -361,81 +359,84 @@ void nodedb_a_layer_write_samples(NdbALayer *layer, unsigned int start, const re
 			chunk = to_go;
 		
 /*		printf("Setting audio data from position %u -> block %u, offset %u, chunk %u\n", pos, index, offset, chunk);*/
-		if((blk = bintree_lookup(layer->blocks, (void *) index)) == NULL)
+		if((blk = bintree_lookup(buffer->blocks, (void *) index)) == NULL)
 		{
-			blk = block_new(layer);
-			bintree_insert(layer->blocks, (void *) index, blk);
+			blk = block_new(buffer);
+			bintree_insert(buffer->blocks, (void *) index, blk);
 		}
-		switch(layer->type)
+		switch(buffer->type)
 		{
-		case VN_A_LAYER_INT8:
+		case VN_A_BLOCK_INT8:
 			WRITEINT(8);
-		case VN_A_LAYER_INT16:
+		case VN_A_BLOCK_INT16:
 			WRITEINT(16);
-		case VN_A_LAYER_INT32:
+		case VN_A_BLOCK_INT24:
+			printf("Can't write back 24-bit integer samples, code missing\n");	/* FIXME. */
+			break;
+		case VN_A_BLOCK_INT32:
 			WRITEINT(32);
-		case VN_A_LAYER_REAL32:
+		case VN_A_BLOCK_REAL32:
 			WRITEREAL(32);
-		case VN_A_LAYER_REAL64:
+		case VN_A_BLOCK_REAL64:
 			WRITEREAL(64);
 		default:	/* FIXME: Code missing here. */
-			LOG_ERR(("Unhandled layer type %d in write_samples()", layer->type));
+			LOG_ERR(("Unhandled buffer type %d in write_samples()", buffer->type));
 		}
 	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_a_layer_create(void *user, VNodeID node_id, VLayerID layer_id, const char *name,
-			      VNALayerType type, real64 frequency)
+static void cb_a_buffer_create(void *user, VNodeID node_id, VLayerID buffer_id, const char *name,
+			      VNABlockType type, real64 frequency)
 {
 	NodeAudio	*n;
-	NdbALayer	*layer;
+	NdbABuffer	*buffer;
 
-	printf("audio callback: create layer %u (%s) in %u\n", layer_id, name, node_id);
+	printf("audio callback: create buffer %u (%s) in %u\n", buffer_id, name, node_id);
 	if((n = (NodeAudio *) nodedb_lookup_with_type(node_id, V_NT_AUDIO)) == NULL)
 		return;
-	if((layer = dynarr_index(n->layers, layer_id)) != NULL && layer->name[0] != '\0')
+	if((buffer = dynarr_index(n->buffers, buffer_id)) != NULL && buffer->name[0] != '\0')
 	{
-		LOG_WARN(("Missing code, audio layer needs to be reborn"));
+		LOG_WARN(("Missing code, audio buffer needs to be reborn"));
 		return;
 	}
 	else
 	{
-		printf("audio layer %s created\n", name);
-		nodedb_a_layer_create(n, layer_id, name, type, frequency);
+		printf("audio buffer %s created\n", name);
+		nodedb_a_buffer_create(n, buffer_id, name, type, frequency);
 		NOTIFY(n, STRUCTURE);
-		verse_send_a_layer_subscribe(node_id, layer_id);
+		verse_send_a_buffer_subscribe(node_id, buffer_id);
 	}
 }
 
-static void cb_a_layer_destroy(void *user, VNodeID node_id, VLayerID layer_id)
+static void cb_a_buffer_destroy(void *user, VNodeID node_id, VLayerID buffer_id)
 {
 	NodeAudio	*n;
 
 	if((n = (NodeAudio *) nodedb_lookup_with_type(node_id, V_NT_AUDIO)) != NULL)
 	{
-		NdbALayer	*al;
+		NdbABuffer	*al;
 
-		if((al = dynarr_index(n->layers, layer_id)) != NULL)
+		if((al = dynarr_index(n->buffers, buffer_id)) != NULL)
 		{
 			al->name[0] = '\0';
-			printf("Missing code to destroy audio layer\n");	/* FIXME: Write more. */
+			printf("Missing code to destroy audio buffer\n");	/* FIXME: Write more. */
 			NOTIFY(n, STRUCTURE);
 		}
 	}
 }
 
-static void cb_a_block_set(void *user, VNodeID node_id, VLayerID layer_id, uint32 block_index,
-			   VNALayerType type, const VNASample *data)
+static void cb_a_block_set(void *user, VNodeID node_id, VBufferID buffer_id, uint32 block_index,
+			   VNABlockType type, const VNABlock *data)
 {
 	NodeAudio	*n;
 
 	if((n = (NodeAudio *) nodedb_lookup_with_type(node_id, V_NT_AUDIO)) != NULL)
 	{
-		NdbALayer	*al;
+		NdbABuffer	*al;
 
-		if((al = dynarr_index(n->layers, layer_id)) != NULL)
+		if((al = dynarr_index(n->buffers, buffer_id)) != NULL)
 		{
 			NdbABlk	*blk;
 
@@ -463,19 +464,19 @@ static void cb_a_block_set(void *user, VNodeID node_id, VLayerID layer_id, uint3
 	}
 }
 
-static void cb_a_block_clear(void *user, VNodeID node_id, VLayerID layer_id, uint32 block_index)
+static void cb_a_block_clear(void *user, VNodeID node_id, VLayerID buffer_id, uint32 block_index)
 {
 	NodeAudio	*n;
 
 	if((n = (NodeAudio *) nodedb_lookup_with_type(node_id, V_NT_AUDIO)) != NULL)
 	{
-		NdbALayer	*al;
+		NdbABuffer	*al;
 
-		if((al = dynarr_index(n->layers, layer_id)) != NULL)
+		if((al = dynarr_index(n->buffers, buffer_id)) != NULL)
 		{
 			NdbABlk	*blk;
 
-			printf("Clearing audio block %u.%u.%u\n", node_id, layer_id, block_index);
+			printf("Clearing audio block %u.%u.%u\n", node_id, buffer_id, block_index);
 			if((blk = bintree_lookup(al->blocks, (void *) block_index)) != NULL)
 			{
 				bintree_remove(al->blocks, (void *) block_index);
@@ -492,8 +493,8 @@ static void cb_a_block_clear(void *user, VNodeID node_id, VLayerID layer_id, uin
 
 void nodedb_a_register_callbacks(void)
 {
-	verse_callback_set(verse_send_a_layer_create,	cb_a_layer_create, NULL);
-	verse_callback_set(verse_send_a_layer_destroy,	cb_a_layer_destroy, NULL);
+	verse_callback_set(verse_send_a_buffer_create,	cb_a_buffer_create, NULL);
+	verse_callback_set(verse_send_a_buffer_destroy,	cb_a_buffer_destroy, NULL);
 	verse_callback_set(verse_send_a_block_set,	cb_a_block_set, NULL);
 	verse_callback_set(verse_send_a_block_clear,	cb_a_block_clear, NULL);
 }
