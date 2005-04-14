@@ -206,7 +206,7 @@ NdbABuffer * nodedb_a_buffer_create(NodeAudio *node, VBufferID buffer_id, const 
 	}
 	if(node->buffers == NULL)
 		return NULL;
-	if(buffer_id == (VLayerID) ~0)
+	if(buffer_id == (VBufferID) ~0)
 		la = dynarr_append(node->buffers, NULL, NULL);
 	else
 	{
@@ -387,7 +387,7 @@ void nodedb_a_buffer_write_samples(NdbABuffer *buffer, unsigned int start, const
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_a_buffer_create(void *user, VNodeID node_id, VLayerID buffer_id, const char *name,
+static void cb_a_buffer_create(void *user, VNodeID node_id, VBufferID buffer_id, const char *name,
 			      VNABlockType type, real64 frequency)
 {
 	NodeAudio	*n;
@@ -410,7 +410,7 @@ static void cb_a_buffer_create(void *user, VNodeID node_id, VLayerID buffer_id, 
 	}
 }
 
-static void cb_a_buffer_destroy(void *user, VNodeID node_id, VLayerID buffer_id)
+static void cb_a_buffer_destroy(void *user, VNodeID node_id, VBufferID buffer_id)
 {
 	NodeAudio	*n;
 
@@ -464,7 +464,7 @@ static void cb_a_block_set(void *user, VNodeID node_id, VBufferID buffer_id, uin
 	}
 }
 
-static void cb_a_block_clear(void *user, VNodeID node_id, VLayerID buffer_id, uint32 block_index)
+static void cb_a_block_clear(void *user, VNodeID node_id, VBufferID buffer_id, uint32 block_index)
 {
 	NodeAudio	*n;
 
