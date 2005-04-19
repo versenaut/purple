@@ -214,10 +214,11 @@ static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 	tsize = dynarr_size(tlayer->data);
 	data  = dynarr_index(layer->data, 0);
 	tdata = dynarr_index(tlayer->data, 0);
+/*	printf(" local geometry size: %u, remote is %u\n", size, tsize);*/
 	for(i = 0; i < size; i++)
 	{
 		if(i >= tsize)					/* If data is not even in target, we must send it. */
-			send = TRUE;
+			send = 1;
 		else
 		{
 			send = memcmp(data, tdata, esize) != 0;	/* If it fits, compare to see if send needed. */
@@ -232,8 +233,14 @@ static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 			}
 			else if(tlayer->id == 1 && tlayer->type == VN_G_LAYER_POLYGON_CORNER_UINT32 && tdata != NULL)	/* And for polygon layers, too. */
 			{
-				if(polygon_deleted((uint32 *) data))
+/*				printf("base polygon %u: local delete is %d, remote is %d, send=%d (local=%p remote=%p)\n",
+				       i, polygon_deleted((uint32 *) data), polygon_deleted((uint32 *) tdata), send, data, tdata);
+*/				if(polygon_deleted((uint32 *) data) && !polygon_deleted((uint32 *) tdata))
+				{
+/*					printf("  deleting polygon %u.%u\n", target->node.id, i);*/
+					verse_send_g_polygon_delete(target->node.id, i);
 					send = 0;
+				}
 			}
 		}
 /*		if(send)
@@ -289,19 +296,20 @@ static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 	}
 	if(size < tsize)	/* We have less data than the target, so delete remainder. */
 	{
-/*		send = 1;
+		send = 1;
 		printf("** Target is too large, deleting -------------------------------------------------------\n");
-		if(layer->type >= VN_G_LAYER_VERTEX_XYZ && layer->type < VN_G_LAYER_POLYGON_CORNER_UINT32)
+/*		if(layer->type >= VN_G_LAYER_VERTEX_XYZ && layer->type < VN_G_LAYER_POLYGON_CORNER_UINT32)
 		{
 			for(i = size; i < tsize; i++)
 				verse_send_g_vertex_delete_real64(target->node.id, i);
 		}
-		else
+*/		if(tlayer->id == 1)
 		{
+			printf("deleting excess polygons\n");
 			for(i = size; i < tsize; i++)
 				verse_send_g_polygon_delete(target->node.id, i);
 		}
-*/	}
+	}
 /*	printf("done, returning %d\n", send);*/
 	return send;
 }
