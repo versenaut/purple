@@ -420,6 +420,25 @@ POLYGON_CORNER(uint32)
 POLYGON_CORNER(real32)
 POLYGON_CORNER(real64)
 
+static void cb_g_polygon_delete(void *user, VNodeID node_id, uint32 polygon_id)
+{
+	NodeGeometry	*node;
+	NdbGLayer	*layer;
+	uint32		*p;
+
+	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
+		return;
+	if((layer = nodedb_g_layer_lookup_id(node, 1)) == NULL || layer->name[0] == '\0')
+		return;
+	if(layer->data == NULL)
+		return;
+	if((p = dynarr_set(layer->data, polygon_id, NULL)) != NULL)
+	{
+		p[0] = p[1] = p[2] = p[3] = ~0u;
+		NOTIFY(node, DATA);
+	}
+}
+
 /* Macro to define a polygon face value handler function. */
 #define POLYGON_FACE(t)	\
 	void nodedb_g_polygon_set_face_ ##t(NdbGLayer *layer, uint32 polygon_id, t value)\
@@ -469,7 +488,6 @@ static void cb_g_vertex_delete(void *user, VNodeID node_id, uint32 vertex_id)
 	NodeGeometry	*node;
 	NdbGLayer	*layer;
 
-	printf("got vertex_delete, %u %u\n", node_id, vertex_id);
 	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
 		return;
 	if((layer = nodedb_g_layer_lookup_id(node, 0)) == NULL || layer->name[0] == '\0')
@@ -567,6 +585,7 @@ void nodedb_g_register_callbacks(void)
 	verse_callback_set(verse_send_g_vertex_set_real64,		cb_g_vertex_set_real64,		NULL);
 
 	verse_callback_set(verse_send_g_polygon_set_corner_uint32,	cb_g_polygon_set_corner_uint32,	NULL);
+	verse_callback_set(verse_send_g_polygon_delete,			cb_g_polygon_delete,		NULL);
 	verse_callback_set(verse_send_g_polygon_set_corner_real32,	cb_g_polygon_set_corner_real32,	NULL);
 	verse_callback_set(verse_send_g_polygon_set_corner_real64,	cb_g_polygon_set_corner_real64,	NULL);
 
