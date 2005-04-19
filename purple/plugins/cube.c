@@ -70,8 +70,8 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		}
 	}
 	/*  Last, the quads connected to the bottom face. */
-	home = 6 * (splits * splits) + 2 - (splits + 1);
 	row  = (splits + 1) * (splits + 1);
+	home = 6 * (splits * splits) + 2 - (splits + 1);
 	for(x = 0; x < splits; x++, poly++)
 		p_node_g_polygon_set_corner_uint32(lay, poly, home + x + 1, home + x, home + x - row, home + x + 1 - row);
 
@@ -93,9 +93,10 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		}
 	}
 	/*  Last, the quads connected to the bottom face. */
-	home = 6 * (splits * splits) + 2 - ((splits + 1) * (splits + 1));
+	row  = 2 * (splits + 1) + 2 * (splits - 1);
+	home = 2 * (splits + 1) * (splits + 1) + (splits - 1) * (2 * (splits + 1) + 2 * (splits - 1)) - 1 - (splits + 1) * (splits + 1) + (splits + 1);
 	for(x = 0; x < splits; x++, poly++)
-		p_node_g_polygon_set_corner_uint32(lay, poly,  home + x, home + x + 1, home - row + x + 1, home - row + x);
+		p_node_g_polygon_set_corner_uint32(lay, poly,  home - x, home - x - row, home - x - row - 1, home - x - 1);
 
 	/* Create left (x=-) side. */
 	/*  First the quads connected to the top face. */
