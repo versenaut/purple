@@ -284,10 +284,7 @@ void nodedb_g_vertex_delete(NdbGLayer *layer, uint32 vertex_id)
 		real64	*vtx = dynarr_index(layer->data, vertex_id);
 
 		if(vtx != NULL)
-		{
 			vtx[0] = vtx[1] = vtx[2] = V_REAL64_MAX;
-			printf("vertex %u.%u deleted at %p\n", layer->id, vertex_id, vtx);
-		}
 	}
 }
 
