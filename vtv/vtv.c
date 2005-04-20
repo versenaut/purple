@@ -420,8 +420,10 @@ static gboolean evt_timeout(gpointer user)
 
 int main(int argc, char *argv[])
 {
+	const char	*ip = "localhost";
 	MainInfo	min;
 	GtkWidget	*vbox, *hbox, *label, *btn;
+	int		i;
 
 	min.nodes = NULL;
 
@@ -481,7 +483,13 @@ int main(int argc, char *argv[])
 	verse_callback_set(verse_send_t_buffer_create,	cb_node_t_buffer_create, &min);
 	verse_callback_set(verse_send_t_text_set,	cb_t_text_set, &min);
 
-	min.session = verse_send_connect("vtv", "secret", "localhost", NULL);
+	for(i = 1; argv[i] != NULL; i++)
+	{
+		if(strncmp(argv[i], "-ip=", 4) == 0)
+			ip = argv[i] + 4;
+	}
+
+	min.session = verse_send_connect("vtv", "secret", ip, NULL);
 	gtk_main();
 
 	return 0;
