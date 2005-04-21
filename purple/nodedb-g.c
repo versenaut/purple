@@ -159,7 +159,7 @@ static void cb_def_layer(unsigned int index, void *element, void *user)
 	layer->data = NULL;
 }
 
-void nodedb_g_layer_create(NodeGeometry *node, VLayerID layer_id, const char *name, VNGLayerType type)
+NdbGLayer * nodedb_g_layer_create(NodeGeometry *node, VLayerID layer_id, const char *name, VNGLayerType type)
 {
 	NdbGLayer	*layer;
 
@@ -169,8 +169,8 @@ void nodedb_g_layer_create(NodeGeometry *node, VLayerID layer_id, const char *na
 		dynarr_set_default_func(node->layers, cb_def_layer, NULL);
 	}
 	if(node->layers == NULL)
-		return;
-	if(layer_id == (uint16) ~0)
+		return NULL;
+	if(layer_id == (VLayerID) ~0)
 		layer = dynarr_append(node->layers, NULL, NULL);
 	else
 	{
@@ -192,6 +192,17 @@ void nodedb_g_layer_create(NodeGeometry *node, VLayerID layer_id, const char *na
 	layer->data = NULL;
 	layer->def_uint = 0;
 	layer->def_real = 0.0;
+
+	return layer;
+}
+
+void nodedb_g_layer_destroy(NodeGeometry *node, NdbGLayer *layer)
+{
+	if(node == NULL || layer == NULL)
+		return;
+	layer->name[0] = '\0';
+	if(layer->data != NULL)
+		dynarr_destroy(layer->data);
 }
 
 NdbGLayer * nodedb_g_layer_lookup_id(const NodeGeometry *node, VLayerID layer_id)
@@ -250,9 +261,7 @@ static void cb_g_layer_destroy(void *user, VNodeID node_id, VLayerID layer_id)
 		return;
 	if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL || layer->name[0] == '\0')
 		return;
-	layer->name[0] = '\0';
-	if(layer->data != NULL)
-		dynarr_destroy(layer->data);
+	nodedb_g_layer_destroy(node, layer);
 	NOTIFY(node, STRUCTURE);
 }
 

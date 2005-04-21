@@ -48,7 +48,8 @@ extern NdbGLayer *	nodedb_g_layer_find(const NodeGeometry *n, const char *name);
 extern size_t		nodedb_g_layer_get_size(const NdbGLayer *layer);
 extern const char *	nodedb_g_layer_get_name(const NdbGLayer *layer);
 
-extern void		nodedb_g_layer_create(NodeGeometry *n, VLayerID layer_id, const char *name, VNGLayerType type);
+extern NdbGLayer *	nodedb_g_layer_create(NodeGeometry *node, VLayerID layer_id, const char *name, VNGLayerType type);
+extern void		nodedb_g_layer_destroy(NodeGeometry *node, NdbGLayer *layer);
 
 extern void		nodedb_g_vertex_set_xyz(NdbGLayer *layer, uint32 vertex_id, real64 x, real64 y, real64 z);
 extern void		nodedb_g_vertex_get_xyz(const NdbGLayer *layer, uint32 vertex_id, real64 *x, real64 *y, real64 *z);
