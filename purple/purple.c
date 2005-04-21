@@ -158,7 +158,7 @@ static void test_xmlnode(void)
 static void test_xmlnode(void)
 {
 	const char	*graph =
-	"<?xml version=\"1.0\" standalone=\"yes\"?>\n"
+	"<?xml version=\"1.0\" standalone=\"yes\" encoding=\"ISO-8859-1\"?>\n"
 	"<purple-graphs>\n"
 	 "<graph id=\"1\" name=\"busta\">\n"
 	  "<at>\n"
@@ -571,7 +571,8 @@ static void console_update(void)
 
 int main(int argc, char *argv[])
 {
-	int	i;
+	const char	*server = "localhost";
+	int		i;
 
 	bintree_init();
 	cron_init();
@@ -588,21 +589,23 @@ int main(int argc, char *argv[])
 
 	for(i = 1; argv[i] != NULL; i++)
 	{
-		if(strcmp(argv[i], "-resume") == 0 || strncmp(argv[i], "-resume=", 9) == 0)
+		if(strncmp(argv[i], "-ip=", 4) == 0)
+			server = argv[i] + 4;
+		else if(strcmp(argv[i], "-resume") == 0 || strncmp(argv[i], "-resume=", 9) == 0)
 			resume_init(argv[i][7] == '=' ? argv[i] + 8 : NULL);
 	}
 
 	client_init();
 	sync_init();
 
-	if(client_connect("localhost"))
+	printf("Connecting to Verse server at %s\n", server);
+	if(client_connect(server))
 	{
 		LOG_MSG(("------------------------------------------------------------------------"));
 		LOG_MSG(("Purple running on Verse r%up%u%s", V_RELEASE_NUMBER, V_RELEASE_PATCH, V_RELEASE_LABEL));
 		LOG_MSG(("Entering main loop"));
 		for(;;)
 		{
-/*			printf("Buffer: %u\n", verse_session_get_size());*/
 			verse_callback_update(10000);
 			cron_update();
 			console_update();
