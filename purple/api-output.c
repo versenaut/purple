@@ -132,6 +132,7 @@ PONode * p_output_node_create(PPOutput out, VNodeType type, uint32 label)
 	if(type == V_NT_GEOMETRY)
 	{
 		NdbGLayer	*l;
+		int		i;
 
 		if((l = nodedb_g_layer_find((NodeGeometry *) n, "vertex")) != NULL)
 		{
@@ -151,6 +152,12 @@ PONode * p_output_node_create(PPOutput out, VNodeType type, uint32 label)
 			for(i = 0; i < s; i++)
 				dynarr_set(l->data, i, gone);
 /*			printf("cleared %u polygon slots\n", i);*/
+		}
+		for(i = 2; i < 100; i++)
+		{
+			l = nodedb_g_layer_nth((NodeGeometry *) n, i);
+			if(l != NULL)
+				nodedb_g_layer_destroy((NodeGeometry *) n, l);
 		}
 	}
 	else if(type == V_NT_MATERIAL)
