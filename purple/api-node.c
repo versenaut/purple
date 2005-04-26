@@ -259,6 +259,16 @@ VNGLayerType p_node_g_layer_get_type(const PNGLayer *layer)
 	return -1;
 }
 
+PNGLayer * p_node_g_layer_create(PONode *node, const char *name, VNGLayerType type, uint32 def_int, real32 def_real)
+{
+	NdbGLayer	*l;
+
+	l = nodedb_g_layer_create((NodeGeometry *) node, (VLayerID) ~0u, name, type);
+	/* FIXME: Ignores default values. */
+	printf("created layer at %p\n", l);
+	return l;
+}
+
 void p_node_g_vertex_set_xyz(PNGLayer *layer, uint32 id, real64 x, real64 y, real64 z)
 {
 	nodedb_g_vertex_set_xyz(layer, id, x, y, z);
