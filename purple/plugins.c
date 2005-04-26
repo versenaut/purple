@@ -778,7 +778,7 @@ char * plugins_build_xml(void)
 	Plugin		*p;
 	DynStr		*d;
 
-	d = dynstr_new("<?xml version=\"1.0\" standalone=\"yes\" encoding=\"ISO-8859-1\"?>\n\n"
+	d = dynstr_new("<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>\n\n"
 			  "<purple-plugins>");
 	
 	for(id = idset_foreach_first(plugins_info.plugins); (p = idset_lookup(plugins_info.plugins, id)) != NULL;

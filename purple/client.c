@@ -106,7 +106,7 @@ static void cb_node_notify_mine(Node *node, NodeNotifyEvent e)
 			{
 				if((buf = nodedb_t_buffer_find((NodeText *) node, "graphs")) != NULL)
 				{
-					const char	*header = "<?xml version=\"1.0\" standalone=\"yes\" encoding=\"ISO-8859-1\"?>\n\n"
+					const char	*header = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>\n\n"
 							      "<purple-graphs>\n"
 							      "</purple-graphs>\n";
 

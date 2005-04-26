@@ -158,7 +158,7 @@ static void test_xmlnode(void)
 static void test_xmlnode(void)
 {
 	const char	*graph =
-	"<?xml version=\"1.0\" standalone=\"yes\" encoding=\"ISO-8859-1\"?>\n"
+	"<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>\n"
 	"<purple-graphs>\n"
 	 "<graph id=\"1\" name=\"busta\">\n"
 	  "<at>\n"
