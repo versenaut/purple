@@ -1,0 +1,89 @@
+
+
+1. Introduction
+This is Purple, a "scripting environment/API" for the Verse protocol.
+The purpose of Purple is to implement a system where plug-ins can
+be connected together into graphs, and do data-flow computations on
+data. This data can include aribtrary 3D geometry and whatever else
+is supported by the Verse data model. Any results can be automatically
+synchronized (sent) out to a Verse host, where they become immediately
+available to other users.
+
+
+2. Building Purple
+To compile Purple, you should be able to just type "make". This assumes
+that the Purple source directory resides "in parallel" with the Verse
+core, so that if you have e.g. "~/data/projects/purple/", you also have
+"~/data/projects/verse/". If this is not true, edit the VERSE variable
+in the Makefile accordingly.
+
+Purple does not have any external dependencies, other than on Verse,
+so there are no other libraries to get before building Purple.
+
+Purple currently assumes a Unix-like build environment, although the
+code itself contains very few platform-specific things (and those that
+are known have been implemented for each platform). In particular, it
+requires the creation of "dynamic libraries", also known as "shared
+objects". How this is done is very much platform- and compiler-specific,
+so the build process for it is going to have to evolve. Contributions
+are welcome.
+
+Once Purple is built, you will get a "purple" binary which is the
+engine itself, and the "plugins/" directory will contain a number of
+shared objects that are the available plug-ins.
+
+
+3. Using Purple
+Currently (late April, 2005), Purple is not ready for "prime time"
+use by e.g. users of general-purpose applications. It requires a bit
+of hand-holding, and there are not that many interesting tools ready
+for it yet.
+
+Therefore, Purple is best suited for use by interested developers,
+who want to either add functionality in the form of Purple plug-ins,
+or hack on the Purple engine itself. Both of these activities should
+be easy to get started with, the code is in a fairly healthy state.
+
+One drawback is that there is not a release-worthy graphical UI
+for Purple itself yet, i.e. a GUI for working with plug-ins. You
+can use any Verse-capable renderer to see any graphical *results*,
+but editing the "inputs" is kind of awkward still.
+
+3.1 Starting Purple
+To get Purple running, enter the directory where the binary resides,
+and issue the command "./purple". This should print out a number of
+diagnostic messages, somewhere around the end of which you will see
+a line like this:
+
+--Message [purple.c:605] Purple running on Verse r5p0pre3
+
+This tells you which version of Verse you compiled your Purple
+engine against.
+
+Purple will automatically connect to a Verse server, on the address
+"localhost" by default. You can use a command-line argument, like
+this, to change the address:
+
+~> ./purple -ip=verse.example.org
+
+The option is "-ip=ADDRESS", without the quotes. Don't use any
+spaces in the option either, Purple's command line parser is not
+very advanced.
+
+3.2 Controlling Purple
+Once Purple starts up and connects to a Verse host, it will create
+a text node (called "PurpleMeta") and link its avatar to it. It will
+then create a buffer ("plug-ins") in this node, and export a list of
+available plug-ins to that buffer. It also creates a buffer called
+"graphs" that describes the existing graphs. Both of these buffers
+are in XML.
+
+Furher, it creates a group of methods on its own avatar. These are
+used for all controlling of the Purple engine; if you want something
+to happen in Purple's data structures, you need to send it a method
+call asking it to do something.
+
+It is the intent that specialized Purple UI clients can be written,
+and that these will include (hard-coded) "knowledge" of which methods
+are available. They can then map these methods to operations that are
+easier for a user to perform.
