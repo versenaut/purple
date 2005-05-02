@@ -6,6 +6,7 @@
  * A module to list files in a given directory. Handy for plug-in discovery and loading.
 */
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
