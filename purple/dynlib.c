@@ -23,7 +23,7 @@ DynLib dynlib_load(const char *name)
 
 	if(name == NULL)
 		return DYNLIB_INVALID;
-	if((l = dlopen(name, RTLD_LOCAL | RTLD_NOW)) != NULL)
+	if((l = dlopen(name, RTLD_NOW)) != NULL)	/* Local symbol resolution (default). */
 		return l;
 	puts(dlerror());
 
