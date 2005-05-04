@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define PURPLE_INTERNAL
+
 #include "purple.h"
 
 #include "dynstr.h"
@@ -269,82 +271,82 @@ const char * p_input_string(PPInput input, char *buffer, size_t buf_max)
 
 #endif
 
-boolean p_input_boolean(PPInput input)
+PURPLEAPI boolean p_input_boolean(PPInput input)
 {
 	return port_input_boolean(input);
 }
 
-int32 p_input_int32(PPInput input)
+PURPLEAPI int32 p_input_int32(PPInput input)
 {
 	return port_input_int32(input);
 }
 
-uint32 p_input_uint32(PPInput input)
+PURPLEAPI uint32 p_input_uint32(PPInput input)
 {
 	return port_input_uint32(input);
 }
 
-real32 p_input_real32(PPInput input)
+PURPLEAPI real32 p_input_real32(PPInput input)
 {
 	return port_input_real32(input);
 }
 
-const real32 * p_input_real32_vec2(PPInput input)
+PURPLEAPI const real32 * p_input_real32_vec2(PPInput input)
 {
 	return port_input_real32_vec2(input);
 }
 
-const real32 * p_input_real32_vec3(PPInput input)
+PURPLEAPI const real32 * p_input_real32_vec3(PPInput input)
 {
 	return port_input_real32_vec3(input);
 }
 
-const real32 * p_input_real32_vec4(PPInput input)
+PURPLEAPI const real32 * p_input_real32_vec4(PPInput input)
 {
 	return port_input_real32_vec4(input);
 }
 
-const real32 * p_input_real32_mat16(PPInput input)
+PURPLEAPI const real32 * p_input_real32_mat16(PPInput input)
 {
 	return port_input_real32_mat16(input);
 }
 
-real64 p_input_real64(PPInput input)
+PURPLEAPI real64 p_input_real64(PPInput input)
 {
 	return port_input_real64(input);
 }
 
-const real64 * p_input_real64_vec2(PPInput input)
+PURPLEAPI const real64 * p_input_real64_vec2(PPInput input)
 {
 	return port_input_real64_vec2(input);
 }
 
-const real64 * p_input_real64_vec3(PPInput input)
+PURPLEAPI const real64 * p_input_real64_vec3(PPInput input)
 {
 	return port_input_real64_vec3(input);
 }
 
-const real64 * p_input_real64_vec4(PPInput input)
+PURPLEAPI const real64 * p_input_real64_vec4(PPInput input)
 {
 	return port_input_real64_vec4(input);
 }
 
-const real64 * p_input_real64_mat16(PPInput input)
+PURPLEAPI const real64 * p_input_real64_mat16(PPInput input)
 {
 	return port_input_real64_mat16(input);
 }
 
-const char * p_input_string(PPInput input)
+PURPLEAPI const char * p_input_string(PPInput input)
 {
 	return port_input_string(input);
 }
 
-PINode * p_input_node(PPInput input)
+PURPLEAPI PINode * p_input_node(PPInput input)
 {
 	return port_input_node(input);
 }
 
-PINode * p_input_node_nth(PPInput input, int index)
+PURPLEAPI PINode * p_input_node_nth(PPInput input, int index)
 {
 	return port_input_node_nth(input, index);
 }

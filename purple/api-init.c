@@ -9,6 +9,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#define PURPLE_INTERNAL
+
 #include "log.h"
 #include "purple.h"
 #include "plugins.h"
@@ -51,18 +53,18 @@ void api_init_end(void)
 
 /* These are the plug-in-visible actual Purple API functions. */
 
-void p_init_create(const char *name)
+PURPLEAPI void p_init_create(const char *name)
 {
 	plugin_flush();
 	init_info.plugin = plugin_new(name);
 }
 
-void p_init_meta(const char *category, const char *text)
+PURPLEAPI void p_init_meta(const char *category, const char *text)
 {
 	plugin_set_meta(init_info.plugin, category, text);
 }
 
-void p_init_input(int index, PValueType type, const char *name, ...)
+PURPLEAPI void p_init_input(int index, PValueType type, const char *name, ...)
 {
 	va_list	args;
 
@@ -71,12 +73,12 @@ void p_init_input(int index, PValueType type, const char *name, ...)
 	va_end(args);
 }
 
-void p_init_state(size_t size, void (*constructor)(void *state), void (*destructor)(void *))
+PURPLEAPI void p_init_state(size_t size, void (*constructor)(void *state), void (*destructor)(void *))
 {
 	plugin_set_state(init_info.plugin, size, constructor, destructor);
 }
 
-void p_init_compute(PComputeStatus (*compute)(PPInput *input, PPOutput output, void *state))
+PURPLEAPI void p_init_compute(PComputeStatus (*compute)(PPInput *input, PPOutput output, void *state))
 {
 	plugin_set_compute(init_info.plugin, compute);
 }

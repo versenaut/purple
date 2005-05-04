@@ -10,6 +10,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#define PURPLE_INTERNAL
+
 #include "purple.h"
 
 #include "dynarr.h"
@@ -25,77 +27,77 @@
 
 /* ----------------------------------------------------------------------------------------- */
 
-void p_output_boolean(PPOutput out, boolean v)
+PURPLEAPI void p_output_boolean(PPOutput out, boolean v)
 {
 	graph_port_output_set(out, P_VALUE_BOOLEAN, v);
 }
 
-void p_output_int32(PPOutput out, int32 v)
+PURPLEAPI void p_output_int32(PPOutput out, int32 v)
 {
 	graph_port_output_set(out, P_VALUE_INT32, v);
 }
 
-void p_output_uint32(PPOutput out, uint32 v)
+PURPLEAPI void p_output_uint32(PPOutput out, uint32 v)
 {
 	graph_port_output_set(out, P_VALUE_UINT32, v);
 }
 
-void p_output_real32(PPOutput out, real32 v)
+PURPLEAPI void p_output_real32(PPOutput out, real32 v)
 {
 	graph_port_output_set(out, P_VALUE_REAL32, v);
 }
 
-void p_output_real32_vec2(PPOutput out, const real32 *v)
+PURPLEAPI void p_output_real32_vec2(PPOutput out, const real32 *v)
 {
 	graph_port_output_set(out, P_VALUE_REAL32_VEC2, v);
 }
 
-void p_output_real32_vec3(PPOutput out, const real32 *v)
+PURPLEAPI void p_output_real32_vec3(PPOutput out, const real32 *v)
 {
 	graph_port_output_set(out, P_VALUE_REAL32_VEC3, v);
 }
 
-void p_output_real32_vec4(PPOutput out, const real32 *v)
+PURPLEAPI void p_output_real32_vec4(PPOutput out, const real32 *v)
 {
 	graph_port_output_set(out, P_VALUE_REAL32_VEC4, v);
 }
 
-void p_output_real32_mat16(PPOutput out, const real32 *v)
+PURPLEAPI void p_output_real32_mat16(PPOutput out, const real32 *v)
 {
 	graph_port_output_set(out, P_VALUE_REAL32_MAT16, v);
 }
 
-void p_output_real64(PPOutput out, real64 v)
+PURPLEAPI void p_output_real64(PPOutput out, real64 v)
 {
 	graph_port_output_set(out, P_VALUE_REAL64, v);
 }
 
-void p_output_real64_vec2(PPOutput out, const real64 *v)
+PURPLEAPI void p_output_real64_vec2(PPOutput out, const real64 *v)
 {
 	graph_port_output_set(out, P_VALUE_REAL64_VEC2, v);
 }
 
-void p_output_real64_vec3(PPOutput out, const real64 *v)
+PURPLEAPI void p_output_real64_vec3(PPOutput out, const real64 *v)
 {
 	graph_port_output_set(out, P_VALUE_REAL64_VEC3, v);
 }
 
-void p_output_real64_vec4(PPOutput out, const real64 *v)
+PURPLEAPI void p_output_real64_vec4(PPOutput out, const real64 *v)
 {
 	graph_port_output_set(out, P_VALUE_REAL64_VEC4, v);
 }
 
-void p_output_real64_mat16(PPOutput out, const real64 *v)
+PURPLEAPI void p_output_real64_mat16(PPOutput out, const real64 *v)
 {
 	graph_port_output_set(out, P_VALUE_REAL64_MAT16, v);
 }
 
-void p_output_string(PPOutput out, const char *v)
+PURPLEAPI void p_output_string(PPOutput out, const char *v)
 {
 	graph_port_output_set(out, P_VALUE_STRING, v);
 }
 
-PONode * p_output_node(PPOutput out, PINode *v)
+PURPLEAPI PONode * p_output_node(PPOutput out, PINode *v)
 {
 	Node	*n;
 
@@ -107,7 +109,7 @@ PONode * p_output_node(PPOutput out, PINode *v)
 	return n;
 }
 
-PONode * p_output_node_o_link(PPOutput out, PONode *node, const char *label)
+PURPLEAPI PONode * p_output_node_o_link(PPOutput out, PONode *node, const char *label)
 {
 	Node	*n;
 
@@ -122,7 +124,7 @@ PONode * p_output_node_o_link(PPOutput out, PONode *node, const char *label)
 	return n;
 }
 
-PONode * p_output_node_create(PPOutput out, VNodeType type, uint32 label)
+PURPLEAPI PONode * p_output_node_create(PPOutput out, VNodeType type, uint32 label)
 {
 	PONode	*n = graph_port_output_node_create(out, type, label);
 
@@ -167,12 +169,12 @@ PONode * p_output_node_create(PPOutput out, VNodeType type, uint32 label)
 	return n;
 }
 
-PONode * p_output_node_copy(PPOutput out, PINode *node, uint32 label)
+PURPLEAPI PONode * p_output_node_copy(PPOutput out, PINode *node, uint32 label)
 {
 	return graph_port_output_node_copy(out, node, label);
 }
 
-PONode * p_output_node_pass(PPOutput out, PINode *node)
+PURPLEAPI PONode * p_output_node_pass(PPOutput out, PINode *node)
 {
 	if(out != NULL && node != NULL)
 	{

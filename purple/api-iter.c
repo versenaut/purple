@@ -17,10 +17,13 @@
 
 #include <stdlib.h>
 
+#define PURPLE_INTERNAL
+
+#include "purple.h"
+
 #include "dynarr.h"
 #include "list.h"
 
-#include "purple.h"
 #include "iter.h"
 
 /* ----------------------------------------------------------------------------------------- */
@@ -105,14 +108,14 @@ void iter_init_list(PIter *iter, List *list)
 
 /* ----------------------------------------------------------------------------------------- */
 
-unsigned int p_iter_index(const PIter *iter)
+PURPLEAPI unsigned int p_iter_index(const PIter *iter)
 {
 	if(iter != NULL)
 		return iter->index;
 	return 0;
 }
 
-void * p_iter_data(PIter *iter)
+PURPLEAPI void * p_iter_data(PIter *iter)
 {
 	if(iter == NULL)
 		return NULL;
@@ -123,7 +126,7 @@ void * p_iter_data(PIter *iter)
 	return NULL;
 }
 
-void p_iter_next(PIter *iter)
+PURPLEAPI void p_iter_next(PIter *iter)
 {
 	if(iter == NULL)
 		return;
