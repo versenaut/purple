@@ -90,3 +90,10 @@ It is the intent that specialized Purple UI clients can be written,
 and that these will include (hard-coded) "knowledge" of which methods
 are available. They can then map these methods to operations that are
 easier for a user to perform.
+
+Until then, Purple has a simple built-in "console", accepting written
+commands just as if they were method calls. In fact, the commands
+entered in the console are first sent *out* of Purple, as a method
+call, and are only processed when the call appears as a Verse event.
+There is no list of console commands, nor is there any built-in help
+about the console.
