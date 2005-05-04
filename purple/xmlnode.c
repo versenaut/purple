@@ -183,7 +183,7 @@ static Attrib * attribs_build(const char *token, size_t *attrib_num)
 			src++;
 		if(isalpha(*src))
 		{
-			while(isalpha(*src) || *src == '-')
+			while(isalpha(*src) || *src == '-' || *src == '_')
 			{
 				name_size++;
 				src++;
@@ -234,7 +234,7 @@ static Attrib * attribs_build(const char *token, size_t *attrib_num)
 				if(isalpha(*src))
 				{
 					attr[index].name = put;
-					while(isalpha(*src) || *src == '-')
+					while(isalpha(*src) || *src == '-' || *src == '_')
 						*put++ = tolower(*src++);
 					*put++ = '\0';
 					if(*src == '=')
