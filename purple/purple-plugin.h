@@ -3,7 +3,12 @@
  * 
  * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
  * 
- * 
 */
 
-extern void	init(void);
+#if defined __win32
+#define PURPLE_PLUGIN extern __declspec(dllexport)
+#else
+#define PURPLE_PLUGIN extern
+#endif
+
+PURPLE_PLUGIN void	init(void);
