@@ -6,9 +6,9 @@
 */
 
 #if defined __win32
-#define PURPLE_PLUGIN extern __declspec(dllexport)
+#define PURPLE_PLUGIN __declspec(dllexport)
 #else
-#define PURPLE_PLUGIN extern
+#define PURPLE_PLUGIN
 #endif
 
-PURPLE_PLUGIN void	init(void);
+extern PURPLE_PLUGIN void	init(void);
