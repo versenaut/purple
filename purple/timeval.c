@@ -9,7 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if defined __win32
+#if defined _WIN32
+#include <sys/timeb.h>
 #else
 #include <sys/time.h>
 #endif
@@ -29,7 +30,7 @@ void timeval_now(TimeVal *tv)
 {
 	if(tv == NULL)
 		return;
-#if defined __win32
+#if defined _WIN32
 	/* Untested code, beware. */
 	{
 		struct _timeb	now;
