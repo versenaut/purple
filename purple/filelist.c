@@ -58,13 +58,14 @@ static void sort_list(FileList *fl)
 FileList * filelist_new(const char *path, const char *suffix)
 {
 	FileList	*fl;
-	char		pat[PATH_MAX * 2];
+	char		pat[PATH_MAX * 2], *name;
 	HANDLE		find;
 	WIN32_FIND_DATA	data;
 
 	fl = mem_alloc(sizeof *fl);
 	if(fl == NULL)
 		return NULL;
+	fl->files = NULL;
 
 	sprintf(pat, "%s\\*%s", path, suffix);
 	printf("Finding files: '%s'\n", pat);
@@ -77,10 +78,17 @@ FileList * filelist_new(const char *path, const char *suffix)
 	while(1)
 	{
 		printf(" '%s'\n", data.cFileName);
+		if((name = stu_strdup(data.cFileName)) != NULL)
+		{
+			if(fl->files == NULL)
+				fl->files = dynarr_new(sizeof name, 16);
+			dynarr_append(fl->files, &name, NULL);
+		}
 		if(!FindNextFile(find, &data))
 			break;
 	}
 	FindClose(find);
+	sort_list(fl);
 
 	return fl;
 }
@@ -119,16 +127,17 @@ FileList * filelist_new(const char *path, const char *suffix)
 		if((dir = opendir(path)) != NULL)
 		{
 			struct dirent	*de;
+			const char	*name;
 
 			while((de = readdir(dir)) != NULL)
 			{
-				char	*name = stu_strdup(de->d_name);
+				if(strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0)
+					continue;
+				if(!has_suffix(de->d_name, suffix))
+					continue;
+				name = stu_strdup(de->d_name);
 				if(name != NULL)
 				{
-					if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
-						continue;
-					if(!has_suffix(name, suffix))
-						continue;
 					if(fl->files == NULL)
 						fl->files = dynarr_new(sizeof name, 16);
 					dynarr_append(fl->files, &name, NULL);
