@@ -43,7 +43,7 @@
 */
 struct Library
 {
-	char	name[PATH_MAX];
+	char	name[128];
 	DynLib	*lib;
 	void	(*init)(void);
 	int	initialized;
