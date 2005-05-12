@@ -22,6 +22,7 @@
 #include "memchunk.h"
 #include "list.h"
 #include "log.h"
+#include "strutil.h"
 
 #include "idlist.h"
 
