@@ -10,7 +10,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
 	PINode		*in;
 	PONode		*out;
-	real32		scale = p_input_real32(input[1]);	/* Read out the size. */;
+	real32		scale = p_input_real32(input[1]);	/* Read out the size. */
 	size_t		i, j, size;
 
 	for(i = 0; (in = p_input_node_nth(input[0], i)) != NULL; i++)
