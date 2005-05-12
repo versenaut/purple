@@ -21,6 +21,6 @@ typedef struct
 extern int	diff_compare_simple(const void *a, size_t n, const void *b, size_t m, DynArr *edits);
 
 /* Expose all bells and whistles of the diffing algorithm. */
-extern int	diff_compare(const char *a, int aoff, int n,
-			     const char *b, int boff, int m,
+extern int	diff_compare(const unsigned char *a, int aoff, int n,
+			     const unsigned char *b, int boff, int m,
 			     int dmax, DynArr *edits, DynArr *buf);
