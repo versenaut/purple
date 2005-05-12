@@ -102,7 +102,7 @@ void dynstr_assign(DynStr *str, const char *text)
 */
 static size_t format_size(const char *fmt, va_list args)
 {
-#if defined __win32
+#if defined _WIN32
 	return _vscprintf(fmt, args);
 #else
 	char	buf;
