@@ -50,16 +50,17 @@ void dynlib_unload(DynLib lib)
 
 DynLib dynlib_load(const char *name)
 {
-	return NULL;
+	return LoadLibrary(name);
 }
 
 void * dynlib_resolve(const DynLib lib, const char *symbol)
 {
-	return NULL;
+	return GetProcAddress(lib, symbol);
 }
 
 void dynlib_unload(DynLib lib)
 {
+	FreeLibrary(lib);
 }
 
 #endif
