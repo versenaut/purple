@@ -8,6 +8,10 @@
 
 #include <math.h>
 
+#if defined _WIN32
+# define sqrtf	sqrt
+#endif
+
 #include "verse.h"
 
 real32 vec_real32_vec2_magnitude(const real32 *vec)
