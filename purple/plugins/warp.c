@@ -7,6 +7,10 @@
 #include "purple.h"
 #include "purple-plugin.h"
 
+#if !defined M_PI
+# define M_PI	3.14159265358979323846
+#endif
+
 #define	DEG2RAD(a)	(((a) * M_PI) / 180.0)
 
 static void rot_matrix_build_y(real64 *mtx, real64 angle)
