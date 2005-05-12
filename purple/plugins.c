@@ -699,7 +699,7 @@ void plugins_libraries_load(void)
 	for(i = 0; plugins_info.paths[i] != NULL; i++)
 	{
 		FileList	*fl;
-#if defined __win32
+#if defined _WIN32
 		const char	*suffix = ".dll";
 #else
 		const char	*suffix = ".so";
