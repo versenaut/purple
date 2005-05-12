@@ -6,7 +6,10 @@
  * Dynamic library abstraction. Really rather thin.
 */
 
+#if !defined _WIN32
 #include <unistd.h>
+#endif
+
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
@@ -44,5 +47,19 @@ void dynlib_unload(DynLib lib)
 }
 
 #elif defined _WIN32
-#error Not implemented
+
+DynLib dynlib_load(const char *name)
+{
+	return NULL;
+}
+
+void * dynlib_resolve(const DynLib lib, const char *symbol)
+{
+	return NULL;
+}
+
+void dynlib_unload(DynLib lib)
+{
+}
+
 #endif
