@@ -1,0 +1,123 @@
+#
+# Build Purple. Simple hand-written (and rather verbose) Makefile, for now.
+#
+
+# Location of a (compiled) Verse core directory. Must contain verse.h and libverse.a.
+VERSE=C:\projects\verse-sdk
+
+TARGETS=purple.exe
+
+ALL:		$(TARGETS)
+
+CFLAGS=/nologo /I$(VERSE)\include
+
+purple.exe:	purple.c\
+		api-init.obj api-input.obj api-iter.obj api-node.obj api-output.obj \
+		bintree.obj client.obj cron.obj diff.obj dynarr.obj dynlib.obj dynstr.obj graph.obj \
+		filelist.obj hash.obj idlist.obj idset.obj list.obj log.obj mem.obj memchunk.obj \
+		nodedb.obj nodedb-a.obj nodedb-b.obj nodedb-c.obj nodedb-g.obj nodedb-m.obj nodedb-o.obj nodedb-t.obj \
+		nodeset.obj plugins.obj plugin-input.obj plugin-output.obj \
+		port.obj resume.obj scheduler.obj strutil.obj synchronizer.obj textbuf.obj timeval.obj \
+		value.obj vecutil.obj xmlnode.obj xmlutil.obj
+		$(CC) $(CFLAGS) $** $(VERSE)/lib/verse.lib wsock32.lib
+
+api-iter.obj:	api-iter.c purple.h
+
+api-init.obj:	api-init.c purple.h
+
+api-input.obj:	api-input.c purple.h
+
+api-node.obj:	api-node.c purple.h
+
+api-output.obj:	api-output.c purple.h
+
+bintree.obj:	bintree.c bintree.h
+
+client.obj:	client.c client.h
+
+cron.obj:	cron.c cron.h
+
+diff.obj:	diff.c diff.h
+
+dynarr.obj:	dynarr.c dynarr.h
+
+dynlib.obj:	dynlib.c dynlib.h
+
+dynstr.obj:	dynstr.c dynstr.h
+
+filelist.obj:	filelist.c filelist.h
+
+graph.obj:	graph.c graph.h
+
+hash.obj:	hash.c hash.h
+
+idlist.obj:	idlist.c idlist.h
+
+idset.obj:	idset.c idset.h
+
+list.obj:	list.c list.h
+
+log.obj:	log.c log.h
+
+mem.obj:	mem.c mem.h
+
+memchunk.obj:	memchunk.c memchunk.h mem.h
+
+nodedb.obj:	nodedb.c nodedb.h nodedb-internal.h
+
+nodedb-g.obj:	nodedb-g.c nodedb-g.h nodedb.h nodedb-internal.h
+
+nodedb-m.obj:	nodedb-m.c nodedb-m.h nodedb.h nodedb-internal.h
+
+nodedb-b.obj:	nodedb-b.c nodedb-b.h nodedb.h nodedb-internal.h
+
+nodedb-c.obj:	nodedb-c.c nodedb-c.h nodedb.h nodedb-internal.h
+
+nodedb-o.obj:	nodedb-o.c nodedb-o.h nodedb.h nodedb-internal.h
+
+nodedb-t.obj:	nodedb-t.c nodedb-t.h nodedb.h nodedb-internal.h
+
+nodedb-a.obj:	nodedb-a.c nodedb-a.h nodedb.h nodedb-internal.h
+
+nodeset.obj:	nodeset.c nodeset.h
+
+plugins.obj:	plugins.c plugins.h
+
+plugin-input.obj:	plugin-input.c purple.h
+
+plugin-output.obj:	plugin-output.c purple.h
+
+port.obj:	port.c port.h value.h
+
+resume.obj:	resume.c resume.h
+
+scheduler.obj:	scheduler.c scheduler.h
+
+strutil.obj:	strutil.c strutil.h
+
+synchronizer.obj:	synchronizer.c synchronizer.h
+
+textbuf.obj:	textbuf.c textbuf.h
+
+timeval.obj:	timeval.c timeval.h
+
+value.obj:	value.c value.h
+
+vecutil.obj:	vecutil.c vecutil.h
+
+xmlnode.obj:	xmlnode.c xmlnode.h
+
+xmlutil.obj:	xmlutil.c xmlutil.h
+
+# ---------------------------------------------------------
+
+all-plugins:
+	cd plugins && $(MAKE)
+
+# ---------------------------------------------------------
+
+clean:	clean-plugins
+	rm -f *.obj *.so $(TARGETS)
+
+clean-plugins:
+	cd plugins && $(MAKE) clean
