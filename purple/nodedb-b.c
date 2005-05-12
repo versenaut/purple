@@ -178,7 +178,7 @@ int nodedb_b_set_dimensions(NodeBitmap *node, uint16 width, uint16 height, uint1
 		{
 			for(y = 0; y < height; y++)
 				memcpy(fb + z * (dss * height) + y * dss,
-				       layer->framebuffer + z * sss * height + y * sss, dss);
+				       (char *) layer->framebuffer + z * sss * height + y * sss, dss);
 		}
 		mem_free(layer->framebuffer);
 		layer->framebuffer = fb;
@@ -625,7 +625,7 @@ void * nodedb_b_layer_tile_find(const NodeBitmap *node, const NdbBLayer *layer,
 		size_t	ps = pixel_size(layer->type),
 			mod = layer_modulo(node, layer),
 			size = (node->width * ps + 7 / 8) * node->height;
-		return layer->framebuffer + tile_y * VN_B_TILE_SIZE * mod +
+		return (char *) layer->framebuffer + tile_y * VN_B_TILE_SIZE * mod +
 			(tile_x * VN_B_TILE_SIZE * ps + 7) / 8 + size * tile_z;
 	}
 	return NULL;
