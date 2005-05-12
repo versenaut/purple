@@ -11,13 +11,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined __win32
-#error Port me
-#define	DIR_SEPARATOR	"\\"
+#if defined _WIN32
+# include <windows.h>
+# define DIR_SEPARATOR	"\\"
+# define PATH_MAX	MAX_PATH
 #else
-#include <sys/types.h>
-#include <dirent.h>
-#define	DIR_SEPARATOR	"/"
+# include <sys/types.h>
+# include <dirent.h>
+# define DIR_SEPARATOR	"/"
 #endif
 
 #include "dynarr.h"
@@ -52,8 +53,37 @@ static void sort_list(FileList *fl)
 
 /* ----------------------------------------------------------------------------------------- */
 
-#if defined __win32
-#error Port me
+#if defined _WIN32
+
+FileList * filelist_new(const char *path, const char *suffix)
+{
+	FileList	*fl;
+	char		pat[PATH_MAX * 2];
+	HANDLE		find;
+	WIN32_FIND_DATA	data;
+
+	fl = mem_alloc(sizeof *fl);
+	if(fl == NULL)
+		return NULL;
+
+	sprintf(pat, "%s\\*%s", path, suffix);
+	printf("Finding files: '%s'\n", pat);
+	find = FindFirstFile(pat, &data);
+	if(find == INVALID_HANDLE_VALUE)
+	{
+		mem_free(fl);
+		return NULL;
+	}
+	while(1)
+	{
+		printf(" '%s'\n", data.cFileName);
+		if(!FindNextFile(find, &data))
+			break;
+	}
+	FindClose(find);
+
+	return fl;
+}
 
 /* ----------------------------------------------------------------------------------------- */
 
