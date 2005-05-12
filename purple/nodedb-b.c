@@ -30,6 +30,10 @@
 #include "nodedb.h"
 #include "nodedb-internal.h"
 
+#if defined _WIN32
+# define va_copy(ap1, ap2) (*(ap1) = *(ap2))
+#endif
+
 /* ----------------------------------------------------------------------------------------- */
 
 #define	MIN(a,b)	(((a) < (b)) ? (a) : (b))	/* Handy in tile width computations. */
