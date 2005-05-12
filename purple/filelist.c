@@ -65,10 +65,10 @@ FileList * filelist_new(const char *path, const char *suffix)
 	fl = mem_alloc(sizeof *fl);
 	if(fl == NULL)
 		return NULL;
+	stu_strncpy(fl->path, sizeof fl->path, path);
 	fl->files = NULL;
 
 	sprintf(pat, "%s\\*%s", path, suffix);
-	printf("Finding files: '%s'\n", pat);
 	find = FindFirstFile(pat, &data);
 	if(find == INVALID_HANDLE_VALUE)
 	{
@@ -77,7 +77,6 @@ FileList * filelist_new(const char *path, const char *suffix)
 	}
 	while(1)
 	{
-		printf(" '%s'\n", data.cFileName);
 		if((name = stu_strdup(data.cFileName)) != NULL)
 		{
 			if(fl->files == NULL)
