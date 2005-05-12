@@ -10,11 +10,12 @@
 
 #define	DYNLIB_VALID(d)	((d) != NULL)
 
-#if defined  __linux
+#if defined  __linux || __CYGWIN__
 #define	HAVE_DLOPEN
 #include <dlfcn.h>
 typedef void *	DynLib;
 #elif defined _WIN32
+#include <windows.h>
 typedef HMODULE	DynLib;
 #endif
 
