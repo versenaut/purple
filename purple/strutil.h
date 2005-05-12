@@ -6,6 +6,12 @@
  * String utility functions. Prefixed by stu* since str* is reserved by C.
 */
 
+/* Not directly related, but it seems sensible to define these here. */
+#if defined _WIN32
+# define snprintf	_snprintf
+# define vsnprintf	_vsnprintf
+#endif
+
 /* Duplicate a string using our encapsulated memory allocation function. Free using mem_free(). */
 extern char *	stu_strdup(const char *str);
 
