@@ -19,7 +19,10 @@
 #include "mem.h"
 #include "nodedb.h"
 #include "plugins.h"
+#include "value.h"
 #include "xmlnode.h"
+
+#include "graph.h"
 
 #include "resume.h"
 
