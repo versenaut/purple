@@ -6,7 +6,7 @@ VERSE=../../verse
 CFLAGS=-g -Wall -I.. -I$(VERSE)
 
 # List individual module testers here.
-ALL=test-diff test-dynarr test-dynstr test-hash test-idlist test-idset test-list test-memchunk test-strutil
+ALL=test-diff test-dynarr test-dynstr test-hash test-idlist test-idset test-list test-memchunk test-strutil test-textbuf
 
 ALL:		$(ALL)
 
@@ -28,13 +28,15 @@ test-memchunk:	test-memchunk.c libtest.a
 
 test-strutil:	test-strutil.c libtest.a
 
+test-textbuf:	test-textbuf.c libtest.a
+
 
 # Framework for testing. Ultra-simple.
 test.o:		test.c test.h
 
 # Code to test, more or less the "utility" parts of the Purple codebase, as needed.
 libtest.a:	../diff.o ../dynarr.o ../dynstr.o ../hash.o ../idlist.o ../idset.o ../list.o \
-		../log.o ../memchunk.o ../mem.o ../strutil.o test.o
+		../log.o ../memchunk.o ../mem.o ../strutil.o ../textbuf.o test.o
 		ar cr $@ $^
 
 # -------------------------------------------------------------
