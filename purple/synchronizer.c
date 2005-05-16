@@ -24,6 +24,9 @@
 #include "strutil.h"
 #include "textbuf.h"
 #include "nodedb.h"
+#include "value.h"
+
+#include "graph.h"
 
 #include "synchronizer.h"
 
@@ -60,7 +63,7 @@ static void cb_notify(Node *node, NodeNotifyEvent ev)
 			if(n->creator.port != NULL)
 			{
 				n->creator.remote = node;	/* Fill in the remote version field. */
-				graph_port_output_create_notify(n, node);
+				graph_port_output_create_notify(n);
 			}
 			break;
 		}
