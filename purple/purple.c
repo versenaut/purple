@@ -48,8 +48,6 @@
 #include "client.h"
 #include "graph.h"
 
-/*#include "command-structs.h"*/
-
 #if defined PURPLE_CONSOLE
 
 static void console_parse_module_input_set(const char *line)
