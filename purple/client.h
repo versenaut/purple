@@ -39,3 +39,4 @@ extern ClientInfo	client_info;
 
 extern void	client_init(void);
 extern int	client_connect(const char *address);
+extern void	client_post_connect(void);
