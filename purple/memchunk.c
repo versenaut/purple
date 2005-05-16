@@ -68,7 +68,10 @@ MemChunk * memchunk_new(const char *name, size_t chunk_size, size_t growth)
 	MemChunk	*c;
 
 	if(name == NULL || chunk_size < 4 || growth < 4)
+	{
+		LOG_ERR(("Unsupported parameters to memchunk_new()"));
 		return NULL;
+	}
 
 	c = mem_alloc(sizeof *c);
 	stu_strncpy(c->name, sizeof c->name, name);
