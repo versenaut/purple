@@ -50,36 +50,6 @@
 
 /*#include "command-structs.h"*/
 
-static int tree_compare(const void *k1, const void *k2)
-{
-	return k1 < k2 ? -1 : k1 > k2;
-}
-
-static void test_bintree(void)
-{
-	BinTree	*tree;
-
-	tree = bintree_new(tree_compare);
-
-	bintree_insert(tree, (void *) 8, "eight");
-	bintree_insert(tree, (void *) 7, "seven");
-	bintree_insert(tree, (void *) 2, "two");
-	bintree_insert(tree, (void *) 6, "six");
-	bintree_insert(tree, (void *) 11, "eleven");
-	bintree_insert(tree, (void *) 9, "nine");
-	bintree_insert(tree, (void *) 1, "one");
-	bintree_print(tree);
-	printf("size: %u\n", bintree_size(tree));
-	printf("\n");
-	bintree_remove(tree, (void *) 8);
-	bintree_remove(tree, (void *) 6);
-	bintree_remove(tree, (void *) 1);
-	bintree_print(tree);
-	printf("size: %u\n", bintree_size(tree));
-
-	bintree_destroy(tree, NULL);
-}
-
 #if defined PURPLE_CONSOLE
 
 static void console_parse_module_input_set(const char *line)
