@@ -385,7 +385,7 @@ int main(int argc, char *argv[])
 	dynarr_init();
 	hash_init();
 	list_init();
-	plugins_init("plugins/");
+	plugins_init("plugins");
 
 	graph_init();
 	
