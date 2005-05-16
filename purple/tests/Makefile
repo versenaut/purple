@@ -6,7 +6,7 @@ VERSE=../../verse
 CFLAGS=-g -Wall -I.. -I$(VERSE)
 
 # List individual module testers here.
-ALL=test-diff test-dynarr test-dynstr test-hash test-idlist test-idset test-list test-strutil
+ALL=test-diff test-dynarr test-dynstr test-hash test-idlist test-idset test-list test-memchunk test-strutil
 
 ALL:		$(ALL)
 
@@ -23,6 +23,8 @@ test-idlist:	test-idlist.c libtest.a
 test-idset:	test-idset.c libtest.a
 
 test-list:	test-list.c libtest.a
+
+test-memchunk:	test-memchunk.c libtest.a
 
 test-strutil:	test-strutil.c libtest.a
 
