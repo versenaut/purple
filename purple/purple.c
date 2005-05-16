@@ -50,52 +50,6 @@
 
 /*#include "command-structs.h"*/
 
-#if 0
-static void test_xmlnode(void)
-{
-	XmlNode	*node;
-
-/*	node = xmlnode_new("<?xml version=\"1.0\"?>\n"
-		    "<this flavor='crazy &amp; dude'     quote='\"' \t\t\t less='more'>"
-		    "<!-- ignore me, please -->\n"
-		    "is a &quot;test&quot;"
-		    "</this>");*/
-	if((node = xmlnode_new("<a x='y' a='whiz' dork='fine' nrg='total' master='yes' fine='undo'>hello</a>")) != NULL)
-	{
-		printf("a=%s\n", xmlnode_attrib_get(node, "a"));
-		printf("dork=%s\n", xmlnode_attrib_get(node, "dork"));
-		xmlnode_print_outline(node);
-		xmlnode_destroy(node);
-
-/*		xmlnode_nodeset_get(node, XMLNODE_AXIS_CHILD, TEST_NAME("dork"), TEST_ATTRIB_VALUE("size", "30"));*/
-	}
-}
-
-static void test_xmlnode(void)
-{
-	const char	*graph =
-	"<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>\n"
-	"<purple-graphs>\n"
-	 "<graph id=\"1\" name=\"busta\">\n"
-	  "<at>\n"
-	   "<node>Text_Node_2</node>\n"
-	   "<buffer name=\"sod\">0</buffer>\n"
-	  "</at>\n"
-	 "</graph>\n"
-	"</purple-graphs>\n";
-	XmlNode	*root;
-
-	if((root = xmlnode_new(graph)) != NULL)
-	{
-		printf("got it\n");
-		printf("node: '%s'\n", xmlnode_eval_single(root, "graph/at/node"));
-		printf("name: '%s'\n", xmlnode_eval_single(root, "graph/at/buffer/@name"));
-		xmlnode_destroy(root);
-	}
-	exit(0);
-}
-#endif
-
 static int tree_compare(const void *k1, const void *k2)
 {
 	return k1 < k2 ? -1 : k1 > k2;
