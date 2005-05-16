@@ -32,7 +32,7 @@ struct Node
 
 	VNodeID		id;
 	VNodeType	type;
-	char		name[32];
+	char		name[512];
 	VNodeOwner	owner;
 	DynArr		*tag_groups;
 
