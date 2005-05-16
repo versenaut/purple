@@ -11,6 +11,9 @@
  * of parsing XML and representing it in memory, but...
 */
 
+#if !defined XMLNODE_H
+#define XMLNODE_H
+
 #include "list.h"
 
 typedef struct XmlNode	XmlNode;
@@ -68,3 +71,5 @@ extern void		xmlnode_print_outline(const XmlNode *root);
 
 /* Destroy an XML parse tree. */
 extern void		xmlnode_destroy(XmlNode *root);
+
+#endif		/* XMLNODE_H */
