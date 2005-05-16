@@ -50,34 +50,6 @@
 
 /*#include "command-structs.h"*/
 
-static void test_chunk(void)
-{
-	MemChunk	*c;
-	struct vertex {
-		float x, y, z;
-	} *v1, *v2, *v[16];
-	unsigned int	i;
-
-	c = memchunk_new("test", sizeof (struct vertex), 16);
-	v1 = memchunk_alloc(c);
-	v2 = memchunk_alloc(c);
-	printf("v1=%p v2=%p\n", v1, v2);
-	memchunk_free(c, v2);
-	memchunk_free(c, v1);
-	v1 = memchunk_alloc(c);
-	v2 = memchunk_alloc(c);
-	printf("v1=%p v2=%p\n", v1, v2);
-	memchunk_free(c, v1);
-	memchunk_free(c, v2);
-
-	for(i = 0; i < sizeof v / sizeof *v; i++)
-		v[i] = memchunk_alloc(c);
-	for(i = 0; i < sizeof v / sizeof *v; i++)
-		memchunk_free(c, v[i]);
-
-	memchunk_destroy(c);
-}
-
 static int foreach_test(const void *data, void *user)
 {
 	printf("Here's '%s'\n", (const char *) data);
