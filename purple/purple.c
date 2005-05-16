@@ -50,44 +50,6 @@
 
 /*#include "command-structs.h"*/
 
-static void test_textbuf(void)
-{
-	TextBuf	*tb;
-
-	tb = textbuf_new(32);
-	textbuf_insert(tb, 100, "apapapa");
-	printf("Contents: '%s'\n", textbuf_text(tb));
-
-	textbuf_insert(tb, 3, "-a");
-	textbuf_insert(tb, 7, "-a");
-	printf("Contents: '%s'\n", textbuf_text(tb));
-
-	textbuf_delete(tb, 4, 3);
-	printf("Contents: '%s'\n", textbuf_text(tb));
-
-	textbuf_insert(tb, 1000, "--monster--");
-	printf("Contents: '%s'\n", textbuf_text(tb));
-
-	textbuf_delete(tb, 2, 1000);
-	textbuf_insert(tb, -1, "skalle");
-	printf("Contents: '%s'\n", textbuf_text(tb));
-	textbuf_delete(tb, 2, 2);
-	printf("Contents: '%s'\n", textbuf_text(tb));
-	textbuf_insert(tb, 2, "b");
-	printf("Contents: '%s'\n", textbuf_text(tb));
-
-	textbuf_delete(tb, 5, 100);
-	printf("Contents: '%s'\n", textbuf_text(tb));
-
-	textbuf_insert(tb, 100, "t");
-	printf("Contents: '%s'\n", textbuf_text(tb));
-
-	textbuf_delete(tb, 0, ~0);
-	printf("Contents: '%s'\n", textbuf_text(tb));
-
-	textbuf_destroy(tb);
-}
-
 #if 0
 static void test_xmlnode(void)
 {
