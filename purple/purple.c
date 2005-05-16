@@ -96,40 +96,6 @@ static void test_xmlnode(void)
 }
 #endif
 
-static void test_idset(void)
-{
-	IdSet		*is;
-	char		*a = "a", *b = "b", *c = "c";
-	void		*p;
-	unsigned int	id;
-
-	is = idset_new(33);
-	printf("inserting a at %p\n", a);
-	idset_insert(is, a);
-	idset_insert(is, b);
-	idset_insert(is, c);
-	for(id = idset_foreach_first(is); (p = idset_lookup(is, id)) != NULL; id = idset_foreach_next(is, id))
-	{
-		printf("%u: %s\n", id, (const char *) p);
-	}
-	printf("removing 34, 33\n");
-	idset_remove(is, 34);
-	idset_remove(is, 33);
-	for(id = idset_foreach_first(is); (p = idset_lookup(is, id)) != NULL; id = idset_foreach_next(is, id))
-	{
-		printf("%u: %s\n", id, (const char *) p);
-	}
-	printf("re-inserting\n");
-	idset_insert(is, b);
-	idset_insert(is, a);
-	for(id = idset_foreach_first(is); (p = idset_lookup(is, id)) != NULL; id = idset_foreach_next(is, id))
-	{
-		printf("%u: %s\n", id, (const char *) p);
-	}
-
-	idset_destroy(is);
-}
-
 static int tree_compare(const void *k1, const void *k2)
 {
 	return k1 < k2 ? -1 : k1 > k2;
