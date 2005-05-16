@@ -388,6 +388,7 @@ static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 
 /* ----------------------------------------------------------------------------------------- */
 
+#if 0
 /* Convenience function to print a material, concisely just listing fragments and links. */
 static void print_material(const NodeMaterial *n)
 {
@@ -439,6 +440,7 @@ static void print_material(const NodeMaterial *n)
 	}
 	printf("\n");
 }
+#endif		/* 0 */
 
 static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 {
