@@ -47,6 +47,7 @@
 #include "nodedb.h"
 #include "client.h"
 #include "graph.h"
+#include "resume.h"
 
 #if defined PURPLE_CONSOLE
 
@@ -198,7 +199,6 @@ static void console_parse_module_input_set(const char *line)
 	else
 		printf("mis couldn't parse %s as type %c literal\n", literal, tcode[0]);
 }
-#endif		/* PURPLE_CONSOLE */
 
 /* Pre-scripted sequence of console commands, to cut down on typing needed to test stuff. Hm. */
 static int console_script(char *line, size_t line_size)
@@ -246,6 +246,8 @@ static int console_script(char *line, size_t line_size)
 	}
 	return 0;
 }
+
+#endif		/* PURPLE_CONSOLE */
 
 static void console_update(void)
 {
