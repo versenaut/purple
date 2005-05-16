@@ -22,6 +22,7 @@
 #include "value.h"
 #include "xmlnode.h"
 
+#include "client.h"
 #include "graph.h"
 
 #include "resume.h"
