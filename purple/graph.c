@@ -32,7 +32,6 @@
 #include "strutil.h"
 #include "textbuf.h"
 #include "port.h"
-#include "xmlnode.h"
 #include "xmlutil.h"
 
 #include "nodedb.h"
@@ -68,7 +67,7 @@ typedef struct
 	List	*resume;	/* Information about output nodes, from resume parse of old XML. */
 } Output;
 
-typedef struct
+struct Graph
 {
 	char	name[32];
 
@@ -78,7 +77,7 @@ typedef struct
 	uint16	buffer;
 	uint32	desc_start;		/* Base location in graph XML buffer, first module starts here. */
 	IdSet	*modules;
-} Graph;
+};
 
 /* A module is an instance of a plug-in, i.e. a node in a Graph. Can't call it "node", collides w/ Verse. */
 typedef struct
