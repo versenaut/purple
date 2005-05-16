@@ -8,6 +8,8 @@
  * exported below, and then processed internally by calling various other modules.
 */
 
+#include "xmlnode.h"
+
 /* Initialize graph module. Must be called before module is used. */
 extern void	graph_init(void);
 
@@ -30,6 +32,10 @@ extern void	graph_method_check_created(NodeObject *node);
 
 /* A method call was received, check if it's one of the graph editing calls, and if so take action. */
 extern void	graph_method_receive_call(uint8 id, const void *param);
+
+typedef struct Graph	Graph;
+
+extern Graph *	graph_create_resume(const XmlNode *gdesc, const unsigned int *pmap);
 
 /* Output API uses this to set the output port. Gives us a chance to notify graph. */
 extern void	graph_port_output_begin(PPOutput port);
