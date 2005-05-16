@@ -50,24 +50,6 @@
 
 /*#include "command-structs.h"*/
 
-static int foreach_test(const void *data, void *user)
-{
-	printf("Here's '%s'\n", (const char *) data);
-	return 1;
-}
-
-static void test_filelist(void)
-{
-	FileList	*fl;
-	size_t		i;
-
-	fl = filelist_new(".", ".c");
-	printf("Found %u filenames:\n", filelist_size(fl));
-	for(i = 0; i < filelist_size(fl); i++)
-		printf("%2u: '%s'\n", i, filelist_filename(fl, i));
-	filelist_destroy(fl);
-}
-
 static void test_textbuf(void)
 {
 	TextBuf	*tb;
