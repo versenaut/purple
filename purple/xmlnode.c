@@ -490,7 +490,7 @@ List * filter_list(List *list, void **filter)
 
 	while(1)
 	{
-		cmd = *filter++;
+		cmd = (int) *filter++;
 		switch(cmd)
 		{
 		case XMLNODE_DONE:
@@ -583,7 +583,7 @@ List * filter_list(List *list, void **filter)
 
 List * xmlnode_nodeset_get(const XmlNode *node, ...)
 {
-	void	*filter[32], *fp = filter;
+	void	*filter[32];
 	size_t	filter_size;
 	va_list	va;
 
