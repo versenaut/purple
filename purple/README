@@ -1,4 +1,4 @@
-								April 2005
+								May 2005
 								Emil Brink
 
 				PURPLE
@@ -96,4 +96,6 @@ commands just as if they were method calls. In fact, the commands
 entered in the console are first sent *out* of Purple, as a method
 call, and are only processed when the call appears as a Verse event.
 There is no list of console commands, nor is there any built-in help
-about the console.
+about the console. The console does not work on non-POSIX systems,
+like Windows. Sorry.
+
