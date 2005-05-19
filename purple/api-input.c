@@ -271,82 +271,150 @@ const char * p_input_string(PPInput input, char *buffer, size_t buf_max)
 
 #endif
 
-PURPLEAPI boolean p_input_boolean(PPInput input)
+/**
+ * Read the value of an input, and convert value to boolean (1 or 0).
+*/
+PURPLEAPI boolean p_input_boolean(PPInput input	/** The input to read from. */)
 {
 	return port_input_boolean(input);
 }
 
-PURPLEAPI int32 p_input_int32(PPInput input)
+/**
+ * Read the value of an input, and convert it to \c int32, i.e. 32-bit signed integer.
+*/
+PURPLEAPI int32 p_input_int32(PPInput input	/** The input to read from. */)
 {
 	return port_input_int32(input);
 }
 
-PURPLEAPI uint32 p_input_uint32(PPInput input)
+/**
+ * Read the value of an input, and convert it to \c uint32, i.e. 32-bit unsigned integer.
+*/
+PURPLEAPI uint32 p_input_uint32(PPInput input	/** The input to read from. */)
 {
 	return port_input_uint32(input);
 }
 
-PURPLEAPI real32 p_input_real32(PPInput input)
+/**
+ * Read the value of an input, and convert it to \c real32, i.e. 32-bit floating point.
+*/
+PURPLEAPI real32 p_input_real32(PPInput input	/** The input to read from. */)
 {
 	return port_input_real32(input);
 }
 
-PURPLEAPI const real32 * p_input_real32_vec2(PPInput input)
+/**
+ * Read the value of an input, and convert it to 2D vector of 32-bit floating point numbers.
+*/
+PURPLEAPI const real32 * p_input_real32_vec2(PPInput input	/** The input to read from. */)
 {
 	return port_input_real32_vec2(input);
 }
 
-PURPLEAPI const real32 * p_input_real32_vec3(PPInput input)
+/**
+ * Read the value of an input, and convert it to 3D vector of 32-bit floating point numbers.
+*/
+PURPLEAPI const real32 * p_input_real32_vec3(PPInput input	/** The input to read from. */)
 {
 	return port_input_real32_vec3(input);
 }
 
-PURPLEAPI const real32 * p_input_real32_vec4(PPInput input)
+/**
+ * Read the value of an input, and convert it to 4D vector of 32-bit floating point numbers.
+*/
+PURPLEAPI const real32 * p_input_real32_vec4(PPInput input	/** The input to read from. */)
 {
 	return port_input_real32_vec4(input);
 }
 
-PURPLEAPI const real32 * p_input_real32_mat16(PPInput input)
+/**
+ * Read the value of an input, and convert it to 4x4 matrix of 32-bit floating point numbers.
+*/
+PURPLEAPI const real32 * p_input_real32_mat16(PPInput input	/** The input to read from. */)
 {
 	return port_input_real32_mat16(input);
 }
 
-PURPLEAPI real64 p_input_real64(PPInput input)
+/**
+ * Read the value of an input, and convert it to \c real64, i.e. 64-bit floating point.
+*/
+PURPLEAPI real64 p_input_real64(PPInput input	/** The input to read from. */)
 {
 	return port_input_real64(input);
 }
 
-PURPLEAPI const real64 * p_input_real64_vec2(PPInput input)
+/**
+ * Read the value of an input, and convert it to 2D vector of 64-bit floating point numbers.
+*/
+PURPLEAPI const real64 * p_input_real64_vec2(PPInput input	/** The input to read from. */)
 {
 	return port_input_real64_vec2(input);
 }
 
-PURPLEAPI const real64 * p_input_real64_vec3(PPInput input)
+/**
+ * Read the value of an input, and convert it to 3D vector of 64-bit floating point numbers.
+*/
+PURPLEAPI const real64 * p_input_real64_vec3(PPInput input	/** The input to read from. */)
 {
 	return port_input_real64_vec3(input);
 }
 
-PURPLEAPI const real64 * p_input_real64_vec4(PPInput input)
+/**
+ * Read the value of an input, and convert it to 4D vector of 64-bit floating point numbers.
+*/
+PURPLEAPI const real64 * p_input_real64_vec4(PPInput input	/** The input to read from. */)
 {
 	return port_input_real64_vec4(input);
 }
 
-PURPLEAPI const real64 * p_input_real64_mat16(PPInput input)
+/**
+ * Read the value of an input, and convert it to 4x4 matrix of 64-bit floating point numbers.
+*/
+PURPLEAPI const real64 * p_input_real64_mat16(PPInput input	/** The input to read from. */)
 {
 	return port_input_real64_mat16(input);
 }
 
-PURPLEAPI const char * p_input_string(PPInput input)
+/**
+ * Read the value of an input, and convert the value to string.
+ * 
+ * Because of the way strings work in C, and since the function does not require (or allow) the
+ * calling plug-in code to provide buffer space, it is generally wise to copy the value to some
+ * other buffer space shortly after retreieving it. The Purple engine does manage a buffer
+ * associated with the input for holding a "cached" string version of whatever is there, but
+ * since this buffer space might be re-used further on, a plug-in cannot retain the buffer pointer
+ * indefinitely with well-defined results.
+*/
+PURPLEAPI const char * p_input_string(PPInput input	/** The input to read from. */)
 {
 	return port_input_string(input);
 }
 
-PURPLEAPI PINode * p_input_node(PPInput input)
+/**
+ * Read the value of an input, and return the first node reference found.
+ * 
+ * Unlike the "simple" value types above, Purple cannot automatically convert any value into
+ * the desired type. If there are no nodes present on the specified input, this function will
+ * return \c NULL.
+*/
+PURPLEAPI PINode * p_input_node(PPInput input	/** The input to read from. */)
 {
 	return port_input_node(input);
 }
 
-PURPLEAPI PINode * p_input_node_nth(PPInput input, int index)
+/**
+ * Read the value of an input, and return the \a n:th node reference found.
+ * 
+ * If \a index is larger than the number of node references present, \c NULL is returned.
+ * Thus, this function can be used to iterate over all node references present on a given
+ * input.
+ * 
+ * As with \c p_input_node() above, this function cannot convert non-node data into node
+ * references. If no nodes are present on the specified input, NULL will be returned for
+ * all values of \a index.
+*/
+PURPLEAPI PINode * p_input_node_nth(PPInput input	/** The input to read from. */,
+				    int index		/** Index (from 0) of the node reference to retreive. */)
 {
 	return port_input_node_nth(input, index);
 }
