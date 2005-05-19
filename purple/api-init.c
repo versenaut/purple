@@ -53,18 +53,54 @@ void api_init_end(void)
 
 /* These are the plug-in-visible actual Purple API functions. */
 
-PURPLEAPI void p_init_create(const char *name)
+/**
+ * This function is called from within the \c init() function of a plug-in library, to register a new
+ * plug-in with the Purple engine. You can do this any number of times, since a single library (i.e.
+ * the shared object or DLL file on disk) can define many actual plug-ins. This is often useful when
+ * one wants to share code between two plug-ins in an easy manner.
+ * 
+ * All calls to other init functions affect the current plug-in, which is the one that was registered last.
+ * 
+ * There \b must be at least one call to this function in a library's \c init() function, or the
+ * library will be ignored by the Purple engine.
+*/
+PURPLEAPI void p_init_create(const char *name /** The name of the plug-in to create. Plug-in names should
+					       be short and descriptive, and not include any whitespace.
+					       Use a dash or underscore instead of a space. */)
 {
 	plugin_flush();
 	init_info.plugin = plugin_new(name);
 }
 
-PURPLEAPI void p_init_meta(const char *category, const char *text)
+/**
+ * Register a piece of "meta information" associated with the current plug-in. Such meta information is
+ * intented to be presented to end users by user interface clients, and might also provide grouping support
+ * so that, for instance, related tools can be grouped together in the interface.
+ * 
+ * Each piece of meta information is defined as a pair of strings, one being called the category and the
+ * other the text. These can be considered "assignments", like so: \a category = \a text.
+ * 
+ * There should be a list of suggested/recommended/standardized meta categories here, but curiously there
+ * isn't.
+*/
+PURPLEAPI void p_init_meta(const char *category	/** The category to register meta text in. */,
+			   const char *text	/** The meta text to register. */)
 {
 	plugin_set_meta(init_info.plugin, category, text);
 }
 
-PURPLEAPI void p_init_input(int index, PValueType type, const char *name, ...)
+/**
+ * Add an input to the current plug-in. Inputs are "ports" where the plug-in can receive data from other
+ * plug-ins, or directly from the user.
+ * 
+ * This function is varargs to support the specification of further detail. You can use the \c P_INPUT macros
+ * to build a list of extra information, including minimum, maximum and default values, make the input
+ * required, and so on. To end the list, use \c P_INPUT_DONE.
+*/
+PURPLEAPI void p_init_input(int index		/** Index of the input to add. Must begin at zero and monotonically increase. */,
+			    PValueType type	/** Preferred type of input. This information is published in the XML description. */,
+			    const char *name	/** Name of the input. */,
+			    ...)
 {
 	va_list	args;
 
@@ -73,12 +109,27 @@ PURPLEAPI void p_init_input(int index, PValueType type, const char *name, ...)
 	va_end(args);
 }
 
-PURPLEAPI void p_init_state(size_t size, void (*constructor)(void *state), void (*destructor)(void *))
+/**
+ * Register persistent per-instance state for a plug-in. Every instance of the plug-in will have the state
+ * automatically allocated by the Purple engine, and passed in as an argument to the \c compute() callback.
+ * 
+ * The Purple engine does not touch the buffer in any way, its contents are totally up to the plug-in to
+ * read and write.
+ * 
+ * The state buffer will be automatically deallocated once the plug-in instance is destroyed, of course.
+*/
+PURPLEAPI void p_init_state(size_t size				/** The number of bytes of state required. Typically computed by \c sizeof on a plug-in internal structure. */,
+			    void (*constructor)(void *state)	/** Optional function to initialize the state buffer, before it's first seen by the \c compute() callback. */,
+			    void (*destructor)(void *state)	/** Optional function to destroy the state buffer, before it's deallocated. */)
 {
 	plugin_set_state(init_info.plugin, size, constructor, destructor);
 }
 
-PURPLEAPI void p_init_compute(PComputeStatus (*compute)(PPInput *input, PPOutput output, void *state))
+/**
+ * This function registers the main computational callback function. This is the function that the Purple
+ * engine will call when it needs the plug-in to re-compute its output.
+*/
+PURPLEAPI void p_init_compute(PComputeStatus (*compute)(PPInput *input, PPOutput output, void *state) /** The callback function pointer. */)
 {
 	plugin_set_compute(init_info.plugin, compute);
 }

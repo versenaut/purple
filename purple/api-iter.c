@@ -108,14 +108,27 @@ void iter_init_list(PIter *iter, List *list)
 
 /* ----------------------------------------------------------------------------------------- */
 
-PURPLEAPI unsigned int p_iter_index(const PIter *iter)
+/**
+ * Return the current index, counting from 0, of an iterator.
+ * 
+ * While the point of iterators is to iterate over a sequence of data pieces without actually
+ * using an integer index to identify each one, it is sometimes useful to have such an index
+ * anyway. Therefore, the iterator data structure contains an integer internally, which is
+ * updated whenever \c p_iter_next() is called.
+ * 
+*/
+PURPLEAPI unsigned int p_iter_index(const PIter *iter	/** The iterator whose index is sought. */)
 {
 	if(iter != NULL)
 		return iter->index;
 	return 0;
 }
 
-PURPLEAPI void * p_iter_data(PIter *iter)
+/**
+ * Return the data piece pointed at by the an iterator. Returns \c NULL if given an invalid
+ * iterator.
+*/
+PURPLEAPI void * p_iter_data(PIter *iter	/** The iterator whose data is to be accessed. */)
 {
 	if(iter == NULL)
 		return NULL;
@@ -126,7 +139,12 @@ PURPLEAPI void * p_iter_data(PIter *iter)
 	return NULL;
 }
 
-PURPLEAPI void p_iter_next(PIter *iter)
+/**
+ * Step an iterator to the next sequence member. This is the core functionality of iterators, the one
+ * that does the actual iterating. If it succeeds, this will as a side-effect increase the index returned
+ * by \c p_iter_index().
+*/
+PURPLEAPI void p_iter_next(PIter *iter	/** The iterator to be stepped forward. */)
 {
 	if(iter == NULL)
 		return;
