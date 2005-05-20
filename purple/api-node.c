@@ -714,137 +714,282 @@ PURPLEAPI VNMFragmentType p_node_m_fragment_get_type(const PNMFragment *fragment
 
 /** \brief Create a new color fragment.
  * 
- * This function creates a new fragment of type Color in a material node. Color fragments are used
+ * This function creates a new fragment of type color in a material node. Color fragments are used
  * to introduce constant RGB colors into a material graph.
 */
-PURPLEAPI PNMFragment * p_node_m_fragment_create_color(PONode *node, real64 red, real64 green, real64 blue)
+PURPLEAPI PNMFragment * p_node_m_fragment_create_color(PONode *node	/** The node in which a fragment is to be created. */,
+						       real64 red	/** The red component of the color. */,
+						       real64 green	/** The green component of the color. */,
+						       real64 blue	/** The blue component of the color. */)
 {
 	return nodedb_m_fragment_create_color((NodeMaterial *) node, red, green, blue);
 }
 
 /** \brief Create a new light fragment.
  * 
- * This function creates a new fragment of type Light in a material node. Light fragments are used
- * to represent light falling on a surface.
+ * This function creates a new fragment of type light in a material node. Light fragments are used
+ * to represent light falling on a surface. There are several different types of light fragment; see
+ * the Verse specification for details.
 */
-PURPLEAPI PNMFragment * p_node_m_fragment_create_light(PONode *node, VNMLightType type, real64 normal_falloff,
-						       PINode *brdf, const char *brdf_red, const char *brdf_green, const char *brdf_blue)
+PURPLEAPI PNMFragment * p_node_m_fragment_create_light(PONode *node		/** The node in which a fragment is to be created. */,
+						       VNMLightType type	/** The type of light fragment to create. */,
+						       real64 normal_falloff	/** The normal falloff, controls how shiny the surface is. */,
+						       PINode *brdf		/** Pointer to a node. */,
+						       const char *brdf_red, const char *brdf_green, const char *brdf_blue)	/* FIXME: Document! */
 {
 	return nodedb_m_fragment_create_light((NodeMaterial *) node, type, normal_falloff, (Node *) brdf,
 					      brdf_red, brdf_green, brdf_blue);
 }
 
-PURPLEAPI PNMFragment * p_node_m_fragment_create_reflection(PONode *node, real64 normal_falloff)
+/** \brief Create a new reflection fragment.
+ * 
+ * This function creates a new fragment of type reflection in a material node. Reflection fragments
+ * are used to represent light being reflected off of a surface. They are incorporated into materials
+ * to make them more "shiny".
+*/
+PURPLEAPI PNMFragment * p_node_m_fragment_create_reflection(PONode *node		/** The node in which a fragment is to be created. */,
+							    real64 normal_falloff	/** The normal falloff, controls how shiny the reflection is. */)
 {
 	return nodedb_m_fragment_create_reflection((NodeMaterial *) node, normal_falloff);
 }
 
-PURPLEAPI PNMFragment * p_node_m_fragment_create_transparency(PONode *node, real64 normal_falloff, real64 refraction_index)
+/** \brief Create a new transparency fragment.
+ * 
+ * This function creates a new fragment of type transparency in a material node. Transparency fragments
+ * are used to represent the light falling on the back side of a surface, i.e. the light that would reach
+ * the viewpoint if the surface was not there.
+*/
+PURPLEAPI PNMFragment * p_node_m_fragment_create_transparency(PONode *node		/** The node in which a fragment is to be created. */,
+							      real64 normal_falloff	/** Micro-geometry parameter, defines how smooth the transparency is. */,
+							      real64 refraction_index	/** Index of refraction as light passes through the surface. */)
 {
 	return nodedb_m_fragment_create_transparency((NodeMaterial *) node, normal_falloff, refraction_index);
 }
 
-PURPLEAPI PNMFragment * p_node_m_fragment_create_volume(PONode *node,  real64 diffusion, real64 col_r, real64 col_g, real64 col_b,
+/** \brief Create a new volume fragment.
+ * 
+ * Create a new fragment of type volume in a material node.
+*/
+PURPLEAPI PNMFragment * p_node_m_fragment_create_volume(PONode *node, real64 diffusion, real64 col_r, real64 col_g, real64 col_b,
 							const PNMFragment *color)
 {
 	return nodedb_m_fragment_create_volume((NodeMaterial *) node, diffusion, col_r, col_g, col_b, color);
 }
 
-PURPLEAPI PNMFragment * p_node_m_fragment_create_geometry(PONode *node,
-						const char *layer_r, const char *layer_g, const char *layer_b)
+/** \brief Create a new geometry fragment.
+ * 
+ * Create a new fragment of type geometry in a material node. Geometry fragments are used to import data from
+ * geometry layers. Most typically used to express various forms of mapping, by reading mapping coordinates
+ * from geometry layers.
+*/
+PURPLEAPI PNMFragment * p_node_m_fragment_create_geometry(PONode *node		/** The node in which a fragment is to be created. */,
+							  const char *layer_r	/** Name of the geometry layer from which 'red' data is to be read. */,
+							  const char *layer_g	/** Name of the geometry layer from which 'green' data is to be read. */,
+							  const char *layer_b	/** Name of the geometry layer from which 'blue' data is to be read. */)
 {
 	return nodedb_m_fragment_create_geometry((NodeMaterial *) node, layer_r, layer_g, layer_b);
 }
 
-PURPLEAPI PNMFragment * p_node_m_fragment_create_texture(PONode *node, PINode *bitmap,
-					    const char *layer_r, const char *layer_g, const char *layer_b,
-					    const PNMFragment *mapping)
+/** \brief Create a new texture fragment.
+ * 
+ * Create a new fragment of type texture in a material node. Texture fragments are used to import data from
+ * bitmap layers. Most typically used to express various forms of mapping, by storing color in a bitmap.
+*/
+PURPLEAPI PNMFragment * p_node_m_fragment_create_texture(PONode *node		/** The node in which a fragment is to be created. */,
+							 PINode *bitmap		/** Reference to a texture to read from. */,
+							 const char *layer_r	/** Name of layer to read 'red' data from. */,
+							 const char *layer_g	/** Name of layer to read 'green' data from. */,
+							 const char *layer_b	/** Name of layer to read 'blue' data from. */,
+							 const PNMFragment *mapping	/** Fragment to use for mapping current point on surface into a point on the bitmap. See \c p_node_m_fragment_create_geometry(). */)
 {
 	return nodedb_m_fragment_create_texture((NodeMaterial *) node, bitmap, layer_r, layer_g, layer_b, mapping);
 }
 
-PURPLEAPI PNMFragment * p_node_m_fragment_create_noise(PONode *node, VNMNoiseType type, const PNMFragment *mapping)
+/** \brief Create a new noise fragment.
+ * 
+ * Create a new fragment of type noise in a material node. Noise fragments are used to represent random
+ * noise. The noise is assumed to be generated procedurally during rendering.
+*/
+PURPLEAPI PNMFragment * p_node_m_fragment_create_noise(PONode *node		/** The node in which a fragment is to be created. */,
+						       VNMNoiseType type	/** The type of noise to generate. See Verse specification. */,
+						       const PNMFragment *mapping	/** Fragment to use for mapping current point on surface into a point in the noise. */)
 {
 	return nodedb_m_fragment_create_noise((NodeMaterial *) node, type, mapping);
 }
 
-PURPLEAPI PNMFragment * p_node_m_fragment_create_blender(PONode *node, VNMBlendType type,
-					       const PNMFragment *data_a, const PNMFragment *data_b, const PNMFragment *ctrl)
+/** \brief Create a new blender fragment.
+ * 
+ * Create a new fragment of type blender in a material node. Blender fragments are used to perform
+ * arithmetic on the values of two other fragments, optionally controlled by a third. Blenders can
+ * represent the addition, multiplication, and fade of two light sources, among other things. These
+ * are very central operations, and most real-world material graphs will use many blender fragments.
+*/
+PURPLEAPI PNMFragment * p_node_m_fragment_create_blender(PONode *node		/** The node in which a fragment is to be created. */,
+							 VNMBlendType type	/** The type of blender to create. The type controls the operation performed. See the Verse specification. */,
+							 const PNMFragment *data_a	/** Fragment to use as one of the data sources/operands. */,
+							 const PNMFragment *data_b	/** Fragment to use as the other data source/operand. */,
+							 const PNMFragment *ctrl	/** Fragment that controls the operation. Often left unconnected, depending on the operation performed. */)
 {
 	return nodedb_m_fragment_create_blender((NodeMaterial *) node, type, data_a, data_b, ctrl);
 }
 
-PURPLEAPI PNMFragment * p_node_m_fragment_create_matrix(PONode *node, const real64 *matrix, const PNMFragment *data)
+/** \brief Create a new matrix fragment.
+ * 
+ * Create a new fragment of type matrix in a material node. Matrix fragments represent a standard transform
+ * of the input values by a 4x4 matrix. This can be used to scale certain components, to swizzle components,
+ * and so on.
+*/
+PURPLEAPI PNMFragment * p_node_m_fragment_create_matrix(PONode *node		/** The node in which a fragment is to be created. */,
+							const real64 *matrix	/** The values for the matrix. Should be 16 \c real64 values, in column-major format. */,
+							const PNMFragment *data	/** Input data to transform by the matrix. */)
 {
 	return nodedb_m_fragment_create_matrix((NodeMaterial *) node, matrix, data);
 }
 
-PURPLEAPI PNMFragment * p_node_m_fragment_create_ramp(PONode *node, VNMRampType type, uint8 channel,
-						      const PNMFragment *mapping, uint8 point_count,
-						      const VNMRampPoint *ramp)
+/** \brief Create a new ramp fragment.
+ * 
+ * Create a new fragment of type ramp in a material node. Ramp fragments act as 1D textures, defined as
+ * interpolated gradients between a number of fixed points.
+*/
+PURPLEAPI PNMFragment * p_node_m_fragment_create_ramp(PONode *node	/** The node in which a fragment is to be created. */,
+						      VNMRampType type	/** The kind of interpolation done by the ramp. See the Verse specification. */,
+						      uint8 channel	/** Which input channel to use as index into the ramp (0=red, 1=green, 2=blue). */,
+						      const PNMFragment *mapping	/** Input data to use as index into the ramp. */,
+						      uint8 point_count	/** Number of points in ramp. Must be in range [1,48]. */,
+						      const VNMRampPoint *ramp	/** Ramp points. See Verse specification for the data structure's definition. */)
 {
 	return nodedb_m_fragment_create_ramp((NodeMaterial *) node, type, channel, mapping, point_count, ramp);
 }
 
-PURPLEAPI PNMFragment * p_node_m_fragment_create_animation(PONode *node, const char *label)
+/** \brief Create a new animation fragment.
+ * 
+ * Create a new fragment of type animation in a material node. Animation fragments are used to refer to
+ * the parent object's animation data in order to create animated materials.
+*/
+/* FIXME: DOCUMENT! */
+PURPLEAPI PNMFragment * p_node_m_fragment_create_animation(PONode *node		/** The node in which a fragment is to be created. */,
+							   const char *label	/** Label. */)
 {
 	return nodedb_m_fragment_create_animation((NodeMaterial *) node, label);
 }
 
-PURPLEAPI PNMFragment * p_node_m_fragment_create_alternative(PONode *node, const PNMFragment *alt_a, const PNMFragment *alt_b)
+/** \brief Create a new alternative fragment.
+ * 
+ * Create a new fragment of type alternative in a material node. Alternative fragments split the fragment path in two,
+ * allowing the parser to choose one of the children.
+*/
+PURPLEAPI PNMFragment * p_node_m_fragment_create_alternative(PONode *node	/** The node in which a fragment is to be created. */,
+							     const PNMFragment *alt_a	/** One path. */,
+							     const PNMFragment *alt_b	/** The other path. */)
 {
 	return nodedb_m_fragment_create_alternative((NodeMaterial *) node, alt_a, alt_b);
 }
 
-PURPLEAPI PNMFragment * p_node_m_fragment_create_output(PONode *node, const char *label, const PNMFragment *front, const PNMFragment *back)
+/** \brief Create a new output fragment.
+ * 
+ * Create a new fragment of type output in a material node. Outputs are the roots of individual material trees; in order
+ * for a material node to produce a useful result, it must have at least one output fragment. Output fragments are labelled,
+ * and the label declares what property of geometry is being described by the tree rooted in that fragment. The most
+ * common label is "color", which indicates an ordinary material description. Other choices include "displacement", to express
+ * geometry deformation.
+ * 
+ * An output is actually the root of \b two trees; one for the front side of surfaces using the material, and one for the
+ * back side. If either of these is left unconnected, surfaces do not have a valid material if viewed from that direction,
+ * and thus will not be visible. Making \c front ==  \c back creates a two-sided material that looks the same from either side.
+*/
+PURPLEAPI PNMFragment * p_node_m_fragment_create_output(PONode *node		/** The node in which a fragment is to be created. */,
+							const char *label	/** The label of the output, defines the type of material described. */,
+							const PNMFragment *front	/** The first fragment in the definition of the front side of the  material. */,
+							const PNMFragment *back		/** The first fragment in the definition of the back side of the material. */)
 {
 	return nodedb_m_fragment_create_output((NodeMaterial *) node, label, front, back);
 }
 
 /* ----------------------------------------------------------------------------------------- */
 
-PURPLEAPI void p_node_b_set_dimensions(PONode *node, uint16 width, uint16 height, uint16 depth)
+/** \brief Set size of a bitmap.
+ * 
+ * Set the size of a bitmap. All layers in a bitmap share the same size, specified by this function. The size is
+ * given in pixels for each of the three dimensions. Flat and linear textures are supported too, but any size
+ * that is 1 must come after any dimension that isn't. So, (1,3,1) is not a valid size, but (3,1,1) is. No
+ * size can be zero, as that would create a null volume of pixels. There are no other limitations on the size of a bitmap.
+*/
+PURPLEAPI void p_node_b_set_dimensions(PONode *node	/** The node whose size is to be set. */,
+				       uint16 width	/** The width of the bitmap, in pixels. */,
+				       uint16 height	/** The height of the bitmap, in pixels. Set to 1 for a 1D linear bitmap. */,
+				       uint16 depth	/** The depth of the bitmap, in pixels. Set to 1 for a 1D or 2D bitmap. */)
 {
 	if(node == NULL)
 		return;
 	nodedb_b_set_dimensions((NodeBitmap *) node, width, height, depth);
 }
 
-PURPLEAPI void p_node_b_get_dimensions(PINode *node, uint16 *width, uint16 *height, uint16 *depth)
+/** \brief Retreive size of a bitmap.
+ * 
+ * Get the size of a bitmap. All layers in a bitmap share the same size. The size is set by the \c p_node_b_set_dimensions() function.
+*/
+PURPLEAPI void p_node_b_get_dimensions(PINode *node	/** The node whose size is to be retrieved. */,
+				       uint16 *width	/** Pointer to \c uint16 that is set to the width of the bitmap. */,
+				       uint16 *height	/** Pointer to \c uint16 that is set to the height of the bitmap. */,
+				       uint16 *depth	/** Pointer to \c uint16 that is set to the depth of the bitmap. */)
 {
 	nodedb_b_get_dimensions((NodeBitmap *) node, width, height, depth);
 }
 
-PURPLEAPI unsigned int p_node_b_layer_num(PINode *node)
+/** \brief Return the number of layers in a bitmap node.
+ * 
+*/
+PURPLEAPI unsigned int p_node_b_layer_num(PINode *node	/** The node whose number of layers is to be queried. */)
 {
 	return nodedb_b_layer_num((NodeBitmap *) node);
 }
 
-PURPLEAPI PNBLayer * p_node_b_layer_nth(PINode *node, unsigned int n)
+/** \brief Return bitmap layer by index.
+ * 
+ * Return a bitmap layer, by index. Valid index range is 0 up to, but not including, the value returned by the
+ * \c p_node_b_layer_num() function. Specifying an index outside of this range causes \c NULL to be returned.
+*/
+PURPLEAPI PNBLayer * p_node_b_layer_nth(PINode *node	/** The node whose layer is to be accessed. */,
+					unsigned int n	/** The index of the layer to access. */)
 {
 	return nodedb_b_layer_nth((NodeBitmap *) node, n);
 }
 
-PURPLEAPI PNBLayer * p_node_b_layer_find(PINode *node, const char *name)
+/** \brief Return bitmap layer by name.
+ * 
+ * Search through a bitmap node looking for a named layer. If no layer with the requested name exists, \c NULL is returned. */
+PURPLEAPI PNBLayer * p_node_b_layer_find(PINode *node		/** The node whose layers are to be searched. */,
+					 const char *name	/** The name of the layer to search for. */)
 {
 	return nodedb_b_layer_find((NodeBitmap *) node, name);
 }
 
-PURPLEAPI const char * p_node_b_layer_get_name(const PNBLayer *layer)
+/** \brief Return the name of a bitmap layer. */
+PURPLEAPI const char * p_node_b_layer_get_name(const PNBLayer *layer	/** The layer whose name is returned. */)
 {
 	if(layer != NULL)
 		return ((NdbBLayer *) layer)->name;
 	return NULL;
 }
 
-PURPLEAPI VNBLayerType p_node_b_layer_get_type(const PNBLayer *layer)
+/** \brief Return the type of a bitmap layer. */
+PURPLEAPI VNBLayerType p_node_b_layer_get_type(const PNBLayer *layer	/** The layer whose type is returned. */)
 {
 	if(layer != NULL)
 		return ((NdbBLayer *) layer)->type;
 	return -1;
 }
 
-PURPLEAPI PNBLayer * p_node_b_layer_create(PONode *node, const char *name, VNBLayerType type)
+/** \brief Create a new bitmap layer.
+ * 
+ * This function creates a new layer in a bitmap node. Bitmap layers each store one value per pixel, and can be
+ * of different types ranging from 1-bit up to 64-bit floating point.
+ * 
+ * The new layer is returned, and can be immediately filled-in with the desired content.
+*/
+PURPLEAPI PNBLayer * p_node_b_layer_create(PONode *node		/** The node in which a layer is to be created. */,
+					   const char *name	/** The name of the layer. Layer names must be unique within the node. */,
+					   VNBLayerType type	/** The type of pixel data this layer should store. */)
 {
 	PNBLayer	*l;
 
@@ -855,23 +1000,102 @@ PURPLEAPI PNBLayer * p_node_b_layer_create(PONode *node, const char *name, VNBLa
 	return nodedb_b_layer_create((NodeBitmap *) node, ~0, name, type);
 }
 
-PURPLEAPI void * p_node_b_layer_access_begin(PONode *node, PNBLayer *layer)
+/** \brief Gain access to layer pixels.
+ * 
+ * This function returns a pointer to the pixels of a given bitmap layer, so they can be directly manipulated
+ * by the plug-in. The returned pointer points to the pixel at (0,0,0), and the pixels are arranged sequentially
+ * in a left-to-right, top-to-bottom, front-to-back manner. There are no gaps between pixels.
+ * 
+ * When done with the access, you must hand the pixels back to the Purple engine by calling the \c p_node_b_layer_access_end() function.
+*/
+PURPLEAPI void * p_node_b_layer_access_begin(PONode *node	/** The node whose layer is to be accessed. */,
+					     PNBLayer *layer	/** The layer to access. */)
 {
 	return nodedb_b_layer_access_begin((NodeBitmap *) node, layer);
 }
 
-PURPLEAPI void p_node_b_layer_access_end(PONode *node, PNBLayer *layer, void *framebuffer)
+/** Stop accessing layer pixels.
+ * 
+ * This function hands a pixel buffer that was returned by \c p_node_b_layer_access_begin() back to Purple. After
+ * this call, the pixel buffer pointer is no longer valid.
+*/
+PURPLEAPI void p_node_b_layer_access_end(PONode *node		/** The node whose pixels have been accessed. */,
+					 PNBLayer *layer	/** The layer the pixels belong to. */,
+					 void *framebuffer	/** The pixel buffer pointer. */)
 {
 	nodedb_b_layer_access_end((NodeBitmap *) node, layer, framebuffer);
 }
 
-PURPLEAPI void p_node_b_layer_foreach_set(PONode *node, PNBLayer *layer,
-				real64 (*pixel)(uint32 x, uint32 y, uint32 z, void *user), void *user)
+/** \brief Compute layer pixels through callback.
+ *
+ * This function lets you compute the value for each pixel by defining a callback funtion, that Purple
+ * then calls. The callback function is passed the coordinates of the pixel whose value is to be computed, and
+ * a user pointer to maintain state. The callback should return the pixel value, in \c real64 format. The
+ * Purple engine does any necessary conversion to store that value in the actual layer.
+ * 
+ * Example:
+ * \code
+ * // Example to set a bitmap to an interesting "concentric-circles" type of pattern.
+ * 
+ * static real64 pixel(uint32 x, uint32 y, uint32 z, void *user)
+ * {
+ * 	return x * x + y * y + z * z;
+ * }
+ * 
+ * p_node_b_layer_foreach_set(node, layer, compute, NULL);
+ * \endcode
+*/
+PURPLEAPI void p_node_b_layer_foreach_set(PONode *node		/** The node in which a layer is to be set. */,
+					  PNBLayer *layer	/** The layer to be set. */,
+				real64 (*pixel)(uint32 x, uint32 y, uint32 z, void *user)	/** The callback function that computes a pixel value. */,
+					  void *user		/** User-defined pointer passed to the callback. */)
 {
 	nodedb_b_layer_foreach_set((NodeBitmap *) node, layer, pixel, user);
 }
 
-PURPLEAPI void * p_node_b_layer_access_multi_begin(PONode *node, VNBLayerType format, ...)
+/** \brief Destroy a bitmap layer. */
+PURPLEAPI void p_node_b_layer_destroy(PONode *node	/** The node in which a layer is to be destroyed. */,
+				      PNBLayer *layer	/** The layer to be destroyed. */)
+{
+/* FICXME: Implement backend!	nodedb_b_layer_destroy(layer);*/
+}
+
+/** \brief Create "interleaved" buffer for multi-layer access.
+ * 
+ * This function requests that Purple merge several layers into a single buffer, for convenient access by 
+ * plug-in code. Since the Verse bitmap format only supports one value per pixel in a layer, representing
+ * i.e. an ordinary RGB color image requires the use of three separate layers. Doing per-pixel operations
+ * on such data can be a bit inconvenient, which is why this function exists to make it smoother.
+ * 
+ * The function will accept up to 16 layer names (strings), and return a buffer that begins with pixel (0,0,0)
+ * for the first layer, followed by pixel (0,0,0) for the second layer, for each layer. Then comes the next
+ * pixel in the first layer, and so on. The pixel ordering is as for the \c p_node_b_layer_access_begin()
+ * function above (left-to-right, top-to-bottom, and front-to-back).
+ * 
+ * The list of names specified in the ... part of the function should be terminated by a \c NULL pointer. If
+ * any of the named layers doesn't exist in the node, the function aborts, since it would be impossible
+ * for the plug-in to correctly interpret the returned buffer. In this case, \c NULL is returned.
+ * 
+ * The returned buffer can be in any supported pixel format, Purple will convert to and from the desired
+ * format as needed.
+ * 
+ * Once the plug-in is done accessing the pixel data, it must be handed back to Purple by calling the
+ * \c p_node_b_layer_access_multi_end() function.
+ * 
+ * \code
+ * // Example to set a standard color bitmap to "all white", using 8-bit intermediate precision.
+ * uint16 width, height, depth;
+ * uint8  *pixels;
+ * 
+ * p_node_b_get_dimensions(node, &width, &height, &depth);
+ * pixels = p_node_b_layer_access_multi_begin(node, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL);
+ * memset(pixels, 255, width * height * depth);
+ * p_node_b_layer_access_multi_end(pixels);
+ * \endcode
+*/
+PURPLEAPI void * p_node_b_layer_access_multi_begin(PONode *node	/** The node whose layers is to be accessed. */,
+						   VNBLayerType format	/** The format in which the plug-in wishes to access the pixels. */,
+						   ...	/** Skaab. */)
 {
 	va_list	layers;
 	void	*fb;
@@ -882,6 +1106,14 @@ PURPLEAPI void * p_node_b_layer_access_multi_begin(PONode *node, VNBLayerType fo
 	return fb;
 }
 
+/** \brief Stop accessing interleaved multi-layer buffer.
+ * 
+ * This function hands a multi-layer buffer created by a call to \c p_node_b_layer_access_multi_begin() back to
+ * Purple. It will convert the data in the layer to whatever format each of the source layers is in, and write
+ * it back into the layers.
+ * 
+ * You must call this function on the buffer, or memory will be lost.
+*/
 PURPLEAPI void p_node_b_layer_access_multi_end(PONode *node, void *framebuffer)
 {
 	nodedb_b_layer_access_multi_end((NodeBitmap *) node, framebuffer);
@@ -889,42 +1121,78 @@ PURPLEAPI void p_node_b_layer_access_multi_end(PONode *node, void *framebuffer)
 
 /* ----------------------------------------------------------------------------------------- */
 
-PURPLEAPI unsigned int p_node_c_curve_num(PINode *node)
+/** \brief Return number of curves in a curve node.
+*/
+PURPLEAPI unsigned int p_node_c_curve_num(PINode *node	/** The node whose number of curves is to be queried. */)
 {
 	return nodedb_c_curve_num((NodeCurve *) node);
 }
 
-PURPLEAPI PNCCurve * p_node_c_curve_nth(PINode *node, unsigned int n)
+/** \brief Return curve by index.
+ * 
+ * Valid index range is 0 up to, but not including, the value returned by the \c p_node_c_curve_num() function.
+ * Specifying an index outside of this range causes \c NULL to be returned.
+*/
+PURPLEAPI PNCCurve * p_node_c_curve_nth(PINode *node	/** The node whose curve is to be accessed. */,
+					unsigned int n	/** The index of the curve to access. */)
 {
 	return nodedb_c_curve_nth((NodeCurve *) node, n);
 }
 
-PURPLEAPI PNCCurve * p_node_c_curve_find(PINode *node, const char *name)
+/** \brief Return curve by name.
+ * 
+ * If no curve with the specified name exists, \c NULL is returned.
+*/
+PURPLEAPI PNCCurve * p_node_c_curve_find(PINode *node		/** The node whose curve is to be accessed. */,
+					 const char *name	/** The name of the curve to access. */)
 {
 	return nodedb_c_curve_find((NodeCurve *) node, name);
 }
 
-PURPLEAPI void p_node_c_curve_iter(PINode *node, PIter *iter)
+/** \brief Initialize iterator over curve node's curves.
+ * 
+ * This function initializes an iterator so that it can be used to iterate over the individual curves
+ * in a curve node.
+*/
+PURPLEAPI void p_node_c_curve_iter(PINode *node	/** The node whose curves are to be iterated. */,
+				   PIter *iter	/** The iterator to initialize. */)
 {
 	if(node != NULL)
 		iter_init_dynarr_string(iter, ((NodeCurve *) node)->curves, offsetof(NodeCurve, curves));
 }
 
-PURPLEAPI const char * p_node_c_curve_get_name(const PNCCurve *curve)
+/** \brief Return the number of a curve.
+ * 
+ * This function returns the name of a curve node curve. Please note that it does not return the name
+ * of the node itself, but of one of the individual curves stored in the node.
+*/
+PURPLEAPI const char * p_node_c_curve_get_name(const PNCCurve *curve	/** The curve whose name is to be queried. */)
 {
 	if(curve != NULL)
 		return ((NdbCCurve *) curve)->name;
 	return NULL;
 }
 
-PURPLEAPI uint8 p_node_c_curve_get_dimensions(const PNCCurve *curve)
+/** \brief Return the number of dimensions of a curve.
+ * 
+ * This function returns the number of dimensions of a given curve node curve. Curves are defined with
+ * one to four dimensions, inclusive.
+*/
+PURPLEAPI uint8 p_node_c_curve_get_dimensions(const PNCCurve *curve	/** The curve whose number of dimensions is to be queried. */)
 {
 	if(curve != NULL)
 		return ((NdbCCurve *) curve)->dimensions;
 	return 0;
 }
 
-PURPLEAPI PNCCurve * p_node_c_curve_create(PONode *node, const char *name, uint8 dimensions)
+/** \brief Create a new curve.
+ * 
+ * This function creates a new curve in a curve node. The created curve is returned and can be
+ * used immediately.
+*/
+PURPLEAPI PNCCurve * p_node_c_curve_create(PONode *node		/** The node in which a curve is to be created. */,
+					   const char *name	/** The name of the curve to be created. Names must be unique within a node. */,
+					   uint8 dimensions	/** The number of dimensions of the new curve. Must be one, two, three or four. */)
 {
 	PNCCurve	*c;
 
@@ -933,32 +1201,68 @@ PURPLEAPI PNCCurve * p_node_c_curve_create(PONode *node, const char *name, uint8
 	return nodedb_c_curve_create((NodeCurve *) node, ~0, name, dimensions);
 }
 
-PURPLEAPI void p_node_c_curve_destroy(PONode *node, PNCCurve *curve)
+/** \brief Destroy a curve.
+ * 
+ * This function destroys a curve in a curve node. Accessing the destroyed curve is not permitted, and invokes undefined behavior.
+*/
+PURPLEAPI void p_node_c_curve_destroy(PONode *node	/** The node in which a curve is to be destroyed. */,
+				      PNCCurve *curve	/** The curve to be destroyed. */)
 {
 	nodedb_c_curve_destroy((NodeCurve *) node, curve);
 }
 
-PURPLEAPI size_t p_node_c_curve_key_num(const PNCCurve *curve)
+/** \brief Return the number of keys in a curve.
+ * 
+ * This function returns the number of keys in a single curve. Keys are used to define the curve, by interpolating between them.
+*/
+PURPLEAPI size_t p_node_c_curve_key_num(const PNCCurve *curve	/** The curve whose number of keys is to be queried. */)
 {
 	return nodedb_c_curve_key_num(curve);
 }
 
-PURPLEAPI PNCKey * p_node_c_curve_key_nth(const PNCCurve *curve, unsigned int n)
+/** \brief Return a curve key, by index.
+ * 
+ * Valid index range is 0 up to, but not including, the value returned by the \c p_node_c_curve_key_num() function.
+ * Specifying an index outside of this range causes \c NULL to be returned.
+*/ 
+PURPLEAPI PNCKey * p_node_c_curve_key_nth(const PNCCurve *curve	/** The curve whose keys is to be accessed. */,
+					  unsigned int n	/** The index of the key to access. */)
 {
 	return nodedb_c_curve_key_nth(curve, n);
 }
 
-PURPLEAPI real64 p_node_c_curve_key_get_pos(const PNCKey *key)
+/** \brief Return position of a curve key.
+*/
+PURPLEAPI real64 p_node_c_curve_key_get_pos(const PNCKey *key	/** The key whose position is being queried. */)
 {
 	return key != NULL ? ((NdbCKey *) key)->pos : 0.0;
 }
 
-PURPLEAPI real64 p_node_c_curve_key_get_value(const PNCKey *key, uint8 dimension)
+/** \brief Return value of a key.
+ * 
+ * This function returns the value of a key. A key can have a different value for each of the curve's dimensions,
+ * if multi-dimensional.
+*/
+PURPLEAPI real64 p_node_c_curve_key_get_value(const PNCKey *key	/** The key whose value is being queried. */,
+					      uint8 dimension	/** The dimension for which the value is being queried. */)
 {
 	return key != NULL ? ((NdbCKey *) key)->value[dimension] : 0.0;
 }
 
-PURPLEAPI uint32 p_node_c_curve_key_get_pre(const PNCKey *key, uint8 dimension, real64 *value)
+/** \brief Get the "pre-point" of a key.
+ * 
+ * This function returns information about the control point that controls how the curve reaches a given key.
+ * Since this is before the key, it is called the "pre-point".
+ *
+ * The information has two components: one is the horizontal distance from the pre-point to the key, which is
+ * returned by the function. The other is the vertical position of the control point, and that is optionally returned
+ * through the \c value argument. There is one unique pre-point per dimension.
+ * 
+ * More more information how these values are to be interpreted, please see the Verse specification.
+*/
+PURPLEAPI uint32 p_node_c_curve_key_get_pre(const PNCKey *key	/** The key whose pre-point is to be queried. */,
+					    uint8 dimension	/** The dimension for which the pre-point is to be queried. */,
+					    real64 *value	/** Optional pointer to \u real64 that is set to the value of the pre-point. */)
 {
 	if(key != NULL)
 	{
@@ -969,7 +1273,20 @@ PURPLEAPI uint32 p_node_c_curve_key_get_pre(const PNCKey *key, uint8 dimension, 
 	return 0;
 }
 
-PURPLEAPI uint32 p_node_c_curve_key_get_post(const PNCKey *key, uint8 dimension, real64 *value)
+/** \brief Get the "post-point" of a key.
+ * 
+ * This function returns information about the control point that controls how the curve leaves a given key.
+ * Since this is after the key, it is called the "post-point".
+ *
+ * The information has two components: one is the horizontal distance from the key to the post-point, which is
+ * returned by the function. The other is the vertical position of the control point, and that is optionally returned
+ * through the \c value argument. There is one unique post-point per dimension.
+ * 
+ * More more information how these values are to be interpreted, please see the Verse specification.
+*/
+PURPLEAPI uint32 p_node_c_curve_key_get_post(const PNCKey *key	/** The key whose post-point is to be queried. */,
+					     uint8 dimension	/** The dimension for which the post-point is to be qieried. */,
+					     real64 *value	/** Pointer to \c real64 that is set to the value of the post-point. */)
 {
 	if(key != NULL)
 	{
@@ -980,54 +1297,103 @@ PURPLEAPI uint32 p_node_c_curve_key_get_post(const PNCKey *key, uint8 dimension,
 	return 0;
 }
 
-PURPLEAPI PNCKey * p_node_c_curve_key_create(PNCCurve *curve,
-					     real64 pos, const real64 *value,
-					     const uint32 *pre_pos, const real64 *pre_value,
-					     const uint32 *post_pos, const real64 *post_value)
+/** \brief Create a curve key.
+ * 
+ * This function creates a new key in a curve. The five final arguments are pointers, since they are vectors. Only the
+ * position is scalar.
+ * 
+ * \see The Verse specification on the curve node: <http://www.blender.org/modules/verse/verse-spec/n-curve.html>.
+*/
+PURPLEAPI PNCKey * p_node_c_curve_key_create(PNCCurve *curve		/** The curve in which the key is to be created. */,
+					     real64 pos			/** The position of the new key. Must be unique. */,
+					     const real64 *value	/** The value of the key, one per dimension. */,
+					     const uint32 *pre_pos	/** Pre-point positions for this key, one per dimension. */,
+					     const real64 *pre_value	/** Pre-point values for this key, one per dimension. */,
+					     const uint32 *post_pos	/** Post-point positions for this key, one per dimension. */,
+					     const real64 *post_value	/** Post-point value for this key, one per dimension. */)
 {
 	return (PNCKey *) nodedb_c_key_create(curve, ~0, pos, value, pre_pos, pre_value, post_pos, post_value);
 }
 
-PURPLEAPI void p_node_curve_key_destroy(PNCCurve *curve, PNCKey *key)
+/** \brief Destroy a curve node.
+ * 
+ * This function destroys a key in a curve node. The curve will interpolate through the new sequence of
+ * keys, if any remain.
+*/
+PURPLEAPI void p_node_c_curve_key_destroy(PNCCurve *curve	/** The curve in which a key is to be destroyed. */,
+					PNCKey *key		/** The key to be destroyed. */)
 {
 	nodedb_c_key_destroy((NdbCCurve *) curve, (NdbCKey *) key);
 }
 
 /* ----------------------------------------------------------------------------------------- */
 
-PURPLEAPI const char * p_node_t_language_get(PINode *node)
+/** \brief Return the langauge of a text node.
+ * 
+ * This function returns the language of a text node. The language is simply a string that defines in which
+ * language the content of the node is.
+*/
+PURPLEAPI const char * p_node_t_language_get(PINode *node	/** The text node whose language is to be queried. */)
 {
 	return nodedb_t_language_get((NodeText *) node);
 }
 
-PURPLEAPI void p_node_t_langauge_set(PONode *node, const char *language)
+/** \brief Set the language of a text node.
+ * 
+ * This function sets the language of a text node. Changing the language of a text node has no immediate effect
+ * on the actual contents of the node's buffers. Programs that try to parse the contents might care though.
+*/
+PURPLEAPI void p_node_t_language_set(PONode *node		/** The node whose language is to be set. */,
+				     const char *language	/** The new langauge. */)
 {
 	nodedb_t_language_set((NodeText *) node, language);
 }
 
-PURPLEAPI unsigned int p_node_t_buffer_get_num(PINode *node)
+/** \brief Return the number of buffers in a text node.
+*/
+PURPLEAPI unsigned int p_node_t_buffer_num(PINode *node	/** The text node whose number of buffers is to be queried. */)
 {
 	return nodedb_t_buffer_num((NodeText *) node);
 }
 
-PURPLEAPI PNTBuffer * p_node_t_buffer_nth(PINode *node, unsigned int n)
+/** \brief Return text buffer, by index.
+ *
+ * Valid index range is 0 up to, but not including, the value returned by the \c p_node_t_buffer_num() function.
+ * Specifying an index outside of this range causes \c NULL to be returned.
+ */
+PURPLEAPI PNTBuffer * p_node_t_buffer_nth(PINode *node		/** The node whose buffers is to be accessed. */,
+					  unsigned int n	/** The index of the buffer to access. */)
 {
 	return nodedb_t_buffer_nth((NodeText *) node, n);
 }
 
-PURPLEAPI PNTBuffer * p_node_t_buffer_find(PINode *node, const char *name)
+/** \brief Return text buffer, by name.
+ * 
+ * If no text buffer with the specified name exists, \c NULL is returned.
+*/
+PURPLEAPI PNTBuffer * p_node_t_buffer_find(PINode *node		/** The node whose text buffers are to be searched. */,
+					   const char *name	/** The name of the text buffer to search for. */)
 {
 	return nodedb_t_buffer_find((NodeText *) node, name);
 }
 
-PURPLEAPI const char * p_node_t_buffer_get_name(const PNTBuffer *buffer)
+/** \brief Return name of a text buffer.
+*/
+PURPLEAPI const char * p_node_t_buffer_get_name(const PNTBuffer *buffer	/** The text buffer whose name is being queried. */)
 {
 	if(buffer != NULL)
 		return ((NdbTBuffer *) buffer)->name;
 	return NULL;
 }
 
-PURPLEAPI PNTBuffer * p_node_t_buffer_create(PONode *node, const char *name)
+/** \brief Create a new text buffer.
+ * 
+ * This function creates a new text buffer in a node. Text buffers require very few parameters, just a name.
+ * 
+ * The created buffer is returned and can be used immediately.
+*/
+PURPLEAPI PNTBuffer * p_node_t_buffer_create(PONode *node	/** The text node in which a buffer is to be created. */,
+					     const char *name	/** The name of the text buffer to create. Must be unique within the node. */)
 {
 	PNTBuffer	*b;
 
@@ -1039,24 +1405,85 @@ PURPLEAPI PNTBuffer * p_node_t_buffer_create(PONode *node, const char *name)
 	return nodedb_t_buffer_create((NodeText *) node, ~0, name);
 }
 
-PURPLEAPI void p_node_t_buffer_insert(PNTBuffer *buffer, size_t pos, const char *text)
+/** \brief Read out text, indexing by line.
+ * 
+ * This function lets you read out a line of a text buffer's contents. It assumes the text is stored
+ * with some kind of end-of-line marker. Currently, Purple considers \b any of these combinations a
+ * valid line separator:
+ * - A lone line feed (LF, \c '\\n', ASCII value 10) character, as used in Unix
+ * - A lone carriage return (CR, \c '\\r', ASCII value 13) symbol, as used in Windows
+ * - A LF followed by any number of CRs
+ * - A CR followed by any number of LFs
+ * 
+ * This might be too permissive and cause problems with multiple blank lines in a row for a data with
+ * mixed-platform line endings. If so, it will be tightened in the future.
+ * 
+ * The end-of-line marker is not included in the line as returned.
+ * 
+ * The function returns a pointer to the line, or \c NULL if the line index was out of range. This
+ * means a loop like this can be used to iterate over all lines of a buffer:
+ * \code
+ * char line[1024];
+ * unsigned int i;
+ * 
+ * for(i = 0; p_node_t_buffer_read_line(buffer, i, line, sizeof line) != NULL; i++)
+ * 	printf("Line %u: '%s'\n", i, line);
+ * \endcode
+ * 
+ * As can be seen above, \c sizeof is the recommended way of accessing the size of a static buffer
+ * to be sent to this function; the \c putmax argument includes the terminating \c NUL symbol and
+ * should be interpreted as "don't touch more than this many bytes at put".
+*/
+PURPLEAPI char * p_node_t_buffer_read_line(PNTBuffer *buffer	/** The buffer to read from. */,
+					   unsigned int line	/** The line number to read, starting at 0. */,
+					   char *put		/** Buffer to store the line in. */,
+					   size_t putmax	/** Maximum number of bytes that can be stored at \c put. */)
+{
+	return nodedb_t_buffer_read_line(buffer, line, put, putmax);
+}
+
+/** \brief Insert text in a text buffer.
+ * 
+ * This function inserts a piece of text in a text buffer. Text is really \b inserted, meaning that any text
+ * previously at the indicated buffer position will be pushed toward the end of the buffer.
+ * 
+ * The position of the first character in the buffer is 0. If the position given is beyond the end of the
+ * buffer, it will be clamped and the operation will effectively turn into an append.
+*/
+PURPLEAPI void p_node_t_buffer_insert(PNTBuffer *buffer	/** The buffer in which text is to be inserted. */,
+				      size_t pos	/** The position at which insertion will start. */,
+				      const char *text	/** The text to be inserted. */)
 {
 	return nodedb_t_buffer_insert(buffer, pos, text);
 }
 
+/** \brief Delete text from a text buffer.
+ * 
+ * This function deletes a range in a text buffer. The deleted text is replaced by nothing, making any
+ * text before and after come together.
+ * 
+ * The position of the first character is 0. If the length specifies a range that goes outside of the
+ * text, it is clamped to the end of the buffer.
+*/
 PURPLEAPI void p_node_t_buffer_delete(PNTBuffer *buffer, size_t pos, size_t length)
 {
 	return nodedb_t_buffer_delete(buffer, pos, length);
 }
 
-PURPLEAPI void p_node_t_buffer_append(PNTBuffer *buffer, const char *text)
+/** \brief Append text to a text buffer.
+ * 
+ * This function appends text to a buffer, adding the new text last in the buffer. This is a simple
+ * convenience function, that is simply the equivalent of doing this:
+ * \code
+ * p_node_t_buffer_insert(buffer, ~0u, text);
+ * \endcode
+ * It is still recommended to use it whenever an append is the desired operation, since it reads better
+ * and could possibly be implemented in a more efficient manner internally.
+*/
+PURPLEAPI void p_node_t_buffer_append(PNTBuffer *buffer	/** Buffer to which text is to be appended. */,
+				      const char *text	/** The text to append. */)
 {
 	return nodedb_t_buffer_append(buffer, text);
-}
-
-PURPLEAPI char * p_node_t_buffer_read_line(PNTBuffer *buffer, unsigned int line, char *put, size_t putmax)
-{
-	return nodedb_t_buffer_read_line(buffer, line, put, putmax);
 }
 
 /* ----------------------------------------------------------------------------------------- */
