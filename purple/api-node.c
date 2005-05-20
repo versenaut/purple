@@ -1488,34 +1488,65 @@ PURPLEAPI void p_node_t_buffer_append(PNTBuffer *buffer	/** Buffer to which text
 
 /* ----------------------------------------------------------------------------------------- */
 
-PURPLEAPI unsigned int p_node_a_buffer_get_num(PINode *node)
+/** \brief Return number of buffers in an audio node.
+*/
+PURPLEAPI unsigned int p_node_a_buffer_num(PINode *node	/** The node whose number of buffers is to be queried. */)
 {
 	return nodedb_a_buffer_num((NodeAudio *) node);
 }
 
+/** \brief Return an audio buffer, by index.
+ * 
+ * Valid index range is 0 up to, but not including, the value returned by the \c p_node_a_buffer_num() function.
+ * Specifying an index outside of this range causes \c NULL to be returned.
+*/
 PURPLEAPI PNABuffer * p_node_a_buffer_nth(PINode *node, unsigned int n)
 {
 	return nodedb_a_buffer_nth((NodeAudio *) node, n);
 }
 
-PURPLEAPI PNABuffer * p_node_a_buffer_find(PINode *node, const char *name)
+
+/** \brief Return an audio buffer, by name.
+ * 
+ * If no buffer with the specified name exists, \c NULL is returned.
+*/
+PURPLEAPI PNABuffer * p_node_a_buffer_find(PINode *node		/** The node whose buffers are to be searched. */,
+					   const char *name	/** The name of the buffer to search for. */)
 {
 	return nodedb_a_buffer_find((NodeAudio *) node, name);
 }
 
-PURPLEAPI const char * p_node_a_buffer_get_name(const PNABuffer *layer)
+/** \brief Return the name of an audio buffer.
+*/
+PURPLEAPI const char * p_node_a_buffer_get_name(const PNABuffer *buffer	/** The buffer whose name is to be queried. */)
 {
 	if(layer != NULL)
 		return ((NdbABuffer *) layer)->name;
 	return NULL;
 }
 
-PURPLEAPI real64 p_node_a_buffer_get_frequency(const PNABuffer *layer)
+/** \brief Return the frequence of an audio buffer.
+*/
+PURPLEAPI real64 p_node_a_buffer_get_frequency(const PNABuffer *buffer	/** The buffer whose frequency is being queried. */)
 {
 	return layer != NULL ? ((NdbABuffer *) layer)->frequency : 0.0;
 }
 
-PURPLEAPI PNABuffer * p_node_a_buffer_create(PONode *node, const char *name, VNABlockType type, real64 frequency)
+/** \brief Create a new audio buffer.
+ * 
+ * This function creates a new audio buffer in an audio node. Audio buffers is where audio data can be
+ * stored and manipulated.
+ *
+ * You must specify the type of data to store, and the sampling frequency the data is representing. The
+ * sampling frequency is not needed to just store the data, but it is an integral part of how the data
+ * is interpreted.
+ *
+ * The buffer is returned and can be used immediately.
+*/
+PURPLEAPI PNABuffer * p_node_a_buffer_create(PONode *node	/** The audio node in which a new buffer is to be created. */,
+					     const char *name	/** The name of the new buffer. Must be unique within the node. */,
+					     VNABlockType type	/** The type of the samples stored in this buffer. */,
+					     real64 frequency	/** The sample frequency the data represents. */)
 {
 	PNABuffer	*l;
 
@@ -1526,12 +1557,33 @@ PURPLEAPI PNABuffer * p_node_a_buffer_create(PONode *node, const char *name, VNA
 	return nodedb_a_buffer_create((NodeAudio *) node, ~0, name, type, frequency);
 }
 
-PURPLEAPI unsigned int p_node_a_buffer_read_samples(const PNABuffer *buffer, unsigned int start, real64 *samples, unsigned int length)
+/** \brief Read out audio samples.
+ * 
+ * This function is used to read out a sequence of samples from an audio buffer. It will convert the
+ * samples to the largest supported format, 64-bit floating point, in order to preserve data while
+ * removing the need for the user to care about the format.
+*/
+PURPLEAPI unsigned int p_node_a_buffer_read_samples(const PNABuffer *buffer	/** The audio buffer from which samples are to be read. */,
+						    unsigned int start		/** Index of the first sample to read out. */,
+						    real64 *samples		/** Buffer to write sample data into. */,
+						    unsigned int length		/** Number of \b samples to read from buffer. Not bytes. */)
 {
 	return nodedb_a_buffer_read_samples((NdbABuffer *) buffer, start, samples, length);
 }
 
-PURPLEAPI void p_node_a_buffer_write_samples(PNABuffer *buffer, unsigned int start, const real64 *samples, unsigned int length)
+/** \brief Write audio samples into buffer.
+ * 
+ * This function is used to write (back) a sequence of samples into an audio buffer. It is the only
+ * way to store data in a buffer. Data is always handed to the function in 64-bit floating point,
+ * and internally converted by Purple to whatever type the buffer was created to hold.
+ * 
+ * Specifying a \c start beyond the current length is perfectly valid, and will fill the intermediate
+ * samples with silence. Existing data at the touched indices will be overwritten.
+*/
+PURPLEAPI void p_node_a_buffer_write_samples(PNABuffer *buffer	/** The buffer into which samples are to be written. */,
+					     unsigned int start	/** Index of the first sample to overwrite. */,
+					     const real64 *samples	/** Buffer to read samples from. */,
+					     unsigned int length	/** Number of \b samples to write into buffer. Not bytes. */)
 {
 	nodedb_a_buffer_write_samples((NdbABuffer *) buffer, start, samples, length);
 }
