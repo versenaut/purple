@@ -447,6 +447,17 @@ PURPLEAPI PNGLayer * p_node_g_layer_create(PONode *node		/** The node in which t
 	return l;
 }
 
+/** \brief Destroy a geometry layer.
+ * 
+ * This function destroys a geometry layer. After being destroyed, the layer pointer is no longer valid and
+ * must not be referenced further.
+*/
+PURPLEAPI void p_node_g_layer_destroy(PONode *node	/** The node in which a layer is to be destroyed. */,
+				      PNGLayer *layer	/** The layer to be destroyed. */)
+{
+	nodedb_g_layer_destroy((NodeGeometry *) node, layer);
+}
+
 /**
  * \brief Set value of an XYZ slot.
  * 
@@ -1520,8 +1531,8 @@ PURPLEAPI PNABuffer * p_node_a_buffer_find(PINode *node		/** The node whose buff
 */
 PURPLEAPI const char * p_node_a_buffer_get_name(const PNABuffer *buffer	/** The buffer whose name is to be queried. */)
 {
-	if(layer != NULL)
-		return ((NdbABuffer *) layer)->name;
+	if(buffer != NULL)
+		return ((NdbABuffer *) buffer)->name;
 	return NULL;
 }
 
@@ -1529,7 +1540,7 @@ PURPLEAPI const char * p_node_a_buffer_get_name(const PNABuffer *buffer	/** The 
 */
 PURPLEAPI real64 p_node_a_buffer_get_frequency(const PNABuffer *buffer	/** The buffer whose frequency is being queried. */)
 {
-	return layer != NULL ? ((NdbABuffer *) layer)->frequency : 0.0;
+	return buffer != NULL ? ((NdbABuffer *) buffer)->frequency : 0.0;
 }
 
 /** \brief Create a new audio buffer.
