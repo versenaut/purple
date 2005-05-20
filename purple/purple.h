@@ -7,6 +7,8 @@
  * plug-ins for the Purple system.
 */
 
+/** @file */
+
 #if !defined PURPLE_H
 #define	PURPLE_H
 
@@ -29,10 +31,16 @@
 
 #include "verse.h"
 
+/** An opaque type that represents a Verse node. Only used through pointers. */
 typedef struct Node	Node;
+/** An opaque type that represents an Input node. Inputs are constant, they can
+ * only be read from.
+*/
 typedef const Node	PINode;
+/** An opaque type that represents an Output node. Outputs can be both read and written. */
 typedef Node		PONode;
 
+/** An enum whose values represent the type of a plug-in input. Used with \c p_init_input(). */
 typedef enum
 {
 	P_VALUE_NONE = -1,
@@ -53,8 +61,9 @@ typedef enum
 	P_VALUE_MODULE
 } PValueType;
 
-/* These are Purple-internal, you will know them only as pointers. */
+/** An opaque type that represents a plug-in input. */
 typedef struct PPort	*PPInput;	/* An input is a pointer to a port. */
+/** An opaque type that represents a plug-in output. */
 typedef struct PPort	*PPOutput;	/* So is an output. Simplicity. */
 
 typedef enum
@@ -88,6 +97,13 @@ PURPLEAPI void		p_init_state(size_t size,
 			     void (*constructor)(void *state),
 			     void (*destructor)(void *state));
 
+/** \brief Return status from \c compute().
+ *
+ * A value of this type is used to signal the return status from a plug-ins \c compute() callback. If
+ * it returns \c P_COMPUTE_DONE, the Purple engine knows that is did finish and produce a result. If
+ * \c P_COMPUTE_AGAIN is returned, the plug-in did not (for some reason) complete its task, and Purple
+ * will then keep it in the queue of computations so that it is redone soon.
+*/
 typedef enum
 {
 	P_COMPUTE_DONE = 0,
@@ -116,8 +132,9 @@ PURPLEAPI const char *		p_input_string(PPInput input);
 PURPLEAPI PINode *		p_input_node(PPInput input);			/* Inputs the "first" node, somehow. */
 PURPLEAPI PINode *		p_input_node_nth(PPInput input, int index);	/* Input n:th node, or NULL. */
 
-/* General-purpose iterator structure. All fields private, this is
- * public only to support automatic (on-stack) allocations.
+/* General-purpose iterator structure. All fields private, this is public only to support
+ * automatic (on-stack) allocations.
+ *
  * Use like this:
  * 
  * PIter iter;
@@ -125,6 +142,7 @@ PURPLEAPI PINode *		p_input_node_nth(PPInput input, int index);	/* Input n:th no
  * for(p_whatever_iter(whatever, &iter); (el = p_iter_get(&iter)) != NULL; p_iter_next(&iter))
  * { process element <el> here }
 */
+/** Hands off. */
 typedef struct
 {
 	unsigned short	flags;
@@ -152,14 +170,15 @@ PURPLEAPI void			p_iter_next(PIter *iter);
 /* Node manipulation functions. Getters work on both input and output
  * nodes, setting requires output.
 */
-PURPLEAPI VNodeType		p_node_get_type(const Node *node);
+PURPLEAPI VNodeType		p_node_get_type(PINode *node);
 
 PURPLEAPI const char *		p_node_get_name(const Node *node);
 PURPLEAPI void			p_node_set_name(PONode *node, const char *name);
 
-/* Tag functions. */
+/** An opaque data type. Use API functions to access it. */
 typedef void	PNTagGroup, PNTag;
 
+/* Tag functions. */
 PURPLEAPI unsigned int		p_node_tag_group_num(PINode *node);
 PURPLEAPI PNTagGroup *		p_node_tag_group_nth(PINode *node, unsigned int n);
 PURPLEAPI PNTagGroup *		p_node_tag_group_find(PINode *node, const char *name);
@@ -173,7 +192,7 @@ PURPLEAPI PNTag *		p_node_tag_group_tag_nth(const PNTagGroup *group, unsigned in
 PURPLEAPI PNTag *		p_node_tag_group_tag_find(const PNTagGroup *group, const char *name);
 PURPLEAPI void			p_node_tag_group_tag_iter(const PNTagGroup *group, PIter *iter);
 PURPLEAPI void			p_node_tag_group_tag_create(PNTagGroup *group, const char *name, VNTagType type, const VNTag *value);
-PURPLEAPI void			p_node_tag_group_tag_destroy(PNTagGroup *group, const char *name);
+PURPLEAPI void			p_node_tag_group_tag_destroy(PNTagGroup *group, PNTag *tag);
 PURPLEAPI const char *		p_node_tag_get_name(const PNTag *tag);
 PURPLEAPI VNTagType		p_node_tag_get_type(const PNTag *tag);
 
@@ -188,7 +207,9 @@ PURPLEAPI void			p_node_o_link_set(PONode *node, const PONode *link, const char 
 PURPLEAPI PINode *		p_node_o_link_get(const PONode *node, const char *label, uint32 target_id);
 
 /* Geometry-node manipulation functions. */
+/** An opaque data type that represents a geometry layer. Use API functions to manipulate. */
 typedef void	PNGLayer;
+/** An opaque data type that represents a bone. Use API functions to manipulate. */
 typedef void	PNGBone;
 
 PURPLEAPI unsigned int		p_node_g_layer_num(PINode *node);
@@ -199,8 +220,8 @@ PURPLEAPI const char *		p_node_g_layer_get_name(const PNGLayer *layer);
 PURPLEAPI VNGLayerType		p_node_g_layer_get_type(const PNGLayer *layer);
 
 PURPLEAPI PNGLayer *		p_node_g_layer_create(PONode *node, const char *name, VNGLayerType type,
-						      uint32 def_int, real32 def_real);
-PURPLEAPI void			p_node_g_layer_destroy(PNGLayer *node, const char *name);
+						      uint32 def_int, real64 def_real);
+PURPLEAPI void			p_node_g_layer_destroy(PONode *node, PNGLayer *layer);
 PURPLEAPI void			p_node_g_vertex_set_xyz(PNGLayer *layer, uint32 id, real64 x, real64 y, real64 z);
 PURPLEAPI void			p_node_g_vertex_get_xyz(const PNGLayer *layer, uint32 id, real64 *x, real64 *y, real64 *z);
 PURPLEAPI void			p_node_g_polygon_set_corner_uint32(PNGLayer *layer, uint32 id, uint32 v0, uint32 v1, uint32 v2, uint32 v3);
@@ -325,9 +346,9 @@ typedef void	PNABuffer;
 PURPLEAPI unsigned int		p_node_a_buffer_num(PINode *node);
 PURPLEAPI PNABuffer *		p_node_a_buffer_nth(PINode *node, unsigned int n);
 PURPLEAPI PNABuffer *		p_node_a_buffer_find(PINode *node, const char *name);
-PURPLEAPI const char *		p_node_a_buffer_get_name(const PNABuffer *layer);
-PURPLEAPI real64		p_node_a_buffer_get_frequency(const PNABuffer *layer);
-PURPLEAPI unsigned int		p_node_a_buffer_get_length(const PNABuffer *layer);
+PURPLEAPI const char *		p_node_a_buffer_get_name(const PNABuffer *buffer);
+PURPLEAPI real64		p_node_a_buffer_get_frequency(const PNABuffer *buffer);
+PURPLEAPI unsigned int		p_node_a_buffer_get_length(const PNABuffer *buffer);
 
 PURPLEAPI PNABuffer *		p_node_a_buffer_create(PONode *node, const char *name, VNABlockType type, real64 frequency);
 
@@ -350,6 +371,7 @@ PURPLEAPI PONode *		p_output_node_o_link(PPOutput out, PONode *node, const char 
 PURPLEAPI PONode *		p_output_node_pass(PPOutput out, PINode *node);
 
 /* Fills in the various single-value slots in the output. */
+PURPLEAPI void			p_output_boolean(PPOutput out,  boolean value);
 PURPLEAPI void			p_output_int32(PPOutput out,  int32 value);
 PURPLEAPI void			p_output_uint32(PPOutput out, uint32 value);
 PURPLEAPI void			p_output_real32(PPOutput out, real32 value);
