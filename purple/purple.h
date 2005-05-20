@@ -75,6 +75,10 @@ typedef enum
 	P_INPUT_TAG_DEFAULT,
 } PInputTag;
 
+/** \defgroup init Plug-In Initialization Functions
+ * @{
+*/
+
 /* Idea: use macros to make tag lists a bit safer, and pass all min/max/default values as doubles. */
 #define	P_INPUT_DONE		P_INPUT_TAG_DONE
 #define	P_INPUT_MIN(v)		P_INPUT_TAG_MIN, (double) v
@@ -112,6 +116,12 @@ typedef enum
 
 PURPLEAPI void		p_init_compute(PComputeStatus (*compute)(PPInput *input, PPOutput output, void *state));
 
+/** @} */
+
+/** \defgroup input Input Functions
+ * @{
+*/
+
 /* Read out inputs, registered earlier. One for each type. :/ If this wasn't in C, we could use meta
  * information to just say p_input(input) and have it return a value of the proper registered type.
 */
@@ -131,6 +141,8 @@ PURPLEAPI const real64 *	p_input_real64_mat16(PPInput input);
 PURPLEAPI const char *		p_input_string(PPInput input);
 PURPLEAPI PINode *		p_input_node(PPInput input);			/* Inputs the "first" node, somehow. */
 PURPLEAPI PINode *		p_input_node_nth(PPInput input, int index);	/* Input n:th node, or NULL. */
+
+/** @} */
 
 /* General-purpose iterator structure. All fields private, this is public only to support
  * automatic (on-stack) allocations.
@@ -166,6 +178,9 @@ PURPLEAPI unsigned int		p_iter_index(const PIter *iter);
 /* Advance the iterator to point at the next element (if there is one). */
 PURPLEAPI void			p_iter_next(PIter *iter);
 
+/** \defgroup node Generic Node Functions
+ * @{
+*/
 
 /* Node manipulation functions. Getters work on both input and output
  * nodes, setting requires output.
@@ -200,13 +215,23 @@ PURPLEAPI VNTagType		p_node_tag_get_type(const PNTag *tag);
 PURPLEAPI void			p_node_tag_create_path(PONode *node, const char *path, VNTagType type, ...);
 PURPLEAPI void			p_node_tag_destroy_path(PONode *node, const char *path);
 
+/** @} */
+
+/** \defgroup nodeobject Object Node Functions
+ * @{
+*/
+
 PURPLEAPI void			p_node_o_light_set(PONode *node, real64 red, real64 green, real64 blue);
 PURPLEAPI void			p_node_o_light_get(PINode *node, real64 *red, real64 *green, real64 *blue);
 
 PURPLEAPI void			p_node_o_link_set(PONode *node, const PONode *link, const char *label, uint32 target_id);
 PURPLEAPI PINode *		p_node_o_link_get(const PONode *node, const char *label, uint32 target_id);
 
-/* Geometry-node manipulation functions. */
+/** @} */
+
+/** \defgroup nodegeometry Geometry Node Functions
+ * @{
+*/
 /** An opaque data type that represents a geometry layer. Use API functions to manipulate. */
 typedef void	PNGLayer;
 /** An opaque data type that represents a bone. Use API functions to manipulate. */
@@ -240,6 +265,12 @@ PURPLEAPI real64		p_node_g_polygon_get_face_real64(const PNGLayer *layer, uint32
 
 PURPLEAPI void			p_node_g_crease_set_vertex(PONode *node, const char *layer, uint32 def);
 PURPLEAPI void			p_node_g_crease_set_edge(PONode *node, const char *layer, uint32 def);
+
+/** @} */
+
+/** \defgroup nodematerial Material Node Functions
+ * @{
+*/
 
 /* Material-node manipulation functions. */
 
@@ -275,6 +306,12 @@ PURPLEAPI PNMFragment *		p_node_m_fragment_create_alternative(PONode *node, cons
 PURPLEAPI PNMFragment *		p_node_m_fragment_create_output(PONode *node, const char *label,
 								const PNMFragment *front, const PNMFragment *back);
 
+/** @} */
+
+
+/** \defgroup nodebitmap Bitmap Node Functions
+ * @{
+*/
 
 /* Bitmap-node manipulation functions. */
 typedef void	PNBLayer;
@@ -297,6 +334,11 @@ PURPLEAPI void			p_node_b_layer_foreach_set(PONode *node, PNBLayer *layer,
 							   real64 (*pixel)(uint32 x, uint32 y, uint32 z, void *user), void *user);
 PURPLEAPI void			p_node_b_layer_destroy(PONode *node, PNBLayer *layer);
 
+/** @} */
+
+/** \defgroup nodecurve Curve Node Functions
+ * @{
+*/
 
 /* Curve-node manipulation functions. */
 typedef void	PNCCurve, PNCKey;
@@ -321,6 +363,12 @@ PURPLEAPI PNCKey *		p_node_c_curve_key_create(PNCCurve *curve, real64 pos, const
 							  const uint32 *post_pos, const real64 *post_value);
 PURPLEAPI void			p_node_c_curve_key_destroy(PNCCurve *curve, PNCKey *key);
 
+/** @} */
+
+/** \defgroup nodetext Text Node Functions
+ * @{
+*/
+
 /* Text-node manipulation functions. */
 typedef void	PNTBuffer;
 
@@ -340,6 +388,12 @@ PURPLEAPI void			p_node_t_buffer_insert(PNTBuffer *buffer, size_t pos, const cha
 PURPLEAPI void			p_node_t_buffer_delete(PNTBuffer *buffer, size_t pos, size_t length);
 PURPLEAPI void			p_node_t_buffer_append(PNTBuffer *buffer, const char *text);
 
+/** @} */
+
+/** \defgroup nodeaudio Audio Node Functions
+ * @{
+*/
+
 /* Audio-node manipulation functions. */
 typedef void	PNABuffer;
 
@@ -354,6 +408,12 @@ PURPLEAPI PNABuffer *		p_node_a_buffer_create(PONode *node, const char *name, VN
 
 PURPLEAPI unsigned int		p_node_a_buffer_read_samples(const PNABuffer *buffer, unsigned int start, real64 *samples, unsigned int len);
 PURPLEAPI void			p_node_a_buffer_write_samples(PNABuffer *buffer, unsigned int start, const real64 *samples, unsigned int len);
+
+/** @} */
+
+/** \defgroup output Output Functions
+ * @{
+*/
 
 /* Duplicates an input node, and returns something you can actually edit. */
 PURPLEAPI PONode *		p_output_node(PPOutput out, PINode *node);
@@ -385,5 +445,7 @@ PURPLEAPI void			p_output_real64_vec3(PPOutput out, const real64 *v);
 PURPLEAPI void			p_output_real64_vec4(PPOutput out, const real64 *v);
 PURPLEAPI void			p_output_real64_mat16(PPOutput out, const real64 *v);
 PURPLEAPI void			p_output_string(PPOutput out, const char *value);
+
+/** @} */
 
 #endif		/* PURPLE_H */
