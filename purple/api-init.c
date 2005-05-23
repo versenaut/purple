@@ -53,6 +53,52 @@ void api_init_end(void)
 
 /* These are the plug-in-visible actual Purple API functions. */
 
+/** \defgroup api_init Plug-In Initialization Functions
+ * 
+ * Functions in this group are used to initialize a plug-in. They are always used exclusively from
+ * a library's \c init() function, and never from the \c compute() callback. There are five functions,
+ * three of which are optional.
+ * 
+ * The most important functions are \c p_init_create() and \c p_init_compute(), they must be used
+ * in every library's \c init() function. Any plug-in that needs inputs to function, which will be
+ * vast majority, needs to have them defined using a number of calls to \c p_init_input(). Using
+ * \c p_init_meta() to register meta information is a very good idea, but not mandatory at the time
+ * of writing. If per-instance persistent state is desired, use the \c p_init_state() function to
+ * define it.
+ * 
+ * Here's an example of a library \c init() function that defines three separate plug-ins that all
+ * share the same \c compute() code:
+ * 
+ * \code
+ * static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
+ * {
+ * 	// ... code here
+ * 	return P_COMPUTE_DONE;
+ * }
+ * 
+ * void init(void)
+ * {
+ * 	p_init_create("foo");
+ * 	p_init_compute(compute);
+ * 
+ * 	p_init_create("bar");
+ * 	p_init_compute(compute);
+ * 
+ * 	p_init_create("baz");
+ * 	p_init_compute(compute);
+ * }
+ * \endcode
+ * 
+ * Things to note:
+ * - A new plug-in is created by each call to the \c p_init_create() function.
+ * - The \c compute() callback is set by \c p_init_compute().
+ * - A plug-in does \b not "inherit" any initialization from the previous one.
+ * - The \c compute() function does not need to be seen from the outside, it can
+ * be defined as \c static. This is true for \b all functions a library might
+ * contain, except \c init().
+ * @{
+*/
+
 /**
  * This function is called from within the \c init() function of a plug-in library, to register a new
  * plug-in with the Purple engine. You can do this any number of times, since a single library (i.e.
@@ -133,3 +179,5 @@ PURPLEAPI void p_init_compute(PComputeStatus (*compute)(PPInput *input, PPOutput
 {
 	plugin_set_compute(init_info.plugin, compute);
 }
+
+/** @} */
