@@ -177,6 +177,19 @@ NdbTBuffer * nodedb_t_buffer_create(NodeText *node, VLayerID buffer_id, const ch
 	return buffer;
 }
 
+void nodedb_t_buffer_destroy(NodeText *node, NdbTBuffer *buffer)
+{
+	if(node == NULL || buffer == NULL)
+		return;
+	buffer->id = 0;
+	buffer->name[0] = '\0';
+	if(buffer->text != NULL)
+	{
+		textbuf_destroy(buffer->text);
+		buffer->text = NULL;
+	}
+}
+
 const char * nodedb_t_buffer_read_begin(NdbTBuffer *buffer)
 {
 	if(buffer != NULL)
@@ -322,10 +335,7 @@ static void cb_t_buffer_destroy(void *user, VNodeID node_id, uint16 buffer_id, u
 
 		if((tb = dynarr_index(n->buffers, buffer_id)) != NULL)
 		{
-			tb->id = 0;
-			tb->name[0] = '\0';
-			textbuf_destroy(tb->text);
-			tb->text = NULL;
+			nodedb_t_buffer_destroy(n, tb);
 			NOTIFY(n, STRUCTURE);
 		}
 	}
