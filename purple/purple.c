@@ -6,6 +6,34 @@
  * A little something we call Purple.
 */
 
+/** \mainpage
+ * 
+ * This is the "User's Manual" for Purple, a plug-in based computational engine for the
+ * Verse platform.
+ * 
+ * Because of the nature of the Purple application, it is possible to be a "user" in
+ * many different ways. These ways are not entierly distinct, but they are still varying
+ * enough to warrant listing:
+ * - Users who want to use the Purple system
+ * - Developers who want to write plug-ins
+ * - Developers who want to write user interfaces
+ * 
+ * The first category of users will mainly interact with Purple through an implementation
+ * of an interface client. Since this document describes the Purple technology and server
+ * "backend" system, such users will not be helped much here.
+ * 
+ * The second category of users, developers interested in writing plug-ins, will find this
+ * document to contain a lot of useful information, starting below and continuing with the
+ * \ref devplugin page.
+ * 
+ * The third category of users, developers who want to work on Purple interface clients,
+ * should read the \ref devui material.
+ * 
+ * Both categories of developer might do well to first read the \ref model page first, to
+ * learn some terminology.
+ * 
+*/
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
