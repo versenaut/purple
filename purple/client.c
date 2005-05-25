@@ -48,7 +48,7 @@ static int cb_graphs_refresh(void *data)
 	return 0;
 }
 
-static void notify_mine_create(Node *node)
+static void notify_mine_create(PNode *node)
 {
 	if(node->type == V_NT_TEXT && client_info.meta == (VNodeID) ~0)
 	{
@@ -69,7 +69,7 @@ static void notify_mine_create(Node *node)
 }
 
 /* Track changes to nodes owned by this client, i.e. the PurpleMeta text node. */
-static void cb_node_notify_mine(Node *node, NodeNotifyEvent e)
+static void cb_node_notify_mine(PNode *node, NodeNotifyEvent e)
 {
 	if(e == NODEDB_NOTIFY_CREATE)
 		notify_mine_create(node);
