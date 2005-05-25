@@ -31,7 +31,7 @@
 /* A struct like this is associated with every instance of this plug-in. */
 typedef struct
 {
-	Node		*notify;
+	PNode		*notify;
 	void		*notify_handle;
 	PPOutput	output;
 } State;
@@ -41,7 +41,7 @@ typedef struct
 /* This gets called when the node we're watching changes. We need to cause a
  * re-computation of any modules having this one as an input dependency.
 */
-static void cb_notify(Node *node, NodeNotifyEvent ev, void *user)
+static void cb_notify(PNode *node, NodeNotifyEvent ev, void *user)
 {
 	State	*state = user;
 
@@ -61,7 +61,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state_typel
 
 	if((name = p_input_string(input[0])) != NULL)
 	{
-		Node	*node;
+		PNode	*node;
 
 		node = nodedb_lookup_by_name(name);
 		if(node != state->notify)	/* Different from current? */
