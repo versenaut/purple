@@ -46,4 +46,4 @@ extern PONode *	graph_port_output_node_copy(PPOutput port, PINode *node, uint32 
 extern void	graph_port_output_end(PPOutput port);
 
 /* This is called by the synchronizer once it learns the server-side identity of a created node. */
-extern void	graph_port_output_create_notify(const Node *local);
+extern void	graph_port_output_create_notify(const PNode *local);
