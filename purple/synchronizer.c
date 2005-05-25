@@ -41,7 +41,7 @@ static struct
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_notify(Node *node, NodeNotifyEvent ev)
+static void cb_notify(PNode *node, NodeNotifyEvent ev)
 {
 	List	*iter, *next;
 
@@ -49,7 +49,7 @@ static void cb_notify(Node *node, NodeNotifyEvent ev)
 		return;
 	for(iter = sync_info.queue_create_pend; iter != NULL; iter = next)
 	{
-		Node	*n;
+		PNode	*n;
 
 		next = list_next(iter);
 		n = list_data(iter);
@@ -77,7 +77,7 @@ void sync_init(void)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static int sync_head_tags(const Node *n, const Node *target)
+static int sync_head_tags(const PNode *n, const PNode *target)
 {
 	unsigned int	i, sync = 1;
 	NdbTagGroup	*g, *tg;
@@ -124,7 +124,7 @@ static int sync_head_tags(const Node *n, const Node *target)
 }
 
 /* Synchronize node "head" data, i.e. name and tags. */
-static int sync_head(const Node *n, const Node *target)
+static int sync_head(const PNode *n, const PNode *target)
 {
 	int	sync = 1;
 
@@ -944,9 +944,9 @@ static int sync_audio(const NodeAudio *n, const NodeAudio *target)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static int sync_node(Node *n)
+static int sync_node(PNode *n)
 {
-	Node	*target;
+	PNode	*target;
 	int	sync = 1;
 
 	if((target = nodedb_lookup(n->id)) == NULL)
@@ -987,7 +987,7 @@ static int sync_node(Node *n)
 
 /* ----------------------------------------------------------------------------------------- */
 
-void sync_node_add(Node *node)
+void sync_node_add(PNode *node)
 {
 	if(node == NULL)
 		return;
@@ -1003,7 +1003,7 @@ void sync_node_add(Node *node)
 void sync_update(double slice)
 {
 	List	*iter, *next;
-	Node	*n;
+	PNode	*n;
 	TimeVal	now;
 
 	/* Create nodes that need to be created. */
@@ -1022,7 +1022,7 @@ void sync_update(double slice)
 	timeval_now(&now);
 	for(iter = sync_info.queue_sync; iter != NULL; iter = next)
 	{
-		Node	*n = list_data(iter);
+		PNode	*n = list_data(iter);
 
 		next = list_next(iter);
 
