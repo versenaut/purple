@@ -35,6 +35,8 @@
 # endif
 #endif		/* __win32 */
 
+#define PURPLE_PLUGIN PURPLEAPI	/* A simple synonym. */
+
 #include "verse.h"
 
 /** \brief General-purpose iterator structure.
@@ -385,5 +387,8 @@ PURPLEAPI void			p_output_real64_vec3(PPOutput out, const real64 *v);
 PURPLEAPI void			p_output_real64_vec4(PPOutput out, const real64 *v);
 PURPLEAPI void			p_output_real64_mat16(PPOutput out, const real64 *v);
 PURPLEAPI void			p_output_string(PPOutput out, const char *value);
+
+/* Declare the init() function used by actual plug-ins, so they can compile without warnings. */
+PURPLE_PLUGIN void	init(void);
 
 #endif		/* PURPLE_H */
