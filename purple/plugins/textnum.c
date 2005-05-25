@@ -3,7 +3,6 @@
 */
 
 #include "purple.h"
-#include "purple-plugin.h"
 
 static int32 append(int32 part, PNTBuffer *buffer, const char *word)
 {

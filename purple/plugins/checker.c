@@ -3,7 +3,6 @@
 */
 
 #include "purple.h"
-#include "purple-plugin.h"
 
 /* Determine if (x,y) is in two-dimensional checker board square of size <user> or not. */
 static real64 cb_check(uint32 x, uint32 y, uint32 z, void *user)

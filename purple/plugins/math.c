@@ -3,7 +3,6 @@
 */
 
 #include "purple.h"
-#include "purple-plugin.h"
 
 static PComputeStatus compute_power_of_two(PPInput *input, PPOutput output, void *state)
 {

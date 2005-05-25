@@ -3,7 +3,6 @@
 */
 
 #include "purple.h"
-#include "purple-plugin.h"
 
 static int vertex_deleted(const real64 *vtx)
 {

@@ -3,7 +3,6 @@
 */
 
 #include "purple.h"
-#include "purple-plugin.h"
 
 /* It's more fun to compute. */
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)

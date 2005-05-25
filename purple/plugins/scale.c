@@ -3,7 +3,6 @@
 */
 
 #include "purple.h"
-#include "purple-plugin.h"
 
 /* This gets called whenever the input, the scale, changes. Traverse vertices and scale them. */
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)

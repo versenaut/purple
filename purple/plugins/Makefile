@@ -3,7 +3,7 @@
 #
 
 CC=gcc
-CFLAGS=-I.. -I../../verse/ -shared -Wl,-dynamic -Wstrict-prototypes -Wmissing-prototypes
+CFLAGS=-I.. -I../../verse/ -shared -Wstrict-prototypes -Wmissing-prototypes
 
 ALL:	libaudioecho.so libaudiotone.so libaudioscale.so libbbox.so libbmblend.so \
 	libchecker.so libcone.so libcube.so libcurvetest.so libdisc.so \

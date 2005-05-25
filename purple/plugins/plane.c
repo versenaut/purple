@@ -3,7 +3,6 @@
 */
 
 #include "purple.h"
-#include "purple-plugin.h"
 
 /* This gets called whenever the input, the size, changes. Create a cube with the given side length. */
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)

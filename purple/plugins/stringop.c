@@ -3,7 +3,6 @@
 */
 
 #include "purple.h"
-#include "purple-plugin.h"
 
 static PComputeStatus strlength_compute(PPInput *input, PPOutput output, void *state)
 {

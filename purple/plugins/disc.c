@@ -3,7 +3,6 @@
 */
 
 #include "purple.h"
-#include "purple-plugin.h"
 
 /* Answer whether (x,y) is within circle centered on a <user>-pixel square.
  * Uses simplistic integer math only, and thus isn't too precise.

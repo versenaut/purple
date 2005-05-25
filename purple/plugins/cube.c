@@ -3,7 +3,6 @@
 */
 
 #include "purple.h"
-#include "purple-plugin.h"
 
 typedef enum { TOP, BOTTOM, FRONT, BACK, LEFT, RIGHT } Face;
 

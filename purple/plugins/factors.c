@@ -4,7 +4,6 @@
 */
 
 #include "purple.h"
-#include "purple-plugin.h"
 
 typedef struct
 {

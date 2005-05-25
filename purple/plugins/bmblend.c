@@ -3,7 +3,6 @@
 */
 
 #include "purple.h"
-#include "purple-plugin.h"
 
 #define	MIN(a, b)	(((a) < (b)) ? (a) : (b))
 
@@ -39,8 +38,8 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	p_node_b_layer_create(out, "col_b", VN_B_LAYER_UINT8);
 
 	/* Begin access to RGB layers in sources and destination. */
-	if((fb1 = p_node_b_layer_access_multi_begin(in1, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL &&
-	   (fb2 = p_node_b_layer_access_multi_begin(in2, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL &&
+	if((fb1 = p_node_b_layer_access_multi_begin((PONode *) in1, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL &&
+	   (fb2 = p_node_b_layer_access_multi_begin((PONode *) in2, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL &&
 	   (fbout = p_node_b_layer_access_multi_begin(out, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL)
 	{
 		int	x, y, z;
