@@ -6,6 +6,295 @@
  * Graph editing module.
 */
 
+/** \page devui Writing Purple Interfaces
+ * This page describes Purple from the perspective of a developer who wants to write a Purple user
+ * interface client. Such a program is a stand-alone Verse client, i.e. it is not a Purple plug-in
+ * or (directly) related to the Purple API at all. It uses the regular low-level Verse API, or
+ * whatever higher-level wrapper of it is suitable. A user interface client can be written in any
+ * programming language (or mix of languages) for which the Verse API is available.
+ * 
+ * To write a user interface for Purple, several things are needed from the system:
+ * - You need to find out if a given Verse server contains a Purple engine
+ * - If it does, you need ways to:
+ *   - Learn which plug-ins it has, and information about them
+ *   - Learn which graphs exist, and their contents
+ *   - Instruct it to instantiate a plug-in
+ *   - Instruct it to change contents of a graph
+ *
+ * The sections below detail how these needs are addressed by the Purple architecture:
+ * - \ref findpurple
+ * - \ref learning
+ *   - \ref xmlplugins
+ *   - \ref xmlgraphs
+ *   - \ref xmlgraph
+ * - \ref changing
+ *   - \ref methods
+ *   - \ref results
+ * 
+ * \section findpurple Finding the Purple Engine
+ * There is no hard, safe and guaranteed way of localizing a Purple instance after connecting
+ * to a Verse server. This is mainly because the Verse database is fairly simplistic, and doesn't
+ * provide a reliable way to identify something. A reasonably good criterion to use is:
+ * the Purple engine's avatar is an object node, linked to a text node named "PurpleMeta" with
+ * a link label of "meta". Further idenfifying traits are given below.
+ * 
+ * \section learning Learning about Purple's State
+ * There is plenty of state inside the Purple engine; this section cares mainly about three areas
+ * of state information: which plug-ins are available, which graphs have been created, and the
+ * definition of each of the graphs.
+ * 
+ * These needs are all addressed in similar ways by the Purple engine: by serializing the
+ * state into XML that is published. Where this XML is kept then becomes an intersting question,
+ * of course. The answer is two-fold:
+ *  - XML describing core data structures is kept in buffers in the PurpleMeta text node.
+ *    - Plug-ins are listed in the "plugins" buffer.
+ *    - Existing graphs are listed in the "graphs" buffer.
+ *  - Actual graph contents lives in other text node buffers, specified on creation.
+ * 
+ * The following figure tries to illustrate these concepts together:
+ * \dot
+ * digraph G {
+ *   rankdir=LR;
+ *   subgraph left {
+ *     Purple;
+ *     Purple -> PurpleMeta [label="\"meta\" link"];
+ *     node [shape="box"];
+ *     plugins [URL="\ref xmlplugins"];
+ *     graphs [URL="\ref xmlgraphs"];
+ *     PurpleMeta -> plugins [label="buffer"];
+ *     PurpleMeta -> graphs  [label="buffer"];
+ *   }
+ *   subgraph right {
+ *     node [shape="diamond"];
+ *     "foo.x" [URL="\ref xmlgraph"];
+ *     "bar.y" [URL="\ref xmlgraph"];
+ *   }
+ *   graphs -> "foo.x" [label="XML ref"];
+ *   graphs -> "bar.y" [label="XML ref"];
+ * }
+ * \enddot
+ * Here, ellipses denote Verse nodes, the text buffers contained inside the "PurpleMeta" text
+ * node are shown as rectangles, and diamonds are used for buffers in text nodes not owned by Purple.
+ * \note Arrows in the above graph are \b not simply links. In fact, three different kind of
+ * reference are shown using the same graphics. The labels try to hint what kind of connection
+ * exists between the connected symbols.
+ * 
+ * \subsection xmlplugins The "plugins" XML Buffer
+ * This buffer in the PurpleMeta text node contains the engine's index of available plug-ins.
+ * The index is a simple flat listing of the plug-ins. Each plug-in is assigned a unique small
+ * integer identifier, which is used in all transactions (see below) to refer to the plug-in. An
+ * exact formal definition of the document type/schema used for the "plugins" XML is not yet
+ * available.
+ * 
+ * \code
+<?xml version="1.0" standalone="yes" encoding="ISO-8859-1"?>
+
+<purple-plugins>
+<plug-in id="1" name="node-input">
+ <inputs>
+  <input type="string">
+   <name>name</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="author">Emil Brink</entry>
+  <entry category="desc/purpose">Built-in plug-in, outputs the single node whose name is given</entry>
+ </meta>
+</plug-in>
+<!-- lots more -->
+</purple-plugins>
+ * \endcode
+ * 
+ * An interface client is expected to take this document and parse it. The resulting parse tree
+ * can then be used to construct interface elements, such as populating a "Create Instance" menu
+ * with the names of available plug-ins.
+ * \note Actual user interface design concepts are outside the scope of this document. Examples
+ * will tend to be very short and simple; an actual interface client should probably do better
+ * in most cases.
+ * 
+ * It should be fairly obvious how the information handed to Purple by a plug-in's \c init()
+ * function ends up in the XML shown above. The \c inputs element has one child \c input for
+ * call to \c p_init_input(), the \c meta element simply lists all the category/value
+ * pairs from calls to \c p_init_meta(), etc.
+ * 
+ * \subsection xmlgraphs The "graphs" XML Buffer
+ * This buffer in the PurpleMeta node contains an index of all existing graphs. It does \b not
+ * contain the actual graphs themselves, just references to where they are stored. See
+ * \ref xmlgraph "below" for details.
+ * 
+ * \code
+ * <?xml version="1.0" standalone="yes"?>
+ *  <purple-graphs>
+ *   <graph id="1" name="foo">
+ *    <at>
+ *     <node>Text_Node_2</node>
+ *     <buffer>0</buffer>
+ *    </at>
+ *  </graph>
+ * </purple-graphs>
+ * \endcode
+ * 
+ * The above snippet tells you that there exists a graph named "foo", with engine-assigned
+ * global identifier 1. This graph has its contents stored in the text node named "Text_Node_2",
+ * buffer 0.
+ * 
+ * \subsection xmlgraph Graph Contents
+ * The contents of a graph, i.e. the set of plug-ins which are instantiated in it and their
+ * connections and input values, are represented as XML, too. However, this XML is not in a
+ * buffer in the PurpleMeta node. Instead, an external user that wishes to create a new graph
+ * tells Purple the name of a text node to store the data in, and also which buffer in the
+ * node to use.
+ * 
+ * Purple then assumes control over that buffer, clears it, and starts maintaining an XML
+ * serialization of the new graph there. As the graph is further edited, the XML changes to
+ * stay up to date. Here's a sample of a graph XML description:
+ * \code
+ * <graph>
+ *  <module id="0" plug-in="6">
+ *   <set input="0" type="real32">1.41</set>
+ *  </module>
+ *  <module id="1" plug-in="3">
+ *   <set input="0" type="module">0</set>
+ *  </module>
+ *  <module id="2" plug-in="21">
+ *   <set input="0" type="module">0</set>
+ *   <set input="1" type="module">1</set>
+ *  </module>
+ *  <module id="3" plug-in="2">
+ *   <set input="0" type="module">2</set>
+ *  </module>
+ * </graph>
+ * \endcode
+ * A couple of points to notice:
+ * - The graph is free of any identification information; you must parse the index first.
+ * - Each module has a local ID inside the graph, and an indication of which plug-in it instantiates.
+ * - Inputs are set using the \c set element, whose \c type atttribute indicates the external type.
+ * - The \c input attribute of the \c set element maps to the first argument of \c p_init_input().
+ *
+ * The above information can be used to construct a graphical view of the graph (module IDs are 
+ * not shown in this graph, instead the plug-in IDs they instantiate are used):
+ * \dot
+ * digraph G {
+ *  rankdir=LR;
+ *  none  [style="invis"];
+ *  0     [label="6"];
+ *  1     [label="3"];
+ *  2     [label="21"];
+ *  3     [label="2"];
+ *
+ *  none->0 [label="1.41"];
+ *  2->3;
+ *  0->2;
+ *  1->2;
+ *  0->1;
+ * }
+ * \enddot
+ * 
+ * This graph is still not very communicative, you really need the plug-in index to be able to look up
+ * e.g. names of inputs and plug-ins. One hint is that plug-in ID \c 2, as used for the rightmost module,
+ * is guaranteed to refer to the built-in \c node-output plug-in. So, the above looks a lot like a
+ * processing chain that uses the parameter \c 1.41 to generate some node data in the leftmost module,
+ * sends it through a couple of other plug-ins, and then sends the result out to the Verse server.
+ * 
+ * \section changing Changing Purple's State
+ * Above, we've seen that Purple's state is made public through the publishing of structured text
+ * in XML format, that is updated as the state changes. The question now is: how do you convince
+ * Purple to change its state?
+ * 
+ * The most obvious answer, perhaps, could be "by editing the XML yourself". This, however, is not
+ * the way that has been chosen. Mainly because editing XML is rather ... vague, as input mechanisms
+ * go. It is hard to know when an editing operation begins, and (as usual with Verse) impossible to
+ * know when it ends. Since input-changing needs to be an event in Purple, that can trigger plug-in
+ * computation, it would be nice with something a little more well-defined. Luckily, Verse has just
+ * such a mechanism built-in: object node methods.
+ * 
+ * Verse object nodes support defining groups of \e methods, which are simply named entry points
+ * that can be called, and that accept a number of \e parameters when called. Calling a method does
+ * not cause the Verse host to do anything special, the call is simply distributed to all clients
+ * that subscribe to the node. In the case of Purple, the Purple engine subscribes to its own
+ * avatar, and will act on method calls.
+ * \see The Verse specification on the object node, <http://www.blender.org/modules/verse/verse-spec/n-object.html#o-methods>.
+ * 
+ * \subsection methods Purple Graph Editing Methods
+ * The graph editing methods exported by the Purple engine all reside in a single group, called
+ * "PurpleGraph". The methods could be further divided into three subgroups, although the Verse
+ * object node does not support doing so. They are:
+ * - Graph create/destroy
+ *   - \c create(VNodeID node_id, VLayerID buffer_id, string name) -- Create a new graph in the indicated text node and buffer.
+ *   - \c destroy(uint32 graph_id) -- Destroy a graph.
+ * - Module create/destroy
+ *   - \c mod_create(uint32 graph_id, uint32 plugin_id) -- Create an instance of the given plug-in in a graph.
+ *   - \c mod_destroy(uint32 graph_id, uint32 module_id) -- Destroy a plug-in instance.
+ * - Module input setting
+ *   - \c mod_input_clear(uint32 graph_id, uint32 module_id, uint8 input_id) -- Clear the indicated input, removing any previous assignment or connection.
+ *   - \c mod_set_boolean(uint32 graph_id, uint32 module_id, uint8 input_id, uint8 value) -- Set an input to a boolean value. 0 is \c false, all other values are considered \c true.
+ *   - \c mod_set_int32(uint32 graph_id, uint32 module_id, uint8 input_id, int32 value) -- Set an input to a signed 32-bit integer value.
+ *   - \c mod_set_uint32(uint32 graph_id, uint32 module_id, uint8 input_id, uint32 value) -- Set an input to an unsigned 32-bit integer value.
+ *   - \c mod_set_real32(uint32 graph_id, uint32 module_id, uint8 input_id, real32 value) -- Set an input to a 32-bit floating point value.
+ *   - \c mod_set_r32v2(uint32 graph_id, uint32 module_id, uint8 input_id, real32_vec2 value) -- Set an input to a 2D vector of 32-bit floating point values.
+ *   - \c mod_set_r32v3(uint32 graph_id, uint32 module_id, uint8 input_id, real32_vec3 value) -- Set an input to a 3D vector of 32-bit floating point values.
+ *   - \c mod_set_r32v4(uint32 graph_id, uint32 module_id, uint8 input_id, real32_vec4 value) -- Set an input to a 4D vector of 32-bit floating point values.
+ *   - \c mod_set_r32m16(uint32 graph_id, uint32 module_id, uint8 input_id, real32_mat16 value) -- Set an input to a 4x4 matrix of 32-bit floating point values.
+ *   - \c mod_set_real64(uint32 graph_id, uint32 module_id, uint8 input_id, real64 value) -- Set an input to a 64-bit floating point value.
+ *   - \c mod_set_r64v2(uint32 graph_id, uint32 module_id, uint8 input_id, real64_vec2 value) -- Set an input to a 2D vector of 64-bit floating point values.
+ *   - \c mod_set_r64v3(uint32 graph_id, uint32 module_id, uint8 input_id, real64_vec3 value) -- Set an input to a 3D vector of 64-bit floating point values.
+ *   - \c mod_set_r64v4(uint32 graph_id, uint32 module_id, uint8 input_id, real64_vec4 value) -- Set an input to a 4D vector of 64-bit floating point values.
+ *   - \c mod_set_r64m16(uint32 graph_id, uint32 module_id, uint8 input_id, real64_mat16 value) -- Set an input to a 4x4 matrix of 64-bit floating point values.
+ *   - \c mod_set_string(uint32 graph_id, uint32 module_id, uint8 input_id, string value) -- Set an input to a text string.
+ *   - \c mod_set_module(uint32 graph_id, uint32 module_id, uint8 input_id, uint32 value) -- Set an input to reference another module's output. Creates graph edges.
+ * 
+ * The methods are defined using the types from the Verse specification; the above are not C prototypes. The type names have been slightly
+ * simplified to keep the method list readable (lower-cased, and the prefix \c VN_O_METHOD_PTYPE_ has been removed). How to map the methods into whatever
+ * langauge is being used to write the interface client is outside the scope of this document; please refer to the language binding in use.
+ * \see The reference C API's \c verse_method_call_pack() function; here: <http://www.blender.org/modules/verse/verse-spec/verse_method_call_pack.html>.
+ * 
+ * Calling these methods causes the Purple engine to respond in various ways. See below for details.
+ * 
+ * \subsection results Results of Calling Graph Methods
+ * As shown above, the graph method calls can be split into three groups. Here is what happens inside Purple, and to the externally-visible
+ * XML published by it, as method calls are processed:
+ * 
+ * -# The first pair of methods, \c create() and \c destroy(), are used to create and destroy whole graphs. Creating a new graph involves telling Purple
+ *    a location for the graph's XML description, in the form of a text node ID and a buffer ID. You must also supply Purple with the desired name of
+ *    the graph. Graph names are used to identify them for human users, and should be unique. Think of them as file or project names. What happens when
+ *    you send a \c create() call? The following:
+ *     -# Purple creates the internal data structures needed to represent the graph.
+ *     -# Purple appends a \c graph element to the \c graphs XML buffer in PurpleMeta.
+ *     -# Purple clears the user-supplied text buffer, and fills in a barebones \c graph element there.
+ *     .
+ *    So, to learn which numerical identifier got assigned to the newly created graph, a client must parse the changes in the XML and extract
+ *    the information.
+ *    .
+ * -# The second pair of methods, \c mod_create() and \c mod_destroy(), are used to create and destroy modules inside a graph. They require the numerical
+ *    ID of the graph in which to operate as their first parameter. The \c mod_create() method also needs the numerical ID of the plug-in to be instantiated,
+ *    this comes from the "plugins" XML buffer described above. When received by the Purple engine, the following happens:
+ *     -# Purple looks up the graph in its internal data base.
+ *     -# Purple looks up the the plug-in, too.
+ *     -# An instance is created, and added to the graph.
+ *     -# The change is made public by updating the user-supplied graph text buffer, where an empty \c module element is added.
+ *     .
+ * -# The third group of methods, consisting of \c mod_input_clear() and fifteen \c mod_set_XXX() varieties, all require numerical IDs for the graph
+ * and module that is to be affected, and the ID (or index) of the input. These latter IDs correspond directly to the first argument used in the
+ * \c p_init_input() call that registers the inputs with Purple. The following occurs when Purple receives an input-changing method:
+ *     -# The graph and module are looked up.
+ *     -# If the input index is valid, the internal representation is modified according to the method call.
+ *     -# The module is scheduled for re-computation, since an input changed.
+ *     -# The change is made public by updating the user-supplied graph text buffer, editing (or removing) a \c set element.
+ * 
+ * Basically, "all" a Purple user interface client has to do is parse all the related XML, figure out ways to present
+ * the information to a user, and allow interaction with it. Interaction needs to result in methods being called, which
+ * in turn will cause Purple to update the XML, and the circle is complete.
+ * 
+ * Purple plug-ins can provide a lot of information about their inputs, by using the variable-arguments list in the \c p_init_input()
+ * call. This information, which can include things like a default value, minimum and maximum values, is intended to make it possible
+ * to build "richer" user interfaces. For instance, a \c uint32 input with a "small" allowed range might be represented by a slider,
+ * while a larger range calls for an entry box, and so on.
+ * 
+*/
+
+/** \fn void create(void) */
+
 #include <stddef.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -144,12 +433,12 @@ static MethodInfo method_info[] = {
 	MI_INPUT_VEC(r32, REAL32, 2),
 	MI_INPUT_VEC(r32, REAL32, 3),
 	MI_INPUT_VEC(r32, REAL32, 4),
-	MI_INPUT(r32_m16, REAL32_MAT16),
+	MI_INPUT(r32m16, REAL32_MAT16),
 	MI_INPUT(real64, REAL64),
 	MI_INPUT_VEC(r64, REAL64, 2),
 	MI_INPUT_VEC(r64, REAL64, 3),
 	MI_INPUT_VEC(r64, REAL64, 4),
-	MI_INPUT(r64_m16, REAL64_MAT16),
+	MI_INPUT(r64m16, REAL64_MAT16),
 	MI_INPUT(string, STRING),
 	MI_INPUT(module, UINT32)
 };
@@ -190,6 +479,7 @@ void graph_method_send_creates(uint32 avatar, uint8 group_id)
 
 	for(i = 0; i < sizeof method_info / sizeof *method_info; i++)
 	{
+		printf("create method: '%s'\n", method_info[i].name);
 		verse_send_o_method_create(avatar, group_id, (uint8) ~0u, method_info[i].name,
 					   method_info[i].param_count,
 					   (VNOParamType *) method_info[i].param_type,
@@ -230,7 +520,7 @@ void graph_method_check_created(NodeObject *obj)
 /* Build the XML description of a graph, for the index. */
 static void graph_index_build(uint32 id, const Graph *g, char *buf, size_t bufsize)
 {
-	const Node	*node;
+	const PNode	*node;
 
 	if((node = nodedb_lookup(g->node)) == NULL)
 	{
@@ -557,7 +847,7 @@ void graph_port_output_set_node(PPOutput port, PONode *node)
 }
 
 /* A <node> was just created by <m>, check if there is resume-information for it. */
-static int node_create_check_resume(Module *m, Node *node, VNodeType type, uint32 label)
+static int node_create_check_resume(Module *m, PNode *node, VNodeType type, uint32 label)
 {
 	List	*iter;
 
@@ -567,7 +857,7 @@ static int node_create_check_resume(Module *m, Node *node, VNodeType type, uint3
 
 		if(res->label == label)
 		{
-			Node	*n;
+			PNode	*n;
 
 			if((n = nodedb_lookup_by_name(res->name)) != NULL)
 			{
@@ -591,7 +881,7 @@ static int node_create_check_resume(Module *m, Node *node, VNodeType type, uint3
 PONode * graph_port_output_node_create(PPOutput port, VNodeType type, uint32 label)
 {
 	Module	*m = MODULE_FROM_PORT(port);
-	Node	**node = NULL;
+	PNode	**node = NULL;
 
 	if(label < m->out.nodes.next)	/* Lookup of existing? */
 	{
@@ -640,7 +930,7 @@ PONode * graph_port_output_node_create(PPOutput port, VNodeType type, uint32 lab
 PONode * graph_port_output_node_copy(PPOutput port, PINode *node, uint32 label)
 {
 	Module	*m = MODULE_FROM_PORT(port);
-	Node	**store = NULL;
+	PNode	**store = NULL;
 
 	if(label < m->out.nodes.next)	/* Lookup of existing? */
 	{
@@ -698,15 +988,15 @@ void graph_port_output_end(PPOutput port)
 	}
 }
 
-static void cb_node_output_notify(Node *node, NodeNotifyEvent e, void *user)
+static void cb_node_output_notify(PNode *node, NodeNotifyEvent e, void *user)
 {
-	Module	*m = MODULE_FROM_PORT(((Node *) user)->creator.port);
+	Module	*m = MODULE_FROM_PORT(((PNode *) user)->creator.port);
 
 /*	printf("Got name of watched node owned by %s instance: '%s'\n", plugin_name(m->plugin), node->name);*/
 	module_describe(m);
 }
 
-void graph_port_output_create_notify(const Node *local)
+void graph_port_output_create_notify(const PNode *local)
 {
 /*	printf("Node resulting from port %p is %u\n", local->creator.port, local->creator.remote->id);*/
 	nodedb_notify_node_add(local->creator.remote, cb_node_output_notify, (void *) local);
@@ -791,7 +1081,7 @@ static DynStr * module_build_desc(const Module *m)
 	plugin_portset_describe(m->instance.inputs, d);
 	for(i = 0; i < m->out.nodes.next; i++)
 	{
-		const Node	**n = dynarr_index(m->out.nodes.node, i);
+		const PNode	**n = dynarr_index(m->out.nodes.node, i);
 
 		if(n != NULL && (*n)->creator.remote != NULL)
 		{
@@ -912,7 +1202,7 @@ static void output_nodes_clear(Output *o)
 	if(o->nodes.node != NULL)
 	{
 		unsigned int	i;
-		Node		**n;
+		PNode		**n;
 
 		for(i = 0; i < o->nodes.next; i++)
 		{
