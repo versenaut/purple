@@ -11,13 +11,13 @@ typedef struct
 	VNMFragmentID	id;
 	VNMFragmentType	type;
 	VMatFrag	frag;
-	const Node	*node;		/* Used only by light and texture fragments. Messy. See sync. */
+	const PNode	*node;		/* Used only by light and texture fragments. Messy. See sync. */
 	unsigned int	pending;	/* Create-call has been issued, and is pending. */
 } NdbMFragment;
 
 typedef struct
 {
-	Node	node;
+	PNode	node;
 	DynArr	*fragments;
 } NodeMaterial;
 
@@ -39,7 +39,7 @@ extern NdbMFragment *	nodedb_m_fragment_create(NodeMaterial *node, VNMFragmentID
 						 VNMFragmentType type, const VMatFrag *fragment);
 extern NdbMFragment *	nodedb_m_fragment_create_color(NodeMaterial *node, real64 red, real64 green, real64 blue);
 extern NdbMFragment *	nodedb_m_fragment_create_light(NodeMaterial *node, VNMLightType type,
-						       real64 normal_falloff, const Node *brdf,
+						       real64 normal_falloff, const PNode *brdf,
 						       const char *brdf_r, const char *brdf_g, const char *brdf_b);
 extern NdbMFragment *	nodedb_m_fragment_create_reflection(NodeMaterial *node, real64 normal_falloff);
 extern NdbMFragment *	nodedb_m_fragment_create_transparency(NodeMaterial *node, real64 normal_fallof, real64 refract);
@@ -48,7 +48,7 @@ extern NdbMFragment *	nodedb_m_fragment_create_volume(NodeMaterial *node, real64
 							const NdbMFragment *color);
 extern NdbMFragment *	nodedb_m_fragment_create_geometry(NodeMaterial *node,
 							  const char *layer_r, const char *layer_g, const char *layer_b);
-extern NdbMFragment *	nodedb_m_fragment_create_texture(NodeMaterial *node, const Node *bitmap,
+extern NdbMFragment *	nodedb_m_fragment_create_texture(NodeMaterial *node, const PNode *bitmap,
 							 const char *layer_r, const char *layer_g, const char *layer_b,
 							 const NdbMFragment *mapping);
 extern NdbMFragment *	nodedb_m_fragment_create_noise(NodeMaterial *node, VNMNoiseType type, const NdbMFragment *mapping);

@@ -24,7 +24,7 @@ typedef struct
 
 typedef struct
 {
-	Node	node;
+	PNode	node;
 	DynArr	*curves;
 } NodeCurve;
 

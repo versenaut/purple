@@ -26,7 +26,7 @@ typedef struct
 
 typedef struct
 {
-	Node	node;
+	PNode	node;
 	DynArr	*buffers;
 } NodeAudio;
 

@@ -8,7 +8,7 @@
 
 typedef struct
 {
-	Node	node;
+	PNode	node;
 	real64	xform[3][3];
 	real64	light[3];
 	DynArr	*links;
@@ -26,7 +26,7 @@ typedef struct
 
 /* Used for local links, before syncing. */
 typedef struct {
-	Node	*link;
+	PNode	*link;
 	char	label[16];
 	uint32	target_id;
 } NdbOLinkLocal;

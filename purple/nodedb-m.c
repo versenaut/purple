@@ -100,7 +100,7 @@ NdbMFragment * nodedb_m_fragment_lookup(const NodeMaterial *node, VNMFragmentID 
 /* ----------------------------------------------------------------------------------------- */
 
 /* Set node reference in a material fragment. */
-static void node_ref_set(NdbMFragment *frag, size_t refoff, const Node *node)
+static void node_ref_set(NdbMFragment *frag, size_t refoff, const PNode *node)
 {
 	VNodeID	*ref;
 
@@ -329,7 +329,7 @@ NdbMFragment * nodedb_m_fragment_create_color(NodeMaterial *node, real64 red, re
 }
 
 NdbMFragment * nodedb_m_fragment_create_light(NodeMaterial *node, VNMLightType type,
-					      real64 normal_falloff, const Node *brdf,
+					      real64 normal_falloff, const PNode *brdf,
 					      const char *brdf_r, const char *brdf_g, const char *brdf_b)
 {
 	VMatFrag	frag;
@@ -396,7 +396,7 @@ NdbMFragment * nodedb_m_fragment_create_geometry(NodeMaterial *node, const char 
 	return nodedb_m_fragment_create(node, ~0, VN_M_FT_GEOMETRY, &frag);
 }
 
-NdbMFragment * nodedb_m_fragment_create_texture(NodeMaterial *node, const Node *bitmap,
+NdbMFragment * nodedb_m_fragment_create_texture(NodeMaterial *node, const PNode *bitmap,
 							 const char *layer_r, const char *layer_g, const char *layer_b,
 							 const NdbMFragment *mapping)
 {

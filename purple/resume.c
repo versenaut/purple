@@ -88,7 +88,7 @@ static unsigned int * plugins_mapping_create(const XmlNode *old)
 /* This cron job only runs once, after the user-specified resume delay has passed. */
 static int resume_update(void *data)
 {
-	Node		*m;
+	PNode		*m;
 	NodeText	*meta;
 	const char	*text;
 	XmlNode		*plugins, *graphs;

@@ -31,7 +31,7 @@
 /* A node holds a list of these. */
 typedef struct
 {
-	void	(*callback)(Node *node, NodeNotifyEvent ev, void *user);
+	void	(*callback)(PNode *node, NodeNotifyEvent ev, void *user);
 	void	*user;
 } NotifyInfo;
 
@@ -48,19 +48,19 @@ static struct
 
 /* ----------------------------------------------------------------------------------------- */
 
-void nodedb_register(Node *n)
+void nodedb_register(PNode *n)
 {
 	hash_insert(nodedb_info.nodes, (void *) n->id, n);
 }
 
-Node * nodedb_lookup(VNodeID node_id)
+PNode * nodedb_lookup(VNodeID node_id)
 {
 	return hash_lookup(nodedb_info.nodes, (const void *) node_id);
 }
 
-Node * nodedb_lookup_with_type(VNodeID node_id, VNodeType type)
+PNode * nodedb_lookup_with_type(VNodeID node_id, VNodeType type)
 {
-	Node	*n;
+	PNode	*n;
 
 	if((n = nodedb_lookup(node_id)) != NULL && n->type == type)
 		return n;
@@ -69,7 +69,7 @@ Node * nodedb_lookup_with_type(VNodeID node_id, VNodeType type)
 
 static int cb_lookup_name(const void *data, void *user)
 {
-	if(strcmp(((const Node *) data)->name, ((void **) user)[0]) == 0)
+	if(strcmp(((const PNode *) data)->name, ((void **) user)[0]) == 0)
 	{
 		((void **) user)[1] = (void *) data;
 		return 0;
@@ -77,7 +77,7 @@ static int cb_lookup_name(const void *data, void *user)
 	return 1;
 }
 
-Node * nodedb_lookup_by_name(const char *name)
+PNode * nodedb_lookup_by_name(const char *name)
 {
 	void	*data[2] = { (void *) name, NULL };	/* I'm too lazy for a struct. */
 	/* FIXME: This is completely inefficent. */
@@ -85,9 +85,9 @@ Node * nodedb_lookup_by_name(const char *name)
 	return data[1];
 }
 
-Node * nodedb_lookup_by_name_with_type(const char *name, VNodeType type)
+PNode * nodedb_lookup_by_name_with_type(const char *name, VNodeType type)
 {
-	Node	*n;
+	PNode	*n;
 
 	if((n = nodedb_lookup_by_name(name)) != NULL && n->type == type)
 		return n;
@@ -96,7 +96,7 @@ Node * nodedb_lookup_by_name_with_type(const char *name, VNodeType type)
 
 NodeObject * nodedb_lookup_object(VNodeID node_id)
 {
-	Node	*n;
+	PNode	*n;
 
 	if((n = nodedb_lookup(node_id)) != NULL)
 		return n->type == V_NT_OBJECT ? (NodeObject *) n : NULL;
@@ -105,7 +105,7 @@ NodeObject * nodedb_lookup_object(VNodeID node_id)
 
 NodeText * nodedb_lookup_text(VNodeID node_id)
 {
-	Node	*n;
+	PNode	*n;
 
 	if((n = nodedb_lookup(node_id)) != NULL)
 		return n->type == V_NT_TEXT ? (NodeText *) n : NULL;
@@ -114,18 +114,18 @@ NodeText * nodedb_lookup_text(VNodeID node_id)
 
 /* ----------------------------------------------------------------------------------------- */
 
-void nodedb_internal_notify_mine_check(Node *n, NodeNotifyEvent ev)
+void nodedb_internal_notify_mine_check(PNode *n, NodeNotifyEvent ev)
 {
 	if(nodedb_info.notify_mine != NULL/* && (n->owner == VN_OWNER_MINE)*/)	/* FIXME: Server needs fixing. */
 	{
 		const List	*iter;
 
 		for(iter = nodedb_info.notify_mine; iter != NULL; iter = list_next(iter))
-			((void (*)(Node *node, NodeNotifyEvent e)) list_data(iter))(n, ev);
+			((void (*)(PNode *node, NodeNotifyEvent e)) list_data(iter))(n, ev);
 	}
 }
 
-void nodedb_internal_notify_node_check(Node *n, NodeNotifyEvent ev)
+void nodedb_internal_notify_node_check(PNode *n, NodeNotifyEvent ev)
 {
 	const List	*iter;
 	const NotifyInfo *ni;
@@ -139,13 +139,13 @@ void nodedb_internal_notify_node_check(Node *n, NodeNotifyEvent ev)
 
 /* ----------------------------------------------------------------------------------------- */
 
-Node * nodedb_new(VNodeType type)
+PNode * nodedb_new(VNodeType type)
 {
 	MemChunk	*ch;
 
 	if((ch = nodedb_info.chunk_node[type]) != NULL)
 	{
-		Node	*n = (Node *) memchunk_alloc(ch);
+		PNode	*n = (PNode *) memchunk_alloc(ch);
 
 		n->ref	      = 0;	/* Caller must ref() immediately. */
 		n->id         = ~0U;	/* Identify as locally created (non-host-approved) node. */
@@ -222,9 +222,9 @@ static void cb_copy_tag_group(void *d, const void *s, void *user)
 	dst->tags = dynarr_new_copy(src->tags, cb_copy_tag, NULL);
 }
 
-Node * nodedb_new_copy(const Node *src)
+PNode * nodedb_new_copy(const PNode *src)
 {
-	Node	*n;
+	PNode	*n;
 
 	if(src == NULL)
 		return NULL;
@@ -265,7 +265,7 @@ Node * nodedb_new_copy(const Node *src)
 }
 
 /* Set node <dst>'s contents to be the same as <src>'s, or just return a copy if <dst> is NULL. */
-Node * nodedb_set(Node *dst, const Node *src)
+PNode * nodedb_set(PNode *dst, const PNode *src)
 {
 	if(src == NULL)
 		return NULL;
@@ -306,7 +306,7 @@ Node * nodedb_set(Node *dst, const Node *src)
 	return dst;
 }
 
-void nodedb_destroy(Node *n)
+void nodedb_destroy(PNode *n)
 {
 	MemChunk	*ch;
 
@@ -352,13 +352,13 @@ void nodedb_destroy(Node *n)
 
 /* ----------------------------------------------------------------------------------------- */
 
-void nodedb_ref(Node *node)
+void nodedb_ref(PNode *node)
 {
 	if(node != NULL)
 		node->ref++;
 }
 
-int nodedb_unref(Node *node)
+int nodedb_unref(PNode *node)
 {
 	if(node != NULL)
 	{
@@ -376,14 +376,14 @@ int nodedb_unref(Node *node)
 	return 0;
 }
 
-void nodedb_rename(Node *node, const char *name)
+void nodedb_rename(PNode *node, const char *name)
 {
 	if(node == NULL || name == NULL)
 		return;
 	stu_strncpy(node->name, sizeof node->name, name);
 }
 
-VNodeType nodedb_type_get(const Node *node)
+VNodeType nodedb_type_get(const PNode *node)
 {
 	if(node != NULL)
 		return node->type;
@@ -400,7 +400,7 @@ static void cb_default_tag_group(unsigned int index, void *element, void *user)
 	g->tags    = NULL;
 }
 
-unsigned int nodedb_tag_group_num(const Node *node)
+unsigned int nodedb_tag_group_num(const PNode *node)
 {
 	unsigned int		i, num;
 	const NdbTagGroup	*tg;
@@ -416,7 +416,7 @@ unsigned int nodedb_tag_group_num(const Node *node)
 	return num;
 }
 
-NdbTagGroup * nodedb_tag_group_nth(const Node *node, unsigned int n)
+NdbTagGroup * nodedb_tag_group_nth(const PNode *node, unsigned int n)
 {
 	unsigned int	i;
 	NdbTagGroup	*tg;
@@ -433,7 +433,7 @@ NdbTagGroup * nodedb_tag_group_nth(const Node *node, unsigned int n)
 	return NULL;
 }
 
-NdbTagGroup * nodedb_tag_group_find(const Node *node, const char *name)
+NdbTagGroup * nodedb_tag_group_find(const PNode *node, const char *name)
 {
 	unsigned int	i;
 	NdbTagGroup	*tg;
@@ -451,7 +451,7 @@ NdbTagGroup * nodedb_tag_group_find(const Node *node, const char *name)
 	return NULL;
 }
 
-NdbTagGroup * nodedb_tag_group_create(Node *node, uint16 group_id, const char *name)
+NdbTagGroup * nodedb_tag_group_create(PNode *node, uint16 group_id, const char *name)
 {
 	NdbTagGroup	*group;
 
@@ -681,7 +681,7 @@ int nodedb_tag_values_equal(const NdbTag *t1, const NdbTag *t2)
 
 static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeOwner ownership)
 {
-	Node	*n;
+	PNode	*n;
 
 	if((n = nodedb_new(type)) != NULL)
 	{
@@ -703,7 +703,7 @@ static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeOwn
 
 static void cb_node_name_set(void *user, VNodeID node_id, const char *name)
 {
-	Node	*n;
+	PNode	*n;
 
 	if((n = nodedb_lookup(node_id)) != NULL)
 	{
@@ -719,7 +719,7 @@ static void cb_node_name_set(void *user, VNodeID node_id, const char *name)
 
 static void cb_tag_group_create(void *user, VNodeID node_id, uint16 group_id, const char *name)
 {
-	Node	*n;
+	PNode	*n;
 
 	if((n = nodedb_lookup(node_id)) != NULL)
 	{
@@ -733,7 +733,7 @@ static void cb_tag_group_create(void *user, VNodeID node_id, uint16 group_id, co
 
 static void cb_tag_group_destroy(void *user, VNodeID node_id, uint16 group_id)
 {
-	Node	*n;
+	PNode	*n;
 
 	if((n = nodedb_lookup(node_id)) != NULL)
 	{
@@ -751,7 +751,7 @@ static void cb_tag_group_destroy(void *user, VNodeID node_id, uint16 group_id)
 
 static void cb_tag_create(void *user, VNodeID node_id, uint16 group_id, uint16 tag_id, const char *name, VNTagType type, const VNTag *value)
 {
-	Node		*n;
+	PNode		*n;
 	NdbTagGroup	*tg;
 
 	if((n = nodedb_lookup(node_id)) == NULL)
@@ -764,7 +764,7 @@ static void cb_tag_create(void *user, VNodeID node_id, uint16 group_id, uint16 t
 
 static void cb_tag_destroy(void *user, VNodeID node_id, uint16 group_id, uint16 tag_id)
 {
-	Node		*n;
+	PNode		*n;
 	NdbTagGroup	*tg;
 	NdbTag		*tag;
 
@@ -831,7 +831,7 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
  	verse_send_node_list(mask);
 }
 
-void nodedb_notify_add(NodeOwnership whose, void (*notify)(Node *node, NodeNotifyEvent e))
+void nodedb_notify_add(NodeOwnership whose, void (*notify)(PNode *node, NodeNotifyEvent e))
 {
 	if(whose == NODEDB_OWNERSHIP_MINE)
 	{
@@ -841,7 +841,7 @@ void nodedb_notify_add(NodeOwnership whose, void (*notify)(Node *node, NodeNotif
 		LOG_ERR(("Notification for non-MINE ownership not implemented"));
 }
 
-void * nodedb_notify_node_add(Node *node, void (*notify)(Node *node, NodeNotifyEvent e, void *user), void *user)
+void * nodedb_notify_node_add(PNode *node, void (*notify)(PNode *node, NodeNotifyEvent e, void *user), void *user)
 {
 	List		*iter;
 	NotifyInfo	*ni;
@@ -863,7 +863,7 @@ void * nodedb_notify_node_add(Node *node, void (*notify)(Node *node, NodeNotifyE
 	return iter;		/* Opaque "handle" is simply list pointer. Simplifies remove. */
 }
 
-void nodedb_notify_node_remove(Node *node, void *handle)
+void nodedb_notify_node_remove(PNode *node, void *handle)
 {
 	List		*item;
 	NotifyInfo	*ni;

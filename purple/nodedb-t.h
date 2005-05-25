@@ -17,7 +17,7 @@ typedef struct
 
 typedef struct
 {
-	Node	node;
+	PNode	node;
 	char	language[32];
 	DynArr	*buffers;
 } NodeText;

@@ -25,8 +25,8 @@ typedef struct
 	DynArr		*tags;
 } NdbTagGroup;
 
-/* This is typedef:ed to Node in the public purple.h header. */
-struct Node
+/* This is typedef:ed to PNode in the public purple.h header. */
+struct PNode
 {
 	int		ref;		/* Reference count. When decresed to zero, node is destroyed. */
 
@@ -41,7 +41,7 @@ struct Node
 	/* Only used by locally created nodes, not nodes created externally by command from Verse. Waste, waste. */
 	struct {
 	void		*port;
-	Node		*remote;
+	PNode		*remote;
 	}		creator;
 
 	/* Information owned by the synchronizer. Could live in there, but this is easier for now. */
@@ -60,36 +60,36 @@ struct Node
 
 extern void		nodedb_register_callbacks(VNodeID avatar, uint32 mask);
 
-extern Node *		nodedb_lookup(VNodeID node_id);
-extern Node *		nodedb_lookup_by_name(const char *name);
-extern Node *		nodedb_lookup_with_type(VNodeID node_id, VNodeType type);
-extern Node *		nodedb_lookup_by_name_with_type(const char *name, VNodeType type);
+extern PNode *		nodedb_lookup(VNodeID node_id);
+extern PNode *		nodedb_lookup_by_name(const char *name);
+extern PNode *		nodedb_lookup_with_type(VNodeID node_id, VNodeType type);
+extern PNode *		nodedb_lookup_by_name_with_type(const char *name, VNodeType type);
 extern NodeObject *	nodedb_lookup_object(VNodeID node_id);
 extern NodeText *	nodedb_lookup_text(VNodeID node_id);
 
-extern Node *		nodedb_new(VNodeType type);
-extern Node *		nodedb_new_copy(const Node *src);
-extern Node *		nodedb_set(Node *dst, const Node *src);
-extern void		nodedb_destroy(Node *n);
+extern PNode *		nodedb_new(VNodeType type);
+extern PNode *		nodedb_new_copy(const PNode *src);
+extern PNode *		nodedb_set(PNode *dst, const PNode *src);
+extern void		nodedb_destroy(PNode *n);
 
 /* Nodes are reference counted. Users are supposed to call nodedb_new(), then immediately ref() the
  * created node on success (initial count is zero). Calling unref() will decrease count by one, and
  * automatically destroy the node if it went below one.
 */
-extern void		nodedb_ref(Node *n);
-extern int		nodedb_unref(Node *n);	/* Returns 1 if node was destroyed. */
+extern void		nodedb_ref(PNode *n);
+extern int		nodedb_unref(PNode *n);	/* Returns 1 if node was destroyed. */
 
-extern void		nodedb_rename(Node *node, const char *name);
-extern VNodeType	nodedb_type_get(const Node *node);
+extern void		nodedb_rename(PNode *node, const char *name);
+extern VNodeType	nodedb_type_get(const PNode *node);
 
 #define	NODEDB_TAG_TYPE_SCALAR(t)	(((t) != VN_TAG_STRING) && ((t) != VN_TAG_BLOB))
 
-extern unsigned int	nodedb_tag_group_num(const Node *node);
-extern NdbTagGroup *	nodedb_tag_group_nth(const Node *node, unsigned int n);
-extern NdbTagGroup *	nodedb_tag_group_find(const Node *node, const char *name);
+extern unsigned int	nodedb_tag_group_num(const PNode *node);
+extern NdbTagGroup *	nodedb_tag_group_nth(const PNode *node, unsigned int n);
+extern NdbTagGroup *	nodedb_tag_group_find(const PNode *node, const char *name);
 
-extern NdbTagGroup *	nodedb_tag_group_create(Node *node, uint16 group_id, const char *name);
-extern NdbTagGroup *	nodedb_tag_group_lookup(const Node *node, const char *name);
+extern NdbTagGroup *	nodedb_tag_group_create(PNode *node, uint16 group_id, const char *name);
+extern NdbTagGroup *	nodedb_tag_group_lookup(const PNode *node, const char *name);
 extern void		nodedb_tag_group_destroy(NdbTagGroup *group);
 
 extern unsigned int	nodedb_tag_group_tag_num(const NdbTagGroup *group);
@@ -107,11 +107,11 @@ typedef enum { NODEDB_OWNERSHIP_ALL, NODEDB_OWNERSHIP_MINE, NODEDB_OWNERSHIP_OTH
 typedef enum { NODEDB_NOTIFY_CREATE, NODEDB_NOTIFY_STRUCTURE, NODEDB_NOTIFY_DATA, NODEDB_NOTIFY_DESTROY } NodeNotifyEvent;
 
 /* Add a callback that will be called when a change occurs in a node. */
-extern void		nodedb_notify_add(NodeOwnership whose, void (*notify)(Node *node, NodeNotifyEvent ev));
+extern void		nodedb_notify_add(NodeOwnership whose, void (*notify)(PNode *node, NodeNotifyEvent ev));
 
 /* Add a callback to be called on change of a specific node, rather than a broad category like above. */
-extern void *		nodedb_notify_node_add(Node *node,
-					       void (*notify)(Node *node, NodeNotifyEvent ev, void *user),
+extern void *		nodedb_notify_node_add(PNode *node,
+					       void (*notify)(PNode *node, NodeNotifyEvent ev, void *user),
 					       void *user);
 
-extern void		nodedb_notify_node_remove(Node *node, void *handle);
+extern void		nodedb_notify_node_remove(PNode *node, void *handle);

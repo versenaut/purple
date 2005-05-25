@@ -37,7 +37,7 @@ typedef struct
 
 typedef struct
 {
-	Node	node;
+	PNode	node;
 	uint16	width, height, depth;
 	DynArr	*layers;
 } NodeBitmap;
