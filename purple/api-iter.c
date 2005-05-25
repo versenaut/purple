@@ -108,6 +108,42 @@ void iter_init_list(PIter *iter, List *list)
 
 /* ----------------------------------------------------------------------------------------- */
 
+/** \defgroup api_iter Iterator Functions
+ * 
+ * These functions, together with the \c PIter data structure, provide functionality for
+ * \b iterating over sequences of objects. Iterating is a means to traverse over the set
+ * of items in some order, that guarantees that all items will be visited exactly once.
+ * 
+ * Iterating works by initializing a data structure with the state describing the current
+ * sequence member. Functions are defined to get a pointer to the actual member out of
+ * this data structure, and also for stepping to the next member.
+ * 
+ * Iterators allows code that needs to traverse some sequence to always look the same,
+ * regardless of the type of data in the sequence. It also saves time, since the other
+ * access functions in the Purple API (of the \c p_something_nth() variety) often have
+ * O(n) performance. Using such a function to iterate over \e N items would be O(n*n)
+ * total, but with iterators it will be O(1).
+ * 
+ * As an example, here is how to iterate over a node's tag groups:
+ * \code
+ * PIter      iter;
+ * PNTagGroup *group;
+ * 
+ * for(p_node_tag_group_iter(node, &iter);
+       (group = p_iter_data(&iter)) != NULL;
+ *     p_iter_next(&iter))
+ * {
+ * 	// ... process group here ...
+ * }
+ * \endcode
+ * 
+ * Because the \c p_iter_data() function returns a \c void pointer, there is no need to
+ * explicitly cast it to the desired \c PNTagGroup pointer type; C's automatic pointer
+ * promotion rules does the conversion automatically.
+ * @{
+*/
+
+
 /**
  * Return the current index, counting from 0, of an iterator.
  * 
@@ -161,3 +197,5 @@ PURPLEAPI void p_iter_next(PIter *iter	/** The iterator to be stepped forward. *
 		return;
 	iter->index++;
 }
+
+/** @} */

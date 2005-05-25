@@ -24,6 +24,18 @@
 
 /* ----------------------------------------------------------------------------------------- */
 
+/** \defgroup api_node Node Functions
+ * @{
+*/
+
+/** \defgroup api_node_common Common Functions
+ * \ingroup api_node
+ * 
+ * These are functions that work on nodes of all types. They let you get and set a node's name,
+ * as well as work with any \e tags the node might contain.
+ * @{
+*/
+
 /**
  * Return the type of a node.
 */
@@ -35,7 +47,7 @@ PURPLEAPI VNodeType p_node_get_type(PINode *node	/** The node whose type is to b
 /**
  * Return the name of a node.
 */
-PURPLEAPI const char * p_node_get_name(const Node *node	/** The node whose name is to be queried. */)
+PURPLEAPI const char * p_node_get_name(const PNode *node	/** The node whose name is to be queried. */)
 {
 	return node != NULL ? node->name : NULL;
 }
@@ -89,7 +101,7 @@ PURPLEAPI PNTagGroup * p_node_tag_group_find(PINode *node	/** The node whose tag
 PURPLEAPI void p_node_tag_group_iter(PINode *node	/** The node whose tag groups are to be iterated. */,
 				     PIter *iter	/** The iterator to initialize. */)
 {
-	iter_init_dynarr_string(iter, ((Node *) node)->tag_groups, offsetof(NdbTagGroup, name));
+	iter_init_dynarr_string(iter, ((PNode *) node)->tag_groups, offsetof(NdbTagGroup, name));
 }
 
 /**
@@ -173,7 +185,9 @@ PURPLEAPI void p_node_tag_group_tag_create(PNTagGroup *group	/** The group in wh
 }
 
 /**
- * Destroy a tag, by name.
+ * \brief Destroy a tag.
+ * 
+ * This function removes a tag from a tag group.
 */
 PURPLEAPI void p_node_tag_group_tag_destroy(PNTagGroup *group	/** The group in which a tag is to be destroyed. */,
 					    PNTag *tag		/** The tag to be destroyed. */)
@@ -191,6 +205,18 @@ PURPLEAPI void p_node_tag_group_tag_destroy(PNTagGroup *group	/** The group in w
  * The purpose of this function is to make tag-setting code shorter and more to the point. It saves plug-in authors
  * from having to first create (or find) a tag group, before they can set the tag value. It makes tag-setting code
  * a lot more straightforward both to read and to write.
+ * 
+ * Here's how to set three tags in a group called "physics", perhaps to work as inputs for some kind of
+ * physics simulator:
+ * \code
+ * real64 cog[] = { 0.0, 1.0, 0.0 };	// One meter up from the origin.
+ * 
+ * p_node_tag_create_path(node, "physics/mass", VN_TAG_REAL64, 100.0);    // Mass 100 kg.
+ * p_node_tag_create_path(node, "physics/cog",  VN_TAG_REAL64_VEC3, cog); // Centre of gravity.
+ * p_node_tag_create_path(node, "physics/rigid", VN_TAG_BOOLEAN, 1);      // Object has rigid body.
+ * \endcode
+ * \note Purple does not itself contain or define any physics simulation system; the above is
+ * simply an example of what such a system might use.
 */
 PURPLEAPI void p_node_tag_create_path(PONode *node	/** The node in which to set the tag. */,
 				      const char *path	/** "Path" to target tag, in \c group/tag format. See above. */,
@@ -306,10 +332,23 @@ PURPLEAPI VNTagType p_node_tag_get_type(const PNTag *tag	/** The tag whose type 
 	return -1;
 }
 
+/** @} */
+
 /* ----------------------------------------------------------------------------------------- */
 
+/** \defgroup api_node_object Object Node Functions
+ * \ingroup api_node
+ * 
+ * These are functions that work only on object nodes. Object nodes in Verse can be light sources, and
+ * they can link to other nodes. Both of these features are exposed in the API.
+ * @{
+*/
+
 /**
- * Set the light values for an object node.
+ * \brief Set the light values for an object node.
+ * 
+ * This function sets the RGB color of light emitted by an object, effectively turning it into a light
+ * source. A setting of (0,0,0) turns the light off.
 */
 PURPLEAPI void p_node_o_light_set(PONode *node	/** The object node whose light values are to be set. */,
 				  real64 red	/** Amount of red light emitted by the object. */,
@@ -320,7 +359,10 @@ PURPLEAPI void p_node_o_light_set(PONode *node	/** The object node whose light v
 }
 
 /**
- * Retrieve the light values for an object node.
+ * \brief Retrieve the light values for an object node.
+ * 
+ * This function retreives the current light settings of an object node, and fills in the provided
+ * variables with the values.
 */
 PURPLEAPI void p_node_o_light_get(PINode *node	/** The object node whose light values are to be read. */,
 				  real64 *red	/** Pointer to \c real64 that is set to the amount of red light emitted by the object. */,
@@ -331,8 +373,10 @@ PURPLEAPI void p_node_o_light_get(PINode *node	/** The object node whose light v
 }
 
 /**
- * Set a link from an object node to another node. The type of the destination node need not be an object,
- * and in many cases isn't.
+ * \brief Set a link from an object node to another node.
+ *
+ * This function adds a link from an object node to some other node. The type of the destination node need not be
+ * an object and in many cases isn't.
  * 
  * The logical identification of a link is in two parts: one is the \a label, which is a human-readable string
  * like "geometry" or "material", and the other is a 32-bit unsigned integer that can be used to refer to a
@@ -365,7 +409,23 @@ PURPLEAPI PINode * p_node_o_link_get(const PONode *node	/** The object node whos
 	return NULL;
 }
 
+/** @} */
+
 /* ----------------------------------------------------------------------------------------- */
+
+/** \defgroup api_node_geometry Geometry Node Functions
+ * 
+ * These are functions for working with geometry nodes. Geometry is stored in layers, which are
+ * typed. Each layerb consists of a number of "slots" where the data is stored. The number of
+ * actual values stored in a slot varies with the type of the layer; one, three, or four.
+ * 
+ * Geometry nodes also contain information about how the defined mesh is to be creased during
+ * subdividion, and has the ability to define bones for animation. Bones are at the moment
+ * not supported in Purple.
+ * 
+ * \see The Verse specification on the geometry node: <http://www.blender.org/modules/verse/verse-spec/n-geometry.html>.
+ * @{
+*/
 
 /**
  * Return the number of layers in a geometry node.
@@ -680,7 +740,22 @@ PURPLEAPI void p_node_g_crease_set_edge(PONode *node		/** The node whose creasin
 	nodedb_g_crease_set_edge((NodeGeometry *) node, layer, def);
 }
 
+/** @} */
+
 /* ----------------------------------------------------------------------------------------- */
+
+/** \defgroup api_node_material Material Node Functions
+ * \ingroup api_node
+ *
+ * These are functions for working with material nodes. You can iterate over existing fragments, as well as create
+ * new fragments of all the supported types. Fragments are referenced by pointers to the opaque type \c PNMFragment.
+ * 
+ * \note Currently there is no functionality for actually reading out the contents of an existing fragment. This
+ * is something that will have to be added fairly soon, though.
+ * 
+ * \see The Verse specification on the material node: <http://www.blender.org/modules/verse/verse-spec/n-material.html>.
+ * @{
+*/
 
 /** \brief Return the number of fragments in a material node.
  * 
@@ -748,7 +823,7 @@ PURPLEAPI PNMFragment * p_node_m_fragment_create_light(PONode *node		/** The nod
 						       PINode *brdf		/** Pointer to a node. */,
 						       const char *brdf_red, const char *brdf_green, const char *brdf_blue)	/* FIXME: Document! */
 {
-	return nodedb_m_fragment_create_light((NodeMaterial *) node, type, normal_falloff, (Node *) brdf,
+	return nodedb_m_fragment_create_light((NodeMaterial *) node, type, normal_falloff, (PNode *) brdf,
 					      brdf_red, brdf_green, brdf_blue);
 }
 
@@ -907,6 +982,17 @@ PURPLEAPI PNMFragment * p_node_m_fragment_create_alternative(PONode *node	/** Th
  * An output is actually the root of \b two trees; one for the front side of surfaces using the material, and one for the
  * back side. If either of these is left unconnected, surfaces do not have a valid material if viewed from that direction,
  * and thus will not be visible. Making \c front ==  \c back creates a two-sided material that looks the same from either side.
+ * 
+ * Here's an example of creating a material that defines color as the (multiplicative) blend of
+ * incoming light (direct and ambient) and a color:
+ * \code
+ * PNMFragment	*color, *light, *blender, *output;
+ * 
+ * color = p_node_m_fragment_create_color(node, 0.7, 0.2, 0.3);
+ * light = p_node_m_fragment_create_light(node, VN_M_LIGHT_DIRECT_AND_AMBIENT, 0.0, NULL, NULL, NULL);	// No BRDF.
+ * blender = p_node_m_fragment_create_blender(node, VN_M_BLEND_MULTIPLY, color, light, NULL);
+ * output = p_node_m_fragment_create_output(node, "color", blender, NULL);	// Single-sided material.
+ * \endcode
 */
 PURPLEAPI PNMFragment * p_node_m_fragment_create_output(PONode *node		/** The node in which a fragment is to be created. */,
 							const char *label	/** The label of the output, defines the type of material described. */,
@@ -916,7 +1002,20 @@ PURPLEAPI PNMFragment * p_node_m_fragment_create_output(PONode *node		/** The no
 	return nodedb_m_fragment_create_output((NodeMaterial *) node, label, front, back);
 }
 
+/** @} */
+
 /* ----------------------------------------------------------------------------------------- */
+
+/** \defgroup api_node_bitmap Bitmap Node Functions
+ * \ingroup api_node
+ * 
+ * These are functions for working with bitmap nodes. Bitmaps are arrays of pixels, in one to three
+ * dimensions (inclusive).
+ * 
+ * \see The Verse specification on the bitmap node: <http://www.blender.org/modules/verse/verse-spec/n-bitmap.html>.
+ * 
+ * @{
+*/
 
 /** \brief Set size of a bitmap.
  * 
@@ -1047,6 +1146,7 @@ PURPLEAPI void p_node_b_layer_access_end(PONode *node		/** The node whose pixels
  * Example:
  * \code
  * // Example to set a bitmap to an interesting "concentric-circles" type of pattern.
+ * // The 'user' pointer is not used, and is set to NULL in the call.
  * 
  * static real64 pixel(uint32 x, uint32 y, uint32 z, void *user)
  * {
@@ -1130,7 +1230,18 @@ PURPLEAPI void p_node_b_layer_access_multi_end(PONode *node, void *framebuffer)
 	nodedb_b_layer_access_multi_end((NodeBitmap *) node, framebuffer);
 }
 
+/** @} */
+
 /* ----------------------------------------------------------------------------------------- */
+
+/** \defgroup api_node_curve Curve Node Functions
+ * \ingroup api_node
+ * 
+ * These are functions for working with curve nodes.
+ * 
+ * \see The Verse specification on the curve node: <http://www.blender.org/modules/verse/verse-spec/n-curve.html>.
+ * @{
+*/
 
 /** \brief Return number of curves in a curve node.
 */
@@ -1273,7 +1384,7 @@ PURPLEAPI real64 p_node_c_curve_key_get_value(const PNCKey *key	/** The key whos
 */
 PURPLEAPI uint32 p_node_c_curve_key_get_pre(const PNCKey *key	/** The key whose pre-point is to be queried. */,
 					    uint8 dimension	/** The dimension for which the pre-point is to be queried. */,
-					    real64 *value	/** Optional pointer to \u real64 that is set to the value of the pre-point. */)
+					    real64 *value	/** Optional pointer to \c real64 that is set to the value of the pre-point. */)
 {
 	if(key != NULL)
 	{
@@ -1337,7 +1448,19 @@ PURPLEAPI void p_node_c_curve_key_destroy(PNCCurve *curve	/** The curve in which
 	nodedb_c_key_destroy((NdbCCurve *) curve, (NdbCKey *) key);
 }
 
+/** @} */
+
 /* ----------------------------------------------------------------------------------------- */
+
+/** \defgroup api_node_text Text Node Functions
+ * \ingroup api_node
+ * 
+ * These are functions for working with text nodes. You can get and set the language setting of a node, as well
+ * as create, destroy, read and write the buffers that hold the actual text.
+ * 
+ * \see The Verse specification on the text node: <http://www.blender.org/modules/verse/verse-spec/n-text.html>.
+ * @{
+*/
 
 /** \brief Return the langauge of a text node.
  * 
@@ -1414,6 +1537,17 @@ PURPLEAPI PNTBuffer * p_node_t_buffer_create(PONode *node	/** The text node in w
 		return b;
 	}
 	return nodedb_t_buffer_create((NodeText *) node, ~0, name);
+}
+
+/** \brief Destroy a text buffer.
+ * 
+ * This function destroys a buffer in a text node. The buffer reference immediately becomes invalid, and
+ * can not be used in any further calls.
+*/
+PURPLEAPI void p_node_t_buffer_destroy(PONode *node		/** The text node in which a buffer is to be destroyed. */,
+				       PNTBuffer *buffer	/** The buffer to be destroyed. */)
+{
+	nodedb_t_buffer_destroy((NodeText *) node, buffer);
 }
 
 /** \brief Read out text, indexing by line.
@@ -1497,7 +1631,21 @@ PURPLEAPI void p_node_t_buffer_append(PNTBuffer *buffer	/** Buffer to which text
 	return nodedb_t_buffer_append(buffer, text);
 }
 
+/** @} */
+
 /* ----------------------------------------------------------------------------------------- */
+
+/** \defgroup api_node_audio Audio Node Functions
+ * \ingroup api_node
+ * 
+ * These are functions for working with audio nodes. You can create, destroy and edit buffers used
+ * to store audio in uncompressed PCM sample format.
+ * 
+ * \see The Verse specification on the audio node: <http://www.blender.org/modules/verse/verse-spec/n-audio.html>.
+ * 
+ * \note Audio streams are currently not supported by Purple; only the "passive" sample storage buffers are.
+ * @{
+*/
 
 /** \brief Return number of buffers in an audio node.
 */
@@ -1598,3 +1746,7 @@ PURPLEAPI void p_node_a_buffer_write_samples(PNABuffer *buffer	/** The buffer in
 {
 	nodedb_a_buffer_write_samples((NdbABuffer *) buffer, start, samples, length);
 }
+
+/** @} */	/* api_node_audio */
+
+/** @} */	/** api_node */
