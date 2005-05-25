@@ -27,83 +27,191 @@
 
 /* ----------------------------------------------------------------------------------------- */
 
-PURPLEAPI void p_output_boolean(PPOutput out, boolean v)
+/** \defgroup api_output Output Functions
+ * 
+ * These are functions for setting a plug-in's output to a value.  This is the only way for a
+ * plug-in to output its result, and make it available for use by other plug-ins. The Purple
+ * engine tracks outputs, and notices when they change. Such a change can be used to infer that
+ * any plug-in instance that has an input connected to the changing output needs to be scheduled
+ * for re-execution.
+ * 
+ * Purple plug-in outputs can hold more than just a single value, though. The exact definition
+ * is something like this:
+ *
+ * The output can hold, at the same time:
+ * - One of each of the "simple" value types (boolean, integer, float, vector, matrix etc)
+ * - Any number of nodes.
+ * 
+ * Basically, you can think of the output as a structure with one field for each of the basic
+ * types, plus a linked list for the nodes. This is not exactly how it is implemented under the
+ * hood, but not too far from it either. This means that if you do this:
+ * \code
+ * p_output_int32(output, 17);
+ * p_output_int32(output, 4711);
+ * \endcode
+ * The \c int32 value on the output will be \c 4711, the \c 17 will be overwritten. If another
+ * plug-in has its input connected to this output, and it runs \c p_input_int32(), it will read
+ * the value \c 4711.
+ * 
+ * For the "simple" types that are still passed by reference, such as strings, vectors and
+ * matrices, Purple will copy the data before the output call returns. So there is no need
+ * to retain the pointer in the plug-in; passing a pointer to an on-stack (automatic) variable
+ * is perfectly fine.
+ * @{
+*/
+
+/** \brief Output a boolean.
+ * 
+ * This function sets a plug-in's output to a boolean value, i.e. 0 or 1.
+*/
+PURPLEAPI void p_output_boolean(PPOutput out	/** The output to set. */,
+				boolean v	/** The value to set the output to. */)
 {
 	graph_port_output_set(out, P_VALUE_BOOLEAN, v);
 }
 
-PURPLEAPI void p_output_int32(PPOutput out, int32 v)
+/** \brief Output a 32-bit signed integer.
+ * 
+ * This function sets a plug-in's output to a 32-bit signed integer value.
+*/
+PURPLEAPI void p_output_int32(PPOutput out	/** The output to be set. */,
+			      int32 v		/** The value to set the output to. */)
 {
 	graph_port_output_set(out, P_VALUE_INT32, v);
 }
 
-PURPLEAPI void p_output_uint32(PPOutput out, uint32 v)
+/** \brief Output a 32-bit unsigned integer.
+ * 
+ * This function sets a plug-in's output to a 32-bit unsigned integer value.
+*/
+PURPLEAPI void p_output_uint32(PPOutput out	/** The output to be set. */,
+			       uint32 v		/** The value to set the output to. */)
 {
 	graph_port_output_set(out, P_VALUE_UINT32, v);
 }
 
-PURPLEAPI void p_output_real32(PPOutput out, real32 v)
+/** \brief Output a 32-bit floating point number.
+ * 
+ * This function sets a plug-in's output to a 32-bit floating point value.
+*/
+PURPLEAPI void p_output_real32(PPOutput out	/** The output to be set. */,
+			       real32 v		/** The value to set the output to. */)
 {
 	graph_port_output_set(out, P_VALUE_REAL32, v);
 }
 
-PURPLEAPI void p_output_real32_vec2(PPOutput out, const real32 *v)
+/** \brief Output a 2D vector of 32-bit floating point numbers.
+ * 
+ * This function sets a plug-in's output to a 2D vector of 32-bit floating point values.
+*/
+PURPLEAPI void p_output_real32_vec2(PPOutput out	/** The output to be set. */,
+				    const real32 *v	/** Pointer to two numbers making up the vector to set the output to. */)
 {
 	graph_port_output_set(out, P_VALUE_REAL32_VEC2, v);
 }
 
-PURPLEAPI void p_output_real32_vec3(PPOutput out, const real32 *v)
+/** \brief Output a 3D vector of 32-bit floating point numbers.
+ * 
+ * This function sets a plug-in's output to a 3D vector of 32-bit floating point values.
+*/
+PURPLEAPI void p_output_real32_vec3(PPOutput out	/** The output to be set. */,
+				    const real32 *v	/** Pointer to three numbers making up the vector to set the output to. */)
 {
 	graph_port_output_set(out, P_VALUE_REAL32_VEC3, v);
 }
 
-PURPLEAPI void p_output_real32_vec4(PPOutput out, const real32 *v)
+/** \brief Output a 4D vector of 32-bit floating point numbers.
+ * 
+ * This function sets a plug-in's output to a 4D vector of 32-bit floating point values.
+*/
+PURPLEAPI void p_output_real32_vec4(PPOutput out	/** The output to be set. */,
+				    const real32 *v	/** Pointer to four numbers making up the vector to set the output to. */)
 {
 	graph_port_output_set(out, P_VALUE_REAL32_VEC4, v);
 }
 
-PURPLEAPI void p_output_real32_mat16(PPOutput out, const real32 *v)
+/** \brief Output a 4x4 matrix of 32-bit floating point numbers.
+ * 
+ * This function sets a plug-in's output to a 4D matrix of 32-bit floating point values.
+*/
+PURPLEAPI void p_output_real32_mat16(PPOutput out	/** The output to be set. */,
+				     const real32 *v	/** Pointer to 16 numbers making up the matrix to set the output to. */)
 {
 	graph_port_output_set(out, P_VALUE_REAL32_MAT16, v);
 }
 
-PURPLEAPI void p_output_real64(PPOutput out, real64 v)
+/** \brief Output a 64-bit floating point number.
+ * 
+ * This function sets a plug-in's output to a 64-bit floating point value.
+*/
+PURPLEAPI void p_output_real64(PPOutput out	/** The output to be set. */,
+			       real64 v		/** The value to set the output to. */)
 {
 	graph_port_output_set(out, P_VALUE_REAL64, v);
 }
 
-PURPLEAPI void p_output_real64_vec2(PPOutput out, const real64 *v)
+/** \brief Output a 2D vector of 64-bit floating point numbers.
+ * 
+ * This function sets a plug-in's output to a 2D vector of 64-bit floating point values.
+*/
+PURPLEAPI void p_output_real64_vec2(PPOutput out	/** The output to be set. */,
+				    const real64 *v	/** Pointer to two numbers making up the vector to set the output to. */)
 {
 	graph_port_output_set(out, P_VALUE_REAL64_VEC2, v);
 }
 
-PURPLEAPI void p_output_real64_vec3(PPOutput out, const real64 *v)
+/** \brief Output a 3D vector of 64-bit floating point numbers.
+ * 
+ * This function sets a plug-in's output to a 3D vector of 64-bit floating point values.
+*/
+PURPLEAPI void p_output_real64_vec3(PPOutput out	/** The output to be set. */,
+				    const real64 *v	/** Pointer to three numbers making up the vector to set the output to. */)
 {
 	graph_port_output_set(out, P_VALUE_REAL64_VEC3, v);
 }
 
-PURPLEAPI void p_output_real64_vec4(PPOutput out, const real64 *v)
+/** \brief Output a 4D vector of 64-bit floating point numbers.
+ * 
+ * This function sets a plug-in's output to a 4D vector of 64-bit floating point values.
+*/
+PURPLEAPI void p_output_real64_vec4(PPOutput out	/** The output to be set. */,
+				    const real64 *v	/** Pointer to four numbers making up the vector to set the output to. */)
 {
 	graph_port_output_set(out, P_VALUE_REAL64_VEC4, v);
 }
 
-PURPLEAPI void p_output_real64_mat16(PPOutput out, const real64 *v)
+/** \brief Output a 4x4 matrix of 64-bit floating point numbers.
+ * 
+ * This function sets a plug-in's output to a 4D matrix of 64-bit floating point values.
+*/
+PURPLEAPI void p_output_real64_mat16(PPOutput out	/** The output to be set. */,
+				     const real64 *v	/** Pointer to 16 numbers making up the matrix to set the output to. */)
 {
 	graph_port_output_set(out, P_VALUE_REAL64_MAT16, v);
 }
 
-PURPLEAPI void p_output_string(PPOutput out, const char *v)
+/** \brief Output a string.
+*/
+PURPLEAPI void p_output_string(PPOutput out	/** The output to be set. */,
+			       const char *v	/** The string to set the output to. */)
 {
 	graph_port_output_set(out, P_VALUE_STRING, v);
 }
 
+/** \brief Output a node.
+ * 
+ * This function adds the indicated node to the set of nodes output by a plug-in. This involves
+ * internally creating a copy, to make it writable. The copy is also returned by the function,
+ * and can be modified. The final state of the node as \c compute() returns, is what is output,
+ * not the state of the node at the time of the copying.
+*/
 PURPLEAPI PONode * p_output_node(PPOutput out, PINode *v)
 {
-	Node	*n;
+	PNode	*n;
 
-	if((n = nodedb_new_copy((Node *) v)) != NULL)
+	if((n = nodedb_new_copy((PNode *) v)) != NULL)
 	{
-		printf("outputting node at %p, type %d\n", n, ((Node *) n)->type);
+		printf("outputting node at %p, type %d\n", n, ((PNode *) n)->type);
 		graph_port_output_set_node(out, n);
 	}
 	return n;
@@ -111,11 +219,11 @@ PURPLEAPI PONode * p_output_node(PPOutput out, PINode *v)
 
 PURPLEAPI PONode * p_output_node_o_link(PPOutput out, PONode *node, const char *label)
 {
-	Node	*n;
+	PNode	*n;
 
 	if((n = nodedb_o_link_get_local((NodeObject *) node, label, 0)) != NULL)
 	{
-		n = nodedb_new_copy((Node *) n);
+		n = nodedb_new_copy((PNode *) n);
 		nodedb_o_link_set_local((NodeObject *) node, n, label, 0);
 		graph_port_output_set_node(out, n);
 	}
@@ -183,3 +291,5 @@ PURPLEAPI PONode * p_output_node_pass(PPOutput out, PINode *node)
 	}
 	return NULL;
 }
+
+/** @} */
