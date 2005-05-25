@@ -6,6 +6,162 @@
  * Initialize a library, letting it describe the plug-ins it defines.
 */
 
+/** \page model Purple's Computational Model
+ * 
+ * Purple is a \e computational \e engine. This means it needs to have some way of actually
+ * performing computations, and this page details what this way is.
+ * 
+ * \section modelplugin Plug-Ins
+ * The core is of course the plug-in. A plug-in is conceptually a box, with a number of
+ * inputs and one single output:
+ * \image html plugin.png
+ * The value on the output is assumed to be a "pure" function of the values on the inputs.
+ * This means that the value stays constant as long as the inputs don't change, and that
+ * a given combination of input values should always result in the same output. A plug-in
+ * is assumed to have some way of actually \e doing some computation, at the request of the
+ * Purple engine.
+ * 
+ * \subsection triggering Triggering
+ * Whenever a plug-in is instantiated, Purple will monitor its inputs. If an input changes,
+ * Purple adds the instance to a internal queue of modules that need to be re-computed. It
+ * will then try to empty this queue by letting the modules run.
+ * 
+ * Since Purple can handle many instances of the same plug-in at once, the word \e module
+ * is often used to refer to such an instance. The terms plug-in and module have a simliar
+ * relationship as the terms class and object, as used in object-oriented programming.
+ * 
+ * \section modelgraph Graphs
+ * Plug-ins alone cannot accomplish much. Things get interesting when several plug-ins are
+ * connected together, to form \e graphs. A graph is simply a "container" for modules, a
+ * place where they are created. A module belongs to exactly one graph; it is not possible
+ * to create modules outside of a graph, and it is not possible to share a single module
+ * between several graphs. Of course, a \e plug-in is perfectly sharable, and it is possible
+ * to create instances of a single plug-in in any number of graphs at the same time. None
+ * of these relationships should be very surprising.
+ * 
+ * For this discussion, a graph is simply a named container holding any number of modules.
+ * It also stores information about module input connections, and any constant values assigned
+ * to inputs.
+ * 
+ * \section builtins Built-In Plug-Ins
+ * There are two special needs that arise when contemplating doing some kind of data-driven
+ * computation in a Verse setting: getting node data into the computation, and getting results
+ * back out. These needs are solved through a couple of \e built-in plug-ins, that are described
+ * below:
+ *
+ * \subsection builtininput Input
+ * The first need is easy enough to describe: imagine having written a Purple plug-in that
+ * does some operation to a bitmap, for like applying a "blur" filter. Now you want to
+ * apply this to a bitmap you know resides on a Verse host, perhaps because you've just
+ * created it in some Verse-aware paint program. You can create a graph and instantiate your
+ * plug-in into it, but then what? How do you connect your graph to an actual Verse node?
+ * 
+ * The solution is to create an instance of the built-in plug-in \c "node-input". This plug-in
+ * is implemented inside the Purple engine, and works like this:
+ * - It has a single input, accepting a string named "name".
+ * - It outputs the Verse node matching that name, if it exists.
+ * - It monitors the \b node for changes, and outputs it again if it changes.
+ * 
+ * The last point might need some further explanation: what it means is that the plug-in
+ * behaves as if its output changed, whenever the input \b node changes. This kind of
+ * node "watching" cannot be directly implemented using the Purple API, but since
+ * \c node-input is internal to the engine it can provide features like this.
+ * 
+ * The \c node-input plug-in is currently limited to watching only a single Verse node;
+ * this is a restriction that might be lifted in the future. For now, it provides a good
+ * solution to the problem of getting data into Purple.
+ * 
+ * \subsection builtinoutput Output
+ * To continue the above example, once a bitmap has passed through our "blur" filter plug-in,
+ * how do we get the data back out?
+ * 
+ * One obvious answer is that it could be implicit, that Purple automatically should take
+ * any processed data and send it out to the Verse server is possible. However, this is not
+ * the direction taken by the current Purple system. Instead, a similiar explicit approach
+ * as with input is used. There is another built-in plug-in called \c "node-output", that
+ * works like this:
+ * - It has a single input, accepting node data.
+ * - All nodes are added to the internal \ref synchronizing "node synchronization" queue.
+ * - This results in all the node data being sent out to the Verse host.
+ * 
+ * Through this plug-in, data processed (or generated) with-in Purple is exported "out"
+ * to a Verse host, where it appears like any other. It is therefore sharable, and viewable
+ * with standard Verse tools.
+ *
+ * \section synchronizing The Synchronizer
+ * Purple contains an "intelligent node comparator", whose job is to compare two nodes, and
+ * generate a list of Verse commands from the differences. These commands are sent to the
+ * Verse host, where they are applied to modify one node into a copy of another.
+ * 
+ * This is used by the \c node-output plugin. The nodes that are input into the plug-in are
+ * handed off to the synchronizer. The synchronizer runs from Purple's main loop, and on
+ * each iteration spends a number of clock cycles working.
+ * 
+ * It compares nodes using hand-written node-specific code, and any differences found
+ * between the local node (the result of a graph's computation) and the remote one (as
+ * described to the engine by the Verse host) result in changes being sent to change
+ * the state of the remote node.
+ * 
+ * If no changes are found in a comparison, the node is removed from the synchronizer's
+ * working set.
+ */
+
+/**
+ * \page devplugin Writing Purple Plug-Ins
+ * 
+ * This page introduces the concept of the Purple plug-in; the core computational element
+ * in the Purple system. It is intended to be read by developers interested in writing
+ * their own plug-ins.
+ * 
+ * \section anatomy Anatomy of a Library
+ * Purple plug-ins live in \e libraries. A library is simply a piece of program code, that
+ * can be dynamically loaded. How this is done varies with the platform that Purple is
+ * running on. Each library can contain one or more actual plug-ins.
+ * \note In Windows, such libraries are called "dynamic load libraries", or DLLs. In
+ * Unix-style environments, the term is "shared objects".
+ * 
+ * A library has a single externally-visible part: the function \c init(), which is called by
+ * Purple after the library has loaded. It is up to the \c init() function to \e describe the
+ * library's contents in a way understandable to the Purple engine. This is done by simply
+ * calling functions in the \ref api_init "initialization API".
+ *
+ * The part of a plug-in that does the actual work is another function, often referred to
+ * as \c compute(). This function is registered with Purple during the initialization phase
+ * outlined above. Purple will run this function whenever it decides that the plug-in needs
+ * to re-compute its output value(s). Typically, this is because one or more input changed.
+ * 
+ * There is one \c compute() per (logical) plug-in, and often the fact that each plug-in lives
+ * in a library is ignored.
+ * \note There is no enforced name that must be used for the computational callback. Since
+ * it is never referenced by name by Purple, it is not possible to specify one either. In
+ * this document, it is typically referred to as if named \c compute(), but it could just as
+ * well be named \c foo_bar_baz_banana(). Purple only learns about a plug-in's computational
+ * callback through the pointer passed to \c p_init_compute().
+ * 
+ * \section work Getting Work Done
+ * Once inside a plug-in's \c compute() callback, there needs to be a way to access inputs,
+ * and/or create results. In the general case, this involves three steps:
+ * - Read inputs, to get parameters controlling the operation to be performed and/or data to
+ * perform operations on.
+ * - Create, destroy, traverse and/or modify node data structures.
+ * - Output some kind of result.
+ * 
+ * Purple has sub-APIs for each of these three tasks, in the form of the \ref api_input, the
+ * \ref api_node, and the \ref api_output.
+ * 
+ * A few general points to notice about how a plug-ins computational callback should be
+ * structured:
+ * - Group the input-reading close to the start of the function, and try to use the same
+ * order as the inputs were registered in. This makes it easier to compare against the
+ * initialization code.
+ * - Purple is a cooperative multitasking system. It cannot stop a plug-in from running,
+ * once given the CPU. So plug-in's need to be short and efficient in their \c compute()
+ * functions.
+ * - Code needs to be manually structured not to take "too long" to exeucte. If the plug-in
+ * aborts prematurely in order to conserve cycles, it should return \c P_COMPUTE_AGAIN. This
+ * signals to Purple that the plug-in didn't finish, and keeps it scheduled to run.
+*/
+
 #include <stdarg.h>
 #include <stdio.h>
 
