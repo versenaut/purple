@@ -271,8 +271,27 @@ const char * p_input_string(PPInput input, char *buffer, size_t buf_max)
 
 #endif
 
+/** \defgroup api_input Input Functions
+ * 
+ * Input functions are used to read out the values connected to a plug-in instance's inputs. Such values might come
+ * either directly due to a user manipulating some UI to input a constant, or indirectly thanks to the input being
+ * connected to some other plug-in instance's output. From the point of view of the plug-in code, there is no
+ * difference between the two.
+ * 
+ * The functions are all named after which type of value they return. Because the API is in C, there is no
+ * language support for polymorphism, so it has been made explicit like this.
+ * 
+ * There is no requirement that the type of value retreived from an input matches the type that input was
+ * created with. It is a recommended and natural way to operate, to keep the two matched, but Purple will
+ * do conversions where possible if they do not. Since most of the functions do not have a way of communicating
+ * failure, they will instead return some default value if an input is not available, or if a conversion
+ * cannot be performed.
+ * 
+ * @{
+*/
+
 /**
- * Read the value of an input, and convert value to boolean (1 or 0).
+ * Read the value of an input, and convert value to boolean (0 or 1).
 */
 PURPLEAPI boolean p_input_boolean(PPInput input	/** The input to read from. */)
 {
@@ -380,7 +399,7 @@ PURPLEAPI const real64 * p_input_real64_mat16(PPInput input	/** The input to rea
  * 
  * Because of the way strings work in C, and since the function does not require (or allow) the
  * calling plug-in code to provide buffer space, it is generally wise to copy the value to some
- * other buffer space shortly after retreieving it. The Purple engine does manage a buffer
+ * other buffer space shortly after retreiving it. The Purple engine does manage a buffer
  * associated with the input for holding a "cached" string version of whatever is there, but
  * since this buffer space might be re-used further on, a plug-in cannot retain the buffer pointer
  * indefinitely with well-defined results.
@@ -407,14 +426,28 @@ PURPLEAPI PINode * p_input_node(PPInput input	/** The input to read from. */)
  * 
  * If \a index is larger than the number of node references present, \c NULL is returned.
  * Thus, this function can be used to iterate over all node references present on a given
- * input.
+ * input, like so:
+ * 
+ * \code
+ * int		i;
+ * PINode	*node;
+ * 
+ * for(i = 0; (node = p_input_node_nth(input, i)) != NULL; i++)
+ * {
+ * 	// ... process the node here ...
+ * }
+ * \endcode
  * 
  * As with \c p_input_node() above, this function cannot convert non-node data into node
  * references. If no nodes are present on the specified input, NULL will be returned for
  * all values of \a index.
+ * 
+ * No assumptions can be made about the order in which nodes appear.
 */
 PURPLEAPI PINode * p_input_node_nth(PPInput input	/** The input to read from. */,
 				    int index		/** Index (from 0) of the node reference to retreive. */)
 {
 	return port_input_node_nth(input, index);
 }
+
+/** @} */
