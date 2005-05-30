@@ -4,27 +4,8 @@
 
 #include "purple.h"
 
-/* Simple (pixel,count) data structure used in histogram computations. */
-typedef struct
-{
-	uint32	value;
-	uint32	count;
-} HEntry; 
-
-typedef struct {
-	uint32	size;
-	HEntry	*channel[3];
-} HTab;
-
 /* Clamp an integer value into the [mi,ma) range. */
 #define	CLAMP(v,mi,ma)		if(v < mi) v = mi; else if(v >= ma) v = ma - 1;
-
-/* Pixel access macros, to save some typing. Assumes fb is 24-bit packed RGB pixels. */
-#define	GET1(fb,w,x,y,c)	fb[y * 3 * w + 3 * x + c]
-#define	GET3(fb,w,x,y)		(GET1(fb,w,x,y,0) | (GET1(fb,w,x,y,1) << 8) | (GET1(fb,w,x,y,2) << 16))
-
-#define	SET1(fb,w,x,y,c,v)	fb[y * 3 * w + 3 * x + c] = v
-#define	SET3(fb,w,x,y,v)	do { SET1(fb,w,x,y,0,v); SET1(fb,w,x,y,1,(v >> 8)); SET1(fb,w,x,y,2,(v >> 16)); } while(0)
 
 /* Compute "oil" filter over the given pixels. Algorithm is simply: replace each pixel
  * with the one that is most common in the size*size area whose upper-left pixel is (x,y).
@@ -32,10 +13,9 @@ typedef struct {
 */
 static void do_oilify(void *pixels, uint16 width, uint16 height, uint32 size)
 {
-	uint8	*fb = pixels, *get;
+	uint8	*fb = pixels, *get, *put = fb;
 	int	x, y, x1, y1, x2, y2, ax, ay, i, j;
-	uint32	here, tsize;
-	uint32	hist[3][256], max[3], pix[3], cnt, col;
+	uint32	hist[3][256], max[3], cnt;
 
 	printf(" applying filter size %u\n", size);
 
@@ -43,7 +23,7 @@ static void do_oilify(void *pixels, uint16 width, uint16 height, uint32 size)
 
 	for(y = 0; y < height; y++)
 	{
-		for(x = 0; x < width; x++)
+		for(x = 0; x < width; x++, put += 3)
 		{
 			x1 = x - size;
 			y1 = y - size;
@@ -54,7 +34,7 @@ static void do_oilify(void *pixels, uint16 width, uint16 height, uint32 size)
 			CLAMP(x2, 0, width);
 			CLAMP(y2, 0, height);
 			memset(hist, 0, sizeof hist);
-			memset(max,  0, sizeof max);
+			max[0] = max[1] = max[2] = 0;	/* Less general, but faster than memset(). */
 			for(ay = y1; ay < y2; ay++)
 			{
 				get = fb + 3 * ay * width + 3 * x1;
@@ -66,12 +46,11 @@ static void do_oilify(void *pixels, uint16 width, uint16 height, uint32 size)
 						if(cnt > max[j])
 						{
 							max[j] = cnt;
-							pix[j] = *get;
+							put[j] = *get;
 						}
 					}
 				}
 			}
-			SET3(fb,width,x,y,((pix[2] << 16) | (pix[1] << 8) | pix[0]));
 		}
 	}
 }
