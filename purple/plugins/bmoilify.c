@@ -11,13 +11,11 @@
  * with the one that is most common in the size*size area whose upper-left pixel is (x,y).
  * This is done per-channel.
 */
-static void do_oilify(void *pixels, uint16 width, uint16 height, uint32 size)
+static void do_oilify(void *pixels, uint16 width, uint16 height, real32 size)
 {
 	uint8	*fb = pixels, *get, *put = fb;
 	int	x, y, x1, y1, x2, y2, ax, ay, i, j;
 	uint32	hist[3][256], max[3], cnt;
-
-	printf(" applying filter size %u\n", size);
 
 	size /= 2;
 
