@@ -136,7 +136,9 @@
  * it is never referenced by name by Purple, it is not possible to specify one either. In
  * this document, it is typically referred to as if named \c compute(), but it could just as
  * well be named \c foo_bar_baz_banana(). Purple only learns about a plug-in's computational
- * callback through the pointer passed to \c p_init_compute().
+ * callback through the pointer passed to \c p_init_compute(). The reason the function must
+ * be explicitly registered, rather than being found by a default name, is to support multiple
+ * plug-ins per library.
  * 
  * \section work Getting Work Done
  * Once inside a plug-in's \c compute() callback, there needs to be a way to access inputs,
@@ -160,6 +162,41 @@
  * - Code needs to be manually structured not to take "too long" to exeucte. If the plug-in
  * aborts prematurely in order to conserve cycles, it should return \c P_COMPUTE_AGAIN. This
  * signals to Purple that the plug-in didn't finish, and keeps it scheduled to run.
+ * - A plug-in that aborts and returns \c P_COMPUTE_AGAIN must remember its internal state
+ * on its own, so it can continue where it left off when called again. The per-instance
+ * state created with \c p_init_state() can be useful here.
+*/
+
+/**
+ * 
+ * \page pluginex Example Purple Plug-Ins
+ *
+ * Here is a complete, working example plug-in:
+ * 
+ * \code
+ * // Sample Purple plug-in to add two integers.
+ * 
+ * #include "purple.h"
+ * 
+ * static PComputeStatus compute(PPInput *input, PPOutput output, void *user)
+ * {
+ * 	int32	a = p_input_int32(input[0]), b = p_input_int32(input[1]);
+ * 
+ * 	p_output_int32(output, a + b);
+ * 	return P_COMPUTE_DONE;
+ * }
+ * 
+ * PURPLE_PLUGIN void init(void)
+ * {
+ * 	p_init_create("add");
+ * 	p_init_compute(compute);
+ * }
+ * \endcode
+ * Things to notice about the code:
+ * - A plug-in needs to include the \c purple.h header.
+ * - The \c compute() function is \c static.
+ * - This computation is very quick, so \c compute() always returns \c P_COMPUTE_DONE.
+ * - The \c init() function must be prefixed with the \c PURPLE_PLUGIN macro, to ensure proper visibility.
 */
 
 #include <stdarg.h>
@@ -226,13 +263,15 @@ void api_init_end(void)
  * share the same \c compute() code:
  * 
  * \code
+ * #include "purple.h"
+ * 
  * static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
  * {
  * 	// ... code here
  * 	return P_COMPUTE_DONE;
  * }
  * 
- * void init(void)
+ * PURPLE_PLUGIN void init(void)
  * {
  * 	p_init_create("foo");
  * 	p_init_compute(compute);
@@ -252,6 +291,8 @@ void api_init_end(void)
  * - The \c compute() function does not need to be seen from the outside, it can
  * be defined as \c static. This is true for \b all functions a library might
  * contain, except \c init().
+ * - The init() function needs to be "prefixed" with the PURPLE_PLUGIN macro to
+ * work properly on Windows platforms.
  * @{
 */
 
