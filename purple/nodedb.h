@@ -104,7 +104,7 @@ extern void		nodedb_tag_value_set(NdbTag *tag, VNTagType type, const VNTag *valu
 extern int		nodedb_tag_values_equal(const NdbTag *t1, const NdbTag *t2);
 
 typedef enum { NODEDB_OWNERSHIP_ALL, NODEDB_OWNERSHIP_MINE, NODEDB_OWNERSHIP_OTHERS } NodeOwnership;
-typedef enum { NODEDB_NOTIFY_CREATE, NODEDB_NOTIFY_STRUCTURE, NODEDB_NOTIFY_DATA, NODEDB_NOTIFY_DESTROY } NodeNotifyEvent;
+typedef enum { NODEDB_NOTIFY_CREATE, NODEDB_NOTIFY_NAME, NODEDB_NOTIFY_STRUCTURE, NODEDB_NOTIFY_DATA, NODEDB_NOTIFY_DESTROY } NodeNotifyEvent;
 
 /* Add a callback that will be called when a change occurs in a node. */
 extern void		nodedb_notify_add(NodeOwnership whose, void (*notify)(PNode *node, NodeNotifyEvent ev));
