@@ -96,9 +96,9 @@ typedef enum
 	P_VALUE_MODULE
 } PValueType;
 
-/** An opaque type that represents a plug-in input. */
+/** An opaque type that represents a plug-in input. The extra 'P' is for "port"*. */
 typedef struct PPort	*PPInput;	/* An input is a pointer to a port. */
-/** An opaque type that represents a plug-in output. */
+/** An opaque type that represents a plug-in output. The extra 'P' is for "port". */
 typedef struct PPort	*PPOutput;	/* So is an output. Simplicity. */
 
 typedef enum
