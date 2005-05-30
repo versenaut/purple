@@ -222,6 +222,18 @@ static void cb_copy_tag_group(void *d, const void *s, void *user)
 	dst->tags = dynarr_new_copy(src->tags, cb_copy_tag, NULL);
 }
 
+static void copy_name(char *out, const char *in)
+{
+	unsigned int	n, len;
+
+	if(strncmp(in, "copy of ", 8) == 0)
+		sprintf(out, "copy 2 of %s", in + 8);
+	else if(sscanf(in, "copy %d of %n", &n, &len) > 1)
+		sprintf(out, "copy %u of %s", n + 1, in + len);
+	else
+		sprintf(out, "copy of %s", in);
+}
+
 PNode * nodedb_new_copy(const PNode *src)
 {
 	PNode	*n;
@@ -231,7 +243,9 @@ PNode * nodedb_new_copy(const PNode *src)
 	if((n = nodedb_new(src->type)) != NULL)
 	{
 		n->id = src->id;
-		strcpy(n->name, src->name);
+		n->id = ~0u;
+		copy_name(n->name, src->name);
+/*		strcpy(n->name, src->name);*/
 		n->owner = src->owner;
 		n->tag_groups = dynarr_new_copy(src->tag_groups, cb_copy_tag_group, NULL);
 		switch(n->type)
@@ -709,7 +723,7 @@ static void cb_node_name_set(void *user, VNodeID node_id, const char *name)
 	{
 		stu_strncpy(n->name, sizeof n->name, name);
 		LOG_MSG(("Name of %u set to \"%s\"", n->id, n->name));
-		NOTIFY(n, DATA);
+		NOTIFY(n, NAME);
 	}
 	else
 		LOG_WARN(("Couldn't set name of node %u, not found in database", node_id));
