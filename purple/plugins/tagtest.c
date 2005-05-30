@@ -55,7 +55,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 */	return P_COMPUTE_DONE;
 }
 
-void init(void)
+PURPLE_PLUGIN void init(void)
 {
 	p_init_create("tagtest");
 	p_init_input(0, P_VALUE_UINT32, "mode", P_INPUT_REQUIRED, P_INPUT_DONE);

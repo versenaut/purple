@@ -71,7 +71,7 @@ static PComputeStatus compute_sub_real32(PPInput *input, PPOutput output, void *
 	return P_COMPUTE_DONE;
 }
 
-void init(void)
+PURPLE_PLUGIN void init(void)
 {
 	p_init_create("power_of_two");
 	p_init_input(0, P_VALUE_UINT32, "x", P_INPUT_DONE);

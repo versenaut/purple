@@ -32,7 +32,7 @@ static void dtor(void *state_typeless)
 	printf("We compute()d %u times\n", state->value);
 }
 
-void init(void)
+PURPLE_PLUGIN void init(void)
 {
 	p_init_create("template");
 	/* Initialize inputs. */

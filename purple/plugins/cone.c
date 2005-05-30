@@ -61,7 +61,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	return P_COMPUTE_DONE;	/* Sleep until size changes. */
 }
 
-void init(void)
+PURPLE_PLUGIN void init(void)
 {
 	p_init_create("cone");
 	p_init_input(0, P_VALUE_REAL32, "size", P_INPUT_REQUIRED, P_INPUT_MIN(0.1), P_INPUT_MAX(200.0), P_INPUT_DEFAULT(10.0), P_INPUT_DONE);

@@ -116,7 +116,7 @@ static void init_meta(const char *type)
 	p_init_meta("help/purpose", purp);
 }
 
-void init(void)
+PURPLE_PLUGIN void init(void)
 {
 	p_init_create("new-audio");
 	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DONE);

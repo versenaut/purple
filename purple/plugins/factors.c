@@ -43,7 +43,7 @@ static void ctor(void *state_typeless)
 	state->factors = -1;			/* Signals non-active state. */
 }
 	
-void init(void)
+PURPLE_PLUGIN void init(void)
 {
 	p_init_create("factors");
 	p_init_state(sizeof (State), ctor, NULL);
