@@ -479,7 +479,6 @@ void graph_method_send_creates(uint32 avatar, uint8 group_id)
 
 	for(i = 0; i < sizeof method_info / sizeof *method_info; i++)
 	{
-		printf("create method: '%s'\n", method_info[i].name);
 		verse_send_o_method_create(avatar, group_id, (uint8) ~0u, method_info[i].name,
 					   method_info[i].param_count,
 					   (VNOParamType *) method_info[i].param_type,
@@ -948,7 +947,7 @@ PONode * graph_port_output_node_copy(PPOutput port, PINode *node, uint32 label)
 	}
 	else if(label == m->out.nodes.next)
 	{
-		printf("This would be a good time to create a new node and label it %u\n", label);
+		printf("This would be a good time to create a new node as copy of %p, and label it %u\n", node, label);
 		if(m->out.nodes.node == NULL)
 			m->out.nodes.node = dynarr_new(sizeof *node, 1);
 		if(m->out.nodes.node != NULL)
@@ -957,7 +956,7 @@ PONode * graph_port_output_node_copy(PPOutput port, PINode *node, uint32 label)
 			{
 				if((*store = nodedb_new_copy(node)) != NULL)
 				{
-					(*store)->creator.port  = port;
+					(*store)->creator.port = port;
 					m->out.nodes.next++;
 					nodedb_ref(*store);
 				}
@@ -992,13 +991,15 @@ static void cb_node_output_notify(PNode *node, NodeNotifyEvent e, void *user)
 {
 	Module	*m = MODULE_FROM_PORT(((PNode *) user)->creator.port);
 
-/*	printf("Got name of watched node owned by %s instance: '%s'\n", plugin_name(m->plugin), node->name);*/
+/*	printf("Got name of watched node owned by %s instance: '%s' (event=%d)\n", plugin_name(m->plugin), node->name, e);*/
+	if(e != NODEDB_NOTIFY_NAME)
+		return;
 	module_describe(m);
 }
 
 void graph_port_output_create_notify(const PNode *local)
 {
-/*	printf("Node resulting from port %p is %u\n", local->creator.port, local->creator.remote->id);*/
+	printf("Node resulting from port %p is %u\n", local->creator.port, local->creator.remote->id);
 	nodedb_notify_node_add(local->creator.remote, cb_node_output_notify, (void *) local);
 }
 
