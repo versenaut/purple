@@ -11,9 +11,9 @@
  * with the one that is most common in the size*size area whose upper-left pixel is (x,y).
  * This is done per-channel.
 */
-static void do_oilify(void *pixels, uint16 width, uint16 height, real32 size)
+static void do_oilify(uint8 *dst, const uint8 *src, uint16 width, uint16 height, real32 size)
 {
-	uint8	*fb = pixels, *get, *put = fb;
+	uint8	*get, *put = dst;
 	int	x, y, x1, y1, x2, y2, ax, ay, i, j;
 	uint32	hist[3][256], max[3], cnt;
 
@@ -35,7 +35,7 @@ static void do_oilify(void *pixels, uint16 width, uint16 height, real32 size)
 			max[0] = max[1] = max[2] = 0;	/* Less general, but faster than memset(). */
 			for(ay = y1; ay < y2; ay++)
 			{
-				get = fb + 3 * ay * width + 3 * x1;
+				get = src + 3 * ay * width + 3 * x1;
 				for(ax = x1; ax < x2; ax++)
 				{
 					for(j = 0; j < 3; j++, get++)
@@ -64,16 +64,18 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	size = p_input_uint32(input[1]);
 	for(i = 0; (node = p_input_node_nth(input[0], i)) != NULL; i++)
 	{
-		void	*pixels;
+		void	*read, *write;
 
 		if(p_node_get_type(node) != V_NT_BITMAP)
 			continue;
 		out = p_output_node_copy(output, node, 0);
-		if((pixels = p_node_b_layer_access_multi_begin(out, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL)
+		if((read  = p_node_b_layer_access_multi_begin(out, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL &&
+		   (write = p_node_b_layer_access_multi_begin(out, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL)
 		{
 			p_node_b_get_dimensions(out, &w, &h, NULL);
-			do_oilify(pixels, w, h, size);
-			p_node_b_layer_access_multi_end(out, pixels);
+			do_oilify(write, read, w, h, size);
+			p_node_b_layer_access_multi_end(out, write);
+			p_node_b_layer_access_multi_end(out, read);
 		}
 		break;
 	}
