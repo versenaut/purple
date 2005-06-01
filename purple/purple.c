@@ -13,26 +13,32 @@
  * is something along the lines of "D3.3 Script Environment API". Perhaps you can see why
  * it's easier to just use "Purple", sans quotes even, to refer to it.
  * 
- * Because of the nature of the Purple application, it is possible to be a "user" in
- * many different ways. These ways are not entierly distinct, but they are still varying
- * enough to warrant listing:
+ * \section cont Contents
+ * - \subpage model
+ * - \subpage devplugin
+ * - \subpage devui
+ * 
+ * The above list of contents reflects the fact that, because of the nature of the Purple
+ * application, it is possible to be a "user" in many different ways. These ways are not
+ * entierly distinct, but they are still varying enough to warrant listing:
  * - Users who want to use the Purple system
  * - Developers who want to write plug-ins
  * - Developers who want to write user interfaces
- * 
+ *
+ * \section starting Getting Started
  * The first category of users will mainly interact with Purple through an implementation
  * of an interface client. Since this document describes the Purple technology and server
  * "backend" system, such users will not be helped much here.
  * 
  * The second category of users, developers interested in writing plug-ins, will find this
  * document to contain a lot of useful information, starting below and continuing with the
- * \ref devplugin page.
+ * \subpage devplugin page.
  * 
  * The third category of users, developers who want to work on Purple interface clients,
- * should read the \ref devui material.
+ * should read the \subpage devui material.
  * 
- * Both categories of developer might do well to first read the \ref model page first, to
- * learn some terminology.
+ * Both categories of developer might do well to first read the \subpage model page first,
+ * to pick up the basics.
  * 
 */
 
@@ -243,7 +249,7 @@ static int console_script(char *line, size_t line_size)
 	"mc 1 2\n"
 	"mism 1 2 0 : 1\n"
 	"mism 1 1 0 : 0\n"
-	"misu 1 1 1 : 2\n"
+	"misu 1 1 1 : 4\n"
 	"miss 1 0 0 : \"fish\"\n";
 	static int	next_line = 0;
 
