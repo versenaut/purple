@@ -42,6 +42,16 @@
  * For this discussion, a graph is simply a named container holding any number of modules.
  * It also stores information about module input connections, and any constant values assigned
  * to inputs.
+ *
+ * The below image shows a sample graph structure:
+ * \image html purple-graph.png
+ * Here, individual plug-in inputs are not shown, connections are simply made between "boxes".
+ * The depicted graph is based on a real, working example. It does the following, from left
+ * to right:
+ * -# The \c cube plug-in generates a basic cube object and geometry.
+ * -# The \c bbox plug-in computes the bounding-box of the input geometry.
+ * -# The \c warp plug-in does a simple rotation along the Y axis of its input.
+ * -# The built-in (see below) \c node-output plug-in sends the results out to the Verse host.
  * 
  * \section builtins Built-In Plug-Ins
  * There are two special needs that arise when contemplating doing some kind of data-driven
@@ -89,13 +99,15 @@
  * with standard Verse tools.
  *
  * \section synchronizing The Synchronizer
- * Purple contains an "intelligent node comparator", whose job is to compare two nodes, and
- * generate a list of Verse commands from the differences. These commands are sent to the
- * Verse host, where they are applied to modify one node into a copy of another.
+ * Purple contains an "intelligent node comparator", called \e the \e synchronizer, whose job
+ * it is to compare two nodes, and generate a list of Verse commands from the differences.
+ * These commands are sent to the Verse host, where they are applied to modify one node into
+ * a copy of another.
  * 
  * This is used by the \c node-output plugin. The nodes that are input into the plug-in are
  * handed off to the synchronizer. The synchronizer runs from Purple's main loop, and on
- * each iteration spends a number of clock cycles working.
+ * each iteration through the loop, it gets a chance to do some work. The work it does it
+ * split over many iterations of the main loop, since it often takes a lot of time to complete.
  * 
  * It compares nodes using hand-written node-specific code, and any differences found
  * between the local node (the result of a graph's computation) and the remote one (as
@@ -118,7 +130,8 @@
  * can be dynamically loaded. How this is done varies with the platform that Purple is
  * running on. Each library can contain one or more actual plug-ins.
  * \note In Windows, such libraries are called "dynamic load libraries", or DLLs. In
- * Unix-style environments, the term is "shared objects".
+ * Unix-style environments, the term is "shared objects". The author of a library typically
+ * does not need to care about the difference.
  * 
  * A library has a single externally-visible part: the function \c init(), which is called by
  * Purple after the library has loaded. It is up to the \c init() function to \e describe the
@@ -165,6 +178,39 @@
  * - A plug-in that aborts and returns \c P_COMPUTE_AGAIN must remember its internal state
  * on its own, so it can continue where it left off when called again. The per-instance
  * state created with \c p_init_state() can be useful here.
+ * 
+ * \section meta Meta Information
+ * Through the use of the \c p_init_meta() initialization call, Purple plug-ins have the
+ * ability to tell the Purple engine, and through that the world, about themselves. This
+ * is currently done by registering category/text-pairs. Each category's text can only be
+ * set once; if the same category is registered twice, it is as if the first never happened.
+ *
+ * The slash character has a special meaning in categories. It is used as a hierarchy separator;
+ * allowing categories to express several levels of hierarchy. The total length of the category
+ * string as given in the call must still not exceed 64 characters, including the slashes.
+ * 
+ * The following table summarizes the recommended meta categories:
+ * <table>
+ * <tr><th>Category</th><th>Recommended Usage</th></tr>
+ * 
+ * <tr><td>authors</td>
+ * <td>Used to names the author(s) of the plug-in. Separate multiple names by semicolons. Suggested
+ * form is simply "givenname surname", i.e. "Emil Brink". Sorting is optional; it is assumed
+ * that a sufficiently advanced UI client might sort the list when presenting it.
+ * </tr>
+ * <tr><td>copyright</td>
+ * <td>Used to indicate the name of the copyright holder of this plug-in. Suggested form is
+ * "time holder", where \e time is a year or a list of years, such as "2005", or "2001, 2002"
+ * or "1998-2005". The \e holder part is simply the name of whatever entity has the copyright.
+ * Separate multiple holders with semicolons, as in "1998-2001 Example.com; 2001-2005 Foo".</td>
+ * </tr>
+ * <tr><td>license</td>
+ * <td>Used to give the name of the license under which this plug-in is made available.</td>
+ * <tr>
+ * <td>meta/purpose</td>
+ * <td>Describes the purpose of the plug-in, using a few English phrases.</td>
+ * </tr>
+ * </table>
 */
 
 /**
@@ -196,7 +242,8 @@
  * - A plug-in needs to include the \c purple.h header.
  * - The \c compute() function is \c static.
  * - This computation is very quick, so \c compute() always returns \c P_COMPUTE_DONE.
- * - The \c init() function must be prefixed with the \c PURPLE_PLUGIN macro, to ensure proper visibility.
+ * - The \c init() function must be prefixed with the \c PURPLE_PLUGIN macro, to ensure it's visible to the Purple engine.
+ * 
 */
 
 #include <stdarg.h>
@@ -321,10 +368,11 @@ PURPLEAPI void p_init_create(const char *name /** The name of the plug-in to cre
  * so that, for instance, related tools can be grouped together in the interface.
  * 
  * Each piece of meta information is defined as a pair of strings, one being called the category and the
- * other the text. These can be considered "assignments", like so: \a category = \a text.
+ * other the text. These can be considered "assignments", like so: \a category = \a text. This implies
+ * that you cannot specify the same category more than once, doing so will replace whatever text was
+ * previously set.
  * 
- * There should be a list of suggested/recommended/standardized meta categories here, but curiously there
- * isn't.
+ * \see The \ref meta section.
 */
 PURPLEAPI void p_init_meta(const char *category	/** The category to register meta text in. */,
 			   const char *text	/** The meta text to register. */)
