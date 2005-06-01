@@ -1168,15 +1168,15 @@ PURPLEAPI void p_node_b_layer_foreach_set(PONode *node		/** The node in which a 
 PURPLEAPI void p_node_b_layer_destroy(PONode *node	/** The node in which a layer is to be destroyed. */,
 				      PNBLayer *layer	/** The layer to be destroyed. */)
 {
-/* FICXME: Implement backend!	nodedb_b_layer_destroy(layer);*/
+/* FIXME: Implement backend!	nodedb_b_layer_destroy(layer);*/
 }
 
-/** \brief Create "interleaved" buffer for multi-layer access.
+/** \brief Create "interleaved" buffer for multi-layer reading.
  * 
  * This function requests that Purple merge several layers into a single buffer, for convenient access by 
  * plug-in code. Since the Verse bitmap format only supports one value per pixel in a layer, representing
  * i.e. an ordinary RGB color image requires the use of three separate layers. Doing per-pixel operations
- * on such data can be a bit inconvenient, which is why this function exists to make it smoother.
+ * on such data can be a bit inconvenient, which is why this function exists to make it easier.
  * 
  * The function will accept up to 16 layer names (strings), and return a buffer that begins with pixel (0,0,0)
  * for the first layer, followed by pixel (0,0,0) for the second layer, for each layer. Then comes the next
@@ -1187,47 +1187,86 @@ PURPLEAPI void p_node_b_layer_destroy(PONode *node	/** The node in which a layer
  * any of the named layers doesn't exist in the node, the function aborts, since it would be impossible
  * for the plug-in to correctly interpret the returned buffer. In this case, \c NULL is returned.
  * 
- * The returned buffer can be in any supported pixel format, Purple will convert to and from the desired
- * format as needed.
+ * The returned buffer can be in any supported pixel format, Purple will convert to the desired format as
+ * needed.
  * 
  * Once the plug-in is done accessing the pixel data, it must be handed back to Purple by calling the
  * \c p_node_b_layer_access_multi_end() function.
  * 
+ * \note The buffer returned by this function is \e read-only. Any changes done to it will be lost. This
+ * is why it is returned as a \c const pointer.
+ * 
+*/
+PURPLEAPI const void * p_node_b_layer_read_multi_begin(PONode *node	/** The node whose layers is to be accessed. */,
+						   VNBLayerType format	/** The format in which the plug-in wishes to access the pixels. */,
+						   ...)
+{
+	va_list		layers;
+	const void	*fb;
+
+	va_start(layers, format);
+	fb = nodedb_b_layer_read_multi_begin((NodeBitmap *) node, format, layers);
+	va_end(layers);
+	return fb;
+}
+
+/** \brief Stop accessing interleaved multi-layer read buffer.
+ * 
+ * This function hands a multi-layer buffer created by a call to \c p_node_b_layer_access_multi_begin() back to
+ * Purple. It will convert the data in the layer to whatever format each of the source layers is in, and write
+ * it back into the layers.
+ * 
+ * You must call this function on the buffer, or risk leaking memory. Plus, the symmetry it achieves is just plain nice.
+*/
+PURPLEAPI void p_node_b_layer_read_multi_end(PONode *node, const void *framebuffer)
+{
+	nodedb_b_layer_read_multi_end((NodeBitmap *) node, framebuffer);
+}
+
+/** \brief Create "interleaved" buffer for multi-layer writing.
+ * 
+ * This function requests that Purple merge several layers into a single buffer, for convenient access by 
+ * plug-in code. Since the Verse bitmap format only supports one value per pixel in a layer, representing
+ * i.e. an ordinary RGB color image requires the use of three separate layers. Doing per-pixel operations
+ * on such data can be a bit inconvenient, which is why this function exists to make it easier.
+ * 
+ * \see The \c p_node_b_layer_read_multi_begin() function for details on the format of the returned buffer.
+ *
  * \code
  * // Example to set a standard color bitmap to "all white", using 8-bit intermediate precision.
  * uint16 width, height, depth;
  * uint8  *pixels;
  * 
  * p_node_b_get_dimensions(node, &width, &height, &depth);
- * pixels = p_node_b_layer_access_multi_begin(node, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL);
+ * pixels = p_node_b_layer_write_multi_begin(node, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL);
  * memset(pixels, 255, width * height * depth);
- * p_node_b_layer_access_multi_end(pixels);
+ * p_node_b_layer_write_multi_end(pixels);
  * \endcode
 */
-PURPLEAPI void * p_node_b_layer_access_multi_begin(PONode *node	/** The node whose layers is to be accessed. */,
+PURPLEAPI void * p_node_b_layer_write_multi_begin(PONode *node	/** The node whose layers is to be accessed. */,
 						   VNBLayerType format	/** The format in which the plug-in wishes to access the pixels. */,
-						   ...	/** Skaab. */)
+						   ...)
 {
 	va_list	layers;
 	void	*fb;
 
 	va_start(layers, format);
-	fb = nodedb_b_layer_access_multi_begin((NodeBitmap *) node, format, layers);
+	fb = nodedb_b_layer_write_multi_begin((NodeBitmap *) node, format, layers);
 	va_end(layers);
 	return fb;
 }
 
-/** \brief Stop accessing interleaved multi-layer buffer.
+/** \brief Stop accessing interleaved multi-layer write buffer.
  * 
  * This function hands a multi-layer buffer created by a call to \c p_node_b_layer_access_multi_begin() back to
  * Purple. It will convert the data in the layer to whatever format each of the source layers is in, and write
  * it back into the layers.
  * 
- * You must call this function on the buffer, or memory will be lost.
+ * You \b must call this function on the buffer, or memory is leaked and any changes done to \c framebuffer are lost.
 */
-PURPLEAPI void p_node_b_layer_access_multi_end(PONode *node, void *framebuffer)
+PURPLEAPI void p_node_b_layer_write_multi_end(PONode *node, void *framebuffer)
 {
-	nodedb_b_layer_access_multi_end((NodeBitmap *) node, framebuffer);
+	nodedb_b_layer_write_multi_end((NodeBitmap *) node, framebuffer);
 }
 
 /** @} */
