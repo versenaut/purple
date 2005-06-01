@@ -445,7 +445,7 @@ static void multi_put_pixel(struct multi_info *mi, int x)
 	}
 }
 
-void * nodedb_b_layer_access_multi_begin(NodeBitmap *node, VNBLayerType format, va_list layers)
+const void * nodedb_b_layer_read_multi_begin(NodeBitmap *node, VNBLayerType format, va_list layers)
 {
 	const size_t		mul[] = { 1,  1,  2,  4,  8 };
 	size_t			num = 0, x, y, z, row_size, sheet_size;
@@ -508,7 +508,23 @@ void * nodedb_b_layer_access_multi_begin(NodeBitmap *node, VNBLayerType format, 
 	return mi->fb;
 }
 
-void nodedb_b_layer_access_multi_end(NodeBitmap *node, void *framebuffer)
+void * nodedb_b_layer_write_multi_begin(NodeBitmap *node, VNBLayerType format, va_list layers)
+{
+	return (void *) nodedb_b_layer_read_multi_begin(node, format, layers);
+}
+
+void nodedb_b_layer_read_multi_end(NodeBitmap *node, const void *framebuffer)
+{
+	struct multi_info	*mi = (struct multi_info *) ((char *) framebuffer - (sizeof *mi));
+	size_t			i;
+
+	/* Stop accessing layers. */
+	for(i = 0; i < mi->num; i++)
+		nodedb_b_layer_access_end(node, mi->layer[i], mi->access[i]);
+	mem_free(mi);
+}
+
+void nodedb_b_layer_write_multi_end(NodeBitmap *node, void *framebuffer)
 {
 	struct multi_info	*mi = (struct multi_info *) ((char *) framebuffer - (sizeof *mi));
 	size_t			i, x, y, z, off;
@@ -543,10 +559,7 @@ void nodedb_b_layer_access_multi_end(NodeBitmap *node, void *framebuffer)
 			}
 		}
 	}
-	/* Stop accessing layers. */
-	for(i = 0; i < mi->num; i++)
-		nodedb_b_layer_access_end(node, mi->layer[i], mi->access[i]);
-	mem_free(mi);
+	nodedb_b_layer_read_multi_end(node, framebuffer);
 }
 
 /* ----------------------------------------------------------------------------------------- */
