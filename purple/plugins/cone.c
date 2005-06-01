@@ -1,5 +1,5 @@
 /*
- * This plug-in creates a two-node box, using inputs to set side length and tesselation.
+ * This plug-in creates a cone, using inputs to set tesselation and height.
 */
 
 #include <math.h>
