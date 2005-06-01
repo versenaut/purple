@@ -17,7 +17,9 @@ static void do_oilify(uint8 *dst, const uint8 *src, uint16 width, uint16 height,
 	int	x, y, x1, y1, x2, y2, ax, ay, i, j;
 	uint32	hist[3][256], max[3], cnt;
 
-	size /= 2;
+	printf("computing oilify, size=%g from %p to %p\n", size, src, dst);
+
+	size /= 2.0;
 
 	for(y = 0; y < height; y++)
 	{
@@ -53,6 +55,10 @@ static void do_oilify(uint8 *dst, const uint8 *src, uint16 width, uint16 height,
 	}
 }
 
+/* Do "oil" filter of the first input bitmap. Restricted to just the first to avoid
+ * problems with labelling. :/ Uses separate accesses to read/write, since you cannot
+ * do the oil filter as implemented here in-place.
+*/
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
 	PINode	*node;
@@ -64,18 +70,19 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	size = p_input_uint32(input[1]);
 	for(i = 0; (node = p_input_node_nth(input[0], i)) != NULL; i++)
 	{
-		void	*read, *write;
+		const void	*read;
+		void		*write;
 
 		if(p_node_get_type(node) != V_NT_BITMAP)
 			continue;
 		out = p_output_node_copy(output, node, 0);
-		if((read  = p_node_b_layer_access_multi_begin(out, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL &&
-		   (write = p_node_b_layer_access_multi_begin(out, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL)
+		if((read  = p_node_b_layer_read_multi_begin(out, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL &&
+		   (write = p_node_b_layer_write_multi_begin(out, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL)
 		{
 			p_node_b_get_dimensions(out, &w, &h, NULL);
 			do_oilify(write, read, w, h, size);
-			p_node_b_layer_access_multi_end(out, write);
-			p_node_b_layer_access_multi_end(out, read);
+			p_node_b_layer_write_multi_end(out, write);
+			p_node_b_layer_read_multi_end(out, read);
 		}
 		break;
 	}

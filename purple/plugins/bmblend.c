@@ -8,11 +8,12 @@
 
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
-	PINode	*in1, *in2;
-	PONode	*out;
-	uint16	dim1[3], dim2[3], width, height, depth;
-	real32	alpha, alphainv;
-	uint8	*fb1 = NULL, *fb2 = NULL, *fbout = NULL;
+	PINode		*in1, *in2;
+	PONode		*out;
+	uint16		dim1[3], dim2[3], width, height, depth;
+	real32		alpha, alphainv;
+	const uint8	*fb1 = NULL, *fb2 = NULL;
+	uint8		*fbout = NULL;
 
 	in1 = p_input_node(input[0]);
 	in2 = p_input_node(input[1]);
@@ -38,9 +39,9 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	p_node_b_layer_create(out, "col_b", VN_B_LAYER_UINT8);
 
 	/* Begin access to RGB layers in sources and destination. */
-	if((fb1 = p_node_b_layer_access_multi_begin((PONode *) in1, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL &&
-	   (fb2 = p_node_b_layer_access_multi_begin((PONode *) in2, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL &&
-	   (fbout = p_node_b_layer_access_multi_begin(out, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL)
+	if((fb1 = p_node_b_layer_read_multi_begin((PONode *) in1, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL &&
+	   (fb2 = p_node_b_layer_read_multi_begin((PONode *) in2, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL &&
+	   (fbout = p_node_b_layer_write_multi_begin(out, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL)
 	{
 		int	x, y, z;
 
@@ -59,11 +60,11 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	}
 	/* Finalize accesses. */
 	if(fb1 != NULL)
-		p_node_b_layer_access_multi_end(in1, fb1);
+		p_node_b_layer_read_multi_end(in1, fb1);
 	if(fb2 != NULL)
-		p_node_b_layer_access_multi_end(in2, fb2);
+		p_node_b_layer_read_multi_end(in2, fb2);
 	if(fbout != NULL)
-		p_node_b_layer_access_multi_end(out, fbout);
+		p_node_b_layer_write_multi_end(out, fbout);
 
 	return P_COMPUTE_DONE;
 }
