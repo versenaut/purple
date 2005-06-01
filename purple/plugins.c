@@ -49,7 +49,7 @@ struct Library
 	int	initialized;
 };
 
-#define	META_CATEGORY_LIMIT	32
+#define	META_CATEGORY_LIMIT	64
 #define	META_TEXT_LIMIT		1024
 
 typedef struct
