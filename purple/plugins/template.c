@@ -38,8 +38,8 @@ PURPLE_PLUGIN void init(void)
 	/* Initialize inputs. */
 	p_init_input(0, P_INPUT_REAL32, "x", P_INPUT_REQUIRED, P_INPUT_DONE);
 	/* Set meta information. */
-	p_init_meta("desc/purpose", "Shows how to use Purple API");
-	p_init_meta("author", "Randomm Developer");
+	p_init_meta("authors", "Random Developer");
+	p_init_meta("desc/purpose", "Shows wanna-be developers how to use the Purple API.");
 	/* Register state structure size, and constructor/destructor functions. */
 	p_init_state(sizeof (State), ctor, dtor);
 	/* Finally register the compute() callback. */

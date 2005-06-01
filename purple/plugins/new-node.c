@@ -113,7 +113,7 @@ static void init_meta(const char *type)
 	p_init_meta("authors", "Emil Brink");
 	p_init_meta("copyright", "2005 KTH");
 	sprintf(purp, "Creates a new %s node, with a given name.", type);
-	p_init_meta("help/purpose", purp);
+	p_init_meta("desc/purpose", purp);
 }
 
 PURPLE_PLUGIN void init(void)

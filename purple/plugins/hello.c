@@ -22,7 +22,7 @@ PURPLE_PLUGIN void init(void)
 		     P_INPUT_REQUIRED,
 		     P_INPUT_DONE);
 	p_init_input(1, P_VALUE_STRING, "text", P_INPUT_DEFAULT_STR("monster"), P_INPUT_DONE);
-	p_init_meta("desc/purpose", "Say hello to the world");
-	p_init_meta("author", "Emil Brink");
+	p_init_meta("desc/purpose", "Say hello to the world.");
+	p_init_meta("authors", "Emil Brink");
 	p_init_compute(compute);
 }

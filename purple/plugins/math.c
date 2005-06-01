@@ -86,13 +86,13 @@ PURPLE_PLUGIN void init(void)
 	p_init_input(0, P_VALUE_REAL32, "a", P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_input(1, P_VALUE_REAL32, "b", P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_meta("desc/purpose", "Adds two real32 numbers together");
-	p_init_meta("author", "Emil Brink");
+	p_init_meta("authors", "Emil Brink");
 	p_init_compute(compute_add_real32);
 
 	p_init_create("sub_r32");
 	p_init_input(0, P_VALUE_REAL32, "a", P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_input(1, P_VALUE_REAL32, "b", P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_meta("desc/purpose", "Computes difference of two real32 numbers");
-	p_init_meta("author", "Emil Brink");
+	p_init_meta("authors", "Emil Brink");
 	p_init_compute(compute_sub_real32);
 }
