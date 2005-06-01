@@ -997,7 +997,7 @@ void sync_node_add(PNode *node)
 	else
 		sync_info.queue_sync = list_prepend(sync_info.queue_sync, (void *) node);
 	nodedb_ref(node);	/* We've added a reference to the node. */
-	printf("node at %p (%u) added to synchronizing system (ref=%d)\n", node, node->id, node->ref);
+	printf("node at %p (%u, '%s') added to synchronizing system (ref=%d)\n", node, node->id, node->name, node->ref);
 }
 
 void sync_update(double slice)
