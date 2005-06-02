@@ -232,7 +232,39 @@ PURPLEAPI PONode * p_output_node_o_link(PPOutput out, PONode *node, const char *
 	return n;
 }
 
-PURPLEAPI PONode * p_output_node_create(PPOutput out, VNodeType type, uint32 label)
+/** \brief Create a new node, and output it.
+ * 
+ * This function creates a new node of the given type, and makes sure it is added to the
+ * set of node data emitted by the given output.
+ * 
+ * The label parameter is used to give the output node an unique identity. This is not
+ * a perfect solution; but it is how things work. Basically, a plug-in should give
+ * Purple unique integers, monotonically increasing from 0, as values here.
+ * 
+ * The reason these IDs are needed is that Purple internally needs to be able to buffer
+ * the nodes, and re-use them for the next invocation of a plug-in. It cannot assign the
+ * numbers itself, since branching in the plug-in code might make calls to the
+ * \c p_output_node_create() function occur in different order at different times.
+ * 
+ * Here's an example of a plug-in that outputs two bitmap nodes (only the \c compute()
+ * function is shown):
+ * \code
+ * #include "purple.h"
+ * 
+ * static PComputeStatus compute(PPInput *input, PPOutput output, void *user)
+ * {
+ * 	PONode	*bm0, *bm1;
+ * 
+ * 	bm0 = p_output_node_create(output, V_NT_BITMAP, 0);	// Use 0 for first node.
+ * 	bm1 = p_output_node_create(output, V_NT_BITMAP, 1);	// Increment to 1 for second.
+ * 
+ * 	return P_COMPUTE_DONE;
+ * }
+ * \endcode
+*/
+PURPLEAPI PONode * p_output_node_create(PPOutput out	/** The output to use. */,
+					VNodeType type	/** The type of node to be created. */,
+					uint32 label	/** A unique small number that identifies this particular output call. */)
 {
 	PONode	*n = graph_port_output_node_create(out, type, label);
 
@@ -277,19 +309,55 @@ PURPLEAPI PONode * p_output_node_create(PPOutput out, VNodeType type, uint32 lab
 	return n;
 }
 
-PURPLEAPI PONode * p_output_node_copy(PPOutput out, PINode *node, uint32 label)
+/** \brief Copy an input node to the output.
+ * 
+ * This function \b copies an input node, and adds the resulting copy to the plug-in's
+ * set of output node data.
+ * 
+ * Using this function is the only way to create a plug-in that acts as a "pass-through"
+ * for node data if you want to be modifying it in the process.
+ * 
+ * \note This function creates an identical copy of the input, that shares no storage.
+ * This means that all data in layers/buffers/fragments and so on is duplicated. This
+ * is quite an expensive operation.
+ * 
+ * During the copy, the node's name will have "copy of" prepended. If it is already
+ * there, a number will be inserted, and incremented on each subsequent copy (i.e.
+ * "copy 2 of foo", "copy 3 of foo", and so on).
+ * 
+ * The label parameter works just the same as with \c p_output_node_create() above.
+ * 
+ * Here's a simple example that filters out the first object node in the input,
+ * and renames it to "banana":
+ * \code
+ * #include "purple.h"
+ * 
+ * static PComputeStatus compute(PPInput *input, PPOutput output, void *user)
+ * {
+ * 	int	i;
+ * 	PINode	*in;
+ * 	PONode	*out;
+ * 
+ * 	for(i = 0; (in = p_input_node_nth(input[0], i)) != NULL; i++)
+ * 	{
+ * 		if(p_node_get_type(in) == V_NT_OBJECT)
+ * 		{
+ * 			PONode	*out;
+ * 
+ * 			out = p_output_node_copy(output, in, 0);
+ * 			p_node_set_name(out, "banana");		// Change name of copy.
+ * 			break;
+ * 		}
+ * 	}
+ * 	return P_COMPUTE_DONE;
+ * }
+ * \endcode
+*/
+PURPLEAPI PONode * p_output_node_copy(PPOutput out	/** The output to use. */,
+				      PINode *node	/** The input node that is to be copied. */,
+				      uint32 label	/** A unique small number that identifies this particular copy call. */)
 {
 	return graph_port_output_node_copy(out, node, label);
-}
-
-PURPLEAPI PONode * p_output_node_pass(PPOutput out, PINode *node)
-{
-	if(out != NULL && node != NULL)
-	{
-		graph_port_output_set_node(out, (PONode *) node);
-		return (PONode *) node;
-	}
-	return NULL;
 }
 
 /** @} */
