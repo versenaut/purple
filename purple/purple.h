@@ -371,9 +371,6 @@ PURPLEAPI PONode *		p_output_node_copy(PPOutput out, PINode *node, uint32 label)
 /* Retreive object link target, copy it, and update link to point to new copy. */
 PURPLEAPI PONode *		p_output_node_o_link(PPOutput out, PONode *node, const char *label);
 
-/* Pass on an input node *directly*, does not (as other create calls do) copy it. Dangerous. */
-PURPLEAPI PONode *		p_output_node_pass(PPOutput out, PINode *node);
-
 /* Fills in the various single-value slots in the output. */
 PURPLEAPI void			p_output_boolean(PPOutput out,  boolean value);
 PURPLEAPI void			p_output_int32(PPOutput out,  int32 value);
