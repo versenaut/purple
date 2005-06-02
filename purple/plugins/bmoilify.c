@@ -13,9 +13,10 @@
 */
 static void do_oilify(uint8 *dst, const uint8 *src, uint16 width, uint16 height, real32 size)
 {
-	uint8	*get, *put = dst;
-	int	x, y, x1, y1, x2, y2, ax, ay, i, j;
-	uint32	hist[3][256], max[3], cnt;
+	const uint8	*get;
+	uint8		*put = dst;
+	int		x, y, x1, y1, x2, y2, ax, ay, i, j;
+	uint32		hist[3][256], max[3], cnt;
 
 	printf("computing oilify, size=%g from %p to %p\n", size, src, dst);
 
