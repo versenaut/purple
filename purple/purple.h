@@ -289,8 +289,8 @@ PURPLEAPI VNBLayerType		p_node_b_layer_get_type(const PNBLayer *layer);
 PURPLEAPI PNBLayer *		p_node_b_layer_create(PONode *node, const char *name, VNBLayerType type);
 PURPLEAPI void *		p_node_b_layer_access_begin(PONode *node, PNBLayer *layer);
 PURPLEAPI void			p_node_b_layer_access_end(PONode *node, PNBLayer *layer, void *framebuffer);
-PURPLEAPI const void *		p_node_b_layer_read_multi_begin(PONode *node, VNBLayerType format, ... /* Layer names ending with NULL. */);
-PURPLEAPI void			p_node_b_layer_read_multi_end(PONode *node, const void *framebuffer);
+PURPLEAPI const void *		p_node_b_layer_read_multi_begin(PINode *node, VNBLayerType format, ... /* Layer names ending with NULL. */);
+PURPLEAPI void			p_node_b_layer_read_multi_end(PINode *node, const void *framebuffer);
 PURPLEAPI void *		p_node_b_layer_write_multi_begin(PONode *node, VNBLayerType format, ... /* Layer names ending with NULL. */);
 PURPLEAPI void			p_node_b_layer_write_multi_end(PONode *node, void *framebuffer);
 /* Simple write-only set-function, that should return pixel for (x,y,z). Can't read; not suitable for filtering. */

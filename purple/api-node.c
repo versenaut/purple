@@ -1037,6 +1037,9 @@ PURPLEAPI void p_node_b_set_dimensions(PONode *node	/** The node whose size is t
 /** \brief Retreive size of a bitmap.
  * 
  * Get the size of a bitmap. All layers in a bitmap share the same size. The size is set by the \c p_node_b_set_dimensions() function.
+ * 
+ * Sizes are returned by filling variables to which you provide pointers, see below. Any of the pointers may be NULL, if you
+ * are not interested in the size in that particular dimension.
 */
 PURPLEAPI void p_node_b_get_dimensions(PINode *node	/** The node whose size is to be retrieved. */,
 				       uint16 *width	/** Pointer to \c uint16 that is set to the width of the bitmap. */,
@@ -1197,7 +1200,7 @@ PURPLEAPI void p_node_b_layer_destroy(PONode *node	/** The node in which a layer
  * is why it is returned as a \c const pointer.
  * 
 */
-PURPLEAPI const void * p_node_b_layer_read_multi_begin(PONode *node	/** The node whose layers is to be accessed. */,
+PURPLEAPI const void * p_node_b_layer_read_multi_begin(PINode *node	/** The node whose layers is to be accessed. */,
 						   VNBLayerType format	/** The format in which the plug-in wishes to access the pixels. */,
 						   ...)
 {
@@ -1218,7 +1221,7 @@ PURPLEAPI const void * p_node_b_layer_read_multi_begin(PONode *node	/** The node
  * 
  * You must call this function on the buffer, or risk leaking memory. Plus, the symmetry it achieves is just plain nice.
 */
-PURPLEAPI void p_node_b_layer_read_multi_end(PONode *node, const void *framebuffer)
+PURPLEAPI void p_node_b_layer_read_multi_end(PINode *node, const void *framebuffer)
 {
 	nodedb_b_layer_read_multi_end((NodeBitmap *) node, framebuffer);
 }
