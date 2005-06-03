@@ -23,6 +23,7 @@ typedef struct {
 	char		name[32];
 	VNBLayerType	type;
 	void		*data;
+	size_t		size;
 } BitmapLayer;
 
 typedef struct {
@@ -159,6 +160,7 @@ static void put_layer(GdkPixbuf *dst, const BitmapLayer *layer, const NodeBitmap
 	{
 		register gfloat	alpha, ialpha;
 		int	bg;
+		int	rgb[3];
 
 		for(y = 0; y < node->height; y++)
 		{
@@ -191,10 +193,22 @@ static gboolean cb_refresh_timeout(gpointer user)
 	if(node->image != NULL)
 	{
 		GdkPixbuf	*dst;
+		GList		*l = NULL;
 
 		dst = gtk_image_get_pixbuf(GTK_IMAGE(node->image));
 		for(iter = node->layers; iter != NULL; iter = g_list_next(iter))
+		{
+			if(strcmp(((BitmapLayer *) iter->data)->name, "alpha") == 0)
+				l = g_list_append(l, iter->data);
+			else
+				l = g_list_prepend(l, iter->data);
+		}
+		for(iter = l; iter != NULL; iter = g_list_next(iter))
+		{
+			printf("%s: %02X\n", ((BitmapLayer *) iter->data)->name, *(guchar *) ((BitmapLayer *) iter->data)->data);
 			put_layer(dst, iter->data, node);
+		}
+		g_list_free(l);
 		gtk_image_set_from_pixbuf(GTK_IMAGE(node->image), dst);
 	}
 /*	gdk_pixbuf_destroy(dst);*/
@@ -239,11 +253,11 @@ static void layer_resize(BitmapLayer *layer, uint16 width, uint16 height, uint16
 	/* FIXME: This code is so full of holes, it's amazing you see anything at all. */
 	if(layer->data != NULL)
 		;
-	size = (type_bits(layer->type) * width * height * depth + 7) / 8;
-	nd = g_malloc(size);
+	layer->size = (type_bits(layer->type) * width * height * depth + 7) / 8;
+	nd = g_malloc(layer->size);
 	if(nd != NULL)
 	{
-		memset(nd, 0xaa, size);
+		memset(nd, 0, layer->size);
 		layer->data = nd;
 /*		printf("layer %s resized to %ux%ux%u, data at %p\n", layer->name, width, height, depth, layer->data);*/
 	}
@@ -258,9 +272,7 @@ static void node_bitmap_refresh_info(const NodeBitmap *node)
 		gchar		ltext[64];
 
 		for(iter = node->layers, ln = size = 0; iter != NULL; iter = g_list_next(iter), ln++)
-		{
-			size += (type_bits(((BitmapLayer *) iter->data)->type) * node->width * node->height * node->depth + 7) / 8;
-		}
+			size += ((BitmapLayer *) iter->data)->size;
 		g_snprintf(ltext, sizeof ltext, "%ux%ux%u pixels in %u layers; %u bytes total", node->width, node->height, node->depth, ln, size);
 		gtk_label_set_text(GTK_LABEL(node->info), ltext);
 	}
@@ -283,6 +295,8 @@ static BitmapLayer * node_bitmap_layer_new(MainInfo *min, VNodeID node_id, VLaye
 	layer_resize(layer, node->width, node->height, node->depth);
 
 	node->layers = g_list_append(node->layers, layer);
+
+	printf("created layer %u (%s.%s), type %d\n", layer->id, node->name, layer->name, layer->type);
 
 	return layer;
 }
@@ -397,10 +411,6 @@ static void cb_b_dimensions_set(void *user, VNodeID node_id, uint16 width, uint1
 static void cb_b_layer_create(void *user, VNodeID node_id, VLayerID layer_id, const char *name, VNBLayerType type)
 {
 	node_bitmap_layer_new(user, node_id, layer_id, name, type);
-/*	verse_send_b_layer_subscribe(node_id, layer_id, 0);*/
-/*	if(((MainInfo *) user)->cur_node == node_id)
-		combo_buffers_refresh(user);
-*/
 }
 
 static void evt_node_changed(GtkWidget *wid, gpointer user)
@@ -512,7 +522,7 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 		return;
 	if((layer = layer_lookup(user, node_id, layer_id)) == NULL)
 		return;
-/*	printf("setting tile at (%u,%u,%u) in %p\n", tile_x, tile_y, tile_z, layer->data);*/
+/*	printf("setting tile at (%u,%u,%u) in %s (%u)\n", tile_x, tile_y, tile_z, layer->name, layer->id);*/
 	wt = (node->width  + VN_B_TILE_SIZE - 1) / VN_B_TILE_SIZE;
 	ht = (node->height + VN_B_TILE_SIZE - 1) / VN_B_TILE_SIZE;
 	tw = (tile_x == wt - 1) && (node->width  % VN_B_TILE_SIZE) != 0 ? node->width  % VN_B_TILE_SIZE : VN_B_TILE_SIZE;
