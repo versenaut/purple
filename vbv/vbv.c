@@ -85,24 +85,6 @@ static void node_select(MainInfo *min, const char *name)
 		gtk_widget_set_sensitive(min->subscribe, !node->subscribed);
 }
 
-static BitmapLayer * layer_select(MainInfo *min, const char *name)
-{
-	NodeBitmap	*node;
-	const GList	*iter;
-
-	if((node = node_lookup(min, min->cur_node)) == NULL)
-		return NULL;
-	for(iter = node->layers; iter != NULL; iter = g_list_next(iter))
-	{
-		if(strcmp(((const BitmapLayer *) iter->data)->name, name) == 0)
-		{
-/*			min->cur_layer = ((const BitmapLayer *) iter->data)->id;*/
-			return iter->data;
-		}
-	}
-	return NULL;
-}
-
 static BitmapLayer * layer_lookup(const MainInfo *min, VNodeID node_id, VLayerID layer_id)
 {
 	NodeBitmap	*node;
@@ -556,6 +538,9 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 			}
 		}
 		break;
+	default:
+		fprintf(stderr, "vbv: Layer type %d (not uint8) not yet supported\n", layer->type);
+		return;
 	}
 	node->tile_count++;
 	tnum = g_list_length(node->layers) * wt * ht * node->depth;
