@@ -160,7 +160,6 @@ static void put_layer(GdkPixbuf *dst, const BitmapLayer *layer, const NodeBitmap
 	{
 		register gfloat	alpha, ialpha;
 		int	bg;
-		int	rgb[3];
 
 		for(y = 0; y < node->height; y++)
 		{
@@ -196,6 +195,7 @@ static gboolean cb_refresh_timeout(gpointer user)
 		GList		*l = NULL;
 
 		dst = gtk_image_get_pixbuf(GTK_IMAGE(node->image));
+		gdk_pixbuf_fill(dst, 0u);
 		for(iter = node->layers; iter != NULL; iter = g_list_next(iter))
 		{
 			if(strcmp(((BitmapLayer *) iter->data)->name, "alpha") == 0)
@@ -204,14 +204,10 @@ static gboolean cb_refresh_timeout(gpointer user)
 				l = g_list_prepend(l, iter->data);
 		}
 		for(iter = l; iter != NULL; iter = g_list_next(iter))
-		{
-			printf("%s: %02X\n", ((BitmapLayer *) iter->data)->name, *(guchar *) ((BitmapLayer *) iter->data)->data);
 			put_layer(dst, iter->data, node);
-		}
 		g_list_free(l);
 		gtk_image_set_from_pixbuf(GTK_IMAGE(node->image), dst);
 	}
-/*	gdk_pixbuf_destroy(dst);*/
 	node->evt_refresh = 0u;
 	return FALSE;
 }
@@ -248,7 +244,6 @@ static size_t type_bits(VNBLayerType type)
 static void layer_resize(BitmapLayer *layer, uint16 width, uint16 height, uint16 depth)
 {
 	void	*nd;
-	size_t	size;
 
 	/* FIXME: This code is so full of holes, it's amazing you see anything at all. */
 	if(layer->data != NULL)
@@ -299,6 +294,20 @@ static BitmapLayer * node_bitmap_layer_new(MainInfo *min, VNodeID node_id, VLaye
 	printf("created layer %u (%s.%s), type %d\n", layer->id, node->name, layer->name, layer->type);
 
 	return layer;
+}
+
+static void node_bitmap_layer_destroy(MainInfo *min, VNodeID node_id, VLayerID layer_id)
+{
+	NodeBitmap	*node;
+	BitmapLayer	*layer;
+
+	if((node = node_lookup(min, node_id)) == NULL)
+		return;
+	if((layer = layer_lookup(min, node_id, layer_id)) == NULL)
+		return;
+	g_free(layer->data);
+	node->layers = g_list_remove(node->layers, layer);
+	node_bitmap_queue_refresh(node);
 }
 
 static void node_bitmap_show(NodeBitmap *node)
@@ -411,6 +420,11 @@ static void cb_b_dimensions_set(void *user, VNodeID node_id, uint16 width, uint1
 static void cb_b_layer_create(void *user, VNodeID node_id, VLayerID layer_id, const char *name, VNBLayerType type)
 {
 	node_bitmap_layer_new(user, node_id, layer_id, name, type);
+}
+
+static void cb_b_layer_destroy(void *user, VNodeID node_id, VLayerID layer_id)
+{
+	node_bitmap_layer_destroy(user, node_id, layer_id);
 }
 
 static void evt_node_changed(GtkWidget *wid, gpointer user)
@@ -528,6 +542,7 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 	tw = (tile_x == wt - 1) && (node->width  % VN_B_TILE_SIZE) != 0 ? node->width  % VN_B_TILE_SIZE : VN_B_TILE_SIZE;
 	th = (tile_y == ht - 1) && (node->height % VN_B_TILE_SIZE) != 0 ? node->height % VN_B_TILE_SIZE : VN_B_TILE_SIZE;
 	sheet = (type_bits(layer->type) * node->width * node->height + 7) / 8;
+/*	printf("putting tile in %s\n", layer->name);*/
 	switch(layer->type)
 	{
 	case VN_B_LAYER_UINT8:
@@ -626,6 +641,7 @@ int main(int argc, char *argv[])
 	verse_callback_set(verse_send_node_name_set,	cb_node_name_set, &min);
 	verse_callback_set(verse_send_b_dimensions_set,	cb_b_dimensions_set, &min);
 	verse_callback_set(verse_send_b_layer_create,	cb_b_layer_create, &min);
+	verse_callback_set(verse_send_b_layer_destroy,	cb_b_layer_destroy, &min);
 	verse_callback_set(verse_send_b_tile_set,	cb_b_tile_set, &min);
 
 	for(i = 1; argv[i] != NULL; i++)
