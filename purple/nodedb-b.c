@@ -484,7 +484,7 @@ const void * nodedb_b_layer_read_multi_begin(NodeBitmap *node, VNBLayerType form
 /*	printf("row size: %u, sheet size: %u\n", row_size, sheet_size);*/
 	if((mi = mem_alloc(sizeof *mi + sheet_size * node->depth)) == NULL)
 		return NULL;
-	mi->fb = (char *) (mi + 1);
+	mi->fb = (unsigned char *) (mi + 1);
 	mi->put = NULL;
 	mi->format = format;
 	mi->node = node;
