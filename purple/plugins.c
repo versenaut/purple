@@ -592,7 +592,7 @@ PluginStatus plugin_instance_compute(PInstance *inst)
 				if((o = inst->resolver(module, inst->resolver_data)) != NULL)
 					ps->port[i] = o;
 				else
-					printf("Couldn't resolve port %u\n", i);
+					printf("Couldn't resolve port %u\n", (unsigned int) i);
 			}
 			else
 				ps->port[i] = &ps->input[i];
