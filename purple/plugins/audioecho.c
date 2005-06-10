@@ -3,6 +3,8 @@
  * attenuated and delayed addition of the signal to itself.
 */
 
+#include <stdio.h>
+
 #include "purple.h"
 
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
