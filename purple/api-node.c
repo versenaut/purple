@@ -1379,7 +1379,7 @@ PURPLEAPI void p_node_c_curve_destroy(PONode *node	/** The node in which a curve
  * 
  * This function returns the number of keys in a single curve. Keys are used to define the curve, by interpolating between them.
 */
-PURPLEAPI size_t p_node_c_curve_key_num(const PNCCurve *curve	/** The curve whose number of keys is to be queried. */)
+PURPLEAPI unsigned int p_node_c_curve_key_num(const PNCCurve *curve	/** The curve whose number of keys is to be queried. */)
 {
 	return nodedb_c_curve_key_num(curve);
 }
