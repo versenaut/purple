@@ -288,6 +288,9 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 			}
 		}
 	}
+	/* Set creases, we do want this cube to be ... cubistic. */
+	p_node_g_crease_set_vertex(geo, NULL, ~0u);
+	p_node_g_crease_set_edge(geo, NULL, ~0u);
 
 	return P_COMPUTE_DONE;	/* Sleep until size changes. */
 }
