@@ -37,7 +37,12 @@
 */
 
 /**
- * Return the type of a node.
+ * \brief Return the type of a node.
+ * 
+ * This function returns the type of the given node. The type is simply represented as a
+ * value of type \c VNodeType. If the pointer is invalid, \c V_NT_NUM_TYPES is returned.
+ * 
+ * \see The Verse specification on the \c VNodeType enum: <http://www.blender.org/modules/verse/verse-spec/protocol-datatypes.html#type-VNodeType>.
 */
 PURPLEAPI VNodeType p_node_get_type(PINode *node	/** The node whose type is to be queried. */)
 {
@@ -45,7 +50,13 @@ PURPLEAPI VNodeType p_node_get_type(PINode *node	/** The node whose type is to b
 }
 
 /**
- * Return the name of a node.
+ * \brief Return the name of a node.
+ * 
+ * This function returns a pointer to a string representing the name of the given node. If an invalid
+ * pointer is given, \c NULL is returned.
+ * 
+ * \note This pointer returns a read-only pointer, do not modify the data at this location. Use the
+ * \c p_node_set_name() function to change the name of a node.
 */
 PURPLEAPI const char * p_node_get_name(const PNode *node	/** The node whose name is to be queried. */)
 {
@@ -53,9 +64,11 @@ PURPLEAPI const char * p_node_get_name(const PNode *node	/** The node whose name
 }
 
 /**
- * Set the name of a node.
+ * \brief Set the name of a node.
  * 
- * Node names are limited in length by Verse's data model. The current limitation is 511 bytes.
+ * This function sets the name of a node, i.e. renames it.
+ * 
+ * \note Node names are limited in length by Verse's data model. The current limitation is 511 bytes.
 */
 PURPLEAPI void p_node_set_name(PONode *node	/** The node whose name is to be changed. */,
 			       const char *name	/** The new name. */)
@@ -66,7 +79,7 @@ PURPLEAPI void p_node_set_name(PONode *node	/** The node whose name is to be cha
 /* ----------------------------------------------------------------------------------------- */
 
 /**
- * Return the number of tag groups in a node.
+ * \brief Return the number of tag groups in a node.
 */
 PURPLEAPI unsigned int p_node_tag_group_num(PINode *node	/** The node whose number of tag groups is to be queried. */)
 {
@@ -74,7 +87,9 @@ PURPLEAPI unsigned int p_node_tag_group_num(PINode *node	/** The node whose numb
 }
 
 /**
- * Return a tag group, by index. Valid index range is 0 up to, but not including, the value returned by the
+ * \brief Return a tag group, by index.
+ * 
+ * Return tag group, by index. Valid index range is 0 up to, but not including, the value returned by the
  * \c p_node_tag_group_num() function. Specifying an index outside of this range causes \c NULL to be returned.
 */
 PURPLEAPI PNTagGroup * p_node_tag_group_nth(PINode *node	/** The node whose tag group is to be accessed. */,
@@ -84,6 +99,8 @@ PURPLEAPI PNTagGroup * p_node_tag_group_nth(PINode *node	/** The node whose tag 
 }
 
 /**
+ * \brief Return a tag group, by name.
+ * 
  * Return a tag group, by name. If no tag group with the specified name exists, \c NULL is returned.
 */
 PURPLEAPI PNTagGroup * p_node_tag_group_find(PINode *node	/** The node whose tag group is to be accessed. */,
@@ -93,10 +110,11 @@ PURPLEAPI PNTagGroup * p_node_tag_group_find(PINode *node	/** The node whose tag
 }
 
 /**
- * Initialize an iterator over a node's tag groups.
+ * \brief Initialize an iterator over a node's tag groups.
  * 
- * Once the iterator is initialized, the \c p_iter_data() and \c p_iter_next() functions can be used to
- * traverse over all existing tag groups.
+ * This function initializes an iterator so that it can be used to iterate over individual
+ * tag groups in a node. Once the iterator is initialized, the \c p_iter_data() and \c p_iter_next()
+ * functions are used to do the traversing.
 */
 PURPLEAPI void p_node_tag_group_iter(PINode *node	/** The node whose tag groups are to be iterated. */,
 				     PIter *iter	/** The iterator to initialize. */)
@@ -105,7 +123,11 @@ PURPLEAPI void p_node_tag_group_iter(PINode *node	/** The node whose tag groups 
 }
 
 /**
- * Return the name of tag group.
+ * \brief Return the name of a tag group.
+ * 
+ * This function returns the name of a tag group.
+ * 
+ * \note The returned data is read-only.
 */
 PURPLEAPI const char * p_node_tag_group_get_name(const PNTagGroup *group	/** The tag group whose name is returned. */)
 {
@@ -114,8 +136,9 @@ PURPLEAPI const char * p_node_tag_group_get_name(const PNTagGroup *group	/** The
 	return NULL;
 }
 
-/**
- * Create a new tag group. Returns a reference to the new group, or \c NULL on error.
+/** \brief Create a new tag group.
+ * 
+ * This function creates a new tag group. Returns a reference to the new group, or \c NULL on error.
 */
 PURPLEAPI PNTagGroup * p_node_tag_group_create(PONode *node	/** The node in which the tag group is to be created. */,
 					       const char *name	/** The name of the new tag group. Must be unique within the node. */)
@@ -123,23 +146,27 @@ PURPLEAPI PNTagGroup * p_node_tag_group_create(PONode *node	/** The node in whic
 	return nodedb_tag_group_create(node, ~0, name);
 }
 
-/**
- * Destroy a tag group, and any tags contained in the group.
+/** \brief Destroy a tag group.
+ * 
+ * This function destroys a tag group, and any tags contained in the group.
 */
-PURPLEAPI void p_node_tag_group_destroy(PONode *node, PNTagGroup *group)
+PURPLEAPI void p_node_tag_group_destroy(PONode *node		/** The node in which a tag group is to be destroyed. */,
+					PNTagGroup *group	/** The tag group to destroy. */)
 {
 	nodedb_tag_group_destroy(group);
 }
 
-/**
- * Return the number of tags in a tag group.
+/** \brief Return number of tags in a tag group.
+ * 
+ * This function returns the number of tags in a tag group, i.e. the "size" of the tag group.
 */
 PURPLEAPI unsigned int p_node_tag_group_tag_num(const PNTagGroup *group	/** The tag group whose number of tags is queried. */)
 {
 	return nodedb_tag_group_tag_num((NdbTagGroup *) group);
 }
 
-/**
+/** \brief Return a tag by index.
+ * 
  * Return a tag, by index. Valid index range is 0 up to, but not including, the value returned by the
  * \c p_node_tag_group_tag_num() function. Specifying an index outside of this range causes \c NULL to be returned.
 */
@@ -149,8 +176,9 @@ PURPLEAPI PNTag * p_node_tag_group_tag_nth(const PNTagGroup *group	/** The tag g
 	return nodedb_tag_group_tag_nth((NdbTagGroup *) group, n);
 }
 
-/**
- * Return a tag, by name. If no tag by the given name exists, \c NULL is returned. 
+/** \brief Return a tag, by name.
+ * 
+ * This function returns a tag, by name. If no tag by the given name exists, \c NULL is returned. 
 */
 PURPLEAPI PNTag * p_node_tag_group_tag_find(const PNTagGroup *group	/** The tag group whose tags are to be searched. */,
 					    const char *name		/** The name of the tag to search for. */)
@@ -158,8 +186,10 @@ PURPLEAPI PNTag * p_node_tag_group_tag_find(const PNTagGroup *group	/** The tag 
 	return nodedb_tag_group_tag_find(group, name);
 }
 
-/**
- * Initialize an iterator over a tag group's tags.
+/** \brief Initialise iterator over tag group's tags.
+ * 
+ * This function initializes an iterator so that it can be used to iterate over the
+ * individual tags contained in the group.
 */
 PURPLEAPI void p_node_tag_group_tag_iter(const PNTagGroup *group	/** The tag group whose tags are to be iterated. */,
 					 PIter *iter			/** The iterator to initialize. */)
@@ -169,12 +199,14 @@ PURPLEAPI void p_node_tag_group_tag_iter(const PNTagGroup *group	/** The tag gro
 	iter_init_dynarr_string(iter, ((NdbTagGroup *) group)->tags, offsetof(NdbTag, name));
 }
 
-/**
- * Create a new tag. Tags are named values that reside in nodes. For more detail, please see the Verse
- * specification.
+/** \brief Create a new tag.
+ *
+ * This function creates a new tag. Tags are named values that reside in nodes. For more detail, please
+ * see the Verse specification.
  * 
  * Note that there is \b no function named p_node_tag_set() or similiar. To change the value of an existing
- * tag, use this function with the name of the old tag.
+ * tag, use this function with the name of the old tag. Doing so will effectively overwrite the old tag,
+ * possibly changing the type of the value in the process.
 */
 PURPLEAPI void p_node_tag_group_tag_create(PNTagGroup *group	/** The group in which the tag is to be created. */,
 				 const char *name,	/** The name of the new tag. Must be unique within the tag group. */
@@ -195,7 +227,8 @@ PURPLEAPI void p_node_tag_group_tag_destroy(PNTagGroup *group	/** The group in w
 	nodedb_tag_destroy(group, tag);
 }
 
-/**
+/** \brief Create a tag using textual "group/name" path.
+ *
  * Create (or set) a tag, by specifying its location using a textual address called a "path". The path is a string
  * of the form \c group/tag, where \a group is the name of the tag group to access, and \a tag is the name of the
  * tag within that group. The (forward) slash separates the group name from the tag name.
@@ -284,7 +317,8 @@ PURPLEAPI void p_node_tag_create_path(PONode *node	/** The node in which to set 
 	}
 }
 
-/**
+/** \brief Destroy a tag using textual "group/name" path.
+ * 
  * Destroy a tag, by specifying its location using a textual path. See the \c p_node_tag_create_path() function for
  * more details about paths.
  * 
@@ -314,16 +348,21 @@ PURPLEAPI void p_node_tag_destroy_path(PONode *node	/** The node in which to des
 	}
 }
 
-/**
- * Return the name of a tag.
-*/
+/** \brief Return the name of a tag.
+ * 
+ * This function returns the name of a tag.
+ * 
+ * \note The returned pointer is read-only; do not modify data at the indicated location. To
+ * rename a tag, destrot the old one and create it with the new name.
+ */
 PURPLEAPI const char * p_node_tag_get_name(const PNTag *tag	/** The tag whose name is to be queried. */)
 {
 	return nodedb_tag_get_name(tag);
 }
 
-/**
- * Return the type of a tag.
+/** \brief Return the name of a tag.
+ * 
+ * This function returns the type of a tag, represented as a value of type \c VNTagType.
 */
 PURPLEAPI VNTagType p_node_tag_get_type(const PNTag *tag	/** The tag whose type is to be queried. */)
 {
@@ -340,7 +379,9 @@ PURPLEAPI VNTagType p_node_tag_get_type(const PNTag *tag	/** The tag whose type 
  * \ingroup api_node
  * 
  * These are functions that work only on object nodes. Object nodes in Verse can be light sources, and
- * they can link to other nodes. Both of these features are exposed in the API.
+ * they can link to other nodes. Both of these features are exposed in the API. Other than that, objects
+ * do not actually have many features of their own, they rely on the linked-to nodes of other types for
+ * most things.
  * @{
 */
 
@@ -391,7 +432,8 @@ PURPLEAPI void p_node_o_link_set(PONode *node		/** The object node in which to s
 		nodedb_o_link_set_local((NodeObject *) node, link, label, target_id);
 }
 
-/**
+/** \brief Follow a link to a node.
+ * 
  * Retreive information about a link from an object node. Returns the link target, if present, or \c NULL If not.
 */
 PURPLEAPI PINode * p_node_o_link_get(const PONode *node	/** The object node whose link is to be retrieved. */,
