@@ -31,7 +31,7 @@ extern void	graph_method_send_call_mod_input_clear(uint32 graph_id, uint32 mod_i
 extern void	graph_method_check_created(NodeObject *node);
 
 /* A method call was received, check if it's one of the graph editing calls, and if so take action. */
-extern void	graph_method_receive_call(uint8 id, const void *param);
+extern void	graph_method_receive_call(uint8 id, const VNOPackedParams *param);
 
 typedef struct Graph	Graph;
 

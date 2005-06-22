@@ -177,7 +177,7 @@ static void cb_connect_accept(void *user, VNodeID avatar, void *address, void *c
 		LOG_MSG(("Got redundant connect-accept command--ignoring"));
 }
 
-static void cb_o_method_call(void *user, VNodeID node_id, uint8 group_id, uint8 method_id, VNodeID sender, void *params)
+static void cb_o_method_call(void *user, VNodeID node_id, uint8 group_id, uint8 method_id, VNodeID sender, VNOPackedParams *params)
 {
 	if(group_id == client_info.gid_control)
 		graph_method_receive_call(method_id, params);

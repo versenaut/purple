@@ -1400,7 +1400,7 @@ static void module_input_clear_links_to(Graph *g, uint32 module_id, uint32 rm)
 void send_method_call(int method, const VNOParam *param)
 {
 	const MethodInfo *mi;
-	void *pack;
+	VNOPackedParams *pack;
 
 	if(method < 0 || (size_t) method >= sizeof method_info / sizeof *method_info)
 		return;
@@ -1454,7 +1454,7 @@ void graph_method_send_call_mod_input_set(uint32 graph_id, uint32 mod_id, uint32
 {
 	VNOParam	param[4];
 	VNOParamType	type[4] = { VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT32, VN_O_METHOD_PTYPE_UINT8 };
-	void		*pack;
+	VNOPackedParams	*pack;
 	int		method = 0, i;
 
 	param[0].vuint32 = graph_id;
@@ -1572,7 +1572,7 @@ void graph_method_send_call_mod_input_clear(uint32 graph_id, uint32 module_id, u
 	send_method_call(MOD_INPUT_CLEAR, param);
 }
 
-void graph_method_receive_call(uint8 id, const void *param)
+void graph_method_receive_call(uint8 id, const VNOPackedParams *param)
 {
 	VNOParam	arg[8];
 	unsigned int	i;
