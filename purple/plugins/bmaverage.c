@@ -39,7 +39,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 */
 	if((fb = p_node_b_layer_write_multi_begin(bitmap, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL)
 	{
-		uint16	w, h, d, x, y;
+		uint16	w, h, d, x, y, here;
 		uint8	*get;
 
 		p_node_b_get_dimensions(bitmap, &w, &h, &d);
@@ -48,12 +48,13 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 			get = (uint8 *) fb + y * 3* w;
 			for(x = 0; x < h; x++, get += 3)
 			{
-				get[0] >>= 1;
-				get[1] >>= 2;
-				get[2] >>= 3;
-				printf(" (%02X,%02X,%02X)", get[0], get[1], get[2]);
+				here = (get[0] + get[1] + get[2]) / 3;
+				get[0] = here;
+				get[1] = here;
+				get[2] = here;
+/*				printf(" (%02X,%02X,%02X)", get[0], get[1], get[2]);*/
 			}
-			printf("\n");
+/*			printf("\n");*/
 		}
 		p_node_b_layer_write_multi_end(bitmap, fb);
 	}
