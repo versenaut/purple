@@ -120,6 +120,14 @@ all-plugins:
 
 # ---------------------------------------------------------
 
+DIST=purple-`date --iso-8601 | tr -d -`
+FILES=purple README plugins/*.so
+
+dist:	purple all-plugins
+	strip purple && tar czf $(DIST).tgz $(FILES)
+
+# ---------------------------------------------------------
+
 clean:	clean-plugins
 	rm -f *.o *.so $(TARGETS)
 
