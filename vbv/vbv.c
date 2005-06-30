@@ -132,6 +132,7 @@ static void put_layer(GdkPixbuf *dst, const BitmapLayer *layer, const NodeBitmap
 	stride = gdk_pixbuf_get_rowstride(dst);
 	pix = gdk_pixbuf_get_pixels(dst);
 	get = layer->data;
+/*	printf("putting layer '%s.%s'\n", node->name, layer->name);*/
 	if(strcmp(layer->name, "col_r") == 0)
 		c = 0;
 	else if(strcmp(layer->name, "col_g") == 0)
@@ -158,6 +159,7 @@ static void put_layer(GdkPixbuf *dst, const BitmapLayer *layer, const NodeBitmap
 		}
 		return;
 	}
+/*	printf(" in channel %d\n", c);*/
 	for(y = 0; y < node->height; y++)
 	{
 		put = pix + y * stride + c;
@@ -186,7 +188,9 @@ static gboolean cb_refresh_timeout(gpointer user)
 				l = g_list_prepend(l, iter->data);
 		}
 		for(iter = l; iter != NULL; iter = g_list_next(iter))
+		{
 			put_layer(dst, iter->data, node);
+		}
 		g_list_free(l);
 		gtk_image_set_from_pixbuf(GTK_IMAGE(node->image), dst);
 	}
@@ -352,25 +356,12 @@ static void combo_nodes_refresh(MainInfo *min)
 		gtk_combo_box_append_text(GTK_COMBO_BOX(min->combo_nodes), ((NodeBitmap *) iter->data)->name);
 }
 
-/*
-static void combo_layers_refresh(MainInfo *min)
-{
-	NodeText	*node;
-	GList		*iter;
-
-	if((node = node_lookup(min, min->cur_node)) == NULL)
-		return;
-	combo_box_clear(GTK_COMBO_BOX(min->combo_buffers));
-	for(iter = node->buffers; iter != NULL; iter = g_list_next(iter))
-		gtk_combo_box_append_text(GTK_COMBO_BOX(min->combo_buffers), ((TextBuffer *) iter->data)->name);
-}
-*/
 /* ----------------------------------------------------------------------------------------- */
 
 static void cb_connect_accept(void *user, uint32 avatar, void *address, void *connection, uint8 *host_id)
 {
 	printf("Connected\n");
-	verse_send_node_list(1 << V_NT_BITMAP);
+	verse_send_node_index_subscribe(1 << V_NT_BITMAP);
 }
 
 static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeID owner)
@@ -524,7 +515,6 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 	tw = (tile_x == wt - 1) && (node->width  % VN_B_TILE_SIZE) != 0 ? node->width  % VN_B_TILE_SIZE : VN_B_TILE_SIZE;
 	th = (tile_y == ht - 1) && (node->height % VN_B_TILE_SIZE) != 0 ? node->height % VN_B_TILE_SIZE : VN_B_TILE_SIZE;
 	sheet = (type_bits(layer->type) * node->width * node->height + 7) / 8;
-/*	printf("putting tile in %s\n", layer->name);*/
 	switch(layer->type)
 	{
 	case VN_B_LAYER_UINT8:
@@ -612,6 +602,7 @@ int main(int argc, char *argv[])
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 
 	min.notebook = gtk_notebook_new();
+	gtk_notebook_set_scrollable(GTK_NOTEBOOK(min.notebook), TRUE);
 	gtk_box_pack_start(GTK_BOX(vbox), min.notebook, TRUE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(min.window), vbox);
 
@@ -621,7 +612,6 @@ int main(int argc, char *argv[])
 
 	verse_callback_set(verse_send_connect_accept,	cb_connect_accept, &min);
 	verse_callback_set(verse_send_node_create,	cb_node_create,	&min);
-/*	verse_callback_set(verse_send_get_time,		cb_get_time, &min);*/
 	verse_callback_set(verse_send_ping,		cb_ping, &min);
 	verse_callback_set(verse_send_node_name_set,	cb_node_name_set, &min);
 	verse_callback_set(verse_send_b_dimensions_set,	cb_b_dimensions_set, &min);
