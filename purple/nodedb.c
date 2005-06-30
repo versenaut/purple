@@ -842,7 +842,7 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 	nodedb_c_register_callbacks();
 	nodedb_a_register_callbacks();
 
- 	verse_send_node_list(mask);
+ 	verse_send_node_index_subscribe(mask);
 }
 
 void nodedb_notify_add(NodeOwnership whose, void (*notify)(PNode *node, NodeNotifyEvent e))
