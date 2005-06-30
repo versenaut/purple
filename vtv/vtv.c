@@ -195,7 +195,7 @@ static void combo_buffers_refresh(MainInfo *min)
 static void cb_connect_accept(void *user, uint32 avatar, void *address, void *connection, uint8 *host_id)
 {
 	printf("Connected\n");
-	verse_send_node_list(1 << V_NT_TEXT);
+	verse_send_node_index_subscribe(1 << V_NT_TEXT);
 }
 
 static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeID owner)
