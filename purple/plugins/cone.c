@@ -75,6 +75,11 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	pos = apex - bottom_splits;
 	for(i = 0; i < bottom_splits; i++)
 		POLY(lay, bottom_splits + side_splits * bottom_splits + i, pos + (i + 1) % bottom_splits, pos + i, apex, ~0u);
+
+	/* Set creases, cone should be sharp. */
+	p_node_g_crease_set_vertex(geo, NULL, ~0u);
+	p_node_g_crease_set_edge(geo, NULL, ~0u);
+
 	return P_COMPUTE_DONE;	/* Sleep until size changes. */
 }
 
