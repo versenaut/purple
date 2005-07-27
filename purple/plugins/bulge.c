@@ -1,12 +1,12 @@
 /*
- * This plug-in tries to achieve some kind of "warp" or twist effect.
+ * This plug-in tries to achieve some kind of "bulge" effect on geometry.
 */
 
 #include <math.h>
 
 #include "purple.h"
 
-/* This gets called whenever input changes. Traverse vertices and warp them. */
+/* This gets called whenever input changes. Traverse vertices and apply the bulge deformation. */
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
 	PINode		*in, *ingeo;
@@ -18,8 +18,6 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	pos    = p_input_real64_vec3(input[1]);
 	vec    = p_input_real64_vec3(input[2]);
 	radius = p_input_real64(input[3]);
-
-	printf("bulge: pos=(%g,%g,%g), vec=(%g,%g,%g), radius=%g\n", pos[0], pos[1], pos[2], vec[0], vec[1], vec[2], radius);
 
 	for(i = 0; (in = p_input_node_nth(input[0], i)) != NULL; i++)
 	{
@@ -36,7 +34,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 
 		inlayer  = p_node_g_layer_find(ingeo, "vertex");
 		outlayer = p_node_g_layer_find(geo, "vertex");
-		size  = p_node_g_layer_get_size(inlayer);		/* Safely handles NULL layer. */
+		size  = p_node_g_layer_get_size(inlayer);
 		for(j = 0; j < size; j++)
 		{
 			p_node_g_vertex_get_xyz(inlayer, j, point, point + 1, point + 2);
