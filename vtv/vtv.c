@@ -38,7 +38,7 @@ typedef struct {
 	GList		*nodes;
 	GtkWidget	*window;
 
-	GtkWidget	*combo_nodes, *combo_buffers, *subscribe;
+	GtkWidget	*combo_nodes, *combo_buffers, *subscribe, *saveas;
 	GtkWidget	*notebook;
 
 	VNodeID		cur_node;
@@ -278,6 +278,7 @@ static void subscribe_set_sensitive(MainInfo *min)
 	if((buf = buffer_lookup(min, min->cur_node, min->cur_buffer)) == NULL)
 		return;
 	gtk_widget_set_sensitive(min->subscribe, buf->text == NULL);
+	gtk_widget_set_sensitive(min->saveas,    buf->text != NULL);
 }
 
 static void evt_buffer_close_clicked(GtkWidget *wid, gpointer user)
@@ -341,6 +342,61 @@ static void evt_subscribe_clicked(GtkWidget *wid, gpointer user)
 		gtk_notebook_set_current_page(GTK_NOTEBOOK(min->notebook), buf->page_num);
 		verse_send_t_buffer_subscribe(min->cur_node, min->cur_buffer);
 		subscribe_set_sensitive(min);
+	}
+}
+
+static void evt_saveas_clicked(GtkWidget *wid, gpointer user)
+{
+	MainInfo	*min = user;
+	TextBuffer	*buf;
+
+	if((buf = buffer_lookup(min, min->cur_node, min->cur_buffer)) != NULL)
+	{
+		GtkWidget	*dlg;
+
+		if(buf->text == NULL)
+			return;
+		if((dlg = gtk_file_chooser_dialog_new("Save As", GTK_WINDOW(min->window),
+						      GTK_FILE_CHOOSER_ACTION_SAVE,
+						      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+						      GTK_STOCK_SAVE_AS, GTK_RESPONSE_ACCEPT, NULL)) != NULL)
+		{
+			gchar	*spc, buffer[1024];
+
+			if((spc = strchr(buf->name, ' ')) != NULL)
+				spc++;
+			else
+				spc = buf->name;
+			g_snprintf(buffer, sizeof buffer, "%s.xml", spc);
+			gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dlg), buffer);
+			if(gtk_dialog_run(GTK_DIALOG(dlg)) == GTK_RESPONSE_ACCEPT)
+			{
+				const char	*filename;
+
+				filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dlg));
+				if(filename != NULL)
+				{
+					const gchar	*chars;
+					GtkTextBuffer	*textbuf;
+					GtkTextIter	start, end;
+
+					textbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(buf->text));
+					gtk_text_buffer_get_iter_at_offset(textbuf, &start, 0);
+					gtk_text_buffer_get_iter_at_offset(textbuf, &end,   -1);
+					if((chars = gtk_text_buffer_get_text(textbuf, &start, &end, FALSE)) != NULL)
+					{
+						FILE	*out;
+
+						if((out = fopen(filename, "w")) != NULL)
+						{
+							fwrite(chars, gtk_text_iter_get_offset(&end), 1, out);
+						}
+						fclose(out);
+					}
+				}
+			}
+			gtk_widget_destroy(dlg);
+		}
 	}
 }
 
@@ -452,6 +508,11 @@ int main(int argc, char *argv[])
 	min.subscribe = gtk_button_new_with_label("Subscribe");
 	g_signal_connect(G_OBJECT(min.subscribe), "clicked", G_CALLBACK(evt_subscribe_clicked), &min);
 	gtk_box_pack_start(GTK_BOX(hbox), min.subscribe, FALSE, FALSE, 0);
+
+	min.saveas = gtk_button_new_with_label("Save As...");
+	g_signal_connect(G_OBJECT(min.saveas), "clicked", G_CALLBACK(evt_saveas_clicked), &min);
+	gtk_box_pack_start(GTK_BOX(hbox), min.saveas, FALSE, FALSE, 0);
+	gtk_widget_set_sensitive(min.saveas, FALSE);
 
 	btn = gtk_button_new_with_label("Quit");
 	g_signal_connect(G_OBJECT(btn), "clicked", G_CALLBACK(evt_window_delete), &min);
