@@ -108,15 +108,26 @@ typedef enum
 	P_INPUT_TAG_MIN = 16,
 	P_INPUT_TAG_MAX,
 	P_INPUT_TAG_DEFAULT,
+	P_INPUT_TAG_DESC,
 } PInputTag;
 
 /* Idea: use macros to make tag lists a bit safer, and pass all min/max/default values as doubles. */
-#define	P_INPUT_DONE		P_INPUT_TAG_DONE
-#define	P_INPUT_MIN(v)		P_INPUT_TAG_MIN, (double) v
-#define	P_INPUT_MAX(v) 		P_INPUT_TAG_MAX, (double) v
-#define	P_INPUT_DEFAULT(v)	P_INPUT_TAG_DEFAULT, (double) v
-#define	P_INPUT_DEFAULT_STR(v)	P_INPUT_TAG_DEFAULT, (const char *) v
-#define	P_INPUT_REQUIRED	P_INPUT_TAG_REQUIRED
+#define	P_INPUT_DONE			P_INPUT_TAG_DONE
+#define	P_INPUT_MIN(v)			P_INPUT_TAG_MIN, (double) v
+#define	P_INPUT_MIN_VEC2(x,y)		P_INPUT_TAG_MIN, (double) x, (double) y
+#define	P_INPUT_MIN_VEC3(x,y,z)		P_INPUT_TAG_MIN, (double) x, (double) y, (double) z
+#define	P_INPUT_MIN_VEC4(x,y,z,w)	P_INPUT_TAG_MIN, (double) x, (double) y, (double) z, (double) w
+#define	P_INPUT_MAX(v) 			P_INPUT_TAG_MAX, (double) v
+#define	P_INPUT_MAX_VEC2(x,y)		P_INPUT_TAG_MAX, (double) x, (double) y
+#define	P_INPUT_MAX_VEC3(x,y,z)		P_INPUT_TAG_MAX, (double) x, (double) y, (double) z
+#define	P_INPUT_MAX_VEC4(x,y)		P_INPUT_TAG_MAX, (double) x, (double) y, (double) z, (double) w
+#define	P_INPUT_DEFAULT(v)		P_INPUT_TAG_DEFAULT, (double) v
+#define	P_INPUT_DEFAULT_VEC2(x,y)	P_INPUT_TAG_DEFAULT, (double) x, (double) y
+#define	P_INPUT_DEFAULT_VEC3(x,y,z)	P_INPUT_TAG_DEFAULT, (double) x, (double) y, (double) z
+#define	P_INPUT_DEFAULT_VEC4(x,y,z,w)	P_INPUT_TAG_DEFAULT, (double) x, (double) y, (double) z, (double) w
+#define	P_INPUT_DEFAULT_STR(v)		P_INPUT_TAG_DEFAULT, (const char *) v
+#define	P_INPUT_REQUIRED		P_INPUT_TAG_REQUIRED
+#define	P_INPUT_DESC(p)			P_INPUT_TAG_DESC, (const char *) p
 
 PURPLEAPI void		p_init_create(const char *name);
 
