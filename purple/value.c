@@ -296,7 +296,31 @@ int value_set_defminmax_va(PValue *v, PValueType type, va_list *arg)
 		case P_VALUE_INT32:		return value_set(v, type, (int32) d);
 		case P_VALUE_UINT32:		return value_set(v, type, (uint32) d);
 		case P_VALUE_REAL32:		return value_set(v, type, (real32) d);
+		case P_VALUE_REAL32_VEC2:
+		case P_VALUE_REAL32_VEC3:
+		case P_VALUE_REAL32_VEC4:
+			{
+				real32	vec[4];
+				int	i;
+
+				vec[0] = d;
+				for(i = 1; i < 2 + type - P_VALUE_REAL32_VEC2; i++)
+					vec[i] = va_arg(*arg, double);
+				return value_set(v, type, vec);
+			}
 		case P_VALUE_REAL64:		return value_set(v, type, (real64) d);
+		case P_VALUE_REAL64_VEC2:
+		case P_VALUE_REAL64_VEC3:
+		case P_VALUE_REAL64_VEC4:
+			{
+				real64	vec[4];
+				int	i;
+
+				vec[0] = d;
+				for(i = 1; i < 2 + type - P_VALUE_REAL64_VEC2; i++)
+					vec[i] = va_arg(*arg, double);
+				return value_set(v, type, vec);
+			}
 		default:
 			LOG_WARN(("Can't set default/min/max of type %d--not implemented", type));	/* FIXME */
 		}
@@ -708,7 +732,7 @@ const char * value_as_string(const PValue *v, char *buf, size_t buf_max, size_t 
 	else IF_SET(v, REAL32)
 		put = snprintf(buf, buf_max, "%g", v->v.vreal32);
 	else IF_SET(v, REAL64)
-		put = snprintf(buf, buf_max, "%10g", v->v.vreal64);
+		put = snprintf(buf, buf_max, "%g", v->v.vreal64);
 	else IF_SET(v, REAL32_VEC2)
 		put = snprintf(buf, buf_max, "[%g %g]", v->v.vreal32_vec2[0], v->v.vreal32_vec2[1]);
 	else IF_SET(v, REAL32_VEC3)
