@@ -72,6 +72,7 @@ typedef struct
 	char		name[16];
 	PValueType	type;
 	InputSpec	spec;
+	const char	*desc;
 } Input;
 
 struct Plugin
@@ -158,6 +159,7 @@ void plugin_set_input(Plugin *p, int index, PValueType type, const char *name, v
 		stu_strncpy(i.name, sizeof i.name, name);
 		i.type = type;
 		i.spec.req = i.spec.def = i.spec.min = i.spec.max = 0;
+		i.desc = NULL;
 		value_init(&i.spec.min_val);
 		value_init(&i.spec.max_val);
 		value_init(&i.spec.def_val);
@@ -165,7 +167,7 @@ void plugin_set_input(Plugin *p, int index, PValueType type, const char *name, v
 		{
 			int	tag = va_arg(taglist, int);
 
-			if(tag <= P_INPUT_TAG_DONE || tag > P_INPUT_TAG_DEFAULT)	/* Generous. */
+			if(tag <= P_INPUT_TAG_DONE || tag > P_INPUT_TAG_DESC)	/* Generous. */
 				break;
 			else if(tag == P_INPUT_TAG_REQUIRED)
 				i.spec.req = 1;
@@ -175,6 +177,8 @@ void plugin_set_input(Plugin *p, int index, PValueType type, const char *name, v
 				i.spec.max = value_set_defminmax_va(&i.spec.max_val, i.type, &taglist);
 			else if(tag == P_INPUT_TAG_DEFAULT)
 				i.spec.def = value_set_defminmax_va(&i.spec.def_val, i.type, &taglist);
+			else if(tag == P_INPUT_TAG_DESC)
+				i.desc = va_arg(taglist, char *);
 		}
 		dynarr_append(p->input, &i, NULL);
 	}
@@ -320,6 +324,12 @@ void plugin_describe_append(const Plugin *p, DynStr *d)
 					dynstr_append(d, "</max>\n");
 				}
 				dynstr_append(d, "   </range>\n");
+			}
+			if(in->desc != NULL)
+			{
+				dynstr_append(d, "   <desc>");
+				xml_dynstr_append(d, in->desc);
+				dynstr_append(d, "</desc>\n");
 			}
 			dynstr_append_printf(d, "  </input>\n");
 		}
