@@ -603,9 +603,9 @@ PURPLEAPI void p_node_g_vertex_get_xyz(const PNGLayer *layer	/** The layer in wh
 */
 PURPLEAPI void p_node_g_polygon_set_corner_uint32(PNGLayer *layer	/** The layer in which a slot is to be set. */,
 						  uint32 id		/** The ID or index of the polygon to set. */,
-						  uint32 v0,		/** Value of the first part of the corner quartet. */
+						  uint32 v0		/** Value of the first part of the corner quartet. */,
 						  uint32 v1		/** Value of the second part of the corner quartet. */,
-						  uint32 v2,		/** Value of the third part of the corner quartet. */
+						  uint32 v2		/** Value of the third part of the corner quartet. */,
 						  uint32 v3		/** Value of the fourth part of the corner quartet. */)
 {
 	nodedb_g_polygon_set_corner_uint32(layer, id, v0, v1, v2, v3);
