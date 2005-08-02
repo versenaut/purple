@@ -709,7 +709,7 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 {
 	NodeBitmap	*node;
 	NdbBLayer	*layer;
-	size_t		ps, tw, th, y, mod_src, mod_dst;
+	size_t		ps, tw, th, ht, y, mod_src, mod_dst;
 	const uint8	*get;
 	uint8		*put;
 
@@ -736,8 +736,9 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 		return;
 	}
 
-	th = (tile_y * VN_B_TILE_SIZE + 3 >= node->height) ?
-			node->height % VN_B_TILE_SIZE : VN_B_TILE_SIZE;	/* Clamp tile height against node. */
+	ht = (node->height + VN_B_TILE_SIZE - 1) / VN_B_TILE_SIZE;
+	th = (tile_y == ht - 1) && (node->height % VN_B_TILE_SIZE) != 0 ? node->height % VN_B_TILE_SIZE : VN_B_TILE_SIZE;
+	
 	get = (uint8 *) tile;		/* It's a union. */
 	put = nodedb_b_layer_tile_find(node, layer, tile_x, tile_y, tile_z);
 	mod_src = tile_modulo(node, layer);
