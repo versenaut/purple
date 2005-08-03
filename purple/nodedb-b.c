@@ -3,14 +3,13 @@
  * 
  * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
  * 
- * Bitmap node databasing. Bitmaps are stored by allocating contiguous blocks of memory for
- * the required layers, nothing very fancy at all. One-bit-per-pixel layers are stored using
+ * Bitmap node databasing. Bitmaps are stored by allocating separate contigious blocks of memory
+ * for each required layer, nothing very fancy at all. One-bit-per-pixel layers are stored using
  * 8-bit bytes as the smallest unit of allocation, and never using any single byte for pixels
  * from two different rows, so a 10x10 layer requires 20 bytes.
  * 
- * Layers are always stored with space for a whole number of tiles horizontally, but the number
- * of scanlines is always the proper one (node->height), no rounding takes place there. This
- * means we can waste at most 7 pixels per scanline (for a REAL64 layer), i.e. 56 bytes.
+ * Layers are stored with space for only the required number of pixels, which means that for
+ * many widths, the final tile will be truncated.
 */
 
 #include <stdarg.h>
@@ -74,12 +73,10 @@ static size_t tile_width(const NodeBitmap *node, const NdbBLayer *layer, uint16 
 static size_t layer_modulo(const NodeBitmap *node, const NdbBLayer *layer)
 {
 	static const size_t	bpp[] = { 0, 1, 2, 4, 8 };
-	size_t			wit;	/* Width in tiles, geddit? */
 
-	wit = VN_B_TILE_SIZE * ((node->width + VN_B_TILE_SIZE - 1) / VN_B_TILE_SIZE);
 	if(layer->type == VN_B_LAYER_UINT1)
-		return wit / 8;		/* WARNING: Basically assumes that VN_B_TILE_SIZE % 8 == 0. */
-	return wit * bpp[layer->type];
+		return (node->width + 7) / 8;
+	return node->width * bpp[layer->type];
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -145,12 +142,11 @@ void nodedb_b_destruct(NodeBitmap *n)
 int nodedb_b_set_dimensions(NodeBitmap *node, uint16 width, uint16 height, uint16 depth)
 {
 	NdbBLayer	*layer;
-	size_t		i, y, z, ps, layer_size, dss, sss;
+	size_t		i, y, z, ps, layer_size, dss, sss, cw, ch;
 	unsigned char	*fb;
 
 	if(width == node->width && height == node->height && depth == node->depth)
 		return 0;
-	printf("setting dimensions of node %u at %p to %ux%ux%u\n", node->node.id, node, width, height, depth);
 	/* Resize all layers. Heavy lifting. */
 	for(i = 0; i < dynarr_size(node->layers); i++)
 	{
@@ -161,6 +157,7 @@ int nodedb_b_set_dimensions(NodeBitmap *node, uint16 width, uint16 height, uint1
 		ps = pixel_size(layer->type);
 		layer_size = ((width * ps + 7) / 8) * height * depth;	/* Convert to whole bytes, for uint1. */
 		fb = mem_alloc(layer_size);
+		memset(fb, 0, layer_size);
 		if(fb == NULL)
 		{
 			LOG_WARN(("Couldn't allocate new framebuffer for layer %u.%u (%s)--out of memory",
@@ -168,19 +165,25 @@ int nodedb_b_set_dimensions(NodeBitmap *node, uint16 width, uint16 height, uint1
 			continue;
 		}
 		/* Copy scanlines from old buffer into new. */
+		cw = MIN(node->width, width);
+		ch = MIN(node->height, height);
 		if(layer->type == VN_B_LAYER_UINT1)
 		{
 			sss = (node->width * ps + 7) / 8;	/* Round sizes up to whole bytes. */
-			dss = (width * ps + 7) / 8;
+			dss = (cw * ps + 7) / 8;
 		}
 		else
 		{
 			sss = node->width * ps / 8;
-			dss = width * ps / 8;
+			dss = cw * ps / 8;
 		}
-		for(z = 0; z < depth; z++)
+/*		printf("node is resizing from %ux%ux%u to %ux%ux%u -- copying\n",
+		       node->width, node->height, node->depth,
+		       width, height, depth);
+		printf(" common width is %u, common height is %u, source scanline size=%u dest scanline size=%u\n", cw, ch, sss, dss);
+*/		for(z = 0; z < depth; z++)
 		{
-			for(y = 0; y < height; y++)
+			for(y = 0; y < ch; y++)
 				memcpy(fb + z * (dss * height) + y * dss,
 				       (char *) layer->framebuffer + z * sss * height + y * sss, dss);
 		}
@@ -728,7 +731,7 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 	{
 		size_t	layer_size = layer_modulo(node, layer) * node->height * node->depth;
 		layer->framebuffer = mem_alloc(layer_size);
-		memset(layer->framebuffer, layer_size, 0);
+		memset(layer->framebuffer, 0, layer_size);
 	}
 	if(layer->framebuffer == NULL)
 	{
