@@ -227,20 +227,38 @@ static size_t type_bits(VNBLayerType type)
 	return 0;
 }
 
-static void layer_resize(BitmapLayer *layer, uint16 width, uint16 height, uint16 depth)
+static void layer_resize(BitmapLayer *layer,
+			 uint16 width, uint16 height, uint16 depth,
+			 uint16 old_width, uint16 old_height, uint16 old_depth)
 {
 	void	*nd;
 
-	/* FIXME: This code is so full of holes, it's amazing you see anything at all. */
+	/* FIXME: This code isn't too smart when dealing with 1 bpp images. */
 	if(layer->data != NULL)
 		;
 	layer->size = (type_bits(layer->type) * width * height * depth + 7) / 8;
 	nd = g_malloc(layer->size);
 	if(nd != NULL)
 	{
-		memset(nd, 0, layer->size);
-		layer->data = nd;
+		if(depth != 1 || old_depth != 1)
+			memset(nd, 0xaa, layer->size);
+		else if(layer->type != VN_B_LAYER_UINT1)
+		{
+			uint32	y, cx, cy, ps = type_bits(layer->type) / 8;
+
+			cx = MIN(width, old_width);
+			cy = MIN(height, old_height);
+/*			printf("width:  new=%u old=%u common=%u\n", width, old_width, cx);
+			printf("height: new=%u old=%u common=%u\n", height, old_height, cy);
+*/			memset(nd, 0xaa, layer->size);
+			for(y = 0; y < cy; y++)
+			{
+				memcpy((uint8 *) nd + width * ps * y, layer->data + old_width * ps * y, cx * ps);
+			}
+		}
 /*		printf("layer %s resized to %ux%ux%u, data at %p\n", layer->name, width, height, depth, layer->data);*/
+		g_free(layer->data);
+		layer->data = nd;
 	}
 }
 
@@ -273,7 +291,7 @@ static BitmapLayer * node_bitmap_layer_new(MainInfo *min, VNodeID node_id, VLaye
 	layer->type = type;
 	layer->data = NULL;
 
-	layer_resize(layer, node->width, node->height, node->depth);
+	layer_resize(layer, node->width, node->height, node->depth, 0, 0, 0);
 
 	node->layers = g_list_append(node->layers, layer);
 
@@ -306,10 +324,9 @@ static void node_bitmap_show(NodeBitmap *node)
 		if(pb != NULL)
 		{
 			if(node->image != NULL)
-				gtk_container_remove(GTK_CONTAINER(node->scwin), node->image);
+				gtk_widget_destroy(node->image);
 			node->image = gtk_image_new_from_pixbuf(pb);
 			gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(node->scwin), node->image);
-			g_object_unref(pb);
 			gtk_widget_show(node->image);
 		}
 	}
@@ -319,13 +336,15 @@ static void node_dimensions_set(NodeBitmap *node, uint16 width, uint16 height, u
 {
 	const GList	*iter;
 
+/*	printf("dimensions set to %ux%ux%u\n", width, height, depth);*/
+	for(iter = node->layers; iter != NULL; iter = g_list_next(iter))
+		layer_resize((BitmapLayer *) iter->data, width, height, depth, node->width, node->height, node->depth);
 	node->width  = width;
 	node->height = height;
 	node->depth  = depth;
-	for(iter = node->layers; iter != NULL; iter = g_list_next(iter))
-		layer_resize((BitmapLayer *) iter->data, width, height, depth);
 	node_bitmap_show(node);
 	node_bitmap_queue_refresh(node);
+	node_bitmap_refresh_info(node);
 }
 
 /* ----------------------------------------------------------------------------------------- */
