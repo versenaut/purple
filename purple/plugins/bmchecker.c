@@ -36,7 +36,7 @@ PURPLE_PLUGIN void init(void)
 	p_init_input(0, P_VALUE_UINT32, "side", P_INPUT_REQUIRED, P_INPUT_DEFAULT(32),
 		     P_INPUT_DESC("Side of entire bitmap, side length in pixels."), P_INPUT_DONE);	/* Side of entire checker. */
 	p_init_input(1, P_VALUE_UINT32, "size", P_INPUT_REQUIRED, P_INPUT_DEFAULT(4),
-		     P_INPUT_DESC("Side length of each square in the pattern."), P_INPUT_DONE);	/* Size of each square. */
+		     P_INPUT_DESC("Side length of each square in the pattern."), P_INPUT_DONE);		/* Size of each square. */
 	p_init_meta("authors", "Emil Brink");
 	p_init_meta("desc/purpose", "Creates a \"checkered flag\" image in a bitmap node. Inputs "
 		    " control the size of the bitmap, as well as the size of each square in the pattern.");
