@@ -423,7 +423,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	PONode		*node;
 	PNBLayer	*layer;
 	const char	*line[32];
-	void		*ptr;
+	unsigned char	*ptr;
 
 	if(text == NULL)
 		return P_COMPUTE_DONE;
