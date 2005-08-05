@@ -21,7 +21,7 @@
 /* Magic to get symbols to export properly. Never define PURPLE_INTERNAL
  * outside of the Purple engine (for instance, when building a plug-in).
 */
-#if defined __win32
+#if defined _WIN32
 # if defined PURPLE_INTERNAL
 #  define PURPLEAPI	__declspec(dllexport)
 # else
@@ -33,7 +33,7 @@
 # else
 #  define PURPLEAPI	extern
 # endif
-#endif		/* __win32 */
+#endif		/* _WIN32 */
 
 #define PURPLE_PLUGIN PURPLEAPI	/* A simple synonym. */
 
