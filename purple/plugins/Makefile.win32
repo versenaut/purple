@@ -1,0 +1,22 @@
+#
+# A simple Makefile for building Purple plug-ins.
+#
+
+VERSE=c:\projects\verse-sdk
+
+CFLAGS=/nologo /I.. /I$(VERSE)/include /LD ../purple.lib
+
+ALL:	audioecho.dll audioscale.dll audiotone.dll bbox.dll bmaverage.dll bmblend.dll bmchecker.dll \
+	bmoilify.dll bmtext.dll bulge.dll cone.dll cube.dll curvetest.dll cylinder.dll factors.dll \
+	hello.dll math.dll mattest.dll measure.dll new-node.dll plane.dll scale.dll sphere.dll stringop.dll \
+	tagtest.dll template.dll textnum.dll warp.dll
+
+cube.dll:	cube.c
+
+.c.dll:
+	$(CC) $(CFLAGS) $**
+
+# ---------------------------------------------------------
+
+clean:
+	rm -f *.dll *.o
