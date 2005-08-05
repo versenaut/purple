@@ -57,6 +57,9 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 PURPLE_PLUGIN void init(void)
 {
 	p_init_create("bbox");
-	p_init_input(0, P_VALUE_MODULE, "data", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_MODULE, "data", P_INPUT_REQUIRED, P_INPUT_DESC("The node data to compute bounding box for. Only the first object's geometry will be considered."), P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("desc/purpose", "Compute bounding box (minimum and maximum vertex positions) for input geometry. Outputs these using the "
+		    		    "real64_vec4 and real64_vec3 output slots, respectively.");
 	p_init_compute(compute);
 }
