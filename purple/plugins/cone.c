@@ -2,6 +2,7 @@
  * This plug-in creates a cone, using inputs to set tesselation and height.
 */
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 #include "purple.h"
