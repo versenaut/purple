@@ -359,12 +359,11 @@ static void font_render_char(const Font *f, unsigned int glyph, unsigned char *f
 	}
 }
 
-static void font_render_string(const Font *f, const char *string, unsigned char *fb, size_t modulo, unsigned char pen)
+/* Render a line. Terminates by '\0' or '\n'. */
+static void font_render_line(const Font *f, const char *string, unsigned char *fb, size_t modulo, unsigned char pen)
 {
-	for(; *string != '\0'; string++, fb += f->width)
-	{
+	for(; *string != '\0' && *string != '\n'; string++, fb += f->width)
 		font_render_char(f, *string, fb, modulo, pen);
-	}
 }
 
 static void font_destroy(Font *f)
@@ -395,31 +394,52 @@ static void dtor(void *state)
 	font_destroy(s->font);
 }
 
+/* Split text into lines, terminated by line feed characters. */
+static int text_split(const char *string, const char **line, size_t max_line, size_t *longest)
+{
+	int	i, len = 0, mlen = 0;
+
+	for(i = 0; i < max_line && *string; i++)
+	{
+		line[i] = string;
+		for(len = 0; *string && *string != '\n'; len++, string++)
+			;
+		if(len > mlen)
+			mlen = len;
+		if(*string == '\n')
+			string++;
+	}
+	if(longest != NULL)
+		*longest = mlen;
+	return i;
+}
+
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
 	State		*s = state;
 	const char	*text = p_input_string(input[0]);
 	const char	*lname[] = { "col_r", "col_g", "col_b" };
-	size_t		len, i;
+	size_t		len, i, j, longest, lines;
 	PONode		*node;
 	PNBLayer	*layer;
+	const char	*line[32];
 	void		*ptr;
 
 	if(text == NULL)
 		return P_COMPUTE_DONE;
-	len = strlen(text);
-	if(len < 0 || len > 100)
-		return P_COMPUTE_DONE;
+	lines = text_split(text, line, sizeof line / sizeof *line, &longest);
 
 	node = p_output_node_create(output, V_NT_BITMAP, 0);
-	p_node_b_set_dimensions(node, len * s->font->width, s->font->height, 1);
+	p_node_b_set_dimensions(node, longest * s->font->width, lines * s->font->height, 1);
 
 	for(i = 0; i < sizeof lname / sizeof *lname; i++)
 	{
 		layer = p_node_b_layer_create(node, lname[i], VN_B_LAYER_UINT8);
 		if((ptr = p_node_b_layer_access_begin(node, layer)) != NULL)
 		{
-			font_render_string(s->font, text, ptr, len * s->font->width, 0xff);
+			memset(ptr, 0, longest * s->font->width * lines * s->font->height);
+			for(j = 0; j < lines; j++, ptr += s->font->height * (longest * s->font->width))
+				font_render_line(s->font, line[j], ptr, longest * s->font->width, 0xff);
 			p_node_b_layer_access_end(node, layer, ptr);
 		}
 	}
@@ -429,10 +449,13 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 PURPLE_PLUGIN void init(void)
 {
 	p_init_create("bmtext");
-	p_init_input(0, P_VALUE_MODULE, "text", P_INPUT_REQUIRED, P_INPUT_DESC("The first bitmap is input here."), P_INPUT_DONE);
+	p_init_input(0, P_VALUE_MODULE, "text", P_INPUT_REQUIRED, P_INPUT_DESC("The text to render is input here. You can embed newlines by using the "
+									       "C standard notation of \\n. Text will be flush to the left of each line."),
+		     P_INPUT_DONE);
 	p_init_meta("authors", "Emil Brink");
 	p_init_meta("copyright", "2005 PDC, KTH");
-	p_init_meta("desc/purpose", "Generates a bitmap representation of the input string.");
+	p_init_meta("desc/purpose", "Generates a bitmap representation of the input string. The text is rendered with "
+		    "a built-in 8x8 pixel fixed-width font, in white on a black background.");
 	p_init_state(sizeof (State), ctor, dtor);
 	p_init_compute(compute);
 }
