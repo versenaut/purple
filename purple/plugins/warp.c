@@ -2,13 +2,10 @@
  * This plug-in tries to achieve some kind of "warp" or twist effect.
 */
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 #include "purple.h"
-
-#if !defined M_PI
-# define M_PI	3.14159265358979323846
-#endif
 
 #define	DEG2RAD(a)	(((a) * M_PI) / 180.0)
 
