@@ -46,7 +46,11 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 PURPLE_PLUGIN void init(void)
 {
 	p_init_create("plane");
-	p_init_input(0, P_VALUE_REAL32, "size",   P_INPUT_REQUIRED, P_INPUT_DEFAULT(10.0), P_INPUT_DONE);
-	p_init_input(1, P_VALUE_UINT32, "splits", P_INPUT_DEFAULT(1), P_INPUT_DEFAULT(1), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_REAL32, "size",   P_INPUT_REQUIRED, P_INPUT_DEFAULT(10.0),
+		     P_INPUT_DESC("Side length of plane."), P_INPUT_DONE);
+	p_init_input(1, P_VALUE_UINT32, "splits", P_INPUT_DEFAULT(1), P_INPUT_DEFAULT(1), P_INPUT_REQUIRED,
+		     P_INPUT_DESC("Number of times to split each side."), P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("desc/purpose", "Create a simple polygonal plane, consisting of many quadrilaterals.");
 	p_init_compute(compute);
 }

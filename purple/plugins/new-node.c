@@ -112,6 +112,7 @@ static void init_meta(const char *type)
 
 	p_init_meta("authors", "Emil Brink");
 	p_init_meta("copyright", "2005 KTH");
+	p_init_meta("desc/category", "Node Tools");
 	sprintf(purp, "Creates a new %s node, with a given name.", type);
 	p_init_meta("desc/purpose", purp);
 }
@@ -119,37 +120,37 @@ static void init_meta(const char *type)
 PURPLE_PLUGIN void init(void)
 {
 	p_init_create("new-audio");
-	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DESC("Name of new node."), P_INPUT_DONE);
 	init_meta("audio");
 	p_init_compute(compute_audio);
 
 	p_init_create("new-bitmap");
-	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DESC("Name of new node."), P_INPUT_DONE);
 	init_meta("bitmap");
 	p_init_compute(compute_bitmap);
 
 	p_init_create("new-curve");
-	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DESC("Name of new node."), P_INPUT_DONE);
 	init_meta("curve");
 	p_init_compute(compute_curve);
 
 	p_init_create("new-geometry");
-	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DESC("Name of new node."), P_INPUT_DONE);
 	init_meta("geometry");
 	p_init_compute(compute_geometry);
 
 	p_init_create("new-material");
-	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DESC("Name of new node."), P_INPUT_DONE);
 	init_meta("material");
 	p_init_compute(compute_material);
 
 	p_init_create("new-object");
-	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DESC("Name of new node."), P_INPUT_DONE);
 	init_meta("object");
 	p_init_compute(compute_object);
 
 	p_init_create("new-text");
-	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DESC("Name of new node."), P_INPUT_DONE);
 	init_meta("text");
 	p_init_compute(compute_text);
 }

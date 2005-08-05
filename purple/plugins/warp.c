@@ -90,5 +90,11 @@ PURPLE_PLUGIN void init(void)
 	p_init_input(1, P_VALUE_MODULE, "bbox",  P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_input(2, P_VALUE_REAL32, "twist", P_INPUT_REQUIRED, P_INPUT_DEFAULT(0.0),
 		     P_INPUT_MIN(-180.0), P_INPUT_MAX(180.0), P_INPUT_DONE);
+	p_init_meta("class", "tool/deformer");
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
+	p_init_meta("desc/purpose", "Does a \"warp\" or \"twist\" of the first input object's geometry. The "
+		    "warping is done along the vertical (Y) axis, and goes from zero degrees at the bottom "
+		    "(lowest value of Y) to a configurable value at the top (highest value of Y).");
 	p_init_compute(compute);
 }

@@ -77,7 +77,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		if(p_node_get_type(node) != V_NT_BITMAP)
 			continue;
 		out = p_output_node_copy(output, node, 0);
-		if((read  = p_node_b_layer_read_multi_begin(out, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL &&
+		if((read  = p_node_b_layer_read_multi_begin(out,  VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL &&
 		   (write = p_node_b_layer_write_multi_begin(out, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL)
 		{
 			p_node_b_get_dimensions(out, &w, &h, NULL);
@@ -93,7 +93,11 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 PURPLE_PLUGIN void init(void)
 {
 	p_init_create("bmoilify");
-	p_init_input(0, P_VALUE_MODULE, "bitmap", P_INPUT_REQUIRED, P_INPUT_DONE);
-	p_init_input(1, P_VALUE_UINT32, "size",   P_INPUT_REQUIRED, P_INPUT_MIN(1), P_INPUT_MAX(32), P_INPUT_DEFAULT(8), P_INPUT_DONE);
+	p_init_input(0, P_VALUE_MODULE, "bitmap", P_INPUT_REQUIRED, P_INPUT_DESC("The bitmap to process. Only the first bitmap is affected."), P_INPUT_DONE);
+	p_init_input(1, P_VALUE_UINT32, "size",   P_INPUT_REQUIRED, P_INPUT_MIN(1), P_INPUT_MAX(32), P_INPUT_DEFAULT(8),
+		     P_INPUT_DESC("The size of the effect to apply. Greater sizes take longer to process, but can result in a smoother result."), P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("desc/purpose", "This plug-in applies an 'oilify' effect to a bitmap image. This causes the bitmap to be smoothed "
+		    "in a way that resembles an oil painting.");
 	p_init_compute(compute);
 }

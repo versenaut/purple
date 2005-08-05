@@ -86,8 +86,14 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 PURPLE_PLUGIN void init(void)
 {
 	p_init_create("cone");
-	p_init_input(0, P_VALUE_REAL32, "height",        P_INPUT_REQUIRED, P_INPUT_MIN(0.1), P_INPUT_MAX(200.0), P_INPUT_DEFAULT(10.0), P_INPUT_DONE);
-	p_init_input(1, P_VALUE_UINT32, "bottom splits", P_INPUT_REQUIRED, P_INPUT_MIN(1),   P_INPUT_MAX(128),   P_INPUT_DEFAULT(8), P_INPUT_DONE);
-	p_init_input(2, P_VALUE_UINT32, "side splits",   P_INPUT_REQUIRED, P_INPUT_MIN(1),   P_INPUT_MAX(128),   P_INPUT_DEFAULT(1), P_INPUT_DONE);
+	p_init_input(0, P_VALUE_REAL32, "height",        P_INPUT_REQUIRED, P_INPUT_MIN(0.1), P_INPUT_MAX(200.0), P_INPUT_DEFAULT(10.0),
+		     P_INPUT_DESC("Height of cone, from the base to the apex."), P_INPUT_DONE);
+	p_init_input(1, P_VALUE_UINT32, "bottom splits", P_INPUT_REQUIRED, P_INPUT_MIN(1),   P_INPUT_MAX(128),   P_INPUT_DEFAULT(8),
+		     P_INPUT_DESC("Number of splits in bottom face. Controls how round the cone base mesh is."), P_INPUT_DONE);
+	p_init_input(2, P_VALUE_UINT32, "side splits",   P_INPUT_REQUIRED, P_INPUT_MIN(1),   P_INPUT_MAX(128),   P_INPUT_DEFAULT(1),
+		     P_INPUT_DESC("Number of splits along the main axis of the cone."), P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("desc/purpose", "Creates a cone primitive. The user can control the height of the cone, which is the distance between "
+				    "the base plane to the apex, as well as the number of subdivisions along both major axis.");
 	p_init_compute(compute);
 }

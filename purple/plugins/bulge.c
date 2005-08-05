@@ -56,9 +56,13 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 PURPLE_PLUGIN void init(void)
 {
 	p_init_create("bulge");
-	p_init_input(0, P_VALUE_MODULE,      "data",     P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_MODULE,      "data",     P_INPUT_REQUIRED, P_INPUT_DESC("The first object's geometry will be affected."), P_INPUT_DONE);
 	p_init_input(1, P_VALUE_REAL64_VEC3, "position", P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_input(2, P_VALUE_REAL64_VEC3, "vector",   P_INPUT_REQUIRED, P_INPUT_DONE);
-	p_init_input(3, P_VALUE_REAL64,      "radius",   P_INPUT_REQUIRED, P_INPUT_DEFAULT(1.0), P_INPUT_DONE);
+	p_init_input(3, P_VALUE_REAL64,      "radius",   P_INPUT_MIN(0.1), P_INPUT_REQUIRED, P_INPUT_DEFAULT(1.0), P_INPUT_DESC("Radius of the deformation."), P_INPUT_DONE);
+	p_init_meta("class", "tool/deformer");
+	p_init_meta("authors", "Emil Brink, Eskil Steenberg");
+	p_init_meta("copyright", "2005 PDC, KTH");
+	p_init_meta("desc/purpose", "Applies a deform to the first input object that has a geometry.");
 	p_init_compute(compute);
 }

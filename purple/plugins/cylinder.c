@@ -74,8 +74,13 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 PURPLE_PLUGIN void init(void)
 {
 	p_init_create("cylinder");
-	p_init_input(0, P_VALUE_REAL32, "height",      P_INPUT_REQUIRED, P_INPUT_MIN(0.1), P_INPUT_MAX(200.0), P_INPUT_DEFAULT(10.0), P_INPUT_DONE);
-	p_init_input(1, P_VALUE_UINT32, "end splits",  P_INPUT_REQUIRED, P_INPUT_MIN(1),   P_INPUT_MAX(128),   P_INPUT_DEFAULT(8), P_INPUT_DONE);
-	p_init_input(2, P_VALUE_UINT32, "side splits", P_INPUT_REQUIRED, P_INPUT_MIN(1),   P_INPUT_MAX(128),   P_INPUT_DEFAULT(1), P_INPUT_DONE);
+	p_init_input(0, P_VALUE_REAL32, "height",      P_INPUT_REQUIRED, P_INPUT_MIN(0.1), P_INPUT_MAX(200.0), P_INPUT_DEFAULT(10.0),
+		     P_INPUT_DESC("The height of the cylinder; distance from base to top surface."), P_INPUT_DONE);
+	p_init_input(1, P_VALUE_UINT32, "end splits",  P_INPUT_REQUIRED, P_INPUT_MIN(1),   P_INPUT_MAX(128),   P_INPUT_DEFAULT(8),
+		     P_INPUT_DESC("The number of splits of the bottom and top ends. Controls the roundness of the base mesh."), P_INPUT_DONE);
+	p_init_input(2, P_VALUE_UINT32, "side splits", P_INPUT_REQUIRED, P_INPUT_MIN(1),   P_INPUT_MAX(128),   P_INPUT_DEFAULT(1),
+		     P_INPUT_DESC("The number of splits along the cylinder's axis."), P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("desc/purpose", "Creates a cylinder object with matching geometry.");
 	p_init_compute(compute);
 }
