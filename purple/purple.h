@@ -14,9 +14,9 @@
 
 /** \def PURPLEAPI
  * This define is used to "mark" all the symbols that are to be exported from the main
- * Purple exetable. Such exporting is needed on e.g. Microsoft Windows platforms, in
+ * Purple executable. Such exporting is needed on e.g. Microsoft Windows platforms, in
  * order to make the symbols visible from the loaded plug-in. On platforms where no
- * exporting is necessary, it will simply be defined to as \c extern.
+ * exporting is necessary, it will simply be defined to \c extern.
 */
 /* Magic to get symbols to export properly. Never define PURPLE_INTERNAL
  * outside of the Purple engine (for instance, when building a plug-in).
@@ -27,15 +27,15 @@
 # else
 #  define PURPLEAPI	extern __declspec(dllimport)
 # endif
+# define PURPLE_PLUGIN __declspec(dllexport)
 #else
 # if defined PURPLE_INTERNAL
 #  define PURPLEAPI
 # else
 #  define PURPLEAPI	extern
 # endif
+# define PURPLE_PLUGIN
 #endif		/* _WIN32 */
-
-#define PURPLE_PLUGIN PURPLEAPI	/* A simple synonym. */
 
 #include "verse.h"
 
