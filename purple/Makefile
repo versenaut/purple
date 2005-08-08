@@ -120,11 +120,11 @@ all-plugins:
 
 # ---------------------------------------------------------
 
-DIST=purple-`date --iso-8601 | tr -d -`
+DIST=purple-`date +"%Y%m%d"`-`uname -s | tr -d ' ' | tr [A-Z] [a-z]`-`uname -m | tr -d ' '`
 FILES=purple README plugins/*.so
 
 dist:	purple all-plugins
-	strip purple && tar czf $(DIST).tgz $(FILES)
+	strip purple && tar czf $(DIST).tar.gz $(FILES)
 
 # ---------------------------------------------------------
 
