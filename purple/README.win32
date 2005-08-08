@@ -1,0 +1,42 @@
+							August 2005
+							Emil Brink
+
+			PURPLE
+		      On Windows
+
+1. Introduction
+This is Purple, a "scripting environment/API" for the Verse protocol.
+The purpose of Purple is to implement a system where plug-ins can
+be connected together into graphs, and do data-flow computations on
+data. This data can include aribtrary 3D geometry and whatever else
+is supported by the Verse data model. Any results can be automatically
+synchronized (sent) out to a Verse host, where they become immediately
+available to other users.
+
+This document is specific to the Win32 build of Purple, since that is
+currently slightly limited, as compared to the Linux/Unix build.
+
+
+2. Building Purple
+Building Purple from source is done by using the special "Makefile.win32"
+Makefile, which uses the free compiler tools known as "Microsoft Visual
+C++ Toolkit 2003", from Microsoft. Please see this page for downloads:
+<http://msdn.microsoft.com/visualc/vctoolkit2003/>.
+
+Purple is also distributed in a binary, pre-compiled, format.
+
+
+3. Using Purple
+Since there is no official graphical user interface for Purple at this
+time, interacting with Purple is hard. On Linux/Unix, there exists a
+simplistic hard-wired "console" in the Purple server binary, but this
+is not supported yet in Windows.
+
+Therefore, Purple is essentially useless in Windows at this point in
+time. :/
+
+
+4. Learn More
+To learn more, and figure out what would be needed to make Purple
+more useful in Windows, please visit the Purple web site at this
+address: <http://purple.blender.org/>. Thank you.
