@@ -122,7 +122,15 @@ clean:	clean-plugins
 clean-plugins:
 	cd plugins && $(MAKE) clean
 
+# This assumes that %DATE% generates date part in ISO 8501 format.
+# I don't know of a way to actually specify the format, so if the
+# current locale uses a different format, things will break badly. :/
 d=%date:~-10%%
+# Here, I would like to do:
+# d=%d:-=% to get rid of the hyphens.
+# That doesn't work though, so the hyphens are still there. :/
+
+# Build final distro directory name.
 dn=purple-$(d)-win32
 
 dist:	purple.exe
@@ -134,3 +142,4 @@ dist:	purple.exe
 	mkdir $(dn)\\plugins
 	copy plugins\\*.dll $(dn)\\plugins
 	zip -r $(dn).zip $(dn)
+	rmdir /s /q $(dn)
