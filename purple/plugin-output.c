@@ -43,9 +43,10 @@ void plugin_output_init(void)
 	api_init_begin(NULL);	/* Normal plug-in init()s don't do this! */
 
 	p_init_create("node-output");
-	p_init_input(0, P_VALUE_MODULE, "nodes", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_MODULE, "nodes", P_INPUT_REQUIRED, P_INPUT_DESC("Nodes to output. All nodes found in the input data will be sent to the Verse server."), P_INPUT_DONE);
+	p_init_meta("class", "input/output");
+	p_init_meta("authors", "Emil Brink");
 	p_init_meta("desc/purpose", "Built-in plug-in, writes input to Verse server.");
-	p_init_meta("author", "Emil Brink");
 	p_init_compute(compute);
 
 	api_init_end();

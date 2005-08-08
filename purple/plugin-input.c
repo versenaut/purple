@@ -109,9 +109,10 @@ void plugin_input_init(void)
 	api_init_begin(NULL);	/* Normal plug-in init()s don't do this! */
 
 	p_init_create("node-input");
-	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_STRING, "name", P_INPUT_REQUIRED, P_INPUT_DESC("Name of single Verse node to import."), P_INPUT_DONE);
+	p_init_meta("class", "input/output");
+	p_init_meta("authors", "Emil Brink");
 	p_init_meta("desc/purpose", "Built-in plug-in, outputs the single node whose name is given");
-	p_init_meta("author", "Emil Brink");
 	p_init_state(sizeof (State), ctor, dtor);
 	p_init_compute(compute);
 
