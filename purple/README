@@ -1,4 +1,4 @@
-								May 2005
+								August 2005
 								Emil Brink
 
 				PURPLE
@@ -69,9 +69,10 @@ this, to change the address:
 
 ~> ./purple -ip=verse.example.org
 
-The option is "-ip=ADDRESS", without the quotes. Don't use any
-spaces in the option either, Purple's command line parser is not
-very advanced.
+The option is "-ip=ADDRESS[:PORT]", without the quotes. Don't use
+any spaces in the option either, Purple's command line parser is
+not very advanced. A port number can be optionally appended, if
+used it should be separated from the address by a colon.
 
 3.2 Controlling Purple
 Once Purple starts up and connects to a Verse host, it will create
