@@ -121,3 +121,15 @@ clean:	clean-plugins
 
 clean-plugins:
 	cd plugins && $(MAKE) clean
+
+d=%date:~-10%%
+dn=purple-win32-$(d)
+
+dist:	purple.exe
+	echo $(dn)
+ 	if exist $(dn). ( rmdir /s /q $(dn). )
+	mkdir $(dn)
+	copy /b purple.exe $(dn)
+	copy /a README.win32 $(dn)
+	mkdir $(dn)\\plugins
+	copy plugins\\*.dll $(dn)\\plugins
