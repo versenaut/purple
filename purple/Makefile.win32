@@ -123,7 +123,7 @@ clean-plugins:
 	cd plugins && $(MAKE) clean
 
 d=%date:~-10%%
-dn=purple-win32-$(d)
+dn=purple-$(d)-win32
 
 dist:	purple.exe
 	echo $(dn)
@@ -133,3 +133,4 @@ dist:	purple.exe
 	copy /a README.win32 $(dn)
 	mkdir $(dn)\\plugins
 	copy plugins\\*.dll $(dn)\\plugins
+	zip -r $(dn).zip $(dn)
