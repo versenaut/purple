@@ -2,6 +2,8 @@
  *
 */
 
+#include <ctype.h>
+
 #include "purple.h"
 
 static const char *font[] = {
@@ -338,6 +340,7 @@ static void font_render_char(const Font *f, unsigned int glyph, unsigned char *f
 	unsigned int		x, y;
 	const unsigned char	*g;
 
+	glyph = toupper(glyph);	/* We "know" the font doesn't include upper case chars. */
 	if(f == NULL || glyph >= 256 || f->glyph[glyph] == NULL)
 	{
 		printf("bmtext ignoring bad glyph %u, font at %p glyph at %p\n", glyph, f, glyph < 256 ? f->glyph[glyph] : NULL);
