@@ -7,7 +7,7 @@ CC=gcc
 # Compute how to build a shared library. This should work on
 # Linux and Mac OS X, at least.
 ifeq ($(shell uname),Darwin)
- SHARED="-bundle -flat_namespace -undefined suppress"
+ SHARED=-bundle -flat_namespace -undefined suppress
 else
  SHARED=-shared
 endif
