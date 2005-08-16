@@ -20,11 +20,12 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	PINode		*in = NULL, *inobj = NULL, *ingeo = NULL, *inbm = NULL;
 	PONode		*obj, *geo;
 	size_t		i, size;
-	real64		min[2], max[2], point[3], flat[2], v, scale;
+	real64		min[2], max[2], point[3], flat[2], v, scale, xr, yr;
 	PNGLayer	*inlayer, *outlayer;
 	const uint8	*pixel;
 	uint16		dim[3], x, y;
 
+/*	printf("now in displace::compute()\n");*/
 	for(i = 0; (in = p_input_node_nth(input[0], i)) != NULL; i++)
 	{
 		PNGLayer *inlayer, *outlayer;
@@ -45,8 +46,11 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 			break;
 		}
 	}
-	if(in == NULL || inbm == NULL || ingeo == NULL)
+	if(inobj == NULL || inbm == NULL || ingeo == NULL)
+	{
+		printf("displace: aborting, obj=%p geo=%p bm=%p\n", inobj, inbm, ingeo);
 		return P_COMPUTE_DONE;
+	}
 
 	scale = p_input_real64(input[2]);
 
@@ -74,7 +78,12 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		if(flat[1] > max[1])
 			max[1] = flat[1];
 	}
+	/* Compute X and Y ranges. */
+	xr = max[0] - min[0];
+	yr = max[1] - min[1];
+/*	printf("displace: projected geometry range is (%g,%g)-(%g,%g) -> xr=%g yr=%g\n", min[0], min[1], max[0], max[1], xr, yr);*/
 
+	/* Compute new vertex positions for all vertices, and set in output. */
 	if((pixel = p_node_b_layer_read_multi_begin(inbm, VN_B_LAYER_UINT8, "col_r", NULL)) != NULL)
 	{
 		p_node_b_get_dimensions(inbm, dim, dim + 1, dim + 2);
@@ -82,8 +91,8 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		{
 			p_node_g_vertex_get_xyz(inlayer, i, point, point + 1, point + 2);
 			project_2d(flat, point);
-			flat[0] = (flat[0] - min[0]) / (max[0] - min[0]);	/* Convert to UV space. */
-			flat[1] = (flat[1] - min[1]) / (max[1] - min[1]);
+			flat[0] = (flat[0] - min[0]) / xr;	/* Convert to UV space. */
+			flat[1] = (flat[1] - min[1]) / yr;
 			x = flat[0] * (dim[0] - 1);
 			y = flat[1] * (dim[1] - 1);
 			v = pixel[y * dim[0] + x] / 255.0;
