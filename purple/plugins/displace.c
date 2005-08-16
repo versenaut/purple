@@ -15,13 +15,75 @@ static void project_2d(real64 *flat, real64 *point)
 	flat[1] = point[2];	/* Make Y = Z. */
 }
 
+static void polygon_normal(real64 *norm, const PNGLayer *vtx, uint32 v0, uint32 v1, uint32 v2, uint32 v3)
+{
+	real64	p0[3], p1[3], p2[3], e0[3], e1[3], cp[3], n;
+
+	/* Retreive first three corners. Assume quads are flat, and ignore fourth corner. */
+	p_node_g_vertex_get_xyz(vtx, v0, p0, p0 + 1, p0 + 2);
+	p_node_g_vertex_get_xyz(vtx, v1, p1, p1 + 1, p1 + 2);
+	p_node_g_vertex_get_xyz(vtx, v2, p2, p2 + 1, p2 + 2);
+
+	/* Form "edge vectors", i.e. vectors from v0 to v1 and from v0 to v2. */
+	e0[0] = p1[0] - p0[0];
+	e0[1] = p1[1] - p0[1];
+	e0[2] = p1[2] - p0[2];
+	e1[0] = p1[0] - p2[0];
+	e1[1] = p1[1] - p2[1];
+	e1[2] = p1[2] - p2[2];
+
+	/* Now we need to compute cross product of e0 and e1. */
+	cp[0] = e0[1] * e1[2] - e0[2] * e1[1];
+	cp[1] = e0[2] * e1[0] - e0[0] * e1[2];
+	cp[2] = e0[0] * e1[1] - e0[1] * e1[0];
+
+	/* All we need to do now is normalize the ... normal, and return it. */
+	n = sqrt(cp[0] * cp[0] + cp[1] * cp[1] + cp[2] * cp[2]);
+
+	norm[0] = cp[0] / n;
+	norm[1] = cp[1] / n;
+	norm[2] = cp[2] / n;
+}
+
+static void vertex_normal(real64 *norm, uint32 index, const PNGLayer *vtx, const PNGLayer *poly)
+{
+	size_t	num_vtx, num_poly;
+	uint32	i, cnt = 0;
+
+	norm[0] = norm[1] = norm[2] = 0.0;
+
+	/* Look for given vertex in polygon definitions. */
+	num_poly = p_node_g_layer_get_size(poly);
+	for(i = 0; i < num_poly; i++)
+	{
+		uint32	v0, v1, v2, v3;
+
+		p_node_g_polygon_get_corner_uint32(poly, i, &v0, &v1, &v2, &v3);
+		if(v0 == index || v1 == index || v2 == index || v3 == index)
+		{
+			real64	here[3];
+			polygon_normal(here, vtx, v0, v1, v2, v3);
+			norm[0] += here[0];
+			norm[1] += here[1];
+			norm[2] += here[2];
+			cnt++;
+		}
+	}
+	if(cnt > 0)
+	{
+		norm[0] /= cnt;
+		norm[1] /= cnt;
+		norm[2] /= cnt;
+	}
+}
+
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
 	PINode		*in = NULL, *inobj = NULL, *ingeo = NULL, *inbm = NULL;
 	PONode		*obj, *geo;
 	size_t		i, size;
 	real64		min[2], max[2], point[3], flat[2], v, scale, xr, yr;
-	PNGLayer	*inlayer, *outlayer;
+	PNGLayer	*inlayer, *outlayer, *inpoly;
 	const uint8	*pixel;
 	uint16		dim[3], x, y;
 
@@ -59,6 +121,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	p_node_o_link_set(obj, geo, "geometry", 0);
 
 	inlayer  = p_node_g_layer_find(ingeo, "vertex");
+	inpoly   = p_node_g_layer_find(ingeo, "polygon");
 	outlayer = p_node_g_layer_find(geo, "vertex");
 	size     = p_node_g_layer_get_size(inlayer);		/* Safely handles NULL layer. */
 
@@ -89,6 +152,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		p_node_b_get_dimensions(inbm, dim, dim + 1, dim + 2);
 		for(i = 0; i < size; i++)
 		{
+			real64	norm[3];
 			p_node_g_vertex_get_xyz(inlayer, i, point, point + 1, point + 2);
 			project_2d(flat, point);
 			flat[0] = (flat[0] - min[0]) / xr;	/* Convert to UV space. */
@@ -96,7 +160,8 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 			x = flat[0] * (dim[0] - 1);
 			y = flat[1] * (dim[1] - 1);
 			v = pixel[y * dim[0] + x] / 255.0;
-			p_node_g_vertex_set_xyz(outlayer, i, point[0], point[1] + scale * v, point[2]);
+			vertex_normal(norm, i, inlayer, inpoly);
+			p_node_g_vertex_set_xyz(outlayer, i, point[0] + norm[0] * scale * v, point[1] + norm[1] * scale * v, point[2] + norm[2] * scale * v);
 		}
 		p_node_b_layer_read_multi_end(inbm, pixel);
 	}
