@@ -208,7 +208,6 @@ void nodedb_o_link_set_local(NodeObject *n, const PONode *link, const char *labe
 	stu_strncpy(l->label, sizeof l->label, label);
 	l->target_id = target_id;
 	n->links_local = list_prepend(n->links_local, l);
-	printf("local link created\n");
 }
 
 PONode * nodedb_o_link_get_local(const NodeObject *n, const char *label, uint32 target_id)
