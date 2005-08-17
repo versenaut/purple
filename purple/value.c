@@ -113,9 +113,7 @@ void value_clear(PValue *v)
 	if(v == NULL || v->set == 0)
 		return;
 	if(VALUE_SETS(v, P_VALUE_STRING))
-	{
 		mem_free(v->v.vstring);
-	}
 	v->set = 0;
 }
 
@@ -124,22 +122,31 @@ boolean value_type_present(const PValue *v, PValueType type)
 	return v != NULL ? VALUE_SETS(v, type) : 0;
 }
 
-const char * value_type_name(const PValue *v)
+PValueType value_type(const PValue *v)
 {
 	PValueType	i;
 	uint16		mask = 1;
 
 	if(v == NULL)
-		return NULL;
+		return P_VALUE_NONE;
 	for(i = P_VALUE_BOOLEAN; i <= P_VALUE_MODULE; i++, mask <<= 1)
 	{
 		if(v->set & mask)	/* Bit found? */
 		{
 			if(v->set & ~mask)	/* More bits set? */
-				return NULL;	/* Can't resolve ambiguity, give up. */
-			return value_type_to_name(i);
+				return P_VALUE_NONE;	/* Can't resolve ambiguity, give up. */
+			return i;
 		}
 	}
+	return P_VALUE_NONE;
+}
+
+const char * value_type_name(const PValue *v)
+{
+	PValueType	t;
+
+	if((t = value_type(v)) != P_VALUE_NONE)
+		return value_type_to_name(t);
 	return NULL;
 }
 
@@ -394,6 +401,34 @@ int value_set_from_string(PValue *v, PValueType type, const char *value)
 		LOG_WARN(("No code for setting value type %s from string--failing", type_map_by_value[type].name));
 	}
 	return 0;
+}
+
+int value_set_from_default(PValue *v, const PValue *def)
+{
+	PValueType	t;
+
+	printf("now in value_set_from_default()\n");
+	if(v == NULL || def == NULL)
+		return 0;
+	if((t = value_type(def)) == P_VALUE_NONE)	/* Can't set if default is multi-valued. Real ones won't ever be. */
+		return 0;
+	if(VALUE_SETS(v, P_VALUE_STRING))
+	{
+		mem_free(v->v.vstring);
+	}
+	if(t == P_VALUE_STRING)
+		v->v.vstring = stu_strdup(def->v.vstring);
+	else
+		v->v = def->v;
+	v->set = 0;
+	VALUE_SET(v, t);
+	{
+		char	buf[128];
+
+		value_as_string(v, buf, sizeof buf, NULL);
+		printf("set default, type %d, to '%s'\n", t, buf);
+	}
+	return 1;
 }
 
 /* ----------------------------------------------------------------------------------------- */

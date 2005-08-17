@@ -52,8 +52,14 @@ extern int		value_set(PValue *v, PValueType type, ...);
 /* Expects string as output by value_as_string(). */
 extern int		value_set_from_string(PValue *v, PValueType type, const char *string);
 
+/* Set value to <def>, which is assumed to have only one type. Used to revert to a default. */
+extern int		value_set_from_default(PValue *v, const PValue *def);
+
 /* Check if the indicated value is present in the value. A present value is never returned from cache. */
 extern boolean		value_type_present(const PValue *v, PValueType type);
+
+/* Return type of the value. Only works if there is exactly one type set, returns P_VALUE_NONE otherwise. */
+extern PValueType	value_type(const PValue *v);
 
 /* Return name of the type the value is set to. Only works if there is exactly one type set. */
 extern const char *	value_type_name(const PValue *v);
@@ -94,7 +100,7 @@ extern const char *	value_get_default_string(void);
 
 
 /* Create string representation of <v>, which is assumed to contain a value of a
- * single type only. Useful in creating external representations, and also inten-
+ * single type only. Useful in creating external representations, and also intern-
  * ally when getting as string. No clever size handling is done on the buffer,
  * and obviously no caching is involved, the string representation is not retained.
 */
