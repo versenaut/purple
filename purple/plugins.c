@@ -96,6 +96,7 @@ struct PPortSet
 	uint32		*use;		/* Bitmask telling if a value is present. */
 	PPort		*input;		/* Array of storage for inputs. */
 	PPInput		*port;		/* Array of pointers to storage, link-resolved, presented to plug-ins. */
+	const Plugin	*plugin;	/* Plug-in for which this portset was created. */
 };
 
 static struct
@@ -247,6 +248,29 @@ void plugin_set_compute(Plugin *p, PComputeStatus (*compute)(PPInput *input, PPO
 	}
 }
 
+/* Check if a plug-in has at least on default value on one of its inputs.
+ * FIXME: This could easily be buffered from creation-time.
+*/
+int plugin_has_default_inputs(const Plugin *p)
+{
+	size_t	num, i;
+
+	if(p == NULL)
+		return 0;
+	if((num = dynarr_size(p->input)) > 0)
+	{
+		const Input	*in;
+
+		for(i = 0; i < num; i++)
+		{
+			in = dynarr_index(p->input, i);
+			if(in->spec.def)
+				return 1;	/* As soon as we know the answer, deliver it. */
+		}
+	}
+	return 0;
+}
+
 static int cb_describe_meta(const void *data, void *user)
 {
 	const MetaEntry	*m = data;
@@ -265,7 +289,6 @@ char * plugin_describe(const Plugin *p)
 	DynStr	*d;
 
 	d = dynstr_new("<plug-in");
-
 	plugin_describe_append(p, d);
 
 	return dynstr_destroy(d, 0);	/* Destroys dynstr, but keeps and returns buffer. */
@@ -408,10 +431,13 @@ PPortSet * plugin_portset_new(const Plugin *p)
 	ps->input = (PPort *) (ps->use + num);
 	ps->port  = (PPInput *) (ps->input + size);
 	memset(ps->use, 0, num * sizeof *ps->use);
+	ps->plugin = p;
+	/* Iterate over all ports, clearing them and setting to any default value. */
 	for(i = 0;i < ps->size; i++)
 	{
 		port_init(&ps->input[i]);
 		ps->port[i] = NULL;
+		plugin_portset_set_default(ps, i);
 	}
 	return ps;
 }
@@ -434,6 +460,20 @@ PPInput * plugin_portset_ports(PPortSet *ps)
 			ps->port[i] = NULL;
 	}
 	return ps->port;
+}
+
+void plugin_portset_set_default(PPortSet *ps, unsigned int index)
+{
+	Input	*in;
+
+	if(ps == NULL || index >= ps->size)
+		return;
+	in = dynarr_index(ps->plugin->input, index);
+	if(in->spec.def)
+	{
+		port_set_from_default(ps->input + index, &in->spec.def_val);
+		ps->use[index / 32] |= 1 << (index % 32);
+	}
 }
 
 void plugin_portset_set_va(PPortSet *ps, unsigned int index, PValueType type, va_list arg)
@@ -462,6 +502,7 @@ void plugin_portset_set_from_string(PPortSet *ps, unsigned int index, PValueType
 void plugin_portset_clear(PPortSet *ps, unsigned int index)
 {
 	uint32	pos, mask;
+
 	if(ps == NULL || index >= ps->size)
 		return;
 	pos  = index / 32;
@@ -471,6 +512,7 @@ void plugin_portset_clear(PPortSet *ps, unsigned int index)
 		port_clear(ps->input + index);
 		ps->use[pos] &= ~mask;
 	}
+	plugin_portset_set_default(ps, index);
 }
 
 boolean plugin_portset_is_set(const PPortSet *ps, unsigned int index)
@@ -571,6 +613,27 @@ void plugin_instance_set_link_resolver(PInstance *inst, PPOutput (*get_module)(u
 		inst->resolver = get_module;
 		inst->resolver_data = data;
 	}
+}
+
+/* Check if all inputs that require values have them. */
+boolean plugin_instance_inputs_ready(const PInstance *inst)
+{
+	size_t	i;
+
+	if(inst == NULL)
+		return 0;
+	for(i = 0; i < inst->inputs->size; i++)
+	{
+		Input	*in;
+
+		in = dynarr_index(inst->plugin->input, i);
+		if(in->spec.req)	/* Found a required input. Now check if there is anything there. */
+		{
+			if(!plugin_portset_is_set(inst->inputs, i))	/* No value there. */
+				return 0;
+		}
+	}
+	return 1;
 }
 
 PluginStatus plugin_instance_compute(PInstance *inst)
