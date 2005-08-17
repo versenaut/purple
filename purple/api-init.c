@@ -28,8 +28,24 @@
  * 
  * Since Purple can handle many instances of the same plug-in at once, the word \e module
  * is often used to refer to such an instance. The terms plug-in and module have a simliar
- * relationship as the terms class and object, as used in object-oriented programming.
+ * relationship as the terms class and object, as used in object-oriented programming. In
+ * this document, the two terms are used a bit more loosely.
  * 
+ * \subsection inputs Input Semantics
+ * Inputs to a Purple plug-in are slightly complicated by the support for default values.
+ * This means that rather than being in either of two states (set or cleared), an input
+ * can be restricted to always being set.
+ * 
+ * If a default value exists for a given input, the Purple engine will set the input to
+ * that value unless it is overridden by an explicit command to set it to some other value.
+ * If an attempt to clear the input is made, the input will simply revert to the default
+ * value. In such cases, the plug-in code never has to deal with an unset value.
+ * 
+ * Default values can trigger computation. Consider a plug-in with N inputs, all of which
+ * have a default value assigned. As soon as that plug-in is instantiated into a module,
+ * all the module's inputs will be set to their proper default values. This changes the
+ * inputs (from the original, very short-lived, "not set" state), and thus triggers computation.
+ *
  * \section modelgraph Graphs
  * Plug-ins alone cannot accomplish much. Things get interesting when several plug-ins are
  * connected together, to form \e graphs. A graph is simply a "container" for modules, a
