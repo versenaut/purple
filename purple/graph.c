@@ -843,6 +843,7 @@ void graph_port_output_set_node(PPOutput port, PONode *node)
 
 	port_set_node(port, node);
 	m->out.changed = TRUE;
+	printf("graph: set changed on port at %p\n", port);
 }
 
 /* A <node> was just created by <m>, check if there is resume-information for it. */
@@ -1176,11 +1177,9 @@ static void module_create(unsigned int module_id, uint32 graph_id, uint32 plugin
 	if(module_id == ~0u)
 		m->id = idset_insert(g->modules, m);
 	else
-	{
 		m->id = idset_insert_with_id(g->modules, module_id, m);
-	}
-	LOG_MSG(("Module %u.%u is plugin %u (%s) in graph at %p", graph_id, m->id, plugin_id, plugin_name(p), g));
-	{
+	LOG_MSG(("Module %u.%u is plug-in %u (%s) in graph at %p", graph_id, m->id, plugin_id, plugin_name(p), g));
+/*	{
 		Module	*m2;
 
 		m2 = idset_lookup(g->modules, m->id);
@@ -1190,11 +1189,15 @@ static void module_create(unsigned int module_id, uint32 graph_id, uint32 plugin
 			exit(EXIT_FAILURE);
 		}
 	}
-	desc = module_build_desc(m);
+*/	desc = module_build_desc(m);
 	m->length = dynstr_length(desc);
 	graph_modules_desc_start_update(g);
 	verse_send_t_text_set(g->node, g->buffer, m->start, 0, dynstr_string(desc));
 	dynstr_destroy(desc, 1);
+
+	/* Newly created plug-in might be ready to run right away, thanks to defaults. Check, and schedule if so. */
+	if(plugin_instance_inputs_ready(&m->instance))
+		sched_add(&m->instance);
 }
 
 /* Release all labeled nodes created by an instance. */
@@ -1351,6 +1354,7 @@ static void module_input_clear(uint32 graph_id, uint32 module_id, uint8 input_in
 	}
 	was_link = plugin_portset_get_module(m->instance.inputs, input_index, &old_link);
 	plugin_portset_clear(m->instance.inputs, input_index);
+
 	desc = module_build_desc(m);
 	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, dynstr_string(desc));
 	m->length = dynstr_length(desc);
@@ -1360,6 +1364,8 @@ static void module_input_clear(uint32 graph_id, uint32 module_id, uint8 input_in
 	/* If a link was cleared, notify other end it has one less dependants. */
 	if(was_link)
 		module_dep_remove(g, old_link, m->id);
+
+	/* FIXME: We should to a defaults-check here. */
 }
 
 /* Go through module's inputs, and clear any inputs that refer to module <rm>. This typically happens
