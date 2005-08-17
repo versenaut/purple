@@ -39,6 +39,7 @@ extern void	plugin_set_input(Plugin *p, int index, PValueType type, const char *
 extern void	plugin_set_meta(Plugin *p, const char *category, const char *text);
 extern void	plugin_set_state(Plugin *p, size_t size, void (*ctor)(void *state), void (*dtor)(void *state));
 extern void	plugin_set_compute(Plugin *p, PComputeStatus (*compute)(PPInput *input, PPOutput output, void *state));
+extern int	plugin_has_default_inputs(const Plugin *p);
 extern char *	plugin_describe(const Plugin *p);
 extern void	plugin_describe_append(const Plugin *p, DynStr *ds);
 extern void	plugin_destroy(Plugin *p);
@@ -61,6 +62,7 @@ extern const char *	plugin_name(const Plugin *p);
 */
 extern PPortSet *	plugin_portset_new(const Plugin *p);
 extern PPInput *	plugin_portset_ports(PPortSet *ps);
+extern void		plugin_portset_set_default(PPortSet *ps, unsigned int index);
 extern void		plugin_portset_set_va(PPortSet *ps, unsigned int index, PValueType type, va_list arg);
 extern void		plugin_portset_set_from_string(PPortSet *ps, unsigned int index, PValueType type, const char *string);
 extern void		plugin_portset_clear(PPortSet *ps, unsigned int index);
@@ -86,5 +88,6 @@ extern int		plugin_instance_init(Plugin *p, PInstance *inst);
 extern void		plugin_instance_set_output(PInstance *inst, PPOutput output);
 extern void		plugin_instance_set_link_resolver(PInstance *inst,
 							  PPOutput (*get_output)(uint32 module_id, void *data), void *data);
+extern boolean		plugin_instance_inputs_ready(const PInstance *inst);
 extern PluginStatus	plugin_instance_compute(PInstance *inst);
 extern void		plugin_instance_free(PInstance *inst);
