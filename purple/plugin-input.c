@@ -46,7 +46,9 @@ static void cb_notify(PNode *node, NodeNotifyEvent ev, void *user)
 	State	*state = user;
 
 	printf("node-input: Notification in input, node at %p\n", node);
+	graph_port_output_begin(state->output);
 	p_output_node(state->output, node);
+	graph_port_output_end(state->output);
 }
 
 /* Called when our solitary input changes. Look up the named node,
