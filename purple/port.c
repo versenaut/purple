@@ -70,6 +70,11 @@ int port_set_from_string(PPort *port, PValueType type, const char *string)
 	return value_set_from_string(&port->value, type, string);
 }
 
+int port_set_from_default(PPort *port, const PValue *value)
+{
+	return value_set_from_default(&port->value, value);
+}
+
 int port_set_node(PPort *port, PONode *node)
 {
 	port->nodes = nodeset_add(port->nodes, node);
