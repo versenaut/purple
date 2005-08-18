@@ -224,7 +224,43 @@ static void console_parse_module_input_set(const char *line)
 		got = sscanf(literal, "%u", &value.v.vmodule) == 1;
 		break;
 	case P_VALUE_STRING:
-		got = sscanf(literal, " \"%[^\"]\"", string) == 1;
+		{
+			const char	*get = strchr(literal, '"');
+			char		*put = string;
+
+			if(get != NULL)
+			{
+				get++;
+				while(*get != '\0' && *get != '"')
+				{
+					if(*get == '\\')
+					{
+						get++;
+						if(*get == 'n')
+						{
+							*put++ = '\n';
+							get++;
+						}
+						else if(*get == '\\')
+						{
+							*put++ = '\\';
+							get++;
+						}
+						else if(*get == '"')
+						{
+							*put++ = '"';
+							get++;
+						}
+						else
+							printf("Unsupported backslash code \%c in string input literal\n", *get);
+					}
+					else
+						*put++ = *get++;
+				}
+				*put = '\0';
+				got = 1;
+			}
+		}
 		value.v.vstring = string;
 		break;
 	default:
@@ -233,7 +269,7 @@ static void console_parse_module_input_set(const char *line)
 	if(got == 1)
 		graph_method_send_call_mod_input_set(g, m, i, type, &value);
 	else
-		printf("mis couldn't parse %s as type %c literal\n", literal, tcode[0]);
+		printf("mis couldn't parse %s as type %c (%d) literal\n", literal, tcode[0], type);
 }
 
 /* Pre-scripted sequence of console commands, to cut down on typing needed to test stuff. Hm. */
@@ -244,13 +280,19 @@ static int console_script(char *line, size_t line_size)
 	"tbc 2 klax\n"
 	"gc 2 0 busta\n"
 
-	"mc 1 1\n"
-	"mc 1 8\n"
-	"mc 1 2\n"
-	"mism 1 2 0 : 1\n"
-	"mism 1 1 0 : 0\n"
-	"misu 1 1 1 : 4\n"
-	"miss 1 0 0 : \"fish\"\n";
+	"mc 1 36\n"
+	"mc 1 11\n"
+	"mc 1 19\n"
+
+	"mism 1 2 0 : 0\n"
+	"mism 1 2 1 : 1\n"
+
+	"misr 1 0 0 : 1\n"
+	"misr 1 0 1 : 32\n"
+
+	"misu 1 1 0 : 32\n"
+	"misu 1 1 1 : 32\n"
+	"misu 1 1 2 : 0\n";
 	static int	next_line = 0;
 
 	if(strcmp(line, ".") == 0)
@@ -281,7 +323,7 @@ static int console_script(char *line, size_t line_size)
 
 #endif		/* PURPLE_CONSOLE */
 
-static void console_update(void)
+static int console_update(void)
 {
 #if defined PURPLE_CONSOLE
 	int	fd;
@@ -400,11 +442,14 @@ static void console_update(void)
 				if(sscanf(line, "tsl %u %s", &node, lang) == 2)
 					verse_send_t_set_language(node, lang);
 			}
+			else if(strcmp(line, "quit") == 0)
+				return 0;
 			else if(line[0] != '\0')
 				printf("Input: '%s'\n", line);
 		}
 	}
 #endif		/* PURPLE_CONSOLE */
+	return 1;
 }
 
 int main(int argc, char *argv[])
@@ -446,7 +491,8 @@ int main(int argc, char *argv[])
 		{
 			verse_callback_update(10000);
 			cron_update();
-			console_update();
+			if(!console_update())
+				break;
 			sched_update();
 			sync_update(1.0);
 		}
