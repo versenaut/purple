@@ -171,6 +171,8 @@
  * - Each module has a local ID inside the graph, and an indication of which plug-in it instantiates.
  * - Inputs are set using the \c set element, whose \c type atttribute indicates the external type.
  * - The \c input attribute of the \c set element maps to the first argument of \c p_init_input().
+ * - It is not possible to determine if an input is set externally or by Purple itself, i.e. it
+ *   is set to its default value. Both will appear as just a \c set element.
  *
  * The above information can be used to construct a graphical view of the graph (module IDs are 
  * not shown in this graph, instead the plug-in IDs they instantiate are used):
@@ -1365,7 +1367,11 @@ static void module_input_clear(uint32 graph_id, uint32 module_id, uint8 input_in
 	if(was_link)
 		module_dep_remove(g, old_link, m->id);
 
-	/* FIXME: We should to a defaults-check here. */
+	/* The module might need to re-compute, if clearing the input reverted
+	 * it to a default value, and all other inputs are ready.
+	*/
+	if(plugin_instance_inputs_ready(&m->instance))
+		sched_add(&m->instance);
 }
 
 /* Go through module's inputs, and clear any inputs that refer to module <rm>. This typically happens
