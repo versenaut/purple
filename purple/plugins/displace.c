@@ -67,6 +67,7 @@ static void vertex_normal(real64 *norm, uint32 index, const PNGLayer *vtx, const
 			norm[1] += here[1];
 			norm[2] += here[2];
 			cnt++;
+			break;
 		}
 	}
 	if(cnt > 0)
@@ -87,7 +88,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	const uint8	*pixel;
 	uint16		dim[3], x, y;
 
-/*	printf("now in displace::compute()\n");*/
+	/* Look up first incoming object that also has a geometry link. */
 	for(i = 0; (in = p_input_node_nth(input[0], i)) != NULL; i++)
 	{
 		PNGLayer *inlayer, *outlayer;
@@ -100,6 +101,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 			continue;
 		break;
 	}
+	/* Iterate second input's nodes, this time looking for bitmap. */
 	for(i = 0; (in = p_input_node_nth(input[1], i)) != NULL; i++)
 	{
 		if(p_node_get_type(in) == V_NT_BITMAP)
@@ -110,11 +112,16 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	}
 	if(inobj == NULL || inbm == NULL || ingeo == NULL)
 	{
-		printf("displace: aborting, obj=%p geo=%p bm=%p\n", inobj, inbm, ingeo);
+		printf("displace: aborting, obj=%p geo=%p bm=%p\n", inobj, ingeo, inbm);
 		return P_COMPUTE_DONE;
 	}
 
 	scale = p_input_real64(input[2]);
+	if(scale == 0.0)
+	{
+		printf("displace: aborting, bscale is zero, little point in that\n");
+		return P_COMPUTE_DONE;
+	}
 
 	obj = p_output_node_copy(output, inobj, 0);
 	geo = p_output_node_copy(output, ingeo, 1);
@@ -150,33 +157,36 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	if((pixel = p_node_b_layer_read_multi_begin(inbm, VN_B_LAYER_UINT8, "col_r", NULL)) != NULL)
 	{
 		p_node_b_get_dimensions(inbm, dim, dim + 1, dim + 2);
+		printf("displace: computing for %ux%u bitmap, and %u vertices\n", dim[0], dim[1], size);
 		for(i = 0; i < size; i++)
 		{
 			real64	norm[3];
 			p_node_g_vertex_get_xyz(inlayer, i, point, point + 1, point + 2);
 			project_2d(flat, point);
-			flat[0] = (flat[0] - min[0]) / xr;	/* Convert to UV space. */
+			flat[0] = (flat[0] - min[0]) / xr;		/* Convert to UV space. */
 			flat[1] = (flat[1] - min[1]) / yr;
-			x = flat[0] * (dim[0] - 1);
+			x = flat[0] * (dim[0] - 1);			/* Compute integer UV coordinate. */
 			y = flat[1] * (dim[1] - 1);
-			v = pixel[y * dim[0] + x] / 255.0;
-			vertex_normal(norm, i, inlayer, inpoly);
+			v = pixel[y * dim[0] + x] / 255.0;		/* Read out pixel, and scale it to [0,1] range. */
+			vertex_normal(norm, i, inlayer, inpoly);	/* Compute normal. */
 			p_node_g_vertex_set_xyz(outlayer, i, point[0] + norm[0] * scale * v, point[1] + norm[1] * scale * v, point[2] + norm[2] * scale * v);
 		}
 		p_node_b_layer_read_multi_end(inbm, pixel);
 	}
+	else
+		printf("displace: couldn't access bitmap for reading\n");
 	return P_COMPUTE_DONE;
 }
 
 PURPLE_PLUGIN void init(void)
 {
 	p_init_create("displace");
-	p_init_input(0, P_VALUE_MODULE, "geometry", P_INPUT_REQUIRED,
+	p_init_input(0, P_VALUE_MODULE, "object", P_INPUT_REQUIRED,
 		     P_INPUT_DESC("The first object with a geometry link will have its geometry displaced."), P_INPUT_DONE);
 	p_init_input(1, P_VALUE_MODULE, "map", P_INPUT_REQUIRED,
 		     P_INPUT_DESC("The first bitmap node will be used as the displacement map."), P_INPUT_DONE);
 	p_init_input(2, P_VALUE_REAL64, "scale", P_INPUT_DEFAULT(1.0), P_INPUT_MIN(0.01),
-		     P_INPUT_DESC("A displacement scale factor."));
+		     P_INPUT_DESC("Displacement scale factor."));
 	p_init_meta("authors", "Emil Brink");
 	p_init_meta("copyright", "2005 PDC, KTH");
 	p_init_meta("desc/purpose", "Displaces geometry, using a bitmap as a displacement map.");
