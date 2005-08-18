@@ -45,6 +45,11 @@
  * have a default value assigned. As soon as that plug-in is instantiated into a module,
  * all the module's inputs will be set to their proper default values. This changes the
  * inputs (from the original, very short-lived, "not set" state), and thus triggers computation.
+ * 
+ * Inputs that are set to their default values will still be described externally (in the
+ * graph XML representation) as any other input; it is not treated as a special case from
+ * the external perspective. This means that asking Purple to clear an input set to some
+ * value, might end up (in the XML) setting it to some other, namely the default.
  *
  * \section modelgraph Graphs
  * Plug-ins alone cannot accomplish much. Things get interesting when several plug-ins are
