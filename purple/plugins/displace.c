@@ -15,9 +15,10 @@ static void project_2d(real64 *flat, real64 *point)
 	flat[1] = point[2];	/* Make Y = Z. */
 }
 
+/* Returns polygon normal, from computing the cross product of the first two edge vectors. */
 static void polygon_normal(real64 *norm, const PNGLayer *vtx, uint32 v0, uint32 v1, uint32 v2, uint32 v3)
 {
-	real64	p0[3], p1[3], p2[3], e0[3], e1[3], cp[3], n;
+	real64	p0[3], p1[3], p2[3], e0[3], e1[3], f;
 
 	/* Retreive first three corners. Assume quads are flat, and ignore fourth corner. */
 	p_node_g_vertex_get_xyz(vtx, v0, p0, p0 + 1, p0 + 2);
@@ -33,49 +34,70 @@ static void polygon_normal(real64 *norm, const PNGLayer *vtx, uint32 v0, uint32 
 	e1[2] = p1[2] - p2[2];
 
 	/* Now we need to compute cross product of e0 and e1. */
-	cp[0] = e0[1] * e1[2] - e0[2] * e1[1];
-	cp[1] = e0[2] * e1[0] - e0[0] * e1[2];
-	cp[2] = e0[0] * e1[1] - e0[1] * e1[0];
+	norm[0] = e0[1] * e1[2] - e0[2] * e1[1];
+	norm[1] = e0[2] * e1[0] - e0[0] * e1[2];
+	norm[2] = e0[0] * e1[1] - e0[1] * e1[0];
 
-	/* All we need to do now is normalize the ... normal, and return it. */
-	n = sqrt(cp[0] * cp[0] + cp[1] * cp[1] + cp[2] * cp[2]);
-
-	norm[0] = cp[0] / n;
-	norm[1] = cp[1] / n;
-	norm[2] = cp[2] / n;
+	/* Compute normalizing factor. */
+	f = 1.0 / sqrt(norm[0] * norm[0] + norm[1] * norm[1] + norm[2] * norm[2]);
+	/* And apply it. */
+	norm[0] /= f;
+	norm[1] /= f;
+	norm[2] /= f;
 }
 
-static void vertex_normal(real64 *norm, uint32 index, const PNGLayer *vtx, const PNGLayer *poly)
+/* Create buffer holding the proper weighted normal for each vertex of <vertex>. */
+static real64 * normal_buffer(const PNGLayer *vertex, const PNGLayer *polygon)
 {
-	size_t	num_vtx, num_poly;
-	uint32	i, cnt = 0;
+	size_t	numv, nump, i;
+	real64	*norm, pn[3], vtx[3], *p, f;
 
-	norm[0] = norm[1] = norm[2] = 0.0;
+	numv = p_node_g_layer_get_size(vertex);
+	norm = malloc(numv * 3 * sizeof *norm);
+	if(norm == NULL)
+	{
+		printf("displace: Couldn't allocate %u bytes for %u-vertex normal buffer\n", numv * 3 * sizeof *norm, numv);
+		return NULL;
+	}
+	/* Clear every normal to (0,0,0). */
+	for(i = 0; i < 3 * numv; i++)
+		norm[i] = 0.0;
 
-	/* Look for given vertex in polygon definitions. */
-	num_poly = p_node_g_layer_get_size(poly);
-	for(i = 0; i < num_poly; i++)
+	/* Go through all *polygons*, and compute normals as they occur, adding to the right vertex bucket(s). */
+	nump = p_node_g_layer_get_size(polygon);
+	for(i = 0; i < nump; i++)
 	{
 		uint32	v0, v1, v2, v3;
 
-		p_node_g_polygon_get_corner_uint32(poly, i, &v0, &v1, &v2, &v3);
-		if(v0 == index || v1 == index || v2 == index || v3 == index)
+		p_node_g_polygon_get_corner_uint32(polygon, i, &v0, &v1, &v2, &v3);
+		polygon_normal(pn, vertex, v0, v1, v2, v3);
+		if(v0 == ~0u || v1 == ~0u || v2 == ~0u)
+			continue;
+		norm[3 * v0 + 0] += pn[0];
+		norm[3 * v0 + 1] += pn[1];
+		norm[3 * v0 + 2] += pn[2];
+		norm[3 * v1 + 0] += pn[0];
+		norm[3 * v1 + 1] += pn[1];
+		norm[3 * v1 + 2] += pn[2];
+		norm[3 * v2 + 0] += pn[0];
+		norm[3 * v2 + 1] += pn[1];
+		norm[3 * v2 + 2] += pn[2];
+		if(v3 != ~0u)
 		{
-			real64	here[3];
-			polygon_normal(here, vtx, v0, v1, v2, v3);
-			norm[0] += here[0];
-			norm[1] += here[1];
-			norm[2] += here[2];
-			cnt++;
-			break;
+			norm[3 * v3 + 0] += pn[0];
+			norm[3 * v3 + 1] += pn[1];
+			norm[3 * v3 + 2] += pn[2];
 		}
 	}
-	if(cnt > 0)
+	/* Finally, go through all to-be normals and ... normalize them. */
+	for(i = 0, p = norm; i < numv; i++, p += 3)
 	{
-		norm[0] /= cnt;
-		norm[1] /= cnt;
-		norm[2] /= cnt;
+		f = 1.0 / sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
+		p[0] *= f;
+		p[1] *= f;
+		p[2] *= f;
 	}
+	return norm;
 }
 
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
@@ -156,20 +178,27 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	/* Compute new vertex positions for all vertices, and set in output. */
 	if((pixel = p_node_b_layer_read_multi_begin(inbm, VN_B_LAYER_UINT8, "col_r", NULL)) != NULL)
 	{
+		real64	*norm;
+
 		p_node_b_get_dimensions(inbm, dim, dim + 1, dim + 2);
 		printf("displace: computing for %ux%u bitmap, and %u vertices\n", dim[0], dim[1], size);
-		for(i = 0; i < size; i++)
+		if((norm = normal_buffer(inlayer, inpoly)) != NULL)
 		{
-			real64	norm[3];
-			p_node_g_vertex_get_xyz(inlayer, i, point, point + 1, point + 2);
-			project_2d(flat, point);
-			flat[0] = (flat[0] - min[0]) / xr;		/* Convert to UV space. */
-			flat[1] = (flat[1] - min[1]) / yr;
-			x = flat[0] * (dim[0] - 1);			/* Compute integer UV coordinate. */
-			y = flat[1] * (dim[1] - 1);
-			v = pixel[y * dim[0] + x] / 255.0;		/* Read out pixel, and scale it to [0,1] range. */
-			vertex_normal(norm, i, inlayer, inpoly);	/* Compute normal. */
-			p_node_g_vertex_set_xyz(outlayer, i, point[0] + norm[0] * scale * v, point[1] + norm[1] * scale * v, point[2] + norm[2] * scale * v);
+			for(i = 0; i < size; i++)
+			{
+				p_node_g_vertex_get_xyz(inlayer, i, point, point + 1, point + 2);
+				project_2d(flat, point);
+				flat[0] = (flat[0] - min[0]) / xr;		/* Convert to UV space. */
+				flat[1] = (flat[1] - min[1]) / yr;
+				x = flat[0] * (dim[0] - 1);			/* Compute integer UV coordinates. */
+				y = flat[1] * (dim[1] - 1);
+				v = pixel[y * dim[0] + x] / 255.0;		/* Read out pixel, and scale it to [0,1] range. */
+				p_node_g_vertex_set_xyz(outlayer, i,		/* Apply displacement. */
+							point[0] + norm[3 * i + 0] * scale * v,
+							point[1] + norm[3 * i + 1] * scale * v,
+							point[2] + norm[3 * i + 2] * scale * v);
+			}
+			free(norm);
 		}
 		p_node_b_layer_read_multi_end(inbm, pixel);
 	}
