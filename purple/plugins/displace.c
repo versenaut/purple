@@ -186,7 +186,7 @@ PURPLE_PLUGIN void init(void)
 	p_init_input(1, P_VALUE_MODULE, "map", P_INPUT_REQUIRED,
 		     P_INPUT_DESC("The first bitmap node will be used as the displacement map."), P_INPUT_DONE);
 	p_init_input(2, P_VALUE_REAL64, "scale", P_INPUT_DEFAULT(1.0), P_INPUT_MIN(0.01),
-		     P_INPUT_DESC("Displacement scale factor."));
+		     P_INPUT_DESC("Displacement scale factor."), P_INPUT_DONE);
 	p_init_meta("authors", "Emil Brink");
 	p_init_meta("copyright", "2005 PDC, KTH");
 	p_init_meta("desc/purpose", "Displaces geometry, using a bitmap as a displacement map.");
