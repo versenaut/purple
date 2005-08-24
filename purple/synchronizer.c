@@ -991,13 +991,18 @@ void sync_node_add(PNode *node)
 {
 	if(node == NULL)
 		return;
+	if(node->sync.busy)
+	{
+		printf("not adding node %u to synchronizer; it's already being synchronized\n", node->id);
+		return;
+	}
 	timeval_jurassic(&node->sync.last_send);
 	if(node->id == (VNodeID) ~0)	/* Locally created? */
 		sync_info.queue_create = list_prepend(sync_info.queue_create, (void *) node);
 	else
 		sync_info.queue_sync = list_prepend(sync_info.queue_sync, (void *) node);
 	nodedb_ref(node);	/* We've added a reference to the node. */
-	printf("node at %p (%u, '%s') added to synchronizing system (ref=%d)\n", node, node->id, node->name, node->ref);
+	node->sync.busy = 1;
 }
 
 void sync_update(double slice)
@@ -1035,6 +1040,7 @@ void sync_update(double slice)
 			printf("removing node %u from sync queue, it's in sync\n", n->id);
 			nodedb_unref(n);
 			list_destroy(iter);
+			n->sync.busy = 0;
 		}
 	}
 }
