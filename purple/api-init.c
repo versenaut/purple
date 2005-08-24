@@ -408,6 +408,22 @@ PURPLEAPI void p_init_meta(const char *category	/** The category to register met
  * This function is varargs to support the specification of further detail. You can use the \c P_INPUT macros
  * to build a list of extra information, including minimum, maximum and default values, make the input
  * required, and so on. To end the list, use \c P_INPUT_DONE.
+ * 
+ * The full set of such macros is described below:
+ * - \c P_INPUT_MIN(v) - Set minimum for input of type int32, uint32, real32, or real64.
+ * - \c P_INPUT_MIN_VEC2(x,y) - Set minimum for input of type real32_vec2 or real64_vec2.
+ * - \c P_INPUT_MIN_VEC3(x,y,z) - Set minimum for input of type real32_vec3 or real64_vec3.
+ * - \c P_INPUT_MIN_VEC4(x,y,z,w) - Set minimum for input of type real32_vec4 or real64_vec4.
+ * - \c P_INPUT_MAX(), P_INPUT_MAX_VEC2(), P_INPUT_MAX_VEC3(), P_INPUT_MAX_VEC4() - Like the _MIN_ macros, but sets maximum instead.
+ * - \c P_INPUT_DEFAULT(v) - Set default value for input of type boolean, int32, uint32, real32, or real64.
+ * - \c P_INPUT_DEFAULT_VEC2(), P_INPUT_DEFAULT_VEC3(), P_INPUT_DEFAULT_VEC4() - Set default for real32 or real64 vectors.
+ * - \c P_INPUT_DEFAULT_STR(v) - Set default value for input of type string.
+ * - \c P_INPUT_REQUIRED - If present, this signals that the input being described is mandatory; the plug-in will not execute if
+ * no value is given for this input.
+ * - \c P_INPUT_DESC(s) - Set the input's description to the text \c s.
+ * - \c P_INPUT_ENUM(d) - Define enumerated symbolic values for this input, which must be of type \c uint32. The parameter \c d is a string,
+ * containing value:name pairs and separated by a vertical bar. For instance: \c "0:False|1:True" would create two such symbols, one
+ * named "False" that represents the value zero, and one named "True" representing one.
 */
 PURPLEAPI void p_init_input(int index		/** Index of the input to add. Must begin at zero and monotonically increase. */,
 			    PValueType type	/** Preferred type of input. This information is published in the XML description. */,
