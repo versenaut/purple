@@ -108,6 +108,7 @@ typedef enum
 	P_INPUT_TAG_MIN = 16,
 	P_INPUT_TAG_MAX,
 	P_INPUT_TAG_DEFAULT,
+	P_INPUT_TAG_ENUM,
 	P_INPUT_TAG_DESC,
 } PInputTag;
 
@@ -126,6 +127,7 @@ typedef enum
 #define	P_INPUT_DEFAULT_VEC3(x,y,z)	P_INPUT_TAG_DEFAULT, (double) x, (double) y, (double) z
 #define	P_INPUT_DEFAULT_VEC4(x,y,z,w)	P_INPUT_TAG_DEFAULT, (double) x, (double) y, (double) z, (double) w
 #define	P_INPUT_DEFAULT_STR(v)		P_INPUT_TAG_DEFAULT, (const char *) v
+#define	P_INPUT_ENUM(s)			P_INPUT_TAG_ENUM, (const char *) s
 #define	P_INPUT_REQUIRED		P_INPUT_TAG_REQUIRED
 #define	P_INPUT_DESC(p)			P_INPUT_TAG_DESC, (const char *) p
 

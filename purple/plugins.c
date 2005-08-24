@@ -65,6 +65,7 @@ typedef struct
 	unsigned int	min : 1;
 	unsigned int	max : 1;
 	PValue		def_val, min_val, max_val;
+	DynStr		*enums;
 } InputSpec;
 
 typedef struct
@@ -160,6 +161,7 @@ void plugin_set_input(Plugin *p, int index, PValueType type, const char *name, v
 		stu_strncpy(i.name, sizeof i.name, name);
 		i.type = type;
 		i.spec.req = i.spec.def = i.spec.min = i.spec.max = 0;
+		i.spec.enums = NULL;
 		i.desc = NULL;
 		value_init(&i.spec.min_val);
 		value_init(&i.spec.max_val);
@@ -168,8 +170,13 @@ void plugin_set_input(Plugin *p, int index, PValueType type, const char *name, v
 		{
 			int	tag = va_arg(taglist, int);
 
-			if(tag <= P_INPUT_TAG_DONE || tag > P_INPUT_TAG_DESC)	/* Generous. */
+			if(tag == P_INPUT_TAG_DONE)
 				break;
+			else if(tag < P_INPUT_TAG_DONE || tag > P_INPUT_TAG_DESC)	/* Generous. */
+			{
+				LOG_WARN(("Aborting on bad tag value for %s.%s: %d", p->name, i.name, tag));
+				break;
+			}
 			else if(tag == P_INPUT_TAG_REQUIRED)
 				i.spec.req = 1;
 			else if(tag == P_INPUT_TAG_MIN)
@@ -178,6 +185,18 @@ void plugin_set_input(Plugin *p, int index, PValueType type, const char *name, v
 				i.spec.max = value_set_defminmax_va(&i.spec.max_val, i.type, &taglist);
 			else if(tag == P_INPUT_TAG_DEFAULT)
 				i.spec.def = value_set_defminmax_va(&i.spec.def_val, i.type, &taglist);
+			else if(tag == P_INPUT_TAG_ENUM)
+			{
+				const char	*st;
+
+				if(i.spec.enums == NULL)
+					i.spec.enums = dynstr_new_sized(64);
+				st = dynstr_string(i.spec.enums);
+				if(st != NULL && *st != '\0' && st[strlen(st) - 1] != '|')	/* Make sure there are separators. */
+					dynstr_append_c(i.spec.enums, '|');
+				dynstr_append(i.spec.enums, va_arg(taglist, char *));
+				printf("input enums: '%s'\n", dynstr_string(i.spec.enums));
+			}
 			else if(tag == P_INPUT_TAG_DESC)
 				i.desc = va_arg(taglist, char *);
 		}
@@ -319,7 +338,7 @@ void plugin_describe_append(const Plugin *p, DynStr *d)
 				dynstr_append_printf(d, "   <name>%s</name>\n", in->name);
 			if(in->spec.req)
 				dynstr_append(d, "   <flag name=\"required\" value=\"true\"/>\n");
-			if(in->spec.def || in->spec.min || in->spec.max)
+			if(in->spec.def || in->spec.min || in->spec.max || in->spec.enums != NULL)
 			{
 				char		buf[1024];
 				const char	*ptr;
@@ -347,6 +366,12 @@ void plugin_describe_append(const Plugin *p, DynStr *d)
 					dynstr_append(d, "</max>\n");
 				}
 				dynstr_append(d, "   </range>\n");
+				if(in->spec.enums != NULL)
+				{
+					dynstr_append(d, "   <enums>");
+					xml_dynstr_append(d, dynstr_string(in->spec.enums));
+					dynstr_append(d, "</enums>\n");
+				}
 			}
 			if(in->desc != NULL)
 			{
@@ -760,6 +785,12 @@ static void library_new(const char *name)
 	}
 }
 
+#if defined _WIN32
+ #define SUFFIX	".dll"
+#else
+ #define SUFFIX	".so"
+#endif	/* _WIN32 */
+
 void plugins_libraries_load(void)
 {
 	int	i;
@@ -772,12 +803,8 @@ void plugins_libraries_load(void)
 	for(i = 0; plugins_info.paths[i] != NULL; i++)
 	{
 		FileList	*fl;
-#if defined _WIN32
-		const char	*suffix = ".dll";
-#else
-		const char	*suffix = ".so";
-#endif
-		if((fl = filelist_new(plugins_info.paths[i], suffix)) != NULL)
+
+		if((fl = filelist_new(plugins_info.paths[i], SUFFIX)) != NULL)
 		{
 			unsigned int	j;
 
