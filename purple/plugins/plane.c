@@ -14,7 +14,9 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	PNGLayer	*lay;
 
 	obj = p_output_node_create(output, V_NT_OBJECT, MY_OBJECT);
+	p_node_set_name(obj, "plane");
 	geo = p_output_node_create(output, V_NT_GEOMETRY, MY_GEOMETRY);
+	p_node_set_name(geo, "geo-plane");
 
 	p_node_o_link_set(obj, geo, "geometry", 0);
 	/* (Re)Create the polygons. Vertex references will dangle (for a while), but that's OK. */
@@ -24,18 +26,23 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		for(x = 0; x < splits; x++, i++)
 		{
 			n = y * (splits + 1) + x;
-			p_node_g_polygon_set_corner_uint32(lay, i, n, n + 1, n + (splits + 1) + 1, n + (splits + 1));
+			p_node_g_polygon_set_corner_uint32(lay, i,
+							   n,
+							   n + (splits + 1),
+							   n + (splits + 1) + 1,
+							   n + 1
+							   );
 		}
 	}
 	/* Create the vertices. */
 	lay = p_node_g_layer_find(geo, "vertex");
 	for(y = i = 0; y <= splits; y++)
 	{
-		yp = (splits - y) * (size / splits);
+		yp = -0.5f * size + (splits - y) * (size / splits);
 		for(x = 0; x <= splits; x++, i++)
 		{
 			xp = -0.5 * size + (x * size) / splits;
-			p_node_g_vertex_set_xyz(lay, i, xp, yp, 0.0);
+			p_node_g_vertex_set_xyz(lay, i, xp, 0.0, yp);
 		}
 	}
 	printf("plane created with %u vertices, %u polygons\n", i, splits * splits);
