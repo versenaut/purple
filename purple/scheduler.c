@@ -52,10 +52,7 @@ void sched_add(PInstance *inst)
 	Task	*t;
 
 	if(list_find_custom(sched_info.ready, inst, cmp_task_by_inst) != NULL)
-	{
-		printf("add aborted, already in list\n");
 		return;
-	}
 	if(sched_info.chunk_task == NULL)
 		sched_info.chunk_task = memchunk_new("Task", sizeof (Task), 16);
 	if((t = memchunk_alloc(sched_info.chunk_task)) == NULL)
