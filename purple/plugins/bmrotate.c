@@ -9,15 +9,17 @@
 
 #include "purple.h"
 
+/* Macro to boundary-check and then sample a single pixel. Adds color to 'p' while increasing 'c'. */
 #define	SAMPLE(fb,w,h,x,y,ch,p,c)	\
 	do {\
-	if(x < 0 || y < 0 || x >= w || y >= h)\
-		;\
-	else\
-	{\
-		p += fb[((int) (y)) * 3 * w + 3 * ((int) (x)) + ch];\
-		c++;\
-	}} while(0)
+		if(x < 0 || y < 0 || x >= w || y >= h)\
+			;\
+		else\
+		{\
+			p += fb[((int) (y)) * 3 * w + 3 * ((int) (x)) + ch];\
+			c++;\
+		}\
+	} while(0)
 
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
@@ -35,10 +37,11 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		return P_COMPUTE_DONE;
 	}
 	angle = p_input_real32(input[1]);
-	if(angle < -M_PI)
-		angle = -M_PI;
-	else if(angle > M_PI)
-		angle = M_PI;
+	if(angle < -180.0)
+		angle = -180.0;
+	else if(angle > 180.0)
+		angle = 180.0;
+	angle *= M_PI / 180.0;
 
 	/* Compute output size; only operate on common pixels of inputs. No scaling. */
 	p_node_b_get_dimensions(in, &width, &height, &depth);
@@ -59,7 +62,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	if((fb = p_node_b_layer_read_multi_begin((PONode *) in, VN_B_LAYER_REAL32, "col_r", "col_g", "col_b", NULL)) != NULL &&
 	   (fbout = p_node_b_layer_write_multi_begin(out, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL)
 	{
-		int	x, y, clip = 0, cx = width / 2, cy = height / 2, j, cnt;
+		int	x, y, cx = width / 2, cy = height / 2, j, cnt;
 		real32	dx, dy, rx, ry, sx, sy, pix;
 		uint8	*put = fbout;
 
@@ -87,11 +90,10 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 					SAMPLE(fb, width, height, sx + 1.0f, sy, j, pix, cnt);
 					SAMPLE(fb, width, height, sx, sy - 1.0f, j, pix, cnt);
 					SAMPLE(fb, width, height, sx, sy + 1.0f, j, pix, cnt);
-					*put++ = 255.0 * pix / cnt;
+					*put++ = cnt ? 255.0 * pix / cnt : 0u;
 				}
 			}
 		}
-		printf("rotate: done, clipped %u/%u pixels (%u)\n", clip, width * height, put - fbout);
 	}
 	else
 		printf("rotate: couldn't set up operation (%p %p)\n", fb, fbout);
@@ -108,8 +110,8 @@ PURPLE_PLUGIN void init(void)
 {
 	p_init_create("bmrotate");
 	p_init_input(0, P_VALUE_MODULE, "bitmap", P_INPUT_REQUIRED, P_INPUT_DESC("The bitmap to rotate."), P_INPUT_DONE);
-	p_init_input(1, P_VALUE_REAL32, "angle",   P_INPUT_REQUIRED, P_INPUT_DEFAULT(0.0), P_INPUT_MIN(-M_PI), P_INPUT_MAX(M_PI),
-		     P_INPUT_DESC("Rotation angle, in radians."),
+	p_init_input(1, P_VALUE_REAL32, "angle",   P_INPUT_REQUIRED, P_INPUT_DEFAULT(0.0), P_INPUT_MIN(-180.0), P_INPUT_MAX(180.0),
+		     P_INPUT_DESC("Rotation angle, in degrees."),
 		     P_INPUT_DONE);
 	p_init_meta("authors", "Emil Brink");
 	p_init_meta("desc/purpose", "Rotates the input bitmap by the given amount, and outputs the result. Does not resize the bitmap.");
