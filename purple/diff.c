@@ -280,9 +280,8 @@ int diff_compare(const unsigned char *a, int aoff, int n, const unsigned char *b
 	}
 
          /* The ses_compute() function assumes the SES will begin or end with a delete
-          * or insert. The following will insure this is true by eating any
-          * beginning matches. This is also a quick to process sequences
-          * that match entirely.
+          * or insert. The following will insure this is true by eating any initial
+	  * matches. This is also a quick way to process sequences that match entirely.
           */
 	x = y = 0;
 	for(a0 = a + aoff, b0 = b + boff; x < n && y < m && a0[x] == b0[y]; x++, y++)
