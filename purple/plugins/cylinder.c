@@ -23,6 +23,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	PNGLayer	*lay;
 
 	obj = p_output_node_create(output, V_NT_OBJECT, MY_OBJECT);
+	p_node_set_name(obj, "cylinder");
 	geo = p_output_node_create(output, V_NT_GEOMETRY, MY_GEOMETRY);
 
 	p_node_o_link_set(obj, geo, "geometry", 0);
