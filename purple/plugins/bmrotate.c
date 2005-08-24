@@ -68,7 +68,6 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 
 		dx = cos(angle);
 		dy = -sin(angle);
-		printf("rotate: dx=%g dy=%g\n", dx, dy);
 
 		for(y = 0; y < height; y++)
 		{
