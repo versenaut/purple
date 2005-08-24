@@ -11,11 +11,15 @@
  * an actual library-based plug-in using these calls, too. *Don't* do that.
 */
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #include "verse.h"
 
+#include "purple.h"
+
 #include "dynarr.h"
+#include "value.h"
 #include "list.h"
 #include "plugins.h"
 #include "textbuf.h"
@@ -23,7 +27,6 @@
 
 #include "api-init.h"
 
-#include "purple.h"
 #include "plugin-input.h"
 
 /* ----------------------------------------------------------------------------------------- */
