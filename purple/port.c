@@ -62,7 +62,7 @@ void port_append_value(const PPort *port, DynStr *d)
 
 int port_set_va(PPort *port, PValueType type, va_list arg)
 {
-	return value_set_va(&port->value, type, arg);
+	return value_set_va(&port->value, type, &arg);
 }
 
 int port_set_from_string(PPort *port, PValueType type, const char *string)

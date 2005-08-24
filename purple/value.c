@@ -152,7 +152,7 @@ const char * value_type_name(const PValue *v)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static int do_set(PValue *v, PValueType type, va_list arg)
+static int do_set(PValue *v, PValueType type, va_list *arg)
 {
 	uint16	old_set = v->set;
 
@@ -160,27 +160,27 @@ static int do_set(PValue *v, PValueType type, va_list arg)
 	switch(type)
 	{
 	case P_VALUE_BOOLEAN:
-		v->v.vboolean = (boolean) va_arg(arg, int);
+		v->v.vboolean = (boolean) va_arg(*arg, int);
 		return 1;
 	case P_VALUE_INT32:
-		v->v.vint32 = (int32) va_arg(arg, int32);
+		v->v.vint32 = (int32) va_arg(*arg, int32);
 		return 1;
 	case P_VALUE_UINT32:
-		v->v.vuint32 = (uint32) va_arg(arg, uint32);
+		v->v.vuint32 = (uint32) va_arg(*arg, uint32);
 		return 1;
 	case P_VALUE_REAL32:
-		v->v.vreal32 = (real32) va_arg(arg, double);
+		v->v.vreal32 = (real32) va_arg(*arg, double);
 		return 1;
 	case P_VALUE_REAL32_VEC2:
 		{
-			const real32 *data = (const real32 *) va_arg(arg, const real32 *);
+			const real32 *data = (const real32 *) va_arg(*arg, const real32 *);
 			v->v.vreal32_vec2[0] = data[0];
 			v->v.vreal32_vec2[1] = data[1];
 		}
 		return 1;
 	case P_VALUE_REAL32_VEC3:
 		{
-			const real32 *data = (const real32 *) va_arg(arg, const real32 *);
+			const real32 *data = (const real32 *) va_arg(*arg, const real32 *);
 			v->v.vreal32_vec3[0] = data[0];
 			v->v.vreal32_vec3[1] = data[1];
 			v->v.vreal32_vec3[2] = data[2];
@@ -188,7 +188,7 @@ static int do_set(PValue *v, PValueType type, va_list arg)
 		return 1;
 	case P_VALUE_REAL32_VEC4:
 		{
-			const real32 *data = (const real32 *) va_arg(arg, const real32 *);
+			const real32 *data = (const real32 *) va_arg(*arg, const real32 *);
 			v->v.vreal32_vec4[0] = data[0];
 			v->v.vreal32_vec4[1] = data[1];
 			v->v.vreal32_vec4[2] = data[2];
@@ -197,7 +197,7 @@ static int do_set(PValue *v, PValueType type, va_list arg)
 		return 1;
 	case P_VALUE_REAL32_MAT16:
 		{
-			const real32	*data = (const real32 *) va_arg(arg, const real32 *);
+			const real32	*data = (const real32 *) va_arg(*arg, const real32 *);
 			int		i;
 
 			for(i = 0; i < 16; i++)
@@ -205,18 +205,18 @@ static int do_set(PValue *v, PValueType type, va_list arg)
 		}
 		return 1;
 	case P_VALUE_REAL64:
-		v->v.vreal64 = (real64) va_arg(arg, double);
+		v->v.vreal64 = (real64) va_arg(*arg, double);
 		return 1;
 	case P_VALUE_REAL64_VEC2:
 		{
-			const real64 *data = (const real64 *) va_arg(arg, const real64 *);
+			const real64 *data = (const real64 *) va_arg(*arg, const real64 *);
 			v->v.vreal64_vec2[0] = data[0];
 			v->v.vreal64_vec2[1] = data[1];
 		}
 		return 1;
 	case P_VALUE_REAL64_VEC3:
 		{
-			const real64 *data = (const real64 *) va_arg(arg, const real64 *);
+			const real64 *data = (const real64 *) va_arg(*arg, const real64 *);
 			v->v.vreal64_vec3[0] = data[0];
 			v->v.vreal64_vec3[1] = data[1];
 			v->v.vreal64_vec3[2] = data[2];
@@ -224,7 +224,7 @@ static int do_set(PValue *v, PValueType type, va_list arg)
 		return 1;
 	case P_VALUE_REAL64_VEC4:
 		{
-			const real64 *data = (const real64 *) va_arg(arg, const real64 *);
+			const real64 *data = (const real64 *) va_arg(*arg, const real64 *);
 			v->v.vreal64_vec4[0] = data[0];
 			v->v.vreal64_vec4[1] = data[1];
 			v->v.vreal64_vec4[2] = data[2];
@@ -233,7 +233,7 @@ static int do_set(PValue *v, PValueType type, va_list arg)
 		return 1;
 	case P_VALUE_REAL64_MAT16:
 		{
-			const real64	*data = (const real64 *) va_arg(arg, const real64 *);
+			const real64	*data = (const real64 *) va_arg(*arg, const real64 *);
 			int		i;
 
 			for(i = 0; i < 16; i++)
@@ -241,13 +241,13 @@ static int do_set(PValue *v, PValueType type, va_list arg)
 		}
 		return 1;
 	case P_VALUE_MODULE:
-		v->v.vmodule = (uint32) va_arg(arg, uint32);
+		v->v.vmodule = (uint32) va_arg(*arg, uint32);
 		return 1;
 	case P_VALUE_STRING:
 		if(old_set & (1 << P_VALUE_STRING))
 		{
 			size_t		ol, nl;
-			const char	*ns = (const char *) va_arg(arg, const char *);
+			const char	*ns = (const char *) va_arg(*arg, const char *);
 
 			ol = strlen(v->v.vstring);
 			nl = strlen(ns);
@@ -260,7 +260,7 @@ static int do_set(PValue *v, PValueType type, va_list arg)
 			}
 		}
 		else
-			v->v.vstring = stu_strdup((const char *) va_arg(arg, const char *));
+			v->v.vstring = stu_strdup((const char *) va_arg(*arg, const char *));
 		return 1;
 	default:
 		LOG_WARN(("Problem in do_set(): type %d unhandled", type));
@@ -276,13 +276,13 @@ int value_set(PValue *v, PValueType type, ...)
 	if(v == NULL)
 		return 0;
 	va_start(arg, type);
-	ret = do_set(v, type, arg);
+	ret = do_set(v, type, &arg);
 	va_end(arg);
 
 	return ret;
 }
 
-int value_set_va(PValue *v, PValueType type, va_list arg)
+int value_set_va(PValue *v, PValueType type, va_list *arg)
 {
 	if(v == NULL)
 		return 0;
@@ -292,7 +292,7 @@ int value_set_va(PValue *v, PValueType type, va_list arg)
 int value_set_defminmax_va(PValue *v, PValueType type, va_list *arg)
 {
 	if(type == P_VALUE_STRING)
-		return value_set_va(v, type, *arg);
+		return value_set_va(v, type, arg);
 	else
 	{
 		double	d = va_arg(*arg, double);
