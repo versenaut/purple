@@ -156,6 +156,7 @@ PNode * nodedb_new(VNodeType type)
 		n->notify     = NULL;
 		n->creator.port   = NULL;
 		n->creator.remote = NULL;
+		n->sync.busy  = 0;
 
 		switch(n->type)
 		{

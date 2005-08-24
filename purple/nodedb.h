@@ -46,6 +46,7 @@ struct PNode
 
 	/* Information owned by the synchronizer. Could live in there, but this is easier for now. */
 	struct {
+	unsigned int	busy : 1;	/* Is this node currently being synchronized? */
 	TimeVal		last_send;
 	}		sync;
 };
