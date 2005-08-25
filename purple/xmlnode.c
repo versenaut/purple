@@ -181,6 +181,8 @@ static Attrib * attribs_build(const char *token, size_t *attrib_num)
 	{
 		while(isspace(*src))
 			src++;
+		if(*src == '\0')
+			break;
 		if(isalpha(*src))
 		{
 			while(isalpha(*src) || *src == '-' || *src == '_')
@@ -209,13 +211,22 @@ static Attrib * attribs_build(const char *token, size_t *attrib_num)
 					num++;
 				}
 				else
+				{
+					printf("attribute parse error\n");
 					return NULL;
+				}
 			}
 			else
+			{
+				printf("attribute parse error\n");
 				return NULL;
+			}
 		}
 		else
+		{
+			printf("attribute parse error -- '%c' (%u) is not alpha\n", *src, (unsigned int) *src);
 			return NULL;
+		}
 	}
 	if(num > 0 && name_size > 0 && value_size > 0)
 	{
@@ -294,7 +305,7 @@ static XmlNode * node_new(const char *token)
 			node->element = NULL;
 		node->text     = NULL;
 		node->attrib_num = 0;
-		node->attrib   = attribs_build(token ? token + elen : NULL, &node->attrib_num);
+		node->attrib   = attribs_build(token ? token + elen - 1 : NULL, &node->attrib_num);
 		node->parent   = NULL;
 		node->children = NULL;
 		node->user     = NULL;
