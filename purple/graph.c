@@ -845,7 +845,6 @@ void graph_port_output_set_node(PPOutput port, PONode *node)
 
 	port_set_node(port, node);
 	m->out.changed = TRUE;
-	printf("graph: set changed on port at %p\n", port);
 }
 
 /* A <node> was just created by <m>, check if there is resume-information for it. */
@@ -1002,7 +1001,6 @@ static void cb_node_output_notify(PNode *node, NodeNotifyEvent e, void *user)
 
 void graph_port_output_create_notify(const PNode *local)
 {
-	printf("Node resulting from port %p is %u\n", local->creator.port, local->creator.remote->id);
 	nodedb_notify_node_add(local->creator.remote, cb_node_output_notify, (void *) local);
 }
 
@@ -1299,30 +1297,6 @@ static void module_input_set(uint32 graph_id, uint32 module_id, uint8 input_inde
 	va_start(arg, type);
 	do_module_input_set(g, module_id, input_index, type, 0, arg);
 	va_end(arg);
-#if 0
-	/* Remove any existing dependency by this input. */
-	if(plugin_portset_get_module(m->instance.inputs, input_index, &old_link))
-		module_dep_remove(g, old_link, m->id);
-
-	va_start(arg, type);
-	plugin_portset_set_va(m->instance.inputs, input_index, type, arg);
-	va_end(arg);
-	desc = module_build_desc(m);
-	verse_send_t_text_set(g->node, g->buffer, m->start, m->length, dynstr_string(desc));
-	m->length = dynstr_length(desc);
-	dynstr_destroy(desc, 1);
-	graph_modules_desc_start_update(g);
-
-	/* Did we just set a link to someone? Then notify that someone about new dependant. */
-	if(type == P_VALUE_MODULE)
-	{
-		uint32	other;
-
-		plugin_portset_get_module(m->instance.inputs, input_index, &other);
-		module_dep_add(g, other, module_id);
-	}
-	sched_add(&m->instance);
-#endif
 }
 
 /* Set module input from a string representation, passed as the single vararg. Only used by resume. */
