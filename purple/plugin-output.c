@@ -29,7 +29,6 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state_typel
 	unsigned int	i;
 	PINode		*node;
 
-	printf("now in plugin-output\n");
 	for(i = 0; (node = p_input_node_nth(input[0], i)) != NULL && i < 100; i++)	/* FIXME: Arbitrary limit, for now. */
 		sync_node_add((PONode *) node);
 	return P_COMPUTE_DONE;
