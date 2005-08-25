@@ -311,6 +311,24 @@ void nodedb_g_vertex_get_xyz(const NdbGLayer *layer, uint32 vertex_id, real64 *x
 	}
 }
 
+void nodedb_g_vertex_set_uint32(NdbGLayer *layer, uint32 vertex_id, uint32 value)
+{
+	if(layer == NULL)
+		return;
+	if(layer->data == NULL)
+		layer->data = dynarr_new(sizeof value, 16);
+	dynarr_set(layer->data, vertex_id, &value);
+}
+
+uint32 nodedb_g_vertex_get_uint32(const NdbGLayer *layer, uint32 vertex_id)
+{
+	if(layer == NULL)
+		return 0u;
+	if(layer->data == NULL)
+		return layer->def_uint;
+	return *(uint32 *) dynarr_index(layer->data, vertex_id);
+}
+
 /* Macro to define a vertex XYZ handler function. */
 #define	VERTEX_XYZ(t)	\
 	static void cb_g_vertex_set_xyz_ ##t(void *user, VNodeID node_id, VLayerID layer_id, uint32 vertex_id,\

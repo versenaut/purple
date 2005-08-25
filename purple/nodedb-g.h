@@ -53,6 +53,8 @@ extern void		nodedb_g_layer_destroy(NodeGeometry *node, NdbGLayer *layer);
 
 extern void		nodedb_g_vertex_set_xyz(NdbGLayer *layer, uint32 vertex_id, real64 x, real64 y, real64 z);
 extern void		nodedb_g_vertex_get_xyz(const NdbGLayer *layer, uint32 vertex_id, real64 *x, real64 *y, real64 *z);
+extern void		nodedb_g_vertex_set_uint32(NdbGLayer *layer, uint32 vertex_id, uint32 value);
+extern uint32		nodedb_g_vertex_get_uint32(const NdbGLayer *layer, uint32 vertex_id);
 extern void		nodedb_g_polygon_set_corner_uint32(NdbGLayer *layer, uint32 polygon_id,
 							   uint32 v0, uint32 v1, uint32 v2, uint32 v3);
 extern void		nodedb_g_polygon_get_corner_uint32(const NdbGLayer *layer, uint32 polygon_id,

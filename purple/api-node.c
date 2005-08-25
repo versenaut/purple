@@ -591,6 +591,27 @@ PURPLEAPI void p_node_g_vertex_get_xyz(const PNGLayer *layer	/** The layer in wh
 }
 
 /**
+ * \breif Set value of a uint32 vertex slot.
+ * 
+ * This function sets the value of a uint32-type vertex layer. Each such slot holds a single
+ * 32-bit unsigned integer number. They are often used to represent vertex creasing, but can
+ * be used for general-purpose data storage.
+*/
+PURPLEAPI void p_node_g_vertex_set_uint32(PNGLayer *layer	/** The layer in which a slot is to be set. */,
+					  uint32 id		/** The ID or index of the vertex slot to set in. */,
+					  uint32 value		/** The value to set the slot to. */)
+{
+	nodedb_g_vertex_set_uint32(layer, id, value);
+}
+
+PURPLEAPI uint32 p_node_g_vertex_get_uint32(PNGLayer *layer	/** The layer in which a slot is to be queried. */,
+					    uint32 id		/** The ID or index of the vertex slot to query. */)
+{
+	return nodedb_g_vertex_get_uint32(layer, id);
+}
+					    
+
+/**
  * \brief Set value of a corner \c uint32 slot.
  * 
  * This function sets the value of a slot in a corner integer-type layer. Each slot holds four \c uint32 numbers,
