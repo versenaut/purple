@@ -33,6 +33,7 @@ typedef struct {
 	GList		*layers;
 	GtkWidget	*scwin;
 	GtkWidget	*image;		/* Image visualizing contents of this node. */
+	GdkPixbuf	*pix;		/* Pixbuf holding image data, at zoom=1. */
 	GtkWidget	*info;		/* Label showing info. */
 	GtkWidget	*pbar;		/* Progress bar. */
 	gint		page_num;
@@ -40,6 +41,7 @@ typedef struct {
 	gboolean	subscribed;
 	gboolean	full;
 	guint		tile_count;
+	gdouble		zoom;
 } NodeBitmap;
 
 typedef struct {
@@ -114,11 +116,15 @@ static NodeBitmap * node_bitmap_new(MainInfo *min, VNodeID node_id)
 	node->evt_refresh = 0u;
 	node->scwin = NULL;
 	node->image = NULL;
+	node->pix = NULL;
+	node->info = NULL;
 	min->nodes = g_list_append(min->nodes, node);
 
 	node->full = FALSE;
 	node->tile_count = 0;
 	node->subscribed = FALSE;
+
+	node->zoom = 1.0;
 
 	return node;
 }
@@ -168,6 +174,16 @@ static void put_layer(GdkPixbuf *dst, const BitmapLayer *layer, const NodeBitmap
 	}
 }
 
+static void set_image(GtkWidget *image, const GdkPixbuf *src, gdouble zoom, size_t w, size_t h)
+{
+	GdkPixbuf	*scaled;
+
+	scaled = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8, zoom * w, zoom * h);
+	gdk_pixbuf_scale(src, scaled, 0, 0, zoom * w, zoom * h, 0.0, 0.0, zoom, zoom, GDK_INTERP_BILINEAR);
+	gtk_image_set_from_pixbuf(GTK_IMAGE(image), scaled);
+	g_object_unref(scaled);	/* Drop the reference, we're done with the scaled image. */
+}
+
 static gboolean cb_refresh_timeout(gpointer user)
 {
 	NodeBitmap	*node = user;
@@ -175,11 +191,9 @@ static gboolean cb_refresh_timeout(gpointer user)
 
 	if(node->image != NULL)
 	{
-		GdkPixbuf	*dst;
 		GList		*l = NULL;
 
-		dst = gtk_image_get_pixbuf(GTK_IMAGE(node->image));
-		gdk_pixbuf_fill(dst, 0u);
+		gdk_pixbuf_fill(node->pix, 0u);
 		for(iter = node->layers; iter != NULL; iter = g_list_next(iter))
 		{
 			if(strcmp(((BitmapLayer *) iter->data)->name, "alpha") == 0)
@@ -187,12 +201,11 @@ static gboolean cb_refresh_timeout(gpointer user)
 			else
 				l = g_list_prepend(l, iter->data);
 		}
+		printf("putting layers into 1:1 backing store pixbuf at %p\n", node->pix);
 		for(iter = l; iter != NULL; iter = g_list_next(iter))
-		{
-			put_layer(dst, iter->data, node);
-		}
+			put_layer(node->pix, iter->data, node);
 		g_list_free(l);
-		gtk_image_set_from_pixbuf(GTK_IMAGE(node->image), dst);
+		set_image(node->image, node->pix, node->zoom, node->width, node->height);
 	}
 	node->evt_refresh = 0u;
 	return FALSE;
@@ -273,6 +286,7 @@ static void node_bitmap_refresh_info(const NodeBitmap *node)
 		for(iter = node->layers, ln = size = 0; iter != NULL; iter = g_list_next(iter), ln++)
 			size += ((BitmapLayer *) iter->data)->size;
 		g_snprintf(ltext, sizeof ltext, "%ux%ux%u pixels in %u layers; %u bytes total", node->width, node->height, node->depth, ln, size);
+		printf("label at %p\n", node->info);
 		gtk_label_set_text(GTK_LABEL(node->info), ltext);
 	}
 }
@@ -336,14 +350,22 @@ static void node_dimensions_set(NodeBitmap *node, uint16 width, uint16 height, u
 {
 	const GList	*iter;
 
-/*	printf("dimensions set to %ux%ux%u\n", width, height, depth);*/
+	printf("dimensions set to %ux%ux%u\n", width, height, depth);
 	for(iter = node->layers; iter != NULL; iter = g_list_next(iter))
 		layer_resize((BitmapLayer *) iter->data, width, height, depth, node->width, node->height, node->depth);
 	node->width  = width;
 	node->height = height;
 	node->depth  = depth;
+	if(node->pix != NULL)
+	{
+		printf(" dropping old pixbuf\n");
+		g_object_unref(G_OBJECT(node->pix));
+	}
+	node->pix = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8, node->width, node->height);
+	printf(" new pixbuf allocated at %p\n", node->pix);
 	node_bitmap_show(node);
 	node_bitmap_queue_refresh(node);
+	printf(" dimensions set of node %p, refreshing\n", node);
 	node_bitmap_refresh_info(node);
 }
 
@@ -463,6 +485,14 @@ static void evt_node_close_clicked(GtkWidget *wid, gpointer user)
 	}
 }
 
+static void evt_zoom_changed(GtkWidget *wid, gpointer user)
+{
+	NodeBitmap	*node = user;
+
+	node->zoom = gtk_range_get_value(GTK_RANGE(wid));
+	set_image(node->image, node->pix, node->zoom, node->width, node->height);
+}
+
 static void evt_subscribe_clicked(GtkWidget *wid, gpointer user)
 {
 	MainInfo	*min = user;
@@ -471,14 +501,25 @@ static void evt_subscribe_clicked(GtkWidget *wid, gpointer user)
 	if((node = node_lookup(min, min->cur_node)) != NULL)
 	{
 		gchar		ltext[64], *nptr;
-		GtkWidget	*vbox, *hbox, *label, *cross;
+		GtkWidget	*vbox, *hbox, *label, *cross, *paned, *zs;
 		const GList	*iter;
 
 		vbox = gtk_vbox_new(FALSE, 0);
+		paned = gtk_hpaned_new();
 		node->scwin = gtk_scrolled_window_new(NULL, NULL);
 		gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(node->scwin), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 		node->image = NULL;
-		gtk_box_pack_start(GTK_BOX(vbox), node->scwin, TRUE, TRUE, 0);
+		gtk_paned_pack1(GTK_PANED(paned), node->scwin, TRUE, TRUE);
+		zs = gtk_vscale_new_with_range(0.1, 20.0, 0.5);
+		gtk_scale_set_draw_value(GTK_SCALE(zs), TRUE);
+		gtk_scale_set_value_pos(GTK_SCALE(zs), GTK_POS_TOP);
+		gtk_scale_set_digits(GTK_SCALE(zs), 1);
+		gtk_range_set_value(GTK_RANGE(zs), 1.0);
+		gtk_range_set_inverted(GTK_RANGE(zs), TRUE);
+		g_signal_connect(G_OBJECT(zs), "value_changed", G_CALLBACK(evt_zoom_changed), node);
+		gtk_widget_set_size_request(zs, 32, -1);
+		gtk_paned_pack2(GTK_PANED(paned), zs, FALSE, FALSE);
+		gtk_box_pack_start(GTK_BOX(vbox), paned, TRUE, TRUE, 0);
 		hbox = gtk_hbox_new(FALSE, 0);
 		node->info = gtk_label_new("");
 		node_bitmap_refresh_info(node);
