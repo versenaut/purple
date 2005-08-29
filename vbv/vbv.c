@@ -201,7 +201,6 @@ static gboolean cb_refresh_timeout(gpointer user)
 			else
 				l = g_list_prepend(l, iter->data);
 		}
-		printf("putting layers into 1:1 backing store pixbuf at %p\n", node->pix);
 		for(iter = l; iter != NULL; iter = g_list_next(iter))
 			put_layer(node->pix, iter->data, node);
 		g_list_free(l);
@@ -286,7 +285,6 @@ static void node_bitmap_refresh_info(const NodeBitmap *node)
 		for(iter = node->layers, ln = size = 0; iter != NULL; iter = g_list_next(iter), ln++)
 			size += ((BitmapLayer *) iter->data)->size;
 		g_snprintf(ltext, sizeof ltext, "%ux%ux%u pixels in %u layers; %u bytes total", node->width, node->height, node->depth, ln, size);
-		printf("label at %p\n", node->info);
 		gtk_label_set_text(GTK_LABEL(node->info), ltext);
 	}
 }
@@ -357,15 +355,10 @@ static void node_dimensions_set(NodeBitmap *node, uint16 width, uint16 height, u
 	node->height = height;
 	node->depth  = depth;
 	if(node->pix != NULL)
-	{
-		printf(" dropping old pixbuf\n");
 		g_object_unref(G_OBJECT(node->pix));
-	}
 	node->pix = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8, node->width, node->height);
-	printf(" new pixbuf allocated at %p\n", node->pix);
 	node_bitmap_show(node);
 	node_bitmap_queue_refresh(node);
-	printf(" dimensions set of node %p, refreshing\n", node);
 	node_bitmap_refresh_info(node);
 }
 
