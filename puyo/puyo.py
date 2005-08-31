@@ -92,7 +92,7 @@ class PurpleAvatar(NodeObject):
 	def _send_mod_input_set(self, typename, graph, module, input, value):
 		group, m = self.get_graph_method("mod_set_" + typename)
 		if m != None:
-			print "sendning input set", (graph, module, input), "to", value, "(%s)" % typename
+			print "sending input set", (graph, module, input), "to", value, "(%s)" % typename
 			v.send_o_method_call(self.id, group.id, m[0], 0, (graph, module, input, value))
 
 	def mod_create(self, graph, module):
@@ -492,8 +492,6 @@ class Puyo:
 						ob.xml_notify_remove(self.currentGraph[2])
 			buf = n.buffer_get(what[2])
 			self.currentGraph = (what, n, buf.xml_notify_add(self.cb_current_graph_update, None))
-			print "what=", what
-			print buf.xml
 			self.inputs.set_graph(what[0], buf.xml)
 			self.area.set_graph(what[0], buf.xml)
 
