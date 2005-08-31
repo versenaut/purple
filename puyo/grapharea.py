@@ -434,6 +434,8 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 		return -1
 
 	def _evt_button_press(self, *args):
+		if self.graph == None:
+			return
 		evt = args[1]
 		here = self.Point(evt.x, evt.y)
 		here.map_gl(self.home, self.allocation.width, self.allocation.height, self.zoom)
