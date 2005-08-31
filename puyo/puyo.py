@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 #
+# "Puyo", a prototype-quality Purple interface client. Written by Emil Brink.
+#
+# Copyright (C) 2004-2005 PDC, KTH. See COPYING for license details.
 #
 
 import pygtk

@@ -1,5 +1,7 @@
 #
+# grapharea.py -- Code for displaying and editing Purple graphs.
 #
+# Copyright (C) 2004-2005 PDC, KTH. See COPYING for license details.
 #
 
 import gtk

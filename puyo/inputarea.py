@@ -1,5 +1,7 @@
-
 #
+# inputarea.py -- Code for building and managing GTK+ interface for module input setting.
+#
+# Copyright (C) 2004-2005 PDC, KTH. See COPYING for license details.
 #
 
 import pygtk

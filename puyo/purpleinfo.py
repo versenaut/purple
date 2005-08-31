@@ -1,5 +1,7 @@
 #
+# purpleinfo.py -- A helper class that does various lookups.
 #
+# Copyright (C) 2004-2005 PDC, KTH. See COPYING for license details.
 #
 
 import string
