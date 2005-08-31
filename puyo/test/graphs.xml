@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+
+<purple-graphs>
+ <graph id="1" name="graph0">
+  <at>
+   <node>Text_Node_2</node>
+   <buffer>0</buffer>
+  </at>
+ </graph>
+</purple-graphs>
