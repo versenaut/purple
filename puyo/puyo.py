@@ -317,6 +317,27 @@ class Puyo:
 		        return (gid, nn, bid)
 		return None
 
+	def get_string(self, help, label, preset = None):
+		dlg = gtk.Dialog()
+		dlg.vbox.pack_start(gtk.Label(help), False, False)
+		hbox = gtk.HBox()
+		hbox.pack_start(gtk.Label("Name:"))
+		entry = gtk.Entry()
+		if preset != None:
+			entry.set_text(preset)
+		hbox.pack_start(entry)
+		dlg.vbox.pack_start(hbox)
+		dlg.add_button(gtk.STOCK_OK,     1)
+		dlg.add_button(gtk.STOCK_CANCEL, 0)
+		dlg.set_default_response(1)
+		dlg.show_all()
+		r = dlg.run()
+		if r == 1:
+			ret = entry.get_text()
+		else:	ret = None		# Differentiate between "" and cancel.
+		dlg.destroy()
+		return ret
+
 	# Open dialog that lets user pick a text node and a buffer. Returns buffer object pointer.
 	def pick_buffer(self, edit = False, help = None):
 		def _get_buffer():
@@ -327,21 +348,9 @@ class Puyo:
 			return buffer
 
 		def _create_node(*args):
-			cdlg = gtk.Dialog()
-			hbox = gtk.HBox()
-			hbox.pack_start(gtk.Label("Name:"))
-			entry = gtk.Entry()
-			hbox.pack_start(entry)
-			cdlg.vbox.pack_start(hbox)
-			cdlg.add_button(gtk.STOCK_OK,     1)
-			cdlg.add_button(gtk.STOCK_CANCEL, 0)
-			cdlg.set_default_response(1)
-			cdlg.show_all()
-			r = cdlg.run()
-			if r == 1:
-				n = entry.get_text()
+			n = self.get_string("Enter name of new\ntext node:", "Name:")
+			if n != None:
 				n = string.strip(n)
-				print entry.get_text()
 				if len(n) > 0:
 					the_db.send_create_named(v.TEXT, n)
 			cdlg.destroy()
@@ -355,20 +364,9 @@ class Puyo:
 			else:
 				node = b.node
 			if node != None:
-				cdlg = gtk.Dialog()
-				cdlg.vbox.pack_start(gtk.Label("Create new buffer\nin node %s:" % node.name))
-				hbox = gtk.HBox()
-				hbox.pack_start(gtk.Label("Name:"))
-				entry = gtk.Entry()
-				hbox.pack_start(entry)
-				cdlg.vbox.pack_start(hbox)
-				cdlg.add_button(gtk.STOCK_OK,     1)
-				cdlg.add_button(gtk.STOCK_CANCEL, 0)
-				cdlg.set_default_response(1)
-				cdlg.show_all()
-				r = cdlg.run()
-				if r == 1:
-					n = string.strip(entry.get_text())
+				n = self.get_string("Enter name of new\ntext buffer:", "Name:")
+				if n != None:
+					n = string.strip(n)
 					if len(n) > 0:
 						v.send_t_buffer_create(node.id, ~0, n)
 				cdlg.destroy()
@@ -422,7 +420,9 @@ class Puyo:
 		if buf != None:
 			group, m = the_db.purple.get_graph_method("create")
 			if m != None:
-				v.send_o_method_call(the_db.purple.id, group.id, m[0], 0, (buf.node.id, buf.id, "graph0"))
+				n = self.get_string("Enter name of new\ngraph to create:", "Name:", "graphN")
+				print "about to create graph in", buf.node.id, buf.id
+				v.send_o_method_call(the_db.purple.id, group.id, m[0], 0, (buf.node.id, buf.id, n))
 
 	def pick_graph(self):
 		"""Pop up a dialog showing existing graphs, letting the user pick one to edit."""
@@ -462,10 +462,14 @@ class Puyo:
 		column = gtk.TreeViewColumn("Buffer ID", renderer, text = 3)
 		view.append_column(column)
 		view.set_model(_build_model(self.graphs))
+		view.set_size_request(-1, 128)
 
 		dlg = gtk.Dialog()
 		dlg.vbox.pack_start(gtk.Label("Pick graph to edit:"), False, False)
-		dlg.vbox.pack_start(view)
+		scwin = gtk.ScrolledWindow()
+		scwin.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+		scwin.add(view)
+		dlg.vbox.pack_start(scwin)
 		dlg.add_button(gtk.STOCK_OK,     1)
 		dlg.add_button(gtk.STOCK_CANCEL, 0)
 		dlg.set_default_response(1)
