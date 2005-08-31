@@ -461,7 +461,7 @@ class Puyo:
 		view.set_model(_build_model(self.graphs))
 
 		dlg = gtk.Dialog()
-		dlg.vbox.pack_start(gtk.Label("Pick graph to edit:"))
+		dlg.vbox.pack_start(gtk.Label("Pick graph to edit:"), False, False)
 		dlg.vbox.pack_start(view)
 		dlg.add_button(gtk.STOCK_OK,     1)
 		dlg.add_button(gtk.STOCK_CANCEL, 0)
