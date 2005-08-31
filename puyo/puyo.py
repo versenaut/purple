@@ -424,7 +424,7 @@ class Puyo:
 				print "about to create graph in", buf.node.id, buf.id
 				v.send_o_method_call(the_db.purple.id, group.id, m[0], 0, (buf.node.id, buf.id, n))
 
-	def pick_graph(self):
+	def pick_graph(self, help = None):
 		"""Pop up a dialog showing existing graphs, letting the user pick one to edit."""
 
 		def _get_selection(view):
@@ -433,7 +433,7 @@ class Puyo:
 			if sel != None:
 				model, iter = sel.get_selected()
 				if iter != None:
-					return (model.get_value(iter, 0), model.get_value(iter, 1), model.get_value(iter, 2), model.get_value(iter, 3))
+					return (int(model.get_value(iter, 0)), model.get_value(iter, 1), model.get_value(iter, 2), int(model.get_value(iter, 3)))
 			return None
 			
 
@@ -465,7 +465,8 @@ class Puyo:
 		view.set_size_request(-1, 128)
 
 		dlg = gtk.Dialog()
-		dlg.vbox.pack_start(gtk.Label("Pick graph to edit:"), False, False)
+		if help != None:
+			dlg.vbox.pack_start(gtk.Label(help), False, False)
 		scwin = gtk.ScrolledWindow()
 		scwin.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
 		scwin.add(view)
@@ -482,7 +483,7 @@ class Puyo:
 		return g
 
 	def evt_action_graph_edit(self, action, user):
-		g = self.pick_graph()
+		g = self.pick_graph("Pick graph to edit:")
 		if g == None:
 			return
 		what = self.graph_find(g[1])
@@ -501,6 +502,13 @@ class Puyo:
 			self.currentGraph = (what, n, buf.xml_notify_add(self.cb_current_graph_update, None))
 			self.inputs.set_graph(what[0], buf.xml)
 			self.area.set_graph(what[0], buf.xml)
+
+	def evt_action_graph_destroy(self, action, user):
+		group, m = the_db.purple.get_graph_method("destroy")
+		if m != None:
+			g = self.pick_graph("Pick graph to destroy:")
+			if g != None:
+				v.send_o_method_call(the_db.purple.id, group.id, m[0], 0, (g[0], ))
 
 	def evt_action_module_align_left(self, action, user):
 		self.area.module_align(gtk.ARROW_LEFT)
@@ -542,8 +550,10 @@ class Puyo:
 		ag.add_action_with_accel(self.actionGraphCreate, None)
 		self.actionGraphEdit = gtk.Action("GraphEdit", "Edit...", "Edit an existing graph", gtk.STOCK_OPEN)
 		self.actionGraphEdit.connect("activate", self.evt_action_graph_edit, self)
-		ag.add_action_with_accel(self.actionGraphEdit, "<ctrl>O")
-		ag.add_action(gtk.Action("GraphDestroy", "Destroy...", "Destroy an existing graph", gtk.STOCK_DELETE))
+		ag.add_action_with_accel(self.actionGraphEdit, None)
+		self.actionGraphDestroy = gtk.Action("GraphDestroy", "Destroy...", "Destroy an existing graph", gtk.STOCK_DELETE)
+		self.actionGraphDestroy.connect("activate", self.evt_action_graph_destroy, self)
+		ag.add_action(self.actionGraphDestroy)
 		ag.add_action_with_accel(gtk.Action("GraphQuit", "Quit", "Quit the application", gtk.STOCK_QUIT), None)
 
 		ag.add_action(gtk.Action("ModuleMenu", "Module", "Module commands", None))
