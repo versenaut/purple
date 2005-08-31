@@ -1,0 +1,958 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+
+<purple-plugins>
+<plug-in id="1" name="node-input">
+ <inputs>
+  <input type="string">
+   <name>name</name>
+   <flag name="required" value="true"/>
+   <desc>Name of single Verse node to import.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">Built-in plug-in, outputs the single node whose name is given</entry>
+  <entry category="class">input/output</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="2" name="node-output">
+ <inputs>
+  <input type="module">
+   <name>nodes</name>
+   <flag name="required" value="true"/>
+   <desc>Nodes to output. All nodes found in the input data will be sent to the Verse server.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">Built-in plug-in, writes input to Verse server.</entry>
+  <entry category="class">input/output</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="3" name="audioecho">
+ <inputs>
+  <input type="module">
+   <name>node</name>
+   <flag name="required" value="true"/>
+  </input>
+  <input type="real32">
+   <name>delay</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="4" name="audioscale">
+ <inputs>
+  <input type="module">
+   <name>node</name>
+   <flag name="required" value="true"/>
+  </input>
+  <input type="real32">
+   <name>factor</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="5" name="audiotone">
+ <inputs>
+  <input type="real32">
+   <name>frequency</name>
+   <flag name="required" value="true"/>
+  </input>
+  <input type="real32">
+   <name>duration</name>
+   <flag name="required" value="true"/>
+  </input>
+  <input type="uint32">
+   <name>format</name>
+   <range>
+    <def>1</def>
+   </range>
+  </input>
+  <input type="real32">
+   <name>samplefrequency</name>
+   <range>
+    <def>44100</def>
+   </range>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="6" name="bbox">
+ <inputs>
+  <input type="module">
+   <name>data</name>
+   <flag name="required" value="true"/>
+   <desc>The node data to compute bounding box for. Only the first object's geometry will be considered.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">Compute bounding box (minimum and maximum vertex positions) for input geometry. Outputs these using the real64_vec4 and real64_vec3 output slots, respectively.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="7" name="bmaverage">
+ <inputs>
+  <input type="module">
+   <name>bitmap</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="8" name="bmblend">
+ <inputs>
+  <input type="module">
+   <name>bitmap1</name>
+   <flag name="required" value="true"/>
+   <desc>The first bitmap is input here.</desc>
+  </input>
+  <input type="module">
+   <name>bitmap2</name>
+   <flag name="required" value="true"/>
+   <desc>The second bitmap is input here.</desc>
+  </input>
+  <input type="real32">
+   <name>alpha</name>
+   <flag name="required" value="true"/>
+   <range>
+    <min>0</min>
+    <max>1</max>
+   </range>
+   <desc>Controls how much of each bitmap is used in the output. the blending equation is: out = (1 - alpha) * bitmap1 + alpha * bitmap2. So, in other words, the output goes from bitmap1 to bitmap2 as the alpha goes from zero to one.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">Computes a straightforward &quot;alpha blend&quot; between two input images. Uses a third input, the alpha, to control how much of each is to appear on the output.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="9" name="bmchecker">
+ <inputs>
+  <input type="uint32">
+   <name>side</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>32</def>
+   </range>
+   <desc>Side of entire bitmap, side length in pixels.</desc>
+  </input>
+  <input type="uint32">
+   <name>size</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>4</def>
+   </range>
+   <desc>Side length of each square in the pattern.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">Creates a &quot;checkered flag&quot; image in a bitmap node. Inputs  control the size of the bitmap, as well as the size of each square in the pattern.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="10" name="bmdisc">
+ <inputs>
+  <input type="uint32">
+   <name>size</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>32</def>
+    <max>512</max>
+   </range>
+   <desc>Side length of bitmap to create, in pixels. Disc will have this long a diameter.</desc>
+  </input>
+  <input type="real64_vec3">
+   <name>foreground</name>
+   <range>
+    <def>[1 1 1]</def>
+    <min>[0 0 0]</min>
+    <max>[1 1 1]</max>
+   </range>
+   <desc>Foreground color for disc.</desc>
+  </input>
+  <input type="real64_vec3">
+   <name>background</name>
+   <range>
+    <def>[0 0 0]</def>
+    <min>[0 0 0]</min>
+    <max>[1 1 1]</max>
+   </range>
+   <desc>Background color for disc.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Creates a bitmap holding an RGB image of a disc, i.e. a filled circle. The disc is centered in the bitmap, and fore- and background colors can be set as well.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="11" name="bmfilter">
+ <inputs>
+  <input type="module">
+   <name>bitmap1</name>
+   <flag name="required" value="true"/>
+   <desc>The first bitmap is input here.</desc>
+  </input>
+  <input type="module">
+   <name>bitmap2</name>
+   <flag name="required" value="true"/>
+   <desc>The second bitmap is input here.</desc>
+  </input>
+  <input type="uint32">
+   <name>mode</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>0</def>
+   </range>
+   <enums>0:Normal|1:Average|2:Multiply|3:Screen|4:Darken|5:Lighten|6:Difference|7:Negation|8:Exclusion|9:Overlay</enums>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">Computes bitmap filter operation, on two sources. Supports several &quot;modes&quot; that affect how the result will look.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="12" name="bmnoise">
+ <inputs>
+  <input type="uint32">
+   <name>width</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>32</def>
+    <max>1024</max>
+   </range>
+   <desc>Width of bitmap to create.</desc>
+  </input>
+  <input type="uint32">
+   <name>height</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>32</def>
+    <max>1024</max>
+   </range>
+   <desc>Height of bitmap to create.</desc>
+  </input>
+  <input type="uint32">
+   <name>seed</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>0</def>
+   </range>
+   <desc>Seed value for pseudo random number generation.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Creates a 2D bitmap of Perlin noise.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="13" name="bmoilify">
+ <inputs>
+  <input type="module">
+   <name>bitmap</name>
+   <flag name="required" value="true"/>
+   <desc>The bitmap to process. Only the first bitmap is affected.</desc>
+  </input>
+  <input type="uint32">
+   <name>size</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>8</def>
+    <min>1</min>
+    <max>32</max>
+   </range>
+   <desc>The size of the effect to apply. Greater sizes take longer to process, but can result in a smoother result.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">This plug-in applies an 'oilify' effect to a bitmap image. This causes the bitmap to be smoothed in a way that resembles an oil painting.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="14" name="bmrotate">
+ <inputs>
+  <input type="module">
+   <name>bitmap</name>
+   <flag name="required" value="true"/>
+   <desc>The bitmap to rotate.</desc>
+  </input>
+  <input type="real32">
+   <name>angle</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>0</def>
+    <min>-180</min>
+    <max>180</max>
+   </range>
+   <desc>Rotation angle, in degrees.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">Rotates the input bitmap by the given amount, and outputs the result. Does not resize the bitmap.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="15" name="bmtext">
+ <inputs>
+  <input type="string">
+   <name>text</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>FOO</def>
+   </range>
+   <desc>The text to render is input here. You can embed newlines by using the C standard notation of \n. Text will be flush to the left of each line.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Generates a bitmap representation of the input string. The text is rendered with a built-in 8x8 pixel fixed-width font, in white on a black background.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="16" name="bulge">
+ <inputs>
+  <input type="module">
+   <name>data</name>
+   <flag name="required" value="true"/>
+   <desc>The first object's geometry will be affected.</desc>
+  </input>
+  <input type="real64_vec3">
+   <name>position</name>
+   <flag name="required" value="true"/>
+  </input>
+  <input type="real64_vec3">
+   <name>vector</name>
+   <flag name="required" value="true"/>
+  </input>
+  <input type="real64">
+   <name>radius</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>1</def>
+    <min>0.1</min>
+   </range>
+   <desc>Radius of the deformation.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink, Eskil Steenberg</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Applies a deform to the first input object that has a geometry.</entry>
+  <entry category="class">tool/deformer</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="17" name="cone">
+ <inputs>
+  <input type="real32">
+   <name>height</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>10</def>
+    <min>0.1</min>
+    <max>200</max>
+   </range>
+   <desc>Height of cone, from the base to the apex.</desc>
+  </input>
+  <input type="uint32">
+   <name>bottom splits</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>8</def>
+    <min>1</min>
+    <max>128</max>
+   </range>
+   <desc>Number of splits in bottom face. Controls how round the cone base mesh is.</desc>
+  </input>
+  <input type="uint32">
+   <name>side splits</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>1</def>
+    <min>1</min>
+    <max>128</max>
+   </range>
+   <desc>Number of splits along the main axis of the cone.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">Creates a cone primitive. The user can control the height of the cone, which is the distance between the base plane to the apex, as well as the number of subdivisions along both major axis.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="18" name="constant">
+ <inputs>
+  <input type="string">
+   <name>value</name>
+   <flag name="required" value="true"/>
+   <desc>String representation of desired value is input here.</desc>
+  </input>
+  <input type="uint32">
+   <name>type</name>
+   <flag name="required" value="true"/>
+   <range>
+   </range>
+   <enums>0:String|1:Real64|2:UInt32</enums>
+   <desc>This controls what type the output value will have.</desc>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="19" name="cube">
+ <inputs>
+  <input type="real32">
+   <name>size</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>1</def>
+    <min>0.1</min>
+    <max>200</max>
+   </range>
+   <desc>The side length of the cube.</desc>
+  </input>
+  <input type="uint32">
+   <name>splits</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>1</def>
+    <min>1</min>
+    <max>100</max>
+   </range>
+   <desc>The number of splits to do along each axis.</desc>
+  </input>
+  <input type="boolean">
+   <name>uv-map</name>
+   <range>
+    <def>false</def>
+   </range>
+   <desc>Controls whether or not UV mapping data is created.</desc>
+  </input>
+  <input type="uint32">
+   <name>crease</name>
+   <range>
+    <def>0</def>
+   </range>
+   <enums>0:None|1:Defaults|2:Full Layers</enums>
+   <desc>Controls the creasing set for this cube. Without crease information, subdiving renderers will make the cube very round.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">Creates a cube object.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="20" name="curvetest">
+ <inputs>
+  <input type="real64">
+   <name>v</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="21" name="cylinder">
+ <inputs>
+  <input type="real32">
+   <name>height</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>10</def>
+    <min>0.1</min>
+    <max>200</max>
+   </range>
+   <desc>The height of the cylinder; distance from base to top surface.</desc>
+  </input>
+  <input type="uint32">
+   <name>end splits</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>8</def>
+    <min>1</min>
+    <max>128</max>
+   </range>
+   <desc>The number of splits of the bottom and top ends. Controls the roundness of the base mesh.</desc>
+  </input>
+  <input type="uint32">
+   <name>side splits</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>1</def>
+    <min>1</min>
+    <max>128</max>
+   </range>
+   <desc>The number of splits along the cylinder's axis.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">Creates a cylinder object with matching geometry.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="22" name="displace">
+ <inputs>
+  <input type="module">
+   <name>object</name>
+   <flag name="required" value="true"/>
+   <desc>The first object with a geometry link will have its geometry displaced.</desc>
+  </input>
+  <input type="module">
+   <name>map</name>
+   <flag name="required" value="true"/>
+   <desc>The first bitmap node will be used as the displacement map.</desc>
+  </input>
+  <input type="real64">
+   <name>scale</name>
+   <range>
+    <def>1</def>
+    <min>0.01</min>
+   </range>
+   <desc>Displacement scale factor.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Displaces geometry, using a bitmap as a displacement map.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="23" name="add">
+</plug-in>
+
+<plug-in id="24" name="factors">
+ <inputs>
+  <input type="uint32">
+   <name>n</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="25" name="hello">
+ <inputs>
+  <input type="int32">
+   <name>mode</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>5</def>
+    <min>0</min>
+    <max>17</max>
+   </range>
+  </input>
+  <input type="string">
+   <name>text</name>
+   <range>
+    <def>monster</def>
+   </range>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">Say hello to the world.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="26" name="power_of_two">
+ <inputs>
+  <input type="uint32">
+   <name>x</name>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="27" name="fact">
+ <inputs>
+  <input type="uint32">
+   <name>n</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="28" name="add_r32">
+ <inputs>
+  <input type="real32">
+   <name>a</name>
+   <flag name="required" value="true"/>
+  </input>
+  <input type="real32">
+   <name>b</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">Adds two real32 numbers together</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="29" name="sub_r32">
+ <inputs>
+  <input type="real32">
+   <name>a</name>
+   <flag name="required" value="true"/>
+  </input>
+  <input type="real32">
+   <name>b</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">Computes difference of two real32 numbers</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="30" name="mattest">
+ <inputs>
+  <input type="module">
+   <name>texture</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="31" name="measure">
+ <inputs>
+  <input type="module">
+   <name>data</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="32" name="mtexture">
+ <inputs>
+  <input type="module">
+   <name>object</name>
+  </input>
+  <input type="module">
+   <name>texture</name>
+  </input>
+  <input type="boolean">
+   <name>lit</name>
+   <range>
+    <def>false</def>
+   </range>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="33" name="new-audio">
+ <inputs>
+  <input type="string">
+   <name>name</name>
+   <flag name="required" value="true"/>
+   <desc>Name of new node.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="desc/category">Node Tools</entry>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 KTH</entry>
+  <entry category="desc/purpose">Creates a new audio node, with a given name.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="34" name="new-bitmap">
+ <inputs>
+  <input type="string">
+   <name>name</name>
+   <flag name="required" value="true"/>
+   <desc>Name of new node.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="desc/category">Node Tools</entry>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 KTH</entry>
+  <entry category="desc/purpose">Creates a new bitmap node, with a given name.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="35" name="new-curve">
+ <inputs>
+  <input type="string">
+   <name>name</name>
+   <flag name="required" value="true"/>
+   <desc>Name of new node.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="desc/category">Node Tools</entry>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 KTH</entry>
+  <entry category="desc/purpose">Creates a new curve node, with a given name.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="36" name="new-geometry">
+ <inputs>
+  <input type="string">
+   <name>name</name>
+   <flag name="required" value="true"/>
+   <desc>Name of new node.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="desc/category">Node Tools</entry>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 KTH</entry>
+  <entry category="desc/purpose">Creates a new geometry node, with a given name.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="37" name="new-material">
+ <inputs>
+  <input type="string">
+   <name>name</name>
+   <flag name="required" value="true"/>
+   <desc>Name of new node.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="desc/category">Node Tools</entry>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 KTH</entry>
+  <entry category="desc/purpose">Creates a new material node, with a given name.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="38" name="new-object">
+ <inputs>
+  <input type="string">
+   <name>name</name>
+   <flag name="required" value="true"/>
+   <desc>Name of new node.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="desc/category">Node Tools</entry>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 KTH</entry>
+  <entry category="desc/purpose">Creates a new object node, with a given name.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="39" name="new-text">
+ <inputs>
+  <input type="string">
+   <name>name</name>
+   <flag name="required" value="true"/>
+   <desc>Name of new node.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="desc/category">Node Tools</entry>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 KTH</entry>
+  <entry category="desc/purpose">Creates a new text node, with a given name.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="40" name="plane">
+ <inputs>
+  <input type="real32">
+   <name>size</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>10</def>
+   </range>
+   <desc>Side length of plane.</desc>
+  </input>
+  <input type="uint32">
+   <name>splits</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>1</def>
+   </range>
+   <desc>Number of times to split each side.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">Create a simple polygonal plane, consisting of many quadrilaterals.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="41" name="scale">
+ <inputs>
+  <input type="module">
+   <name>data</name>
+   <flag name="required" value="true"/>
+  </input>
+  <input type="real32">
+   <name>scale</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="42" name="sphere">
+ <inputs>
+  <input type="real32">
+   <name>radius</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>10</def>
+    <min>0.1</min>
+    <max>200</max>
+   </range>
+   <desc>The radius of the sphere.</desc>
+  </input>
+  <input type="uint32">
+   <name>end splits</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>8</def>
+    <min>3</min>
+    <max>128</max>
+   </range>
+   <desc>The number of splits around the north/south axis of the sphere.</desc>
+  </input>
+  <input type="uint32">
+   <name>side splits</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>1</def>
+    <min>1</min>
+    <max>128</max>
+   </range>
+   <desc>The number of splits along the north/south axis of the sphere.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">Creates a polygonal mesh representation of a sphere. Lets you control how finely the mesh should be tesselated along two axis.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="43" name="str-length">
+ <inputs>
+  <input type="string">
+   <name>str</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="desc/purpose">Compute length of string (number of characters)</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="44" name="str-join">
+ <inputs>
+  <input type="string">
+   <name>str1</name>
+   <flag name="required" value="true"/>
+  </input>
+  <input type="string">
+   <name>str2</name>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="desc/purpose">Join (concatenate) two strings, outputting the result.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="45" name="str-cut">
+ <inputs>
+  <input type="string">
+   <name>str</name>
+   <flag name="required" value="true"/>
+   <desc>The string to cut a substring from.</desc>
+  </input>
+  <input type="uint32">
+   <name>start</name>
+   <desc>The position, counting from zero, of the first character to include in the cut-out substring. If this exceeds the length of the string, the substring will be empty.</desc>
+  </input>
+  <input type="uint32">
+   <name>length</name>
+   <range>
+    <def>4294967295</def>
+    <min>1</min>
+   </range>
+   <desc>The number of characters to include in the substring. Must be one or greater. If the nunber specified exceeds the number of characters available at the starting point, the substring will end at the input's end.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="desc/purpose">Cut out a substring from a string, and output that.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="46" name="tagtest">
+ <inputs>
+  <input type="uint32">
+   <name>mode</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="47" name="template">
+ <inputs>
+  <input type="real32">
+   <name>x</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Random Developer</entry>
+  <entry category="desc/purpose">Shows wanna-be developers how to use the Purple API.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="48" name="textnum">
+ <inputs>
+  <input type="int32">
+   <name>number</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="49" name="warp">
+ <inputs>
+  <input type="module">
+   <name>data</name>
+   <flag name="required" value="true"/>
+  </input>
+  <input type="module">
+   <name>bbox</name>
+   <flag name="required" value="true"/>
+  </input>
+  <input type="real32">
+   <name>twist</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>0</def>
+    <min>-180</min>
+    <max>180</max>
+   </range>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Does a &quot;warp&quot; or &quot;twist&quot; of the first input object's geometry. The warping is done along the vertical (Y) axis, and goes from zero degrees at the bottom (lowest value of Y) to a configurable value at the top (highest value of Y).</entry>
+  <entry category="class">tool/deformer</entry>
+ </meta>
+</plug-in>
+</purple-plugins>

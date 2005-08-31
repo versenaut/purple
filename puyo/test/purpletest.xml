@@ -1,0 +1,5 @@
+<graph>
+ <module id="0" plug-in="14">
+  <set input="1" type="real32">0</set>
+ </module>
+</graph>
