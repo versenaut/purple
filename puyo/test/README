@@ -1,0 +1,24 @@
+This directory contains sample "snapshots" of the kind of data parsed and
+made interactive by Puyo.
+
+The files are:
+
+plugins.xml
+	Contains the PurpleMeta/plugins buffer, listing all known plug-ins
+	and their input types etc. This information is used to build the
+	menu of plug-ins that can be instantiated, and also the UI of each
+	such instance.
+
+graphs.xml
+	Contains the PurpleMeta/graphs buffer. This lists all the graphs
+	that Purple knew about at the time the snapshot was made.
+
+purpletest.xml
+	Contains the (user-owned) purpletest text node, holding a single
+	graph ("graph0"). This is what changes as the graph is edited by
+	Puyo. Puyo must react to changes here from the outside, it never
+	writes the buffer directly.
+
+Note that these were all saved out from the Verse server where they would
+normally reside during Purple operations; none of these are saved to disk
+otherwise.
