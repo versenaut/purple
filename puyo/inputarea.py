@@ -19,6 +19,7 @@ class InputArea(gtk.Notebook):
 		self.purple = None
 		self.graph = None
 		self.graph_id = None
+		self.current_module = -1
 
     	def set_purple(self, purple):
 		self.purple = purple
@@ -346,7 +347,10 @@ class InputArea(gtk.Notebook):
 	def _update_inputs(self, mid):
 		"Refresh current page's input widgets by reading out current values in graph."
 		try:	page = self.pages[mid]
-		except:	return
+		except:
+			print "no page for module", mid, type(mid)
+			print " pages:", self.pages
+			return
 #		print "update page module %d, page %d" % (mid, page[0])
 		# Prepare handy list of (module,plug-in) tuples, so combos can be set up.
 		mods = []
@@ -370,14 +374,13 @@ class InputArea(gtk.Notebook):
 			self.graph_id = gid
 		self.graph = graph	# Always store the new XML, though.
 		# If current module changed, we need to rebuild the UI. So do it, just in case.
-		mid = self.get_current_page()
+		mid = self.current_module
 		if mid >= 0:
 			# First check if the module actually exists, it might have been deleted.
 			m = self.graph.xpathEval("graph/module[@id='%d']" % mid)
 			if len(m) == 0:
 				self.remove_page(mid)
 			else:
-				
 				self._update_inputs(mid)
 
 	def _build_page(self, mid):
@@ -405,8 +408,9 @@ class InputArea(gtk.Notebook):
 		page.pack_start(table, 0, 0, 0)
 		page.show_all()
 		pnr = self.append_page(page)
-#		print "built page number", pnr, "for module", mid
+#		print "built page number", pnr, "for module", mid, type(mid)
 		self.pages[mid] = (pnr, table)
+		self.current_module = mid
 		return pnr
 
 	def set_focus(self, mid):
@@ -426,4 +430,5 @@ class InputArea(gtk.Notebook):
 		# Update to reflect current settings.
 		self._update_inputs(mid)
 		self.set_current_page(p[0])
+		self.current_module = mid
 		self.show()
