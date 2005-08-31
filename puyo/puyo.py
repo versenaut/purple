@@ -315,7 +315,7 @@ class Puyo:
 		return None
 
 	# Open dialog that lets user pick a text node and a buffer. Returns buffer object pointer.
-	def pick_buffer(self, edit = False):
+	def pick_buffer(self, edit = False, help = None):
 		def _get_buffer():
 			buffer = None
 			model, iter = nview.get_selection().get_selected()
@@ -389,6 +389,8 @@ class Puyo:
 		column = gtk.TreeViewColumn("Text Nodes", renderer, text = 1)
 		nview.append_column(column)
 		dlg = gtk.Dialog()
+		if help != None:
+			dlg.vbox.pack_start(gtk.Label(help))
 		dlg.vbox.pack_start(nview)
 		dlg.add_button(gtk.STOCK_OK,     1)
 		dlg.add_button(gtk.STOCK_CANCEL, 0)
@@ -419,9 +421,64 @@ class Puyo:
 			if m != None:
 				v.send_o_method_call(the_db.purple.id, group.id, m[0], 0, (buf.node.id, buf.id, "graph0"))
 
+	def pick_graph(self):
+		"""Pop up a dialog showing existing graphs, letting the user pick one to edit."""
+
+		def _get_selection(view):
+			"""Returns quadtuple of (graph id, name, text node id, buffer id) for the selection, or None."""
+			sel = view.get_selection()
+			if sel != None:
+				model, iter = sel.get_selected()
+				if iter != None:
+					return (model.get_value(iter, 0), model.get_value(iter, 1), model.get_value(iter, 2), model.get_value(iter, 3))
+			return None
+			
+
+		def _build_model(graphs):
+			model = gtk.ListStore(gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_STRING)
+			for g in graphs.xpathEval("purple-graphs/graph[@id and @name]"):
+				gid   = g.xpathEval("@id")[0].content
+				gname = g.xpathEval("@name")[0].content
+				nname = g.xpathEval("at/node")[0].content
+				bid   = g.xpathEval("at/buffer")[0].content
+				iter = model.insert_after(None, None)
+				model.set_value(iter, 0, gid)
+				model.set_value(iter, 1, gname)
+				model.set_value(iter, 2, nname)
+				model.set_value(iter, 3, bid)
+			return model
+
+		view = gtk.TreeView()
+		renderer = gtk.CellRendererText()
+		column = gtk.TreeViewColumn("Graph ID", renderer, text = 0)
+		view.append_column(column)
+		column = gtk.TreeViewColumn("Graph Name", renderer, text = 1)
+		view.append_column(column)
+		column = gtk.TreeViewColumn("Node Name", renderer, text = 2)
+		view.append_column(column)
+		column = gtk.TreeViewColumn("Buffer ID", renderer, text = 3)
+		view.append_column(column)
+		view.set_model(_build_model(self.graphs))
+
+		dlg = gtk.Dialog()
+		dlg.vbox.pack_start(gtk.Label("Pick graph to edit:"))
+		dlg.vbox.pack_start(view)
+		dlg.add_button(gtk.STOCK_OK,     1)
+		dlg.add_button(gtk.STOCK_CANCEL, 0)
+		dlg.set_default_response(1)
+		dlg.show_all()
+		r = dlg.run()
+		g = None
+		if r == 1:
+			g = _get_selection(view)
+		dlg.destroy()
+		return g
+
 	def evt_action_graph_edit(self, action, user):
-		print self.pick_buffer(False)
-		what = self.graph_find("graph0")
+		g = self.pick_graph()
+		if g == None:
+			return
+		what = self.graph_find(g[1])
 		if what == None: return
 		n = the_db.get_named(what[1])
 		if n != None:
