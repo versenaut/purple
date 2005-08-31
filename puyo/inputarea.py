@@ -325,7 +325,7 @@ class InputArea(gtk.Notebook):
 			return w
 
 		def _refresh(self, sets, modules):
-			"Refresh widgets on page, given current sets and modules."
+			"""Refresh widgets on page, given current sets and modules."""
 			for s in sets:
 				iid = s[0]				# Input ID of input to set.
 				it = self.inputs[iid][1]		# Input type.
@@ -375,15 +375,9 @@ class InputArea(gtk.Notebook):
 				self.remove_page(0)
 			self.graph_id = gid
 		self.graph = graph	# Always store the new XML, though.
-		# If current module changed, we need to rebuild the UI. So do it, just in case.
-		mid = self.current_module
-		if mid >= 0:
-			# First check if the module actually exists, it might have been deleted.
-			m = self.graph.xpathEval("graph/module[@id='%d']" % mid)
-			if len(m) == 0:
-				self.remove_page(mid)
-			else:
-				self._update_inputs(mid)
+
+		# Just re-focus the module that was focused just before. It will do the right thing.
+		self.set_focus(self.current_module)
 
 	def _build_page(self, mid):
 		"Build UI page for module <mid>."
@@ -417,17 +411,30 @@ class InputArea(gtk.Notebook):
 
 	def set_focus(self, mid):
 		"Set focus, i.e. the displayed inputs, to module with ID <mid>."
+		if mid == -1:
+			if self.current_module >= 0:
+				try:	p = self.pages[self.current_module]
+				except:	p = None
+				if p != None:
+					del self.pages[self.current_module]
+					self.remove_page(p[0])
+			self.current_module = -1
+			return
 		try:	p = self.pages[mid]
 		except:	p = None
 		if p == None:
 			k = self._build_page(mid)
 			p = self.pages[mid]
-		cpid = int(self.graph.xpathEval("graph/module[@id=\"%u\"]/@plug-in" % mid)[0].content)
+		m = self.graph.xpathEval("graph/module[@id='%u']/@plug-in" % mid)
+		if len(m) == 0:
+			self.set_focus(-1)
+			return
+		cpid = int(m[0].content)
 		# If plug-in has changed, trash and rebuild the module.
 		if cpid != p[1].pid:
-			print "rebuilding!"
 			self.remove_page(p[0])
 			self._build_page(mid)
+
 			p = self.pages[mid]
 		# Update to reflect current settings.
 		self._update_inputs(mid)
