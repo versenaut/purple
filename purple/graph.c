@@ -562,6 +562,17 @@ static Graph * graph_create(unsigned int id, VNodeID node_id, uint16 buffer_id, 
 	/* Make sure name is unique. */
 	if(hash_lookup(graph_info.graphs_name, name) != NULL)
 		return NULL;	/* It wasn't. */
+	/* More expensive, but good for sanity: make sure the (node,buffer) combo is unique,
+	 * since a single buffer can only hold one graph representation (we clear it, below).
+	*/
+	for(i = idset_foreach_first(graph_info.graphs); (g = idset_lookup(graph_info.graphs, i)) != NULL; i = idset_foreach_next(graph_info.graphs, i))
+	{
+		if(g->node == node_id && g->buffer == buffer_id)
+		{
+			LOG_WARN(("Can't create graph \"%s\" in %u.%u, already used by graph \"%s\" -- aborting", name, node_id, buffer_id, g->name));
+			return NULL;
+		}
+	}
 
 	me = g = mem_alloc(sizeof *g);
 	stu_strncpy(g->name, sizeof g->name, name);
