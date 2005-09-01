@@ -651,7 +651,6 @@ class Puyo:
 		self.area = GraphArea(glconfig, self.inputs, the_purpleinfo)
 
 		hbox.pack_start(self.area)
-		self.inputs.append_page(gtk.HScale(), gtk.Label("Page"))
 		hbox.pack_start(self.inputs, 0, 0, 0)
 		vbox.pack_start(hbox)
 		self.window.add(vbox)
