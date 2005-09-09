@@ -54,7 +54,7 @@ static const char * append_entity(const char *buffer, DynStr *token)
 		char	*entity;
 		size_t	len;
 		char	replace;
-	} entity[] = { { "&lt;", 4, '<' }, { "&gt;", 4, '>' }, { "&amp;", 5, '&' }, { "&quot;", 6, '"' } };
+	} entity[] = { { "&lt;", 4, '<' }, { "&gt;", 4, '>' }, { "&amp;", 5, '&' }, { "&apos;", 6, '\'' }, { "&quot;", 6, '"' } };
 	unsigned int	i;
 
 	for(i = 0; i < sizeof entity / sizeof *entity; i++)
@@ -89,6 +89,35 @@ static const char * token_get(const char *buffer, DynStr **token, TokenStatus *s
 
 		if((d = *token) == NULL)
 			d = dynstr_new_sized(32);
+		if(buffer[1] == '!')
+		{
+			buffer += 2;
+			if(strncmp(buffer, "[CDATA[", 7) == 0)	/* CDATA section detected, extract and return as text. */
+			{
+				buffer += 7;
+				*status = TEXT;
+				while(*buffer && strncmp(buffer, "]]>", 3) != 0)
+				{
+					if(strncmp(buffer, "&gt;", 4) == 0)	/* Bare-bones "entity support". */
+					{
+						dynstr_append_c(d, '>');
+						buffer += 4;
+					}
+					else
+						dynstr_append_c(d, *buffer++);
+				}
+			}
+			else
+			{
+				dynstr_destroy(d, 1);
+				LOG_ERR(("Unknown XML directive starting %c%c%c%c%c, aborting", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]));
+				*status = ERROR;
+				return buffer;
+			}
+			*token = d;
+			return buffer;
+		}
+
 		for(buffer++; *buffer; last = here)
 		{
 			here = *buffer++;
@@ -126,7 +155,7 @@ static const char * token_get(const char *buffer, DynStr **token, TokenStatus *s
 			dynstr_truncate(d, dynstr_length(d) - 1);
 			*status = TAGEMPTY;
 		}
-		*token  = d;
+		*token = d;
 		return buffer;
 	}
 	else
@@ -542,6 +571,24 @@ List * filter_list(List *list, void **filter)
 				{
 					next = list_next(iter);
 					if(strcmp(xmlnode_get_name(list_data(iter)), name) != 0)
+					{
+						list = list_unlink(list, iter);
+						list_destroy(iter);
+					}
+				}
+			}
+			break;
+		case XMLNODE_FILTER_NAME_PREFIX:
+			{
+				const char	*prefix = *filter++;
+				List		*iter, *next;
+				size_t		plen;
+
+				plen = strlen(prefix);
+				for(iter = list; iter != NULL; iter = list_next(iter))
+				{
+					next = list_next(iter);
+					if(strncmp(xmlnode_get_name(list_data(iter)), prefix, plen) != 0)
 					{
 						list = list_unlink(list, iter);
 						list_destroy(iter);
