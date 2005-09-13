@@ -43,6 +43,8 @@ typedef struct {
 
 	VNodeID		cur_node;
 	uint16		cur_buffer;
+
+	const char	*server;
 } MainInfo;
 
 /* ----------------------------------------------------------------------------------------- */
@@ -192,9 +194,9 @@ static void combo_buffers_refresh(MainInfo *min)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_connect_accept(void *user, uint32 avatar, void *address, void *connection, uint8 *host_id)
+static void cb_connect_accept(void *user, uint32 avatar, const char *address, void *connection, uint8 *host_id)
 {
-	printf("Connected\n");
+	printf("Connected to %s\n", address);
 	verse_send_node_index_subscribe(1 << V_NT_TEXT);
 }
 
@@ -204,16 +206,19 @@ static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeID 
 	node_text_new(user, node_id);
 }
 
-/*
-static void cb_get_time(void *user, uint32 time)
-{
-	printf("time: %u\n", time);
-}
-*/
-
 static void cb_ping(void *user, const char *address, const char *text)
 {
-	printf("ping from '%s': '%s'\n", address, text);
+	uint32	ts, tf, ns, nf;
+
+	verse_session_get_time(&ns, &nf);
+	printf("ping from %s: \"%s\", now=%u.%u", address, text, ns, nf);
+	if(sscanf(text, "%u.%u", &ts, &tf) == 2)
+	{
+		double	d = ns - ts + (1.0 / 4294967295.0) * (nf - tf);
+
+		printf(" - %g s", d);
+	}
+	printf("\n");
 }
 
 static void cb_node_name_set(void *user, VNodeID node_id, const char *name)
@@ -546,8 +551,13 @@ static gboolean evt_window_keypress(GtkWidget *win, GdkEventKey *evt, gpointer u
 
 static void evt_ping(GtkWidget *win, gpointer user)
 {
-	printf("Pinging server\n");
-	verse_send_ping("localhost", "foobar");
+	MainInfo	*min = user;
+	uint32		s, f;
+	char		buf[32];
+
+	verse_session_get_time(&s, &f);
+	sprintf(buf, "%u.%u", s, f);
+	verse_send_ping(min->server, buf);
 }
 
 static void evt_window_delete(GtkWidget *win, GdkEvent *evt, gpointer user)
@@ -563,12 +573,12 @@ static gboolean evt_timeout(gpointer user)
 
 int main(int argc, char *argv[])
 {
-	const char	*ip = "localhost";
 	MainInfo	min;
 	GtkWidget	*vbox, *hbox, *label, *btn;
 	int		i;
 
 	min.nodes = NULL;
+	min.server = "localhost";
 
 	gtk_init(&argc, &argv);
 	min.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -610,10 +620,6 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(btn), "clicked", G_CALLBACK(evt_window_delete), &min);
 	gtk_box_pack_end(GTK_BOX(hbox), btn, FALSE, FALSE, 0);
 
-/*	btn = gtk_button_new_with_label("Get Time");
-	g_signal_connect(G_OBJECT(btn), "clicked", G_CALLBACK(evt_get_time), &min);
-	gtk_box_pack_end(GTK_BOX(hbox), btn, FALSE, FALSE, 0);
-*/
 	btn = gtk_button_new_with_label("Ping");
 	g_signal_connect(G_OBJECT(btn), "clicked", G_CALLBACK(evt_ping), &min);
 	gtk_box_pack_end(GTK_BOX(hbox), btn, FALSE, FALSE, 0);
@@ -630,7 +636,6 @@ int main(int argc, char *argv[])
 
 	verse_callback_set(verse_send_connect_accept,	cb_connect_accept, &min);
 	verse_callback_set(verse_send_node_create,	cb_node_create,	&min);
-/*	verse_callback_set(verse_send_get_time,		cb_get_time, &min);*/
 	verse_callback_set(verse_send_ping,		cb_ping, &min);
 	verse_callback_set(verse_send_node_name_set,	cb_node_name_set, &min);
 	verse_callback_set(verse_send_t_buffer_create,	cb_node_t_buffer_create, &min);
@@ -639,10 +644,10 @@ int main(int argc, char *argv[])
 	for(i = 1; argv[i] != NULL; i++)
 	{
 		if(strncmp(argv[i], "-ip=", 4) == 0)
-			ip = argv[i] + 4;
+			min.server = argv[i] + 4;
 	}
 
-	min.session = verse_send_connect("vtv", "secret", ip, NULL);
+	min.session = verse_send_connect("vtv", "secret", min.server, NULL);
 	gtk_main();
 
 	return 0;
