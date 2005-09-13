@@ -38,7 +38,7 @@ typedef struct {
 	GList		*nodes;
 	GtkWidget	*window;
 
-	GtkWidget	*combo_nodes, *combo_buffers, *subscribe, *saveas;
+	GtkWidget	*combo_nodes, *combo_buffers, *subscribe, *saveas, *saveasvml;
 	GtkWidget	*notebook;
 
 	VNodeID		cur_node;
@@ -279,6 +279,7 @@ static void subscribe_set_sensitive(MainInfo *min)
 		return;
 	gtk_widget_set_sensitive(min->subscribe, buf->text == NULL);
 	gtk_widget_set_sensitive(min->saveas,    buf->text != NULL);
+	gtk_widget_set_sensitive(min->saveasvml, buf->text != NULL);
 }
 
 static void evt_buffer_close_clicked(GtkWidget *wid, gpointer user)
@@ -390,6 +391,92 @@ static void evt_saveas_clicked(GtkWidget *wid, gpointer user)
 						if((out = fopen(filename, "w")) != NULL)
 						{
 							fwrite(chars, gtk_text_iter_get_offset(&end), 1, out);
+						}
+						fclose(out);
+					}
+				}
+			}
+			gtk_widget_destroy(dlg);
+		}
+	}
+}
+
+static void evt_saveasvml_clicked(GtkWidget *wid, gpointer user)
+{
+	MainInfo	*min = user;
+	TextBuffer	*buf;
+
+	if((buf = buffer_lookup(min, min->cur_node, min->cur_buffer)) != NULL)
+	{
+		GtkWidget	*dlg;
+
+		if(buf->text == NULL)
+			return;
+		if((dlg = gtk_file_chooser_dialog_new("Save As VML", GTK_WINDOW(min->window),
+						      GTK_FILE_CHOOSER_ACTION_SAVE,
+						      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+						      GTK_STOCK_SAVE_AS, GTK_RESPONSE_ACCEPT, NULL)) != NULL)
+		{
+			gchar	*spc, buffer[1024];
+
+			if((spc = strchr(buf->name, ' ')) != NULL)
+				spc++;
+			else
+				spc = buf->name;
+			g_snprintf(buffer, sizeof buffer, "%s.vml", spc);
+			gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dlg), buffer);
+			if(gtk_dialog_run(GTK_DIALOG(dlg)) == GTK_RESPONSE_ACCEPT)
+			{
+				const char	*filename;
+
+				filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dlg));
+				if(filename != NULL)
+				{
+					const gchar	*chars;
+					GtkTextBuffer	*textbuf;
+					GtkTextIter	start, end;
+					uint32		len;
+
+					textbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(buf->text));
+					gtk_text_buffer_get_iter_at_offset(textbuf, &start, 0);
+					gtk_text_buffer_get_iter_at_offset(textbuf, &end,   -1);
+					len = gtk_text_iter_get_offset(&end);
+					if((chars = gtk_text_buffer_get_text(textbuf, &start, &end, FALSE)) != NULL)
+					{
+						FILE	*out;
+
+						if((out = fopen(filename, "w")) != NULL)
+						{
+							const gchar	*eptr = chars + gtk_text_iter_get_offset(&end), *gt;
+
+							fprintf(out, "<?xml version=\"1.0\"?>\n\n");
+							fprintf(out, "<vml version=\"1.0\">\n");
+							fprintf(out, " <node-text id=\"n0\">\n");
+							fprintf(out, "  <langauge>%s</language>\n", "(whatever)"/*buf->language*/);
+							fprintf(out, "  <buffers>\n");
+							fprintf(out, "   <buffer name=\"%s\"><![CDATA[", buf->name);
+							while(chars < eptr)
+							{
+								if((gt = strchr(chars, '>')) != NULL)	/* Something to escape? */
+								{
+									size_t	len = (gt - chars);
+
+									fwrite(chars, len, 1, out);
+									chars += len;
+									fwrite("&gt;", 1, 4, out);
+									chars += 1;
+								}
+								else
+								{
+									fwrite(chars, eptr - chars, 1, out);
+									chars = eptr;
+								}
+							}
+/*							fwrite(chars, gtk_text_iter_get_offset(&end), 1, out);*/
+							fprintf(out, "]]></buffer>\n");
+							fprintf(out, "  </buffers>\n");
+							fprintf(out, " </node-text>\n");
+							fprintf(out, "</vml>\n");
 						}
 						fclose(out);
 					}
@@ -513,6 +600,11 @@ int main(int argc, char *argv[])
 	g_signal_connect(G_OBJECT(min.saveas), "clicked", G_CALLBACK(evt_saveas_clicked), &min);
 	gtk_box_pack_start(GTK_BOX(hbox), min.saveas, FALSE, FALSE, 0);
 	gtk_widget_set_sensitive(min.saveas, FALSE);
+
+	min.saveasvml = gtk_button_new_with_label("Save As VML...");
+	g_signal_connect(G_OBJECT(min.saveasvml), "clicked", G_CALLBACK(evt_saveasvml_clicked), &min);
+	gtk_box_pack_start(GTK_BOX(hbox), min.saveasvml, FALSE, FALSE, 0);
+	gtk_widget_set_sensitive(min.saveasvml, FALSE);
 
 	btn = gtk_button_new_with_label("Quit");
 	g_signal_connect(G_OBJECT(btn), "clicked", G_CALLBACK(evt_window_delete), &min);
