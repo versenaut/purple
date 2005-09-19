@@ -14,6 +14,8 @@ static void cube_vertex_compute(real64 *vtx, real32 size, uint32 splits, uint32 
 	vtx[0] = -half + x * d;
 	vtx[1] =  /*half*/size - y * d;
 	vtx[2] = -half + z * d;
+
+	printf("XYZ for (%u,%u,%u): (%g,%g,%g)\n", x, y, z, vtx[0], vtx[1], vtx[2]);
 }
 
 static void cube_uvmap_compute(uint32 poly, PNGLayer *ulay, PNGLayer *vlay, Face face, uint32 splits, uint32 x, uint32 y)
@@ -34,9 +36,9 @@ static void cube_uvmap_compute(uint32 poly, PNGLayer *ulay, PNGLayer *vlay, Face
 		u[1] = (x + 1) * n;
 		u[2] = u[1];
 		u[3] = u[0];
-		v[0] = y * n;
+		v[0] = (y + 1) * n;
 		v[1] = v[0];
-		v[2] = (y + 1) * n;
+		v[2] = y * n;
 		v[3] = v[2];
 		break;
 	default:
@@ -62,7 +64,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	boolean		uv_map = p_input_boolean(input[2]);	/* And whether an UV map should be created. */
 	real64		vtx[3];
 	int		x, y, z, vid, poly, n, home, row, step;
-	uint32		v0, v1, v2, v3;
+	uint32		v0, v1, v2, v3, crease = p_input_uint32(input[3]);
 	PNGLayer	*lay, *ulay, *vlay;
 
 	obj = p_output_node_create(output, V_NT_OBJECT, MY_OBJECT);
@@ -126,12 +128,15 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		}
 	}
 	/*  Last, the quads connected to the bottom face. */
-	row  = (splits + 1) * (splits + 1);
-	home = 6 * (splits * splits) + 2 - (splits + 1);
-	for(x = 0; x < splits; x++, poly++)
+	if(splits > 1)
 	{
-		p_node_g_polygon_set_corner_uint32(lay, poly, home + x + 1, home + x, home + x - row, home + x + 1 - row);
-		cube_uvmap_compute(poly, ulay, vlay, FRONT, splits, x, splits - 1);
+		row  = (splits + 1) * (splits + 1);
+		home = 6 * (splits * splits) + 2 - (splits + 1);
+		for(x = 0; x < splits; x++, poly++)
+		{
+			p_node_g_polygon_set_corner_uint32(lay, poly, home + x + 1, home + x, home + x - row, home + x + 1 - row);
+			cube_uvmap_compute(poly, ulay, vlay, FRONT, splits, x, splits - 1);
+		}
 	}
 
 	/* Create back (z=-) side. */
@@ -158,12 +163,15 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		}
 	}
 	/*  Last, the quads connected to the bottom face. */
-	row  = 2 * (splits + 1) + 2 * (splits - 1);
-	home = 2 * (splits + 1) * (splits + 1) + (splits - 1) * (2 * (splits + 1) + 2 * (splits - 1)) - 1 - (splits + 1) * (splits + 1) + (splits + 1);
-	for(x = 0; x < splits; x++, poly++)
+	if(splits > 1)
 	{
-		p_node_g_polygon_set_corner_uint32(lay, poly,  home - x, home - x - row, home - x - row - 1, home - x - 1);
-		cube_uvmap_compute(poly, ulay, vlay, BACK, splits, x, splits - 1);
+		row  = 2 * (splits + 1) + 2 * (splits - 1);
+		home = 2 * (splits + 1) * (splits + 1) + (splits - 1) * (2 * (splits + 1) + 2 * (splits - 1)) - 1 - (splits + 1) * (splits + 1) + (splits + 1);
+		for(x = 0; x < splits; x++, poly++)
+		{
+			p_node_g_polygon_set_corner_uint32(lay, poly,  home - x, home - x - row, home - x - row - 1, home - x - 1);
+			cube_uvmap_compute(poly, ulay, vlay, BACK, splits, x, splits - 1);
+		}
 	}
 
 	/* Create left (x=-) side. */
@@ -204,18 +212,21 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		}
 	}
 	/*  Finally, set the bottom row. */
-	v0 = (splits + 1) * (splits + 1) + (splits - 2) * (2 * (splits + 1) + (2 * (splits - 1)));
-	v1 = v0 + (splits + 1);
-	v2 = v1 + 2 * (splits - 1) + 2 * (splits + 1);
-	v3 = v2 - (splits + 1);
-	for(x = 0; x < splits; x++, poly++)
+	if(splits > 1)
 	{
-		p_node_g_polygon_set_corner_uint32(lay, poly, v0, v1, v2, v3);
-		cube_uvmap_compute(poly, ulay, vlay, LEFT, splits, x, splits - 1);
-		v0 = v1;
-		v3 = v2;
-		v1 += 2;
-		v2 += (splits + 1);
+		v0 = (splits + 1) * (splits + 1) + (splits - 2) * (2 * (splits + 1) + (2 * (splits - 1)));
+		v1 = v0 + (splits + 1);
+		v2 = v1 + 2 * (splits - 1) + 2 * (splits + 1);
+		v3 = v2 - (splits + 1);
+		for(x = 0; x < splits; x++, poly++)
+		{
+			p_node_g_polygon_set_corner_uint32(lay, poly, v0, v1, v2, v3);
+			cube_uvmap_compute(poly, ulay, vlay, LEFT, splits, x, splits - 1);
+			v0 = v1;
+			v3 = v2;
+			v1 += 2;
+			v2 += (splits + 1);
+		}
 	}
 
 	/* Create right (x=+) side. */
@@ -254,18 +265,21 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		}
 	}
 	/*  Last, the final bottom row. */
-	v0 = (splits + 1) * (splits + 1) - 1 + (splits - 1) * (2 * (splits + 1) + 2 * (splits - 1));
-	v1 = v0 - (splits + 1);
-	v3 = v0 + (splits + 1) * (splits + 1);
-	v2 = v3 - (splits + 1);
-	for(x = 0; x < splits; x++, poly++)
+	if(splits > 1)
 	{
-		p_node_g_polygon_set_corner_uint32(lay, poly, v0, v1, v2, v3);
-		cube_uvmap_compute(poly, ulay, vlay, RIGHT, splits, x, splits - 1);
-		v0 = v1;
-		v3 = v2;
-		v1 -= 2;
-		v2 -= (splits + 1);
+		v0 = (splits + 1) * (splits + 1) - 1 + (splits - 1) * (2 * (splits + 1) + 2 * (splits - 1));
+		v1 = v0 - (splits + 1);
+		v3 = v0 + (splits + 1) * (splits + 1);
+		v2 = v3 - (splits + 1);
+		for(x = 0; x < splits; x++, poly++)
+		{
+			p_node_g_polygon_set_corner_uint32(lay, poly, v0, v1, v2, v3);
+			cube_uvmap_compute(poly, ulay, vlay, RIGHT, splits, x, splits - 1);
+			v0 = v1;
+			v3 = v2;
+			v1 -= 2;
+			v2 -= (splits + 1);
+		}
 	}
 
 	printf("Done, created %d polygons\n", poly);
@@ -289,9 +303,30 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		}
 	}
 	/* Set creases, we do want this cube to be ... cubistic. */
-	p_node_g_crease_set_vertex(geo, NULL, ~0u);
-	p_node_g_crease_set_edge(geo, NULL, ~0u);
+	if(crease == 1)		/* Defaults-mode? */
+	{
+		p_node_g_crease_set_vertex(geo, NULL, ~0u);
+		p_node_g_crease_set_edge(geo, NULL, ~0u);
+	}
+	else if(crease == 2)	/* Full layers mode? */
+	{
+		PNGLayer	*vc, *ec;
+		size_t		i, size;
 
+		lay = p_node_g_layer_find(geo, "vertex");
+		size = p_node_g_layer_get_size(lay);
+		vc = p_node_g_layer_create(geo, "crease_vertex", VN_G_LAYER_VERTEX_UINT32, ~0u, 0.0);
+		for(i = 0; i < size; i++)
+			p_node_g_vertex_set_uint32(vc, i, ~0u);
+		p_node_g_crease_set_vertex(geo, p_node_g_layer_get_name(vc), ~0u);
+			
+		lay = p_node_g_layer_find(geo, "polygon");
+		size = p_node_g_layer_get_size(lay);
+		ec = p_node_g_layer_create(geo, "crease_edge",   VN_G_LAYER_POLYGON_CORNER_UINT32, ~0u, 0.0);
+		for(i = 0; i < size; i++)
+			p_node_g_polygon_set_corner_uint32(ec, i, ~0u, ~0u, ~0u, ~0u);
+		p_node_g_crease_set_edge(geo, p_node_g_layer_get_name(ec), ~0u);
+	}
 	return P_COMPUTE_DONE;	/* Sleep until size changes. */
 }
 
@@ -304,6 +339,10 @@ PURPLE_PLUGIN void init(void)
 		     P_INPUT_DESC("The number of splits to do along each axis."), P_INPUT_DONE);
 	p_init_input(2, P_VALUE_BOOLEAN, "uv-map", P_INPUT_DEFAULT(0),
 		     P_INPUT_DESC("Controls whether or not UV mapping data is created."), P_INPUT_DONE);
+	p_init_input(3, P_VALUE_UINT32, "crease", P_INPUT_DEFAULT(0),
+		     P_INPUT_ENUM("0:None|1:Defaults|2:Full Layers"),
+		     P_INPUT_DESC("Controls the creasing set for this cube. Without crease information, subdiving "
+				  "renderers will make the cube very round."), P_INPUT_DONE);
 	p_init_meta("authors", "Emil Brink");
 	p_init_meta("desc/purpose", "Creates a cube object.");
 	p_init_compute(compute);
