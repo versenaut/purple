@@ -373,7 +373,7 @@ static void evt_saveas_clicked(GtkWidget *wid, gpointer user)
 				spc++;
 			else
 				spc = buf->name;
-			g_snprintf(buffer, sizeof buffer, "%s.xml", spc);
+			g_snprintf(buffer, sizeof buffer, "%s.txt", spc);
 			gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dlg), buffer);
 			if(gtk_dialog_run(GTK_DIALOG(dlg)) == GTK_RESPONSE_ACCEPT)
 			{
