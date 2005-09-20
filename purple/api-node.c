@@ -783,7 +783,7 @@ PURPLEAPI PNGBone * p_node_g_bone_nth(PINode *node, unsigned int n)
 PURPLEAPI void p_node_g_bone_iter(PINode *node		/** The node whose bones are to be iterated. */,
 				      PIter *iter	/** The iterator to initialize. */)
 {
-	iter_init_dynarr_uint16_ffff(iter, ((NodeGeometry *) node)->bones, offsetof(NdbGBone, id));
+	nodedb_g_bone_iter((const NodeGeometry *) node, iter);
 }
 
 PURPLEAPI PNGBone * p_node_g_bone_create(PONode *node,
