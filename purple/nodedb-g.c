@@ -16,11 +16,16 @@
 #include "list.h"
 #include "log.h"
 #include "mem.h"
+#include "memchunk.h"
 #include "strutil.h"
 #include "textbuf.h"
 
 #include "nodedb.h"
 #include "nodedb-internal.h"
+
+/* ----------------------------------------------------------------------------------------- */
+
+static MemChunk	*the_chunk_bone = NULL;
 
 /* ----------------------------------------------------------------------------------------- */
 
@@ -521,6 +526,165 @@ static void cb_g_vertex_delete(void *user, VNodeID node_id, uint32 vertex_id)
 
 /* ----------------------------------------------------------------------------------------- */
 
+NdbGBone * nodedb_g_bone_lookup(const NodeGeometry *node, uint16 id)
+{
+	NdbGBone	*bone;
+
+	if(node == NULL || id == (uint16) ~0u)
+		return NULL;
+	if((bone = dynarr_index(node->bones, id)) != NULL)
+	{
+		if(bone->id == id)
+			return bone;
+	}
+	return NULL;
+}
+
+static int bones_equal(const NodeGeometry *node, const NdbGBone *a,
+		       const NodeGeometry *target, const NdbGBone *b);
+
+/* Compare two bone references, and (if valid) the bones they refer to. Recursive. */
+static int bone_refs_equal(const NodeGeometry *node, uint16 ref,
+		       const NodeGeometry *target, uint16 tref)
+{
+	NdbGBone	*ba, *bb;
+
+	if(ref == (uint16) ~0u && tref == (uint16) ~0u)
+		return 1;
+	ba = nodedb_g_bone_lookup(node, ref);
+	bb = nodedb_g_bone_lookup(target, tref);
+	return bones_equal(node, ba, target, bb);
+}
+
+/* Compare two bones, in the contexts of their respective nodes. We try to do
+ * all the cheap comparisons first, before recursing on the parent link in each.
+*/
+static int bones_equal(const NodeGeometry *node, const NdbGBone *a,
+		       const NodeGeometry *target, const NdbGBone *b)
+{
+	if(node == NULL || a == NULL || target == NULL || b == NULL)
+		return 0;
+	/* The position and rotation are simple enough to compare. */
+	if(memcmp(a->pos, b->pos, sizeof a->pos) != 0)
+		return 0;
+	if(memcmp(a->rot, b->rot, sizeof a->rot) != 0)
+		return 0;
+	/* I'm not sure here, perhaps we should compare the actual layer contents,
+	 * rather than just relying on the names being equal. If so, this is not
+	 * at all a lightweight test, of course.
+	*/
+	if(strcmp(a->weight, b->weight) != 0)
+		return 0;
+	if(strcmp(a->reference, b->reference) != 0)
+		return 0;
+	/* FIXME: This could, I guess, also compare the actual curves. That's be
+	 * kind of expensive and complicated though, so for now let's not do that.
+	*/
+	if(strcmp(a->pos_curve, b->pos_curve) != 0)
+		return 0;
+	if(strcmp(a->rot_curve, b->rot_curve) != 0)
+		return 0;
+	/* Only the parent left to compare, at this point. Recurse. */
+	return bone_refs_equal(node, a->parent, target, b->parent);
+}
+
+static void cb_bone_default(unsigned int index, void *element, void *user)
+{
+	NdbGBone	*bone = element;
+
+	bone->id = ~0;
+}
+
+/* Find pointer to bone in <n> that is equal to <bone> in <source>. */
+const NdbGBone * nodedb_g_bone_find_equal(const NodeGeometry *n, const NodeGeometry *source, const NdbGBone *bone)
+{
+	unsigned int	i;
+	const NdbGBone	*there;
+
+	for(i = 0; (there = dynarr_index(n->bones, i)) != NULL; i++)
+	{
+		if(there->id == (uint16) ~0u)
+			continue;
+		if(bones_equal(source, bone, n, there))
+			return there;
+	}
+	return NULL;
+}
+
+int nodedb_g_bone_resolve(uint16 *id, const NodeGeometry *n, const NodeGeometry *source, uint16 b)
+{
+	const NdbGBone	*bone, *tbone;	/* Heh. */
+
+	if(id == NULL || n == NULL || source == NULL)
+		return 0;
+	if(b == (uint16) ~0u)
+	{
+		*id = (uint16) ~0u;
+		return 1;
+	}
+	if((bone = nodedb_g_bone_lookup(source, b)) != NULL)
+	{
+		if((tbone = nodedb_g_bone_find_equal(n, source, bone)) != NULL)
+		{
+			*id = tbone->id;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+NdbGBone * nodedb_g_bone_create(NodeGeometry *n, uint16 id, const char *weight, const char *reference,
+				uint16 parent,
+				real64 px, real64 py, real64 pz, const char *pos_curve,
+				real64 rx, real64 ry, real64 rz, real64 rw, const char *rot_curve)
+{
+	NdbGBone	*bone;
+
+	if(n == NULL)
+		return NULL;
+	if(n->bones == NULL)
+	{
+		n->bones = dynarr_new(sizeof (NdbGBone), 4);
+		dynarr_set_default_func(n->bones, cb_bone_default, NULL);
+	}
+	if(id == (uint16) ~0)
+	{
+		unsigned int	index;
+
+		bone = dynarr_append(n->bones, NULL, &index);
+		id = index;
+	}
+	else
+		bone = dynarr_set(n->bones, id, NULL);
+	if(bone != NULL)
+	{
+		bone->id     = id;
+		bone->parent = parent;
+
+		stu_strncpy(bone->weight, sizeof bone->weight, weight);
+		stu_strncpy(bone->reference, sizeof bone->reference, reference);
+		bone->pos[0] = px;
+		bone->pos[1] = py;
+		bone->pos[2] = pz;
+		stu_strncpy(bone->pos_curve, sizeof bone->pos_curve, pos_curve);
+		bone->rot[0] = rx;
+		bone->rot[1] = ry;
+		bone->rot[2] = rz;
+		bone->rot[3] = rw;
+		stu_strncpy(bone->rot_curve, sizeof bone->rot_curve, rot_curve);
+		printf("****bone created; id=%u weight='%s' reference='%s' pcurve='%s' rcurve='%s'\n", id,
+		       bone->weight, bone->reference, bone->pos_curve, bone->rot_curve);
+		bone->pending = 0;
+	}
+	return bone;
+}
+
+void nodeb_g_bone_destroy(NodeGeometry *n, NdbGBone *bone)
+{
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 void nodedb_g_crease_set_vertex(NodeGeometry *n, const char *layer, uint32 def)
 {
 	if(n->node.type != V_NT_GEOMETRY)
@@ -540,33 +704,14 @@ void nodedb_g_crease_set_edge(NodeGeometry *n, const char *layer, uint32 def)
 /* ----------------------------------------------------------------------------------------- */
 
 static void cb_g_bone_create(void *user, VNodeID node_id, uint16 bone_id, const char *weight, const char *reference,
-			     uint32 parent, real64 pos_x, real64 pos_y, real64 pos_z,
-			     real64 rot_x, real64 rot_y, real64 rot_z, real64 rot_w)
+			     uint32 parent_id, real64 pos_x, real64 pos_y, real64 pos_z, const char *pos_curve,
+			     const VNQuat64 *rot, const char *rot_curve)
 {
 	NodeGeometry	*node;
-	NdbGBone	*bone;
 
 	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
 		return;
-	if(node->bones == NULL)
-		node->bones = dynarr_new(sizeof *bone, 8);
-	if(node->bones != NULL)
-	{
-		if((bone = dynarr_set(node->bones, bone_id, NULL)) != NULL)
-		{
-			stu_strncpy(bone->weight, sizeof bone->weight, weight);
-			stu_strncpy(bone->reference, sizeof bone->reference, reference);
-			bone->parent = parent;
-			bone->pos[0] = pos_x;
-			bone->pos[1] = pos_y;
-			bone->pos[2] = pos_z;
-			bone->rot[0] = rot_x;
-			bone->rot[1] = rot_y;
-			bone->rot[2] = rot_z;
-			bone->rot[3] = rot_w;
-			NOTIFY(node, DATA);
-		}
-	}
+	nodedb_g_bone_create(node, bone_id, weight, reference, parent_id, pos_x, pos_y, pos_z, pos_curve, rot->x, rot->y, rot->z, rot->w, rot_curve);
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -622,4 +767,6 @@ void nodedb_g_register_callbacks(void)
 
 	verse_callback_set(verse_send_g_crease_set_vertex,		cb_g_crease_set_vertex, NULL);
 	verse_callback_set(verse_send_g_crease_set_edge,		cb_g_crease_set_edge, NULL);
+
+	the_chunk_bone = memchunk_new("NdbGBone", sizeof (NdbGBone), 8);
 }
