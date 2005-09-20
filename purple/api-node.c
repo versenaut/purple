@@ -770,36 +770,91 @@ PURPLEAPI real64 p_node_g_polygon_get_face_real64(const PNGLayer *layer	/** The 
 	return nodedb_g_polygon_get_face_real64(layer, id);
 }
 
+/** \brief Return the number of bones in a geometry node.
+ * 
+ * This function returns the number of bones in a geometry node. Only geometry nodes can
+ * hold bones.
+*/
 PURPLEAPI unsigned int p_node_g_bone_num(PINode *node)
 {
 	return nodedb_g_bone_num((NodeGeometry *) node);
 }
 
+/** \brief Return a bone by index.
+ * 
+ * This function returns a bone, by index. Valid index range is 0 up to, but not including, the value
+ * returned by the \c p_node_g_bone_num() function. Specifying an index outside of this range causes
+ * \c NULL to be returned.
+*/
 PURPLEAPI PNGBone * p_node_g_bone_nth(PINode *node, unsigned int n)
 {
 	return nodedb_g_bone_nth((NodeGeometry *) node, n);
 }
 
+/** \brief Initialize iterator over a geometry node's bones.
+ * 
+ * This function sets an iterator to point at the first bone in a geometry node, and to
+ * iterate over all the others.
+*/
 PURPLEAPI void p_node_g_bone_iter(PINode *node		/** The node whose bones are to be iterated. */,
 				      PIter *iter	/** The iterator to initialize. */)
 {
 	nodedb_g_bone_iter((const NodeGeometry *) node, iter);
 }
 
+/** \brief Create a new bone.
+ * 
+ * This function creates and returns a new bone in a geometry node. Bones are used to express skeletal animation
+ * in Verse. Bones form hierarchies, with the intention that a typical model (say, a human character) will have
+ * have a single skeleton defined.
+ * 
+ * Skeletons are slightly complex, having the following logical parts to their definition:
+ * - A pointer to a weight layer, which contains vertex weights. The values of these weights, which are
+ * typically stored in a \c VN_G_LAYER_VERTEX_REAL layer that must be in the same node as the bone,
+ * tell you how much each vertex is affected by this bone's movement.
+ * - A pointer to a reference layer.
+ * - A parent bone pointer, that defines the hierarchy. A bone can only have a single parent, while a single
+ * bone can have any number of child bones.
+ * - A position, in the form of separate X Y and Z values. This is the translation from the origin of the
+ * parent transform (either the parent bone, or the object's origin for the root bone).
+ * - A position curve pointer. This is the name of a 3-dimensional curve, whose value should replace
+ * the position.
+ * - A rotation, in the form of separate X, Y, Z and W values. These form a <a href="http://en.wikipedia.org/wiki/Quaternion">quaternion</a>,
+ * that applies to the next translation down the hierarchy.
+ * - A rotation curve pointer. This is the name of a 4-dimensional curve, whose value should replace
+ * the rotation.
+ * 
+ * The curve references have a peculiar attribute: since they do not reference any node, but just curve
+ * names (a single curve node can contain any number of curves), some disambiguation might be seemingly
+ * necessary. This is resolved by \b adding all such curves together, and using the final sum to
+ * affect the bone. Since many curve nodes can be played in parallel, this can be used to blend e.g.
+ * the curves for running with those for walking, creating jogging for "free".
+ * 
+ * \note Please see the <a href="http://www.blender.org/modules/verse/verse-spec/n-geometry.html#geometry-bones">Verse Specification</a>
+ * for more information about bones.
+*/
 PURPLEAPI PNGBone * p_node_g_bone_create(PONode *node,
-					 const PNGLayer *weight, const PNGLayer *reference,
+					 const char *weight, const char *reference,
 					 const PNGBone *parent,
 					 real64 pos_x, real64 pos_y, real64 pos_z, const char *pos_curve,
 					 real64 rot_x, real64 rot_y, real64 rot_z, real64 rot_w, const char *rot_curve)
 {
 	return nodedb_g_bone_create((NodeGeometry *) node, ~0,
-				    weight != NULL ? ((const NdbGLayer *) weight)->name : NULL,
-				    reference != NULL ? ((const NdbGLayer *) reference)->name : NULL,
+				    weight, reference,
 				    parent != NULL ? ((const NdbGBone *) parent)->id : ~0u,
 				    pos_x, pos_y, pos_z, pos_curve,
 				    rot_x, rot_y, rot_z, rot_w, rot_curve);
 }
-					 
+
+/** \brief Destroy a bone.
+ * 
+ * This function destroys a geometry bone. Any bone that referenced this one as a parent will become
+ * the root of a new hierarchy; no "splicing" is done by this function.
+*/
+PURPLEAPI void p_node_g_bone_destroy(PONode *node, PNGBone *bone)
+{
+	nodedb_g_bone_destroy((NodeGeometry *) node, bone);
+}
 
 /** \brief Set vertex creasing.
  * 
