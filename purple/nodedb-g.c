@@ -725,6 +725,67 @@ void nodedb_g_bone_destroy(NodeGeometry *n, NdbGBone *bone)
 	bone->id = (uint16) ~0u;	/* All it takes, really. */
 }
 
+const char * nodedb_g_bone_get_weight(const NdbGBone *bone)
+{
+	if(bone == NULL)
+		return NULL;
+	return bone->weight;
+}
+
+const char * nodedb_g_bone_get_reference(const NdbGBone *bone)
+{
+	if(bone == NULL)
+		return NULL;
+	return bone->reference;
+}
+
+uint16 nodedb_g_bone_get_parent(const NdbGBone *bone)
+{
+	if(bone == NULL)
+		return (uint16) ~0u;
+	return bone->parent;
+}
+
+void nodedb_g_bone_get_pos(const NdbGBone *bone, real64 *pos_x, real64 *pos_y, real64 *pos_z)
+{
+	if(bone == NULL)
+		return;
+	if(pos_x != NULL)
+		*pos_x = bone->pos[0];
+	if(pos_y != NULL)
+		*pos_y = bone->pos[1];
+	if(pos_z != NULL)
+		*pos_z = bone->pos[2];
+}
+
+void nodedb_g_bone_get_rot(const NdbGBone *bone, real64 *rot_x, real64 *rot_y, real64 *rot_z, real64 *rot_w)
+{
+	if(bone == NULL)
+		return;
+	if(rot_x != NULL)
+		*rot_x = bone->rot[0];
+	if(rot_y != NULL)
+		*rot_y = bone->rot[1];
+	if(rot_z != NULL)
+		*rot_z = bone->rot[2];
+	if(rot_w != NULL)
+		*rot_z = bone->rot[3];
+}
+
+const char * nodedb_b_bone_get_pos_curve(const NdbGBone *bone)
+{
+	if(bone == NULL)
+		return NULL;
+	return bone->pos_curve;
+}
+
+const char * nodedb_b_bone_get_rot_curve(const NdbGBone *bone)
+{
+	if(bone == NULL)
+		return NULL;
+	return bone->rot_curve;
+}
+
 /* ----------------------------------------------------------------------------------------- */
 
 void nodedb_g_crease_set_vertex(NodeGeometry *n, const char *layer, uint32 def)

@@ -91,6 +91,13 @@ extern NdbGBone *	nodedb_g_bone_create(NodeGeometry *n, uint16 id,
 					     real64 px, real64 py, real64 pz, const char *pos_curve,
 					     real64 rx, real64 ry, real64 rz, real64 rw, const char *rot_curve);
 extern void		nodedb_g_bone_destroy(NodeGeometry *n, NdbGBone *bone);
+extern const char *	nodedb_g_bone_get_weight(const NdbGBone *bone);
+extern const char *	nodedb_g_bone_get_reference(const NdbGBone *bone);
+extern uint16		nodedb_g_bone_get_parent(const NdbGBone *bone);
+extern void		nodedb_g_bone_get_pos(const NdbGBone *bone, real64 *pos_x, real64 *pos_y, real64 *pos_z);
+extern void		nodedb_g_bone_get_rot(const NdbGBone *bone, real64 *rot_x, real64 *rot_y, real64 *rot_z, real64 *rot_w);
+extern const char *	nodedb_b_bone_get_pos_curve(const NdbGBone *bone);
+extern const char *	nodedb_b_bone_get_rot_curve(const NdbGBone *bone);
 
 extern void		nodedb_g_crease_set_vertex(NodeGeometry *node, const char *layer, uint32 def);
 extern void		nodedb_g_crease_set_edge(NodeGeometry *node, const char *layer, uint32 def);
