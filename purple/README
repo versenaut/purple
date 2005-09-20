@@ -1,5 +1,5 @@
-								August 2005
-								Emil Brink
+							September 2005
+							Emil Brink
 
 				PURPLE
 
@@ -11,6 +11,9 @@ data. This data can include aribtrary 3D geometry and whatever else
 is supported by the Verse data model. Any results can be automatically
 synchronized (sent) out to a Verse host, where they become immediately
 available to other users.
+
+More information is available at the <http://purple.blender.org/> web
+site.
 
 
 2. Building Purple
