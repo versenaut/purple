@@ -255,7 +255,7 @@ PURPLEAPI real64		p_node_g_polygon_get_face_real64(const PNGLayer *layer, uint32
 PURPLEAPI unsigned int		p_node_g_bone_num(PINode *node);
 PURPLEAPI PNGBone *		p_node_g_bone_nth(PINode *node, unsigned int n);
 PURPLEAPI void			p_node_g_bone_iter(PINode *node, PIter *iter);
-PURPLEAPI PNGBone *		p_node_g_bone_create(PONode *node, const PNGLayer *weight, const PNGLayer *reference, const PNGBone *parent,
+PURPLEAPI PNGBone *		p_node_g_bone_create(PONode *node, const char *weight, const char *reference, const PNGBone *parent,
 						     real64 x, real64 y, real64 z, const char *pos_curve,
 						     real64 rot_x, real64 rot_y, real64 rot_z, real64 rot_w, const char *rot_curve);
 PURPLEAPI void			p_node_g_bone_destroy(PONode *node, PNGBone *bone);
