@@ -97,6 +97,68 @@ static void filter_overlay(uint8 *put, const uint8 *a, const uint8 *b)
 	}
 }
 
+static void filter_hard_light(uint8 *put, const uint8 *a, const uint8 *b)
+{
+	register int	i;
+
+	for(i = 0; i < 3; i++)
+	{
+		if(b[i] < 128)
+			put[i] = (a[i] * b[i]) / 128;
+		else
+			put[i] = 255 - ((255 - b[i]) * (255 - a[i]) / 128);
+	}
+}
+
+static void filter_xfader_hard_light(uint8 *put, const uint8 *a, const uint8 *b)
+{
+	register unsigned int	i, c;
+
+	for(i = 0; i < 3; i++)
+	{
+		c = (a[i] * b[i]) / 256;
+		put[i] = c + a[i] * (255 - ((255 - a[i]) * (255 - b[i]) / 256) - c) / 256;
+	}
+}
+
+static void filter_color_dodge(uint8 *put, const uint8 *a, const uint8 *b)
+{
+	register unsigned int	i, c;
+
+	for(i = 0; i < 3; i++)
+	{
+		if(b[i] == 255)
+			put[i] = 255;
+		else
+		{
+			c = (a[i] * 256) / (255 - b[i]);
+			if(c > 255)
+				put[i] = 255;
+			else
+				put[i] = c;
+		}
+	}
+}
+
+static void filter_color_burn(uint8 *put, const uint8 *a, const uint8 *b)
+{
+	register int	i, c;
+
+	for(i = 0; i < 3; i++)
+	{
+		if(b == 0)
+			put[i] = 0;
+		else
+		{
+			c = 255 - (((255 - a[0]) * 256) / b[i]);
+			if(c < 0)
+				put[i] = 0;
+			else
+				put[i] = c;
+		}
+	}
+}
+
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
 	PINode		*in1, *in2;
@@ -128,6 +190,9 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	case 7: filter = filter_negation;	break;
 	case 8: filter = filter_exclusion;	break;
 	case 9: filter = filter_overlay;	break;
+	case 10: filter = filter_hard_light;	break;
+	case 11: filter = filter_xfader_hard_light;	break;
+	case 12: filter = filter_color_dodge;	break;
 	default:	filter = NULL;
 	}
 	if(filter == NULL)
@@ -204,7 +269,10 @@ PURPLE_PLUGIN void init(void)
 				  "6:Difference|"
 				  "7:Negation|"
 				  "8:Exclusion|"
-				  "9:Overlay"), P_INPUT_DONE);
+				  "9:Overlay|"
+				  "10:Hard Light|"
+				  "11:Hard Light2|"
+				  "12:Color Dodge"), P_INPUT_DONE);
 	p_init_meta("authors", "Emil Brink");
 	p_init_meta("desc/purpose", "Computes bitmap filter operation, on two sources. Supports several \"modes\" that affect how the result will look.");
 	p_init_compute(compute);
