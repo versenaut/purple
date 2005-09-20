@@ -770,6 +770,22 @@ PURPLEAPI real64 p_node_g_polygon_get_face_real64(const PNGLayer *layer	/** The 
 	return nodedb_g_polygon_get_face_real64(layer, id);
 }
 
+PURPLEAPI unsigned int p_node_g_bone_num(PINode *node)
+{
+	return nodedb_g_bone_num((NodeGeometry *) node);
+}
+
+PURPLEAPI PNGBone * p_node_g_bone_nth(PINode *node, unsigned int n)
+{
+	return nodedb_g_bone_nth((NodeGeometry *) node, n);
+}
+
+PURPLEAPI void p_node_g_bone_iter(PINode *node		/** The node whose bones are to be iterated. */,
+				      PIter *iter	/** The iterator to initialize. */)
+{
+	iter_init_dynarr_uint16_ffff(iter, ((NodeGeometry *) node)->bones, offsetof(NdbGBone, id));
+}
+
 PURPLEAPI PNGBone * p_node_g_bone_create(PONode *node,
 					 const PNGLayer *weight, const PNGLayer *reference,
 					 const PNGBone *parent,
