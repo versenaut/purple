@@ -79,6 +79,9 @@ extern uint32		nodedb_g_polygon_get_face_uint32(const NdbGLayer *layer, uint32 p
 extern void		nodedb_g_polygon_set_face_real64(NdbGLayer *layer, uint32 polygon_id, real64 value);
 extern real64		nodedb_g_polygon_get_face_real64(const NdbGLayer *layer, uint32 polygon_id);
 
+extern unsigned int	nodedb_g_bone_num(const NodeGeometry *node);
+extern NdbGBone *	nodedb_g_bone_nth(const NodeGeometry *node, unsigned int n);
+extern void		nodedb_g_bone_iter(const NodeGeometry *node, PIter *iter);
 extern NdbGBone *	nodedb_g_bone_lookup(const NodeGeometry *node, uint16 id);
 extern const NdbGBone *	nodedb_g_bone_find_equal(const NodeGeometry *n, const NodeGeometry *source, const NdbGBone *bone);
 extern int		nodedb_g_bone_resolve(uint16 *id, const NodeGeometry *n, const NodeGeometry *source, uint16 b);

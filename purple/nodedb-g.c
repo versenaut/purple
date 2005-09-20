@@ -14,6 +14,7 @@
 
 #include "dynarr.h"
 #include "list.h"
+#include "iter.h"
 #include "log.h"
 #include "mem.h"
 #include "memchunk.h"
@@ -525,6 +526,44 @@ static void cb_g_vertex_delete(void *user, VNodeID node_id, uint32 vertex_id)
 }
 
 /* ----------------------------------------------------------------------------------------- */
+
+unsigned int nodedb_g_bone_num(const NodeGeometry *node)
+{
+	unsigned int	i, num;
+	NdbGBone	*bone;
+
+	if(node == NULL)
+		return 0;
+	for(i = num = 0; (bone = dynarr_index(node->bones, i)) != NULL; i++)
+	{
+		if(bone->id == (uint16) ~0u)
+			continue;
+		num++;
+	}
+	return num;
+}
+
+NdbGBone * nodedb_g_bone_nth(const NodeGeometry *node, unsigned int n)
+{
+	unsigned int	i;
+	NdbGBone	*bone;
+
+	if(node == NULL)
+		return 0;
+	for(i = 0; (bone = dynarr_index(node->bones, i)) != NULL; i++)
+	{
+		if(bone->id == (uint16) ~0u)
+			continue;
+		if(i == n)
+			return bone;
+	}
+	return NULL;
+}
+
+void nodedb_g_bone_iter(const NodeGeometry *node, PIter *iter)
+{
+	iter_init_dynarr_uint16_ffff(iter, ((NodeGeometry *) node)->bones, offsetof(NdbGBone, id));
+}
 
 NdbGBone * nodedb_g_bone_lookup(const NodeGeometry *node, uint16 id)
 {
