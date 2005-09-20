@@ -237,6 +237,7 @@ PURPLEAPI PNGLayer *		p_node_g_layer_create(PONode *node, const char *name, VNGL
 PURPLEAPI void			p_node_g_layer_destroy(PONode *node, PNGLayer *layer);
 PURPLEAPI void			p_node_g_vertex_set_xyz(PNGLayer *layer, uint32 id, real64 x, real64 y, real64 z);
 PURPLEAPI void			p_node_g_vertex_get_xyz(const PNGLayer *layer, uint32 id, real64 *x, real64 *y, real64 *z);
+PURPLEAPI void			p_node_g_vertex_set_uint32(PNGLayer *layer, uint32 id, uint32 value);
 PURPLEAPI void			p_node_g_polygon_set_corner_uint32(PNGLayer *layer, uint32 id, uint32 v0, uint32 v1, uint32 v2, uint32 v3);
 PURPLEAPI void			p_node_g_polygon_get_corner_uint32(const PNGLayer *layer, uint32 id, uint32 *v0, uint32 *v1, uint32 *v2, uint32 *v3);
 PURPLEAPI void			p_node_g_polygon_set_corner_real32(PNGLayer *layer, uint32 id, real32 v0, real32 v1, real32 v2, real32 v3);
@@ -250,6 +251,11 @@ PURPLEAPI void			p_node_g_polygon_set_face_uint32(PNGLayer *layer, uint32 id, ui
 PURPLEAPI uint32		p_node_g_polygon_get_face_uint32(const PNGLayer *layer, uint32 id);
 PURPLEAPI void			p_node_g_polygon_set_face_real64(PNGLayer *layer, uint32 id, real64 value);
 PURPLEAPI real64		p_node_g_polygon_get_face_real64(const PNGLayer *layer, uint32 id);
+
+PURPLEAPI PNGBone *		p_node_g_bone_create(PONode *node, const PNGLayer *weight, const PNGLayer *reference, const PNGBone *parent,
+						     real64 x, real64 y, real64 z, const char *pos_curve,
+						     real64 rot_x, real64 rot_y, real64 rot_z, real64 rot_w, const char *rot_curve);
+PURPLEAPI void			p_node_g_bone_destroy(PONode *node, PNGBone *bone);
 
 PURPLEAPI void			p_node_g_crease_set_vertex(PONode *node, const char *layer, uint32 def);
 PURPLEAPI void			p_node_g_crease_set_edge(PONode *node, const char *layer, uint32 def);
