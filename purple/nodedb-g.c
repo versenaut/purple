@@ -772,14 +772,14 @@ void nodedb_g_bone_get_rot(const NdbGBone *bone, real64 *rot_x, real64 *rot_y, r
 		*rot_z = bone->rot[3];
 }
 
-const char * nodedb_b_bone_get_pos_curve(const NdbGBone *bone)
+const char * nodedb_g_bone_get_pos_curve(const NdbGBone *bone)
 {
 	if(bone == NULL)
 		return NULL;
 	return bone->pos_curve;
 }
 
-const char * nodedb_b_bone_get_rot_curve(const NdbGBone *bone)
+const char * nodedb_g_bone_get_rot_curve(const NdbGBone *bone)
 {
 	if(bone == NULL)
 		return NULL;
