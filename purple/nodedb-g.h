@@ -8,7 +8,7 @@
 
 typedef struct
 {
-	uint16		id;
+	VLayerID	id;
 	char		name[16];
 	VNGLayerType	type;
 	DynArr		*data;
@@ -16,14 +16,19 @@ typedef struct
 	real64		def_real;
 } NdbGLayer;
 
-typedef struct
+typedef struct NdbGBone	NdbGBone;
+struct NdbGBone
 {
-	char	weight[16];
-	char	reference[16];
-	uint32	parent;
-	real64	pos[3];		/* XYZ (duh). */
-	real64	rot[4];		/* XYZW */
-} NdbGBone;
+	uint16		id;
+	char		weight[16];
+	char		reference[16];
+	uint16		parent;
+	real64		pos[3];		/* XYZ (duh). */
+	char		pos_curve[16];
+	real64		rot[4];		/* XYZW */
+	char		rot_curve[16];
+	boolean		pending;
+};
 
 typedef struct
 {
@@ -73,6 +78,16 @@ extern void		nodedb_g_polygon_set_face_uint32(NdbGLayer *layer, uint32 polygon_i
 extern uint32		nodedb_g_polygon_get_face_uint32(const NdbGLayer *layer, uint32 polygon_id);
 extern void		nodedb_g_polygon_set_face_real64(NdbGLayer *layer, uint32 polygon_id, real64 value);
 extern real64		nodedb_g_polygon_get_face_real64(const NdbGLayer *layer, uint32 polygon_id);
+
+extern NdbGBone *	nodedb_g_bone_lookup(const NodeGeometry *node, uint16 id);
+extern const NdbGBone *	nodedb_g_bone_find_equal(const NodeGeometry *n, const NodeGeometry *source, const NdbGBone *bone);
+extern int		nodedb_g_bone_resolve(uint16 *id, const NodeGeometry *n, const NodeGeometry *source, uint16 b);
+extern NdbGBone *	nodedb_g_bone_create(NodeGeometry *n, uint16 id,
+					     const char *weights, const char *references,
+					     uint16 parent,
+					     real64 px, real64 py, real64 pz, const char *pos_curve,
+					     real64 rx, real64 ry, real64 rz, real64 rw, const char *rot_curve);
+extern void		nodedb_g_bone_destroy(NodeGeometry *n, NdbGBone *bone);
 
 extern void		nodedb_g_crease_set_vertex(NodeGeometry *node, const char *layer, uint32 def);
 extern void		nodedb_g_crease_set_edge(NodeGeometry *node, const char *layer, uint32 def);
