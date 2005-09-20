@@ -750,10 +750,16 @@ static void cb_g_bone_create(void *user, VNodeID node_id, uint16 bone_id, const 
 			     const VNQuat64 *rot, const char *rot_curve)
 {
 	NodeGeometry	*node;
+	int		old;
 
 	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
 		return;
+	old = nodedb_g_bone_lookup(node, node_id) != NULL;
 	nodedb_g_bone_create(node, bone_id, weight, reference, parent_id, pos_x, pos_y, pos_z, pos_curve, rot->x, rot->y, rot->z, rot->w, rot_curve);
+	if(old)
+		NOTIFY(node, DATA);
+	else
+		NOTIFY(node, STRUCTURE);
 }
 
 static void cb_g_bone_destroy(void *user, VNodeID node_id, uint16 bone_id)
@@ -767,6 +773,7 @@ static void cb_g_bone_destroy(void *user, VNodeID node_id, uint16 bone_id)
 		if((bone = nodedb_g_bone_lookup(node, bone_id)) != NULL)
 		{
 			nodedb_g_bone_destroy(node, bone);
+			NOTIFY(node, STRUCTURE);
 		}
 	}
 }
