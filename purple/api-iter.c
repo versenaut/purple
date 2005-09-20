@@ -28,10 +28,11 @@
 
 /* ----------------------------------------------------------------------------------------- */
 
-#define	ITER_DYNARR	(1 << 0)
-#define	ITER_LIST	(1 << 1)
-#define	ITER_STRING	(1 << 15)
-#define	ITER_ENUM_NEG	(1 << 14)
+#define	ITER_DYNARR		(1 << 0)
+#define	ITER_LIST		(1 << 1)
+#define	ITER_STRING		(1 << 15)
+#define	ITER_ENUM_NEG		(1 << 14)
+#define	ITER_UINT16_FFFF	(1 << 13)
 
 /* ----------------------------------------------------------------------------------------- */
 
@@ -56,7 +57,19 @@ static unsigned int validate_dynarr_index(PIter *iter, unsigned int index)
 		for(; (el = dynarr_index(iter->data.dynarr.arr, index)) != NULL; index++)
 		{
 			e = (const int *) (el + iter->offset);
-			if(e >= 0)
+			if(*e >= 0)
+				break;
+		}
+	}
+	else if(iter->flags & ITER_UINT16_FFFF)
+	{
+		const char	*el;
+		const uint16	*id;
+
+		for(; (el = dynarr_index(iter->data.dynarr.arr, index)) != NULL; index++)
+		{
+			id = (const uint16 *) (el + iter->offset);
+			if(*id != (uint16) ~0u)
 				break;
 		}
 	}
@@ -94,6 +107,17 @@ void iter_init_dynarr_enum_negative(PIter *iter, const DynArr *arr, size_t offse
 		return;
 	iter_init_dynarr(iter, arr);
 	iter->flags |= ITER_ENUM_NEG;
+	iter->offset = offset;
+	iter->data.dynarr.index = validate_dynarr_index(iter, 0);
+}
+
+/* Initialize iter that tests for legal dynarr elements by checking a uint16 field against ~0. */
+void iter_init_dynarr_uint16_ffff(PIter *iter, const DynArr *arr, size_t offset)
+{
+	if(iter == NULL)
+		return;
+	iter_init_dynarr(iter, arr);
+	iter->flags |= ITER_UINT16_FFFF;
 	iter->offset = offset;
 	iter->data.dynarr.index = validate_dynarr_index(iter, 0);
 }
@@ -186,7 +210,7 @@ PURPLEAPI void p_iter_next(PIter *iter	/** The iterator to be stepped forward. *
 		return;
 	if(iter->flags & ITER_DYNARR)
 	{
-		if(iter->flags & ITER_STRING || iter->flags & ITER_ENUM_NEG)
+		if(iter->flags & ITER_STRING || iter->flags & ITER_ENUM_NEG || iter->flags & ITER_UINT16_FFFF)
 			iter->data.dynarr.index = validate_dynarr_index(iter, iter->data.dynarr.index + 1);
 		else
 			iter->data.dynarr.index++;
