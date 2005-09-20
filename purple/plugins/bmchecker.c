@@ -21,6 +21,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	uint32		side = p_input_uint32(input[0]), size = p_input_uint32(input[1]), i;
 
 	node = p_output_node_create(output, V_NT_BITMAP, 0);
+	p_node_set_name(node, "checkerboard");
 	p_node_b_set_dimensions(node, side, side, 1);
 	for(i = 0; i < sizeof lname / sizeof *lname; i++)
 	{

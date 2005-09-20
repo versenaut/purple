@@ -29,6 +29,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	real32		angle;
 	const real32	*fb;
 	uint8		*fbout = NULL;
+	char		nbuf[128];
 
 	in = p_input_node(input[0]);
 	if(p_node_get_type(in) != V_NT_BITMAP)
@@ -53,6 +54,8 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 
 	/* Create output node. */
 	out = p_output_node_create(output, V_NT_BITMAP, 0);
+	snprintf(nbuf, sizeof nbuf, "rotated %s", p_node_get_name(in));
+	p_node_set_name(out, nbuf);
 	p_node_b_set_dimensions(out, width, height, depth);
 	p_node_b_layer_create(out, "col_r", VN_B_LAYER_UINT8);
 	p_node_b_layer_create(out, "col_g", VN_B_LAYER_UINT8);
