@@ -770,6 +770,21 @@ PURPLEAPI real64 p_node_g_polygon_get_face_real64(const PNGLayer *layer	/** The 
 	return nodedb_g_polygon_get_face_real64(layer, id);
 }
 
+PURPLEAPI PNGBone * p_node_g_bone_create(PONode *node,
+					 const PNGLayer *weight, const PNGLayer *reference,
+					 const PNGBone *parent,
+					 real64 pos_x, real64 pos_y, real64 pos_z, const char *pos_curve,
+					 real64 rot_x, real64 rot_y, real64 rot_z, real64 rot_w, const char *rot_curve)
+{
+	return nodedb_g_bone_create((NodeGeometry *) node, ~0,
+				    weight != NULL ? ((const NdbGLayer *) weight)->name : NULL,
+				    reference != NULL ? ((const NdbGLayer *) reference)->name : NULL,
+				    parent != NULL ? ((const NdbGBone *) parent)->id : ~0u,
+				    pos_x, pos_y, pos_z, pos_curve,
+				    rot_x, rot_y, rot_z, rot_w, rot_curve);
+}
+					 
+
 /** \brief Set vertex creasing.
  * 
  * This function lets you specify the vertex creasing that is to be applied to a geometry node. Creasing controls
