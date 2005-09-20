@@ -277,8 +277,8 @@ static int console_script(char *line, size_t line_size)
 {
 	static const char script[] =
 	"nc text\n"
-	"tbc 2 klax\n"
-	"gc 2 0 busta\n"
+	"tbc 2 purpletest\n"
+	"gc 2 0 graph0\n"
 
 	"mc 1 36\n"
 	"mc 1 11\n"
