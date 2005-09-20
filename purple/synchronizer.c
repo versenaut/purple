@@ -317,6 +317,82 @@ static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 	return send;
 }
 
+static int sync_geometry_bones(const NodeGeometry *n, const NodeGeometry *target)
+{
+	unsigned int	i, sync = 1;
+	NdbGBone	*b;
+
+	for(i = 0; (b = dynarr_index(n->bones, i)) != NULL; i++)
+	{
+		if(b->id == (uint16) ~0u)
+			continue;
+		if(nodedb_g_bone_find_equal(target, n, b) == NULL)
+		{
+			uint16	parent;
+
+/*			printf("bone %u is not in target, we need to create it\n", b->id);*/
+			if(b->pending)
+			{
+/*				printf(" we already have, so just hang on\n");*/
+				sync = 0;
+				continue;
+			}
+			if(b->parent == (uint16) ~0u || nodedb_g_bone_resolve(&parent, target, n, b->parent))
+			{
+				VNQuat64	rot;
+
+				rot.x = b->rot[0];
+				rot.y = b->rot[1];
+				rot.z = b->rot[2];
+				rot.w = b->rot[3];
+				if(b->parent == (uint16) ~0u)
+				{
+/*					printf(" it's a root bone, so just create it\n");*/
+					verse_send_g_bone_create(target->node.id, (uint16) ~0u, b->weight, b->reference, (uint16) ~0u,
+								 b->pos[0], b->pos[1], b->pos[2], b->pos_curve,
+								 &rot, b->rot_curve);
+					b->pending = 1;
+				}
+				else
+				{
+/*					printf(" the parent exists, as %u, creating child then\n", parent);*/
+					verse_send_g_bone_create(target->node.id, (uint16) ~0u, b->weight, b->reference, parent,
+								 b->pos[0], b->pos[1], b->pos[2], b->pos_curve,
+								 &rot, b->rot_curve);
+					b->pending = 1;
+				}
+			}
+/*			else
+				printf(" the parent %u neither, hoping for it to show up soon ...\n", b->parent);
+*/			sync = 0;
+		}
+	}
+	if(sync == 1)
+	{
+		/* If everything is in sync, nothing is pending, so clear the flags. */
+		for(i = 0; (b = dynarr_index(n->bones, i)) != NULL; i++)
+		{
+			if(b->id == (uint16) ~0u)
+				continue;
+			b->pending = 0;
+		}
+		/* Do a reverse sweep, checking for bones in remote node that are not
+		 * defined in Purple. If so, destroy them.
+		*/
+		for(i = 0; (b = dynarr_index(target->bones, i)) != NULL; i++)
+		{
+			if(b->id == (uint16) ~0u)
+				continue;
+			if(nodedb_g_bone_find_equal(n, target, b) == NULL)
+			{
+				verse_send_g_bone_destroy(target->node.id, b->id);
+				printf(">> sync destroying target-only bone %u\n", b->id);
+			}
+		}
+	}
+	return sync;
+}
+
 static int sync_geometry_creases(const NodeGeometry *n, const NodeGeometry *target)
 {
 	int	sync = 1;
@@ -379,8 +455,10 @@ static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 			verse_send_g_layer_destroy(target->node.id, layer->id);
 		}
 	}
+	/* Step three: handle any bones. */
+	sync &= sync_geometry_bones(n, target);
 
-	/* Step three: see if crease information has changed. */
+	/* Step four: see if crease information has changed. */
 	sync &= sync_geometry_creases(n, target);
 
 	return sync;
