@@ -718,8 +718,11 @@ NdbGBone * nodedb_g_bone_create(NodeGeometry *n, uint16 id, const char *weight, 
 	return bone;
 }
 
-void nodeb_g_bone_destroy(NodeGeometry *n, NdbGBone *bone)
+void nodedb_g_bone_destroy(NodeGeometry *n, NdbGBone *bone)
 {
+	if(n == NULL || bone == NULL)
+		return;
+	bone->id = (uint16) ~0u;	/* All it takes, really. */
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -751,6 +754,21 @@ static void cb_g_bone_create(void *user, VNodeID node_id, uint16 bone_id, const 
 	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
 		return;
 	nodedb_g_bone_create(node, bone_id, weight, reference, parent_id, pos_x, pos_y, pos_z, pos_curve, rot->x, rot->y, rot->z, rot->w, rot_curve);
+}
+
+static void cb_g_bone_destroy(void *user, VNodeID node_id, uint16 bone_id)
+{
+	NodeGeometry	*node;
+
+	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) != NULL)
+	{
+		NdbGBone	*bone;
+
+		if((bone = nodedb_g_bone_lookup(node, bone_id)) != NULL)
+		{
+			nodedb_g_bone_destroy(node, bone);
+		}
+	}
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -803,6 +821,7 @@ void nodedb_g_register_callbacks(void)
 	verse_callback_set(verse_send_g_polygon_set_face_real64,	cb_g_polygon_set_face_real64,	NULL);
 
 	verse_callback_set(verse_send_g_bone_create,			cb_g_bone_create, NULL);
+	verse_callback_set(verse_send_g_bone_destroy,			cb_g_bone_destroy, NULL);
 
 	verse_callback_set(verse_send_g_crease_set_vertex,		cb_g_crease_set_vertex, NULL);
 	verse_callback_set(verse_send_g_crease_set_edge,		cb_g_crease_set_edge, NULL);
