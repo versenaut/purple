@@ -28,8 +28,8 @@
 
 /* ----------------------------------------------------------------------------------------- */
 
-#define	ITER_DYNARR		(1 << 0)
-#define	ITER_LIST		(1 << 1)
+#define	ITER_DYNARR	(1 << 0)
+#define	ITER_LIST	(1 << 1)
 
 /* ----------------------------------------------------------------------------------------- */
 
@@ -142,7 +142,7 @@ void iter_init_list(PIter *iter, List *list)
  * 
  * Iterators allows code that needs to traverse some sequence to always look the same,
  * regardless of the type of data in the sequence. It also saves time, since the other
- * access functions in the Purple API (of the \c p_something_nth() variety) often have
+ * access functions in the Purple API (of the \c p_node_something_nth() variety) often have
  * O(n) performance. Using such a function to iterate over \e n items would be O(n*n)
  * total, but with iterators it will be O(n) at worst.
  * 
@@ -162,12 +162,16 @@ void iter_init_list(PIter *iter, List *list)
  * Because the \c p_iter_data() function returns a \c void pointer, there is no need to
  * explicitly cast it to the desired \c PNTagGroup pointer type; C's automatic pointer
  * promotion rules does the conversion automatically.
+ * 
+ * The functions that initialize an iterator to iterate over a collection of something
+ * are always have names ending in \c _something_iter().
  * @{
 */
 
 
-/**
- * Return the current index, counting from 0, of an iterator.
+/** \brief Return the current index, counting from 0, of an iterator.
+ * 
+ * This function returns the current index of an iterator.
  * 
  * While the point of iterators is to iterate over a sequence of data pieces without actually
  * using an integer index to identify each one, it is sometimes useful to have such an index
@@ -182,7 +186,8 @@ PURPLEAPI unsigned int p_iter_index(const PIter *iter	/** The iterator whose ind
 	return 0;
 }
 
-/**
+/** \brief Get data element at iterator's current position.
+ * 
  * Return the data piece pointed at by the an iterator. Returns \c NULL if given an invalid
  * iterator.
 */
@@ -197,7 +202,8 @@ PURPLEAPI void * p_iter_data(PIter *iter	/** The iterator whose data is to be ac
 	return NULL;
 }
 
-/**
+/** \brief Advance iterator to the next data element.
+ * 
  * Step an iterator to the next sequence member. This is the core functionality of iterators, the one
  * that does the actual iterating. If it succeeds, this will as a side-effect increase the index returned
  * by \c p_iter_index().
