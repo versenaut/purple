@@ -17,6 +17,7 @@ typedef struct
 } NdbGLayer;
 
 typedef struct NdbGBone	NdbGBone;
+
 struct NdbGBone
 {
 	uint16		id;
@@ -91,6 +92,7 @@ extern NdbGBone *	nodedb_g_bone_create(NodeGeometry *n, uint16 id,
 					     real64 px, real64 py, real64 pz, const char *pos_curve,
 					     real64 rx, real64 ry, real64 rz, real64 rw, const char *rot_curve);
 extern void		nodedb_g_bone_destroy(NodeGeometry *n, NdbGBone *bone);
+extern uint16		nodedb_g_bone_get_id(const NdbGBone *bone);
 extern const char *	nodedb_g_bone_get_weight(const NdbGBone *bone);
 extern const char *	nodedb_g_bone_get_reference(const NdbGBone *bone);
 extern uint16		nodedb_g_bone_get_parent(const NdbGBone *bone);

@@ -725,6 +725,11 @@ void nodedb_g_bone_destroy(NodeGeometry *n, NdbGBone *bone)
 	bone->id = (uint16) ~0u;	/* All it takes, really. */
 }
 
+uint16 nodedb_g_bone_get_id(const NdbGBone *bone)
+{
+	return bone != NULL ? bone->id : (uint16) ~0u;
+}
+
 const char * nodedb_g_bone_get_weight(const NdbGBone *bone)
 {
 	if(bone == NULL)
