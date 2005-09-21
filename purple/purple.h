@@ -255,10 +255,20 @@ PURPLEAPI real64		p_node_g_polygon_get_face_real64(const PNGLayer *layer, uint32
 PURPLEAPI unsigned int		p_node_g_bone_num(PINode *node);
 PURPLEAPI PNGBone *		p_node_g_bone_nth(PINode *node, unsigned int n);
 PURPLEAPI void			p_node_g_bone_iter(PINode *node, PIter *iter);
-PURPLEAPI PNGBone *		p_node_g_bone_create(PONode *node, const char *weight, const char *reference, const PNGBone *parent,
+PURPLEAPI PNGBone *		p_node_g_bone_lookup(PINode *node, uint16 id);
+PURPLEAPI PNGBone *		p_node_g_bone_create(PONode *node, const char *weight, const char *reference, uint16 parent,
 						     real64 x, real64 y, real64 z, const char *pos_curve,
 						     real64 rot_x, real64 rot_y, real64 rot_z, real64 rot_w, const char *rot_curve);
 PURPLEAPI void			p_node_g_bone_destroy(PONode *node, PNGBone *bone);
+PURPLEAPI uint16		p_node_g_bone_get_id(const PNGBone *bone);
+PURPLEAPI const char *		p_node_g_bone_get_weight(const PNGBone *bone);
+PURPLEAPI const char *		p_node_g_bone_get_reference(const PNGBone *bone);
+PURPLEAPI uint16		p_node_g_bone_get_parent(const PNGBone *bone);
+PURPLEAPI void			p_node_g_bone_get_pos(const PNGBone *bone, real64 *pos_x, real64 *pos_y, real64 *pos_z);
+PURPLEAPI const char *		p_node_g_bone_get_pos_curve(const PNGBone *bone);
+PURPLEAPI void			p_node_g_bone_get_rot(const PNGBone *bone, real64 *rot_x, real64 *rot_y, real64 *rot_z, real64 *rot_w);
+PURPLEAPI const char *		p_node_g_bone_get_rot_curve(const PNGBone *bone);
+
 
 PURPLEAPI void			p_node_g_crease_set_vertex(PONode *node, const char *layer, uint32 def);
 PURPLEAPI void			p_node_g_crease_set_edge(PONode *node, const char *layer, uint32 def);
