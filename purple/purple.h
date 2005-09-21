@@ -44,7 +44,8 @@
  * All fields are private, this is public only to support automatic (on-stack) allocations.
  * Use only the provided \ref api_iter to initialize and use variables of this type.
 */
-typedef struct
+typedef struct PIter	PIter;
+struct PIter
 {
 	unsigned short	flags;
 	unsigned short	offset;
@@ -55,10 +56,11 @@ typedef struct
 	{
 	const void	*arr;
 	unsigned int	index;
+	unsigned int	(*validate)(PIter *iter, unsigned int index);
 	}		dynarr;
 	const void	*list;
 	}		data;
-} PIter;
+};
 
 /* Dereference an iterator, returns next element or NULL if end of sequence. */
 PURPLEAPI void *		p_iter_data(PIter *iter);
