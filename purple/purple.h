@@ -269,12 +269,10 @@ PURPLEAPI const char *		p_node_g_bone_get_pos_curve(const PNGBone *bone);
 PURPLEAPI void			p_node_g_bone_get_rot(const PNGBone *bone, real64 *rot_x, real64 *rot_y, real64 *rot_z, real64 *rot_w);
 PURPLEAPI const char *		p_node_g_bone_get_rot_curve(const PNGBone *bone);
 
-
 PURPLEAPI void			p_node_g_crease_set_vertex(PONode *node, const char *layer, uint32 def);
 PURPLEAPI void			p_node_g_crease_set_edge(PONode *node, const char *layer, uint32 def);
 
 /* Material-node manipulation functions. */
-
 typedef void	PNMFragment;
 
 PURPLEAPI unsigned int		p_node_m_fragment_num(PINode *node);
