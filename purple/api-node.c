@@ -802,6 +802,17 @@ PURPLEAPI void p_node_g_bone_iter(PINode *node		/** The node whose bones are to 
 	nodedb_g_bone_iter((const NodeGeometry *) node, iter);
 }
 
+/** \brief Look up a bone, given its numerical ID.
+ * 
+ * This function looks up a bone, from a numerical ID. It is useful since many references
+ * of bones are by ID, but you need a \c PNGBone pointer to pass to the API functions.
+*/
+PURPLEAPI PNGBone * p_node_g_bone_lookup(PINode *node	/** The node in which a bone is to be looked up. */,
+					 uint16 id	/** The numerical ID of the bone to look up. */)
+{
+	return nodedb_g_bone_lookup((const NodeGeometry *) node, id);
+}
+
 /** \brief Create a new bone.
  * 
  * This function creates and returns a new bone in a geometry node. Bones are used to express skeletal animation
@@ -813,8 +824,11 @@ PURPLEAPI void p_node_g_bone_iter(PINode *node		/** The node whose bones are to 
  * typically stored in a \c VN_G_LAYER_VERTEX_REAL layer that must be in the same node as the bone,
  * tell you how much each vertex is affected by this bone's movement.
  * - A pointer to a reference layer.
- * - A parent bone pointer, that defines the hierarchy. A bone can only have a single parent, while a single
- * bone can have any number of child bones.
+ * - A parent bone reference, that defines the hierarchy. A bone can only have a single parent, while a single
+ * bone can have any number of child bones. Note that the reference is in the form of the \b numerical \b ID
+ * of the desired parent bone, \b not as a \c PNGBone pointer. Use the \c p_node_g_bone_get_id() function to
+ * get the ID from a previously created bone. Use \c p_node_g_bone_get_id(NULL) to get a null reference, for
+ * root bones.
  * - A position, in the form of separate X Y and Z values. This is the translation from the origin of the
  * parent transform (either the parent bone, or the object's origin for the root bone).
  * - A position curve pointer. This is the name of a 3-dimensional curve, whose value should replace
@@ -833,15 +847,23 @@ PURPLEAPI void p_node_g_bone_iter(PINode *node		/** The node whose bones are to 
  * \note Please see the <a href="http://www.blender.org/modules/verse/verse-spec/n-geometry.html#geometry-bones">Verse Specification</a>
  * for more information about bones.
 */
-PURPLEAPI PNGBone * p_node_g_bone_create(PONode *node,
-					 const char *weight, const char *reference,
-					 const PNGBone *parent,
-					 real64 pos_x, real64 pos_y, real64 pos_z, const char *pos_curve,
-					 real64 rot_x, real64 rot_y, real64 rot_z, real64 rot_w, const char *rot_curve)
+PURPLEAPI PNGBone * p_node_g_bone_create(PONode *node		/** The node in which a new bone is to be created. */,
+					 const char *weight	/** The name of a layer in the node, that contains vertex weights. */,
+					 const char *reference	/** The name of a layer in the node, that contains bone references. */,
+					 uint16 parent		/** The ID of the new bone's immediate parent bone. */.
+					 real64 pos_x		/** The X component of the bone's position. */,
+					 real64 pos_y		/** The Y component of the bone's position. */,
+					 real64 pos_z		/** The Z component of the bone's position. */,
+					 const char *pos_curve	/** The name of a curve to use to drive this bone's position. */,
+					 real64 rot_x		/** The X component of the bone's rotation quaternion. */,
+					 real64 rot_y		/** The Y component of the bone's rotation quaternion. */,
+					 real64 rot_z		/** The Z component of the bone's rotation quaternion. */,
+					 real64 rot_w		/** The W component of the bone's rotation quaternion. */,
+					 const char *rot_curve	/** The name of a curve to use to drive this bone's rotation. */)
 {
 	return nodedb_g_bone_create((NodeGeometry *) node, ~0,
 				    weight, reference,
-				    parent != NULL ? ((const NdbGBone *) parent)->id : ~0u,
+				    parent,
 				    pos_x, pos_y, pos_z, pos_curve,
 				    rot_x, rot_y, rot_z, rot_w, rot_curve);
 }
@@ -851,9 +873,110 @@ PURPLEAPI PNGBone * p_node_g_bone_create(PONode *node,
  * This function destroys a geometry bone. Any bone that referenced this one as a parent will become
  * the root of a new hierarchy; no "splicing" is done by this function.
 */
-PURPLEAPI void p_node_g_bone_destroy(PONode *node, PNGBone *bone)
+PURPLEAPI void p_node_g_bone_destroy(PONode *node	/** The node in which a bone is to be destroyed. */,
+				     PNGBone *bone	/** The bone to destroy. */)
 {
 	nodedb_g_bone_destroy((NodeGeometry *) node, bone);
+}
+
+/** \brief Get numerical ID of a bone.
+ * 
+ * This function returns the numerical ID of a bone. This number is used when you need to refer to the bone when
+ * creating hierarchies.
+ * 
+ * The reason pointers are not used is that IDs match the underlying Verse data model better.
+*/
+PURPLEAPI uint16 p_node_g_bone_get_id(const PNGBone *bone	/** The bone whose ID is to be queried. */)
+{
+	return nodedb_g_bone_get_id(bone);
+}
+
+/** \brief Get get name of a bone's weight layer.
+ * 
+ * This function returns the name of the layer that contains the weight references for a given bone. The returned
+ * string can be passed to \c p_node_g_layer_find() to get a layer pointer.
+*/
+PURPLEAPI const char * p_node_g_bone_get_weight(const PNGBone *bone	/** The bone whose weight layer name is to be queried. */)
+{
+	return nodedb_g_bone_get_weight(bone);
+}
+
+/** \brief Get name of a bone's reference layer.
+ * 
+ * This function returns the name of a bone's reference layer. Reference layers are used to save space when
+ * building complicated skeletons.
+ * 
+ * The returned string can be passed to \c p_node_g_layer_find() to get a layer pointer.
+*/
+PURPLEAPI const char * p_node_g_bone_get_reference(const PNGBone *bone	/** The bone whose reference layer name is to be queried. */)
+{
+	return nodedb_g_bone_get_reference(bone);
+}
+
+/** \brief Get numerical ID of a bone's parent bone.
+ * 
+ * This function returns the numerical ID of the bone that is the given bone's parent in the hierarchy.
+ * The returned value will be in the range [0,65535) for a valid bone reference, while 65535 (hex ffff)
+ * is reserved to mean "no parent".
+ * 
+ * The returned value can be passed to \c p_node_g_bone_lookup() to get a bone pointer.
+*/
+PURPLEAPI uint16 p_node_g_bone_get_parent(const PNGBone *bone	/** The bone whose parent is to be queried. */)
+{
+	return nodedb_g_bone_get_parent(bone);
+}
+
+/** \brief Get value of a bone's position component.
+ * 
+ * This function writes a bone's position field into variables supplied by the caller.
+ * 
+ * Any of the \c pos_x, \c pos_y and \c pos_z pointers may be \c NULL, in which case
+ * no value is written.
+*/
+PURPLEAPI void p_node_g_bone_get_pos(const PNGBone *bone	/** The bone whose position is to be queried. */,
+				     real64 *pos_x		/** Pointer to variable to receive X component of the bone's position. */,
+				     real64 *pos_y		/** Pointer to variable to receive Y component of the bone's position. */,
+				     real64 *pos_z		/** Pointer to variable to receive Z component of the bone's position. */)
+{
+	nodedb_g_bone_get_pos(bone, pos_x, pos_y, pos_z);
+}
+
+/** \brief Get value of a bone's position curve reference.
+ * 
+ * This function returns a pointer to the textual name of the curve(s) that affect this bone's position.
+ *
+ * If the bone's position is not affected by a curve, an empty string (\c "") is returned.
+*/
+PURPLEAPI const char * p_node_g_bone_get_pos_curve(const PNGBone *bone	/** The bone whose position curve name is to be queried. */)
+{
+	return nodedb_g_bone_get_pos_curve(bone);
+}
+
+/** \brief Get value of a bone's rotation component.
+ * 
+ * This function writes a bone's rotation field into variables supplied by the caller.
+ * 
+ * Any of the \c rot_x, \c rot_y, \c rot_c and \c rot_w pointers may be \c NULL, in which case
+ * no value is written.
+*/
+PURPLEAPI void p_node_g_bone_get_rot(const PNGBone *bone	/** The bone whose rotation is to be queried. */,
+				     real64 *rot_x		/** Pointer to variable to receive the X component of the bone's rotation. */,
+				     real64 *rot_y		/** Pointer to variable to receive the Y component of the bone's rotation. */,
+				     real64 *rot_z		/** Pointer to variable to receive the Z component of the bone's rotation. */,
+				     real64 *rot_w		/** Pointer to variable to receive the W component of the bone's rotation. */)
+{
+	nodedb_g_bone_get_rot(bone, rot_x, rot_y, rot_z, rot_w);
+}
+
+/** \brief Get value of a bone's rotation curve reference.
+ * 
+ * This function returns a pointer to the textual name of the curve(s) that affect this bone's rotation.
+ *
+ * If the bone's rotation is not affected by a curve, an empty string (\c "") is returned.
+*/
+PURPLEAPI const char * p_node_g_bone_get_rot_curve(const PNGBone *bone	/** The bone whose rotation curve name is to be queried. */)
+{
+	return nodedb_g_bone_get_rot_curve(bone);
 }
 
 /** \brief Set vertex creasing.
