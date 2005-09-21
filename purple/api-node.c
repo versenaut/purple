@@ -850,7 +850,7 @@ PURPLEAPI PNGBone * p_node_g_bone_lookup(PINode *node	/** The node in which a bo
 PURPLEAPI PNGBone * p_node_g_bone_create(PONode *node		/** The node in which a new bone is to be created. */,
 					 const char *weight	/** The name of a layer in the node, that contains vertex weights. */,
 					 const char *reference	/** The name of a layer in the node, that contains bone references. */,
-					 uint16 parent		/** The ID of the new bone's immediate parent bone. */.
+					 uint16 parent		/** The ID of the new bone's immediate parent bone. */,
 					 real64 pos_x		/** The X component of the bone's position. */,
 					 real64 pos_y		/** The Y component of the bone's position. */,
 					 real64 pos_z		/** The Z component of the bone's position. */,
