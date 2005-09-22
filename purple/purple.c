@@ -47,8 +47,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined _WIN32
+ #include <windows.h>
+ #include <Shlwapi.h>
+#endif
+
 #define	PURPLE_CONSOLE
-/*#undef	PURPLE_CONSOLE*/
+#undef	PURPLE_CONSOLE
 
 #if defined PURPLE_CONSOLE
 
@@ -476,7 +481,7 @@ static int goto_home_dir(const char *argv0)
 	else
 		fprintf(stderr, "Purple: Couldn't GetModuleFileName()\n");
 	return 0;
-#elif defined __APPLE_CC__
+#elif defined __APPLE_CC__1
 	char	buf[1024], *slash;
 
 	strcpy(buf, argv0);
