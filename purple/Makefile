@@ -11,8 +11,14 @@ TARGETS=purple
 ALL:		$(TARGETS) all-plugins
 
 
-CFLAGS=-g -Wall -rdynamic -I$(VERSE) -L$(VERSE) -Wsign-compare
+CFLAGS=-g -Wall -I$(VERSE) -L$(VERSE) -Wsign-compare
 LDLIBS=-ldl -lverse -lm
+
+# The -rdynamic flag is not needed on Mac OS X, but is assumed to be needed elsewhere.
+ifneq ($(shell uname),Darwin)
+  CFLAGS += -rdynamic
+endif
+
 
 purple:		purple.c \
 		api-init.o api-input.o api-iter.o api-node.o api-output.o \
