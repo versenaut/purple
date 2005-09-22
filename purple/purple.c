@@ -452,10 +452,55 @@ static int console_update(void)
 	return 1;
 }
 
+/* Make the directory where the running executable lives the current one. This is platform-dependant code.
+ * The idea is that plugins/ is typically next to the exeuctable, and we want to find them. On some plat-
+ * forms (Mac OS X Finder, Win32 Explorer), the process' current working directory lies.
+*/
+static int goto_home_dir(const char *argv0)
+{
+#if defined _WIN32
+	TCHAR	buf[1024];
+
+	if(GetModuleFileName(NULL, buf, sizeof buf) < sizeof buf - 1)
+	{
+		if(PathRemoveFileSpec(buf) != 0)
+		{
+			if(_chdir(buf) == 0)
+				return 1;
+			else
+				fprintf(stderr, "Purple: Couldn't make \"%s\" the current directory, plug-in loading might fail\n", buf);
+		}
+		else
+			fprintf(stderr, "Purple: Couldn't run PathRemoveFileSpec(\"%s\")\n", buf);
+	}
+	else
+		fprintf(stderr, "Purple: Couldn't GetModuleFileName()\n");
+	return 0;
+#elif defined __APPLE_CC__
+	char	buf[1024], *slash;
+
+	strcpy(buf, argv0);
+	if((slash = strrchr(buf, '/')) != NULL)
+	{
+		*slash = '\0';	/* Clobber the last slash, turning "/my/great/place/for/purple" to "/my/great/place/for". */
+		if(chdir(buf) == 0)
+			return 1;
+		else
+			fprintf(stderr, "Purple: Couldn't make \"%s\" the current directory\n", buf);
+	}
+	else
+		fprintf(stderr, "Purple: Couldn't find slash in \"%s\", can't extract directory", buf);
+	return 0;
+#endif
+	return 1;
+}
+
 int main(int argc, char *argv[])
 {
 	const char	*server = "localhost";
 	int		i;
+
+	goto_home_dir(argv[0]);
 
 	bintree_init();
 	cron_init();
