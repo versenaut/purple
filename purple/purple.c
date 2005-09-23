@@ -481,7 +481,7 @@ static int goto_home_dir(const char *argv0)
 	else
 		fprintf(stderr, "Purple: Couldn't GetModuleFileName()\n");
 	return 0;
-#elif defined __APPLE_CC__1
+#elif defined __APPLE_CC__
 	char	buf[1024], *slash;
 
 	strcpy(buf, argv0);
