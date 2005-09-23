@@ -50,6 +50,8 @@
 #if defined _WIN32
  #include <windows.h>
  #include <Shlwapi.h>
+#elif defined __APPLE_CC__
+ #include <unistd.h>
 #endif
 
 #define	PURPLE_CONSOLE
