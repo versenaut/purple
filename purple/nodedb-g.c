@@ -683,7 +683,7 @@ NdbGBone * nodedb_g_bone_create(NodeGeometry *n, uint16 id, const char *weight, 
 		return NULL;
 	if(n->bones == NULL)
 	{
-		n->bones = dynarr_new(sizeof (NdbGBone), 4);
+		n->bones = dynarr_new(sizeof (NdbGBone), 128);	/* FIXME: This will break if realloc() causes bones to move! */
 		dynarr_set_default_func(n->bones, cb_bone_default, NULL);
 	}
 	if(id == (uint16) ~0)
@@ -711,8 +711,8 @@ NdbGBone * nodedb_g_bone_create(NodeGeometry *n, uint16 id, const char *weight, 
 		bone->rot[2] = rz;
 		bone->rot[3] = rw;
 		stu_strncpy(bone->rot_curve, sizeof bone->rot_curve, rot_curve);
-		printf("****bone created; id=%u weight='%s' reference='%s' pcurve='%s' rcurve='%s'\n", id,
-		       bone->weight, bone->reference, bone->pos_curve, bone->rot_curve);
+		printf("****bone at %p created; id=%u weight='%s' reference='%s' parent=%u pcurve='%s' rcurve='%s'\n", bone, id,
+		       bone->weight, bone->reference, bone->parent, bone->pos_curve, bone->rot_curve);
 		bone->pending = 0;
 	}
 	return bone;
