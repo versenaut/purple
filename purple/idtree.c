@@ -224,10 +224,14 @@ void * idtree_append(IdTree *tree, const void *el, unsigned int *id)
 
 void * idtree_get(const IdTree *tree, unsigned int id)
 {
+	unsigned int	m;
 	int		i;
 	const Page	*p;
 
 	if(tree == NULL)
+		return NULL;
+	m = (msb(id) + tree->bits - 1) / tree->bits;
+	if(m > tree->depth)
 		return NULL;
 	/* Drill down to final page. This should be reasonably quick. */
 	for(i = tree->depth - 1, p = tree->root; i > 0; i--)
