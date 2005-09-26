@@ -20,6 +20,12 @@ typedef struct IdTree	IdTree;
 */
 extern IdTree *	idtree_new(size_t elem_size, size_t elem_chunk_size, unsigned int bits);
 
+/* Create a new IdTree, by copying an existing one. All parameters of the copy will
+ * be the same as those of the source. Element data will be copied bit-by-bit over
+ * to the new one, or by the user-supplied callback if so desired.
+*/
+extern IdTree *	idtree_new_copy(const IdTree *src, void (*element_copy)(void *dst, unsigned int id, const void *src, void *user), void *user);
+
 /* This inserts an element into the tree. It's not called "insert", since it allows
  * the user to specify the ID, thus being a bit more like an array set. The specified
  * ID *will* be used. Existing data is overwritten. If <element> is NULL, no copying

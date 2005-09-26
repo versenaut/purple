@@ -139,6 +139,61 @@ IdTree * idtree_new(size_t elem_size, size_t elem_chunk_size, unsigned int bits)
 	return tree;
 }
 
+static void recursive_copy_page(IdTree *dst, const IdTree *src, const Page *page, unsigned int id, void (*element_copy)(void *dst, unsigned int id, const void *src, void *user), void *user)
+{
+	unsigned int	i;
+
+	if(page->lsb == 0)	/* Final level element page? */
+	{
+		for(i = 0; i < (1u << src->bits); i++)
+		{
+			if(page->ptr[i] != NULL)
+			{
+				if(element_copy == NULL)
+					idtree_set(dst, id | i, page->ptr[i]);
+				else
+				{
+					void	*el;
+
+					el = idtree_set(dst, id | i, NULL);
+					element_copy(el, id | i, page->ptr[i], user);
+				}
+			}
+		}
+	}
+	else			/* Internal index page. */
+	{
+		for(i = 0; i < (1u << src->bits); i++)
+		{
+			if(page->ptr[i] != NULL)
+				recursive_copy_page(dst, src, page->ptr[i], id | (i << page->lsb), element_copy, user);
+		}
+	}
+}
+
+/* Copy an IdTree. This simply (?) recurses down to the level 0 pages, while maintaining the ID path to get there,
+ * and does set()s on the new tree with the old one's data. Optionally uses a callback to do the copy.
+*/
+IdTree * idtree_new_copy(const IdTree *src, void (*element_copy)(void *dst, unsigned int id, const void *src, void *user), void *user)
+{
+	IdTree		*nt;
+	unsigned int	i;
+
+	if(src == NULL)
+		return NULL;
+
+	nt = idtree_new(memchunk_chunk_size(src->chunk_element), memchunk_growth(src->chunk_element), src->bits);
+
+	for(i = 0; i < (1u << src->bits); i++)
+	{
+		if(src->root->ptr[i] != NULL)
+			recursive_copy_page(nt, src, src->root, i << src->root->lsb, element_copy, user);
+	}
+/*	printf("copy has %u elements in %u pages\n", idtree_size(nt), nt->page_alloc);*/
+
+	return nt;
+}
+
 #define	PAGE_SET(p, s, e)	do { p->ptr[s] = e; p->size++;    } while(0)
 #define	PAGE_CLR(p, s)		do { p->ptr[s] = NULL; p->size--; } while(0)
 
