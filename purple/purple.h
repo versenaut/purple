@@ -216,6 +216,12 @@ PURPLEAPI VNTagType		p_node_tag_get_type(const PNTag *tag);
 PURPLEAPI void			p_node_tag_create_path(PONode *node, const char *path, VNTagType type, ...);
 PURPLEAPI void			p_node_tag_destroy_path(PONode *node, const char *path);
 
+PURPLEAPI void			p_node_o_pos_set(PONode *node, const real64 *pos);
+PURPLEAPI void			p_node_o_pos_get(PINode *node, real64 *pos);
+
+PURPLEAPI void			p_node_o_rot_set(PONode *node, const real64 *rot);
+PURPLEAPI void			p_node_o_rot_get(PINode *node, real64 *rot);
+
 PURPLEAPI void			p_node_o_light_set(PONode *node, real64 red, real64 green, real64 blue);
 PURPLEAPI void			p_node_o_light_get(PINode *node, real64 *red, real64 *green, real64 *blue);
 
