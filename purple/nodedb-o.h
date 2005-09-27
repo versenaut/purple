@@ -9,7 +9,9 @@
 typedef struct
 {
 	PNode	node;
-	real64	xform[3][3];
+	real64	pos[3];
+	real64	rot[4];
+	real64	scale[3];
 	real64	light[3];
 	DynArr	*links;
 	List	*links_local;
@@ -51,6 +53,12 @@ extern void		nodedb_o_construct(NodeObject *n);
 extern void		nodedb_o_copy(NodeObject *n, const NodeObject *src);
 extern void		nodedb_o_set(NodeObject *n, const NodeObject *src);
 extern void		nodedb_o_destruct(NodeObject *n);
+
+extern void		nodedb_o_pos_set(NodeObject *n, const real64 *pos);
+extern void		nodedb_o_pos_get(const NodeObject *n, real64 *pos);
+
+extern void		nodedb_o_rot_set(NodeObject *n, const real64 *rot);
+extern void		nodedb_o_rot_get(const NodeObject *n, real64 *rot);
 
 extern void		nodedb_o_light_set(NodeObject *n, real64 red, real64 green, real64 blue);
 extern void		nodedb_o_light_get(const NodeObject *n, real64 *red, real64 *green, real64 *blue);
