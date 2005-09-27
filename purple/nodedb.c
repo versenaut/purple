@@ -711,6 +711,8 @@ static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeOwn
 			NOTIFY(n, CREATE);
 		}
 		verse_send_node_subscribe(node_id);
+		if(type == V_NT_OBJECT)
+			verse_send_o_transform_subscribe(node_id, VN_FORMAT_REAL64);
 	}
 	else
 		LOG_WARN(("Can't handle creation of node type %d--not implemented", type));
@@ -815,13 +817,13 @@ void nodedb_register_callbacks(VNodeID avatar, uint32 mask)
 
 	for(i = 0; i < sizeof nodedb_info.chunk_node / sizeof *nodedb_info.chunk_node; i++)
 		nodedb_info.chunk_node[i] = NULL;
-	nodedb_info.chunk_node[V_NT_OBJECT]   = memchunk_new("chunk-node-object", sizeof (NodeObject), 16);
+	nodedb_info.chunk_node[V_NT_OBJECT]   = memchunk_new("chunk-node-object",   sizeof (NodeObject), 16);
 	nodedb_info.chunk_node[V_NT_GEOMETRY] = memchunk_new("chunk-node-geometry", sizeof (NodeGeometry), 16);
 	nodedb_info.chunk_node[V_NT_MATERIAL] = memchunk_new("chunk-node-material", sizeof (NodeMaterial), 16);
-	nodedb_info.chunk_node[V_NT_BITMAP]   = memchunk_new("chunk-node-bitmap", sizeof (NodeBitmap), 16);
-	nodedb_info.chunk_node[V_NT_TEXT]     = memchunk_new("chunk-node-text",   sizeof (NodeText), 16);
-	nodedb_info.chunk_node[V_NT_CURVE]    = memchunk_new("chunk-node-curve",  sizeof (NodeCurve), 16);
-	nodedb_info.chunk_node[V_NT_AUDIO]    = memchunk_new("chunk-node-audio",  sizeof (NodeAudio), 16);
+	nodedb_info.chunk_node[V_NT_BITMAP]   = memchunk_new("chunk-node-bitmap",   sizeof (NodeBitmap), 16);
+	nodedb_info.chunk_node[V_NT_TEXT]     = memchunk_new("chunk-node-text",     sizeof (NodeText), 16);
+	nodedb_info.chunk_node[V_NT_CURVE]    = memchunk_new("chunk-node-curve",    sizeof (NodeCurve), 16);
+	nodedb_info.chunk_node[V_NT_AUDIO]    = memchunk_new("chunk-node-audio",    sizeof (NodeAudio), 16);
 
 	nodedb_info.nodes      = hash_new(node_hash, node_key_eq);
 	nodedb_info.nodes_mine = hash_new(node_hash, node_key_eq);
