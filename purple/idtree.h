@@ -9,6 +9,9 @@
  * grows or shrinks.
 */
 
+#if !defined IDTREE_H
+#define	IDTREE_H
+
 typedef struct IdTree	IdTree;
 
 /* Create a new IdTree. The two first arguments control the MemChunk used internally
@@ -57,3 +60,10 @@ extern void	idtree_remove(IdTree *tree, unsigned int id);
  * (or set() with a "new" ID), and decreases by one on remove() with a valid ID.
 */
 extern size_t	idtree_size(const IdTree *tree);
+
+/* Destroy an IdTree, freeing all memory used by it. This invalidates any returned
+ * element pointers an application may have buffered.
+*/
+extern void	idtree_destroy(IdTree *tree);
+
+#endif		/* IDTREE_H */
