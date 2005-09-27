@@ -158,6 +158,25 @@ static int sync_object(NodeObject *n, const NodeObject *target)
 	int	sync = 1;
 	List	*iter, *next;
 
+	/* Synchronize transform. Just basic "current value"-support, for now. */
+	if(memcmp(n->pos, target->pos, sizeof target->pos) != 0)
+	{
+		verse_send_o_transform_pos_real64(target->node.id, 0u, 0u, n->pos, NULL, NULL, NULL, 0.0);
+		sync = 0;
+	}
+	if(memcmp(n->rot, target->rot, sizeof target->rot) != 0)
+	{
+		VNQuat64	rot;
+
+		rot.x = n->rot[0];
+		rot.y = n->rot[1];
+		rot.z = n->rot[2];
+		rot.w = n->rot[3];
+		if(rot.x == 0.0 && rot.y == 0.0 && rot.z == 0.0)	/* Protect against weirdness. */
+			rot.z = 1.0;
+		verse_send_o_transform_rot_real64(target->node.id, 0u, 0u, &rot, NULL, NULL, NULL, 0.0);
+		sync = 0;
+	}
 	/* Synchronize light source information. */
 	if(n->light[0] != target->light[0] || n->light[1] != target->light[1] || n->light[2] != target->light[2])
 	{
@@ -319,21 +338,23 @@ static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 
 static int sync_geometry_bones(const NodeGeometry *n, const NodeGeometry *target)
 {
+#if 0
 	unsigned int	i, sync = 1;
-	NdbGBone	*b;
+	NdbGBone	*b, *tb;
 
 	for(i = 0; (b = dynarr_index(n->bones, i)) != NULL; i++)
 	{
 		if(b->id == (uint16) ~0u)
 			continue;
-		if(nodedb_g_bone_find_equal(target, n, b) == NULL)
+		printf("looking at bone %u\n", b->id);
+		if((tb = nodedb_g_bone_find_equal(target, n, b)) == NULL)
 		{
 			uint16	parent;
 
-/*			printf("bone %u is not in target, we need to create it\n", b->id);*/
+			printf("bone %u is not in target, we need to create it\n", b->id);
 			if(b->pending)
 			{
-/*				printf(" we already have, so just hang on\n");*/
+				printf(" we already have, so just hang on\n");
 				sync = 0;
 				continue;
 			}
@@ -347,7 +368,7 @@ static int sync_geometry_bones(const NodeGeometry *n, const NodeGeometry *target
 				rot.w = b->rot[3];
 				if(b->parent == (uint16) ~0u)
 				{
-/*					printf(" it's a root bone, so just create it\n");*/
+					printf(" it's a root bone, so just create it\n");
 					verse_send_g_bone_create(target->node.id, (uint16) ~0u, b->weight, b->reference, (uint16) ~0u,
 								 b->pos[0], b->pos[1], b->pos[2], b->pos_curve,
 								 &rot, b->rot_curve);
@@ -355,17 +376,19 @@ static int sync_geometry_bones(const NodeGeometry *n, const NodeGeometry *target
 				}
 				else
 				{
-/*					printf(" the parent exists, as %u, creating child then\n", parent);*/
+					printf(" the parent exists, as %u, creating child then\n", parent);
 					verse_send_g_bone_create(target->node.id, (uint16) ~0u, b->weight, b->reference, parent,
 								 b->pos[0], b->pos[1], b->pos[2], b->pos_curve,
 								 &rot, b->rot_curve);
 					b->pending = 1;
 				}
 			}
-/*			else
+			else
 				printf(" the parent %u neither, hoping for it to show up soon ...\n", b->parent);
-*/			sync = 0;
+			sync = 0;
 		}
+		else
+			printf(" already in target at %p, id=%u\n", tb, tb->id);
 	}
 	if(sync == 1)
 	{
@@ -391,6 +414,8 @@ static int sync_geometry_bones(const NodeGeometry *n, const NodeGeometry *target
 		}
 	}
 	return sync;
+#endif
+	return 1;
 }
 
 static int sync_geometry_creases(const NodeGeometry *n, const NodeGeometry *target)
