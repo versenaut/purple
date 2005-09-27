@@ -378,12 +378,55 @@ PURPLEAPI VNTagType p_node_tag_get_type(const PNTag *tag	/** The tag whose type 
 /** \defgroup api_node_object Object Node Functions
  * \ingroup api_node
  * 
- * These are functions that work only on object nodes. Object nodes in Verse can be light sources, and
- * they can link to other nodes. Both of these features are exposed in the API. Other than that, objects
- * do not actually have many features of their own, they rely on the linked-to nodes of other types for
- * most things.
+ * These are functions that work only on object nodes. Object nodes in Verse have a \e transform, meaning
+ * they have a position in 3D space. Also, they can be light sources, and they can link to other nodes.
+ * All of these features are exposed in the API. Other than that, objects do not actually have many features
+ * of their own, they rely on the linked-to nodes of other types for most things.
  * @{
 */
+
+/** \brief Set the position of an object node.
+ * 
+ * This function sets the position of an object node. The position typically controls where in "global"
+ * world-space an object is. The origin of an object is what is being positioned; how this affects any
+ * geometry depends on the geometry.
+*/
+PURPLEAPI void p_node_o_pos_set(PONode *node		/** The object node whose position is to be set. */,
+				const real64 *pos	/** The position, as a vector giving x, y and z coordinates. */)
+{
+	nodedb_o_pos_set((NodeObject *) node, pos);
+}
+
+/** \brief Get the position of an object node.
+ * 
+ * This function retrieves the current position of the given object node and writes it into the provided space.
+*/
+PURPLEAPI void p_node_o_pos_get(PINode *node	/** The object whose position is to be queried. */,
+				real64 *pos	/** A vector of three values that will receive the position data. */)
+{
+	nodedb_o_pos_get((NodeObject *) node, pos);
+}
+
+/** \brief Set the rotation of an object node.
+ * 
+ * This function sets the rotation of an object node. The rotation is represented as a <a href="http://en.wikipedia.org/wiki/Quaternion">quaternion</a>,
+ * and stored as a four-tuple of floating point numbers, in (x,y,z,w) order where w is the real part.
+*/
+PURPLEAPI void p_node_o_rot_set(PONode *node		/** The object whose rotation is to be set. */,
+				const real64 *rot	/** The rotation, as a vector giving x, y, z an w values. */)
+{
+	nodedb_o_rot_set((NodeObject *) node, rot);
+}
+
+/** \brief Get the rotation of an object node.
+ * 
+ * This function retreives the current rotation of an object node, and writes it into the provided space.
+*/
+PURPLEAPI void p_node_o_rot_get(PINode *node	/** The object whose rotation is to be queried. */,
+				real64 *rot	/** A vector of four values that will receive the rotation data. */)
+{
+	nodedb_o_rot_get((NodeObject *) node, rot);
+}
 
 /**
  * \brief Set the light values for an object node.
