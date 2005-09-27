@@ -26,6 +26,10 @@
 
 void nodedb_o_construct(NodeObject *n)
 {
+	n->pos[0] = n->pos[1] = n->pos[2] = 0.0;
+	n->rot[0] = n->rot[1] = n->rot[2] = 0.0;
+	n->rot[2] = 1.0;
+	n->scale[0] = n->scale[1] = n->scale[2] = 1.0;
 	n->light[0] = n->light[1] = n->light[2] = 0.0;
 	n->links	 = NULL;
 	n->links_local   = NULL;
@@ -81,8 +85,10 @@ static void cb_copy_method_group(void *d, const void *s, void *user)
 
 void nodedb_o_copy(NodeObject *n, const NodeObject *src)
 {
-	memcpy(n->xform, src->xform, sizeof *n->xform);
-	memcpy(n->light, src->light, sizeof *n->light);
+	memcpy(n->pos, src->pos, sizeof n->pos);
+	memcpy(n->rot, src->rot, sizeof n->rot);
+	memcpy(n->scale, src->scale, sizeof n->scale);
+	memcpy(n->light, src->light, sizeof n->light);
 
 	n->links = dynarr_new_copy(src->links, NULL, NULL);	/* Link data structure is monolithic. */
 	if(n->links_local)	/* FIXME: Do we need to copy local links? */
@@ -128,6 +134,30 @@ void nodedb_o_destruct(NodeObject *n)
 	}
 	dynarr_destroy(n->method_groups);
 	n->method_groups = NULL;
+}
+
+void nodedb_o_pos_set(NodeObject *n, const real64 *pos)
+{
+	if(n != NULL && pos != NULL)
+		memcpy(n->pos, pos, sizeof n->pos);
+}
+
+void nodedb_o_pos_get(const NodeObject *n, real64 *pos)
+{
+	if(n != NULL && pos != NULL)
+		memcpy(pos, n->pos, sizeof n->pos);
+}
+
+void nodedb_o_rot_set(NodeObject *n, const real64 *rot)
+{
+	if(n != NULL && rot != NULL)
+		memcpy(n->rot, rot, sizeof n->rot);
+}
+
+void nodedb_o_rot_get(const NodeObject *n, real64 *rot)
+{
+	if(n != NULL && rot != NULL)
+		memcpy(rot, n->rot, sizeof n->rot);
 }
 
 void nodedb_o_light_set(NodeObject *n, real64 red, real64 green, real64 blue)
@@ -282,6 +312,34 @@ const NdbOMethod * nodedb_o_method_lookup_id(const NdbOMethodGroup *group, uint8
 
 /* ----------------------------------------------------------------------------------------- */
 
+static void cb_o_transform_rot_real64(void *user, VNodeID node_id, uint32 time_s, uint32 time_f, const VNQuat64 *rot, const VNQuat64 *speed, const VNQuat64 *accelerate, const VNQuat64 *drag_normal, real64 drag)
+{
+	NodeObject	*n;
+
+	if((n = nodedb_lookup_object(node_id)) != NULL && rot != NULL)
+	{
+		real64	r[4];
+
+		r[0] = rot->x;
+		r[1] = rot->y;
+		r[2] = rot->z;
+		r[3] = rot->w;
+		nodedb_o_rot_set(n, r);
+		NOTIFY(n, DATA);
+	}
+}
+
+static void cb_o_transform_pos_real64(void *user, VNodeID node_id, uint32 time_s, uint32 time_f, const real64 *pos, const real64 *speed, const real64 *accelerate, const real64 *drag_normal, real64 drag)
+{
+	NodeObject	*n;
+
+	if((n = nodedb_lookup_object(node_id)) != NULL && pos != NULL)
+	{
+		nodedb_o_pos_set(n, pos);
+		NOTIFY(n, DATA);
+	}
+}
+
 static void cb_o_link_set(void *user, VNodeID node_id, uint16 link_id, VNodeID link, const char *label, uint32 target_id)
 {
 	NodeObject	*n;
@@ -394,6 +452,8 @@ static void cb_o_method_create(void *user, VNodeID node_id, uint16 group_id, uin
 
 void nodedb_o_register_callbacks(void)
 {
+	verse_callback_set(verse_send_o_transform_pos_real64,	cb_o_transform_pos_real64, NULL);
+	verse_callback_set(verse_send_o_transform_rot_real64,	cb_o_transform_rot_real64, NULL);
 	verse_callback_set(verse_send_o_link_set,		cb_o_link_set, NULL);
 	verse_callback_set(verse_send_o_light_set,		cb_o_light_set, NULL);
 	verse_callback_set(verse_send_o_method_group_create,	cb_o_method_group_create, NULL);
