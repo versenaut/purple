@@ -4,7 +4,7 @@
  * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
  * 
  * A data type for handling a list of IDs. These IDs are expected to come from an IdSet,
- * and the intended use is to track dependents of a module. A single ID cannot occur mor
+ * and the intended use is to track dependents of a module. A single ID cannot occur more
  * than once in the list.
  * 
  * NOTE: To come closer to feeling like someone who at least vaguely *remembers* the word
@@ -22,7 +22,7 @@ typedef struct
 	List	*entries;	/* Oh well. */
 } IdList;
 
-/* Iterator data used when iterating. Saves using defining a callback. */
+/* Iterator data used when iterating. Saves user from defining a callback. */
 typedef struct
 {
 	List		*iter;
