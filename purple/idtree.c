@@ -18,13 +18,16 @@
 
 #define	MEMSET_NULL				/* Define this if memset() to 0 makes valid NULL pointers. */
 
-typedef struct
+typedef struct Page	Page;
+
+struct Page
 {
 	unsigned short	lsb;			/* Index of the least significant bit of IDs used to index this page. Constant once the page is created. */
 	unsigned short	size;			/* Number of used slots in this page. */
+	Page		*parent;
 	void		**ptr;
 	/* Array of (1 << IdTree.bits) pointers goes here. */
-} Page;
+};
 
 struct IdTree
 {
@@ -98,6 +101,7 @@ static Page * page_alloc(IdTree *tree, int level)
 	p->lsb  = level * tree->bits;
 /*	printf("page allocated at %p, lsb %u\n", p, p->lsb);*/
 	p->size = 0;
+	p->ptr  = NULL;
 	p->ptr  = (void **) (p + 1);
 #if defined MEMSET_NULL
 	memset(p->ptr, 0, (1u << tree->bits) * sizeof *p->ptr);
@@ -222,12 +226,19 @@ void * idtree_set(IdTree *tree, unsigned int id, const void *el)
 	if(nd > tree->depth)
 	{
 /*		printf("new required depth %u is larger than existing %u -- this means we need a new root\n", nd, tree->depth);*/
+		/* Build missing pages, "backwards", i.e. down to level 0. */
 		for(i = tree->depth, pp = tree->root; i < (int) nd; i++)
 		{
+/*			printf(" building page at level %d\n", i);*/
 			np = page_alloc(tree, i);
+/*			printf("  lsb=%u\n", np->lsb);*/
 			slot = (tree->depth > 0) ? 0 : mask(id, i, tree->bits);
 			if(pp != NULL)
+			{
 				PAGE_SET(np, slot, pp);
+/*				printf("  page with lsb %u linked from slot %x\n", pp->lsb, slot);*/
+				pp->parent = np;
+			}
 			pp = np;
 		}
 		tree->root = pp;
@@ -349,4 +360,114 @@ size_t idtree_size(const IdTree *tree)
 	if(tree == NULL)
 		return 0;
 	return tree->size;
+}
+
+/* Compute ID of first element in tree. */
+unsigned int idtree_foreach_first(const IdTree *tree)
+{
+	unsigned int	i, j, id = 0, ps;
+	const Page	*p;
+
+	if(tree == NULL)
+		return 0;
+	if(tree->size == 0)
+		return 0;
+	ps = 1u << tree->bits;
+	p = tree->root;
+	for(i = 0; i < tree->depth; i++)
+	{
+		for(j = 0; i < ps; j++)
+		{
+			if(p->ptr[j] != NULL)
+			{
+				id |= j << p->lsb;
+				if(p->lsb == 0)
+					return id;
+				p = p->ptr[j];
+				break;
+			}
+		}
+	}
+	return 0;
+}
+
+/* Drawing a simple tree really helps in understanding this routine. It's
+ * basically a rather involved tree traversal. This is where that 'parent'
+ * pointer in Pages start to pay off, in a big way.
+*/
+unsigned int idtree_foreach_next(const IdTree *tree, unsigned int id)
+{
+	int		i;
+	unsigned int	d, j, k, ps, id0 = id;
+	const Page	*p;
+
+	if(tree == NULL)
+		return id;
+	if(id >= tree->next_id)
+		return id;
+
+	ps = 1u << tree->bits;				/* Buffer the page size; really handy. */
+	d = (msb(id) + tree->bits - 1) / tree->bits;	/* Compute depth required by id. */
+	if(d > tree->depth)
+		return id;
+	/* Drill down to the expected page. This should be reasonably quick. */
+	for(i = tree->depth - 1, p = tree->root; i > 0; i--)
+	{
+		if(p == NULL)
+			return id;
+		p = p->ptr[mask(id, i, tree->bits)];
+	}
+	/* Look for element in same page as previous. */
+	for(j = (id & (ps - 1)) + 1; j < ps; j++)
+	{
+		if(p->ptr[j] != NULL)
+			return (id & ~(ps - 1)) | j;	/* Assemble the resulting ID. */
+	}
+	/* If there was no hit there, we need to traverse up to a parent page, then
+	 * down again as soon as we can. This is ... slightly less expensive than a
+	 * brand new car.
+	*/
+	do
+	{
+		p = p->parent;			/* Take the step up to a parent page. */
+		if(p == NULL)
+			break;
+		id += 1u << p->lsb;		/* Increase in the required bit. */
+		id &= ~((1 << p->lsb) - 1);	/* Mask away lowest bits, they're old. */
+		for(j = ((id >> p->lsb) & (ps - 1)) + 1; j < ps; j++)
+		{
+			if(p->ptr[j] != NULL)
+			{
+				/* Found inner page with non-NULL slot, drill down again to first leaf. */
+				for(id = j << p->lsb, p = p->ptr[j]; p != NULL;)
+				{
+					for(k = 0; k < ps; k++)
+					{
+						if(p->ptr[k] != NULL)
+						{
+							id |= k << p->lsb;	/* Add bits to the ID. */
+							if(p->lsb == 0)
+								return id;
+							p = p->ptr[k];		/* Keep walking if not leaf. */
+						}
+					}
+				}
+				/* This can't happen. If an inner page has non-
+				 * NULL slot, there MUST be a leaf page there.
+				 */
+				return id0 + 1;
+			}
+		}
+	} while(p != NULL);
+	return id0 + 1;	/* This is a failing ID. */
+}
+
+void idtree_destroy(IdTree *tree)
+{
+	if(tree == NULL)
+		return;
+	/* No need here to traverse, just free the MemChunks and the tree itself, and that's that. */
+	memchunk_destroy(tree->chunk_element);
+	memchunk_destroy(tree->chunk_page);
+	mem_free(tree);
 }

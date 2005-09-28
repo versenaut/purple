@@ -61,6 +61,9 @@ extern void	idtree_remove(IdTree *tree, unsigned int id);
 */
 extern size_t	idtree_size(const IdTree *tree);
 
+extern unsigned int	idtree_foreach_first(const IdTree *tree);
+extern unsigned int	idtree_foreach_next(const IdTree *tree, unsigned int id);
+
 /* Destroy an IdTree, freeing all memory used by it. This invalidates any returned
  * element pointers an application may have buffered.
 */
