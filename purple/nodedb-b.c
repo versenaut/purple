@@ -37,6 +37,8 @@
 
 #define	MIN(a,b)	(((a) < (b)) ? (a) : (b))	/* Handy in tile width computations. */
 
+static real64	layer_get_pixel(const NodeBitmap *node, const NdbBLayer *layer, const unsigned char *framebuffer, int x, int y, int z);
+
 /* ----------------------------------------------------------------------------------------- */
 
 /* Return size in *bits* for a pixel in a given layer type. */
@@ -294,6 +296,14 @@ NdbBLayer * nodedb_b_layer_create(NodeBitmap *node, VLayerID layer_id, const cha
 	return layer;
 }
 
+real64 nodedb_b_layer_pixel_read(const NodeBitmap *node, const NdbBLayer *layer, real64 x, real64 y, real64 z)
+{
+	uint32	ix = x, iy = y, iz = z;
+	if(node == NULL || layer == NULL || layer->framebuffer == NULL || ix >= node->width || iy >= node->height || z >= node->depth)
+		return 0.0;
+	return layer_get_pixel(node, layer, layer->framebuffer, ix, iy, iz);
+}
+
 void * nodedb_b_layer_access_begin(NodeBitmap *node, NdbBLayer *layer)
 {
 	if(node == NULL || layer == NULL)
@@ -343,7 +353,7 @@ static void multi_scanline_init(struct multi_info *mi, int y, int z)
 }
 
 /* This slows things down, but hey. */
-static real64 layer_get_pixel(const NodeBitmap *node, NdbBLayer *layer, const unsigned char *framebuffer, int x, int y, int z)
+static real64 layer_get_pixel(const NodeBitmap *node, const NdbBLayer *layer, const unsigned char *framebuffer, int x, int y, int z)
 {
 	if(layer->type == VN_B_LAYER_UINT1)
 	{
