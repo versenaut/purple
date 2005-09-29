@@ -20,21 +20,31 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	xyz = p_input_real64_vec3(input[1]);
 	for(i = 0; i < 3; i++)
 	{
-		const PNBLayer	*l = p_node_b_layer_find(bitmap, ln[i]);
+		const PNBLayer	*lay;
 
-		if(l != NULL)
-			out[i] = p_node_b_layer_pixel_read(bitmap, l, xyz[0], xyz[1], xyz[2]);
+		if(p_input_boolean(input[2 + i]))	/* Skip disabled layers. */
+		{
+			lay = p_node_b_layer_find(bitmap, ln[i]);
+			if(lay != NULL)
+				out[i] = p_node_b_layer_pixel_read(bitmap, lay, xyz[0], xyz[1], xyz[2]);
+		}
 		else
 			out[i] = 0.0;
 	}
 	p_output_real64_vec3(output, out);
+	printf("getpixel returning (%g,%g,%g)\n", out[0], out[1], out[2]);
 	return P_COMPUTE_DONE;
 }
 
 PURPLE_PLUGIN void init(void)
 {
 	p_init_create("getpixel");
-	p_init_input(0, P_VALUE_MODULE, "bitmap", "The first bitmap found in the input set of nodes will be accessed.", P_INPUT_DONE);
-	p_init_input(1, P_VALUE_REAL32_VEC3, "position", "The (x,y,z) position in the bitmap to access. Coordinates are rounded to integer before the access.", P_INPUT_DONE);
+	p_init_input(0, P_VALUE_MODULE,      "bitmap", P_INPUT_DESC("The first bitmap found in the "
+								    "input set of nodes will be accessed."), P_INPUT_DONE);
+	p_init_input(1, P_VALUE_REAL64_VEC3, "position", P_INPUT_DESC("The (x,y,z) position in the bitmap to access. "
+								      "Coordinates are rounded to integer before the access."), P_INPUT_DONE);
+	p_init_input(2, P_VALUE_BOOLEAN,     "red",   P_INPUT_DESC("Include red color component in the result?"),   P_INPUT_DEFAULT(1), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(3, P_VALUE_BOOLEAN,     "green", P_INPUT_DESC("Include green color component in the result?"), P_INPUT_DEFAULT(1), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(4, P_VALUE_BOOLEAN,     "blue",  P_INPUT_DESC("Include blue color component in the result?"),  P_INPUT_DEFAULT(1), P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_compute(compute);
 }
