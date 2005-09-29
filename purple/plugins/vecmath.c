@@ -1,5 +1,5 @@
 /*
- * 
+ * Basic vector maths.
 */
 
 #include "purple.h"
@@ -111,6 +111,34 @@ static PComputeStatus compute_vec_length(PPInput *input, PPOutput output, void *
 	return P_COMPUTE_DONE;
 }
 
+static PComputeStatus compute_vec_swizzle(PPInput *input, PPOutput output, void *state)
+{
+	const real64	*vec;
+	const char	*pattern;
+
+	if((vec = p_input_real64_vec4(input[0])) != NULL)
+	{
+		if((pattern = p_input_string(input[1])) != NULL)
+		{
+			real64	out[4] = { 0.0, 0.0, 0.0, 0.0 };
+			int	i, p;
+
+			for(i = p = 0; pattern[i] != '\0' && p < 4; i++)
+			{
+				if(pattern[i] == 'x')
+					out[p++] = vec[0];
+				else if(pattern[i] == 'y')
+					out[p++] = vec[1];
+				else if(pattern[i] == 'z')
+					out[p++] = vec[2];
+				else if(pattern[i] == 'w')
+					out[p++] = vec[3];
+			}
+		}
+	}
+	return P_COMPUTE_DONE;
+}
+
 PURPLE_PLUGIN void init(void)
 {
 	p_init_create("vec-add");
@@ -141,4 +169,10 @@ PURPLE_PLUGIN void init(void)
 	p_init_create("vec-length");
 	p_init_input(0, P_VALUE_REAL64_VEC4, "x", P_INPUT_DESC("A vector will be parsed from this input, and the length will be computed and output."), P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_compute(compute_vec_length);
+
+	p_init_create("vec-swizzle");
+	p_init_input(0, P_VALUE_REAL64_VEC4, "x", P_INPUT_DESC("A vector to swizzle."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(1, P_VALUE_STRING, "pattern", P_INPUT_DESC("Pattern to control swizzling. Use 'x', 'y', 'z' and 'w' to refer to the input vector's "
+								"components. E.g. \"xyzw\" is the identity transform."), P_INPUT_REQUIRED);
+	p_init_compute(compute_vec_swizzle);
 }
