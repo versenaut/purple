@@ -134,6 +134,7 @@ static PComputeStatus compute_vec_swizzle(PPInput *input, PPOutput output, void 
 				else if(pattern[i] == 'w')
 					out[p++] = vec[3];
 			}
+			p_output_real64_vec4(output, out);
 		}
 	}
 	return P_COMPUTE_DONE;
