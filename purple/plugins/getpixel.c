@@ -32,7 +32,6 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 			out[i] = 0.0;
 	}
 	p_output_real64_vec3(output, out);
-	printf("getpixel returning (%g,%g,%g)\n", out[0], out[1], out[2]);
 	return P_COMPUTE_DONE;
 }
 
