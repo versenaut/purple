@@ -460,7 +460,8 @@ PURPLEAPI void p_node_o_light_get(PINode *node	/** The object node whose light v
  * \brief Set a link from an object node to another node.
  *
  * This function adds a link from an object node to some other node. The type of the destination node need not be
- * an object and in many cases isn't.
+ * an object and in many cases isn't. In the most common case, it's a geometry node, used to define what an object
+ * looks like.
  * 
  * The logical identification of a link is in two parts: one is the \a label, which is a human-readable string
  * like "geometry" or "material", and the other is a 32-bit unsigned integer that can be used to refer to a
@@ -481,7 +482,7 @@ PURPLEAPI void p_node_o_link_set(PONode *node		/** The object node in which to s
 */
 PURPLEAPI PINode * p_node_o_link_get(const PONode *node	/** The object node whose link is to be retrieved. */,
 				     const char *label	/** The label of the link to return. */,
-				     uint32 target_id	/** The numerical identifier of the link to return. */)
+				     uint32 *target_id	/** Pointer to a variable that will be filled in with the link's target_id value. */)
 {
 	if(node != NULL && label != NULL)
 	{
@@ -1426,6 +1427,24 @@ PURPLEAPI PNBLayer * p_node_b_layer_create(PONode *node		/** The node in which a
 	if((l = nodedb_b_layer_find((NodeBitmap *) node, name)) != NULL)
 		return l;
 	return nodedb_b_layer_create((NodeBitmap *) node, ~0, name, type);
+}
+
+/** \brief Read out value of a bitap layer's pixel.
+ * 
+ * This function return the value of the indicated pixel in the given layer. Note that currently, the coordinates
+ * will be rounded to integer before the read happens; no filtering is done. Also note that for ordinary flat
+ * bitmaps, the \e z coordinate must typically be set to 0.0. If a point outside the layer is specified, zero is
+ * returned.
+ * 
+ * This function converts all pixel data to \c real64 values, representing integer types with values in the
+ * range [0,1].
+*/
+PURPLEAPI real64 p_node_b_layer_pixel_read(PINode *node, const PNBLayer *layer,
+					   real64 x,
+					   real64 y,
+					   real64 z)
+{
+	return nodedb_b_layer_pixel_read((NodeBitmap *) node, layer, x, y, z);
 }
 
 /** \brief Gain access to layer pixels.
