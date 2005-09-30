@@ -21,8 +21,9 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
 	real32		r1 = p_input_real32(input[0]), r2 = p_input_real32(input[1]), r;
 	uint32		s1 = p_input_uint32(input[2]), s2 = p_input_uint32(input[3]);
+	boolean		uv_map = p_input_boolean(input[4]);
 	PONode		*obj, *geo;
-	PNGLayer	*lay;
+	PNGLayer	*lay, *ulay, *vlay;
 	uint32		i, j, next;
 
 	if(r2 < r1)
@@ -35,6 +36,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	p_node_set_name(geo, "torus-geo");
 	p_node_o_link_set(obj, geo, "geometry", 0u);
 
+	/* First, generate the vertices. */
 	lay = p_node_g_layer_find(geo, "vertex");
 	for(i = 0; i < s1; i++)
 	{
@@ -43,7 +45,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		{
 			real64	ia = j * (2 * M_PI) / s2, vtx[3];
 
-			vtx[0] = r2 + r * cos(ia);
+			vtx[0] = (r2 - r) + r * cos(ia);
 			vtx[1] = r * sin(ia);
 			vtx[2] = 0.0;
 			rotate_around_y(vtx, oa);
@@ -51,6 +53,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		}
 	}
 
+	/* Then the polygons. This is pretty simple! */
 	lay = p_node_g_layer_find(geo, "polygon");
 	for(i = 0; i < s1; i++)
 	{
@@ -69,6 +72,32 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 						   next * s2 + s2 - 1,
 						   i * s2 + s2 - 1);
 	}
+
+	/* Generate texture-mapping coordinates, if requested. */
+	if(uv_map)
+	{
+		ulay = p_node_g_layer_create(geo, "map_u", VN_G_LAYER_POLYGON_CORNER_REAL, 0, 0.0f);
+		vlay = p_node_g_layer_create(geo, "map_v", VN_G_LAYER_POLYGON_CORNER_REAL, 0, 0.0f);
+		for(i = 0; i < s1; i++)
+		{
+			for(j = 0; j < s2; j++)
+			{
+				p_node_g_polygon_set_corner_real64(ulay, i * s2 + j,
+								   i / (real64) (s1 + 1),
+								   i / (real64) (s1 + 1),
+								   (i + 1) / (real64) (s1 + 1),
+								   (i + 1) / (real64) (s1 + 1));
+				p_node_g_polygon_set_corner_real64(vlay, i * s2 + j,
+								   j / (real64) (s2 + 1),
+								   ((j + 1) % s2) / (real64) (s2 + 1),
+								   ((j + 1) % s2) / (real64) (s2 + 1),
+								   j / (real64) (s2 + 1));
+			}
+		}
+	}
+	else
+		ulay = vlay = NULL;
+
 	return P_COMPUTE_DONE;
 }
 
@@ -79,5 +108,8 @@ PURPLE_PLUGIN void init(void)
 	p_init_input(1, P_VALUE_REAL32, "radius, outer", P_INPUT_REQUIRED, P_INPUT_MIN(0.2), P_INPUT_DEFAULT(1.0), P_INPUT_DONE);
 	p_init_input(2, P_VALUE_UINT32, "tube splits",   P_INPUT_REQUIRED, P_INPUT_MIN(3), P_INPUT_MAX(128), P_INPUT_DEFAULT(8), P_INPUT_DONE);
 	p_init_input(3, P_VALUE_UINT32, "ring splits",   P_INPUT_REQUIRED, P_INPUT_MIN(3), P_INPUT_MAX(128), P_INPUT_DEFAULT(5), P_INPUT_DONE);
+	p_init_input(4, P_VALUE_BOOLEAN, "uv map",       P_INPUT_REQUIRED, P_INPUT_DEFAULT(0), P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("desc/purpose", "This plug-in generates a torus shape with the given parameters.");
 	p_init_compute(compute);
 }
