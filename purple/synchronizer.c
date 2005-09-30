@@ -204,7 +204,10 @@ static int sync_object(NodeObject *n, const NodeObject *target)
 		else
 		{
 			if(!object_link_exists(target, link->link->id, link->label, link->target_id))	/* Only set if no equivalent link exists. */
+			{
 				verse_send_o_link_set(target->node.id, ~0, link->link->id, link->label, link->target_id);
+				sync = 0;
+			}
 			n->links_local = list_unlink(n->links_local, iter);
 			mem_free(link);
 			list_destroy(iter);
