@@ -64,9 +64,9 @@ extern void		nodedb_o_light_set(NodeObject *n, real64 red, real64 green, real64 
 extern void		nodedb_o_light_get(const NodeObject *n, real64 *red, real64 *green, real64 *blue);
 
 extern void		nodedb_o_link_set(NodeObject *n, uint16 link_id, VNodeID link, const char *label, uint32 target_id);
-extern void		nodedb_o_link_set_local(NodeObject *n, const PONode *link, const char *label, uint32 target_id);
-extern PONode *		nodedb_o_link_get_local(const NodeObject *n, const char *label, uint32 target_id);
-extern PINode *		nodedb_o_link_get(const NodeObject *n, const char *label, uint32 target_id);
+extern void		nodedb_o_link_set_local(NodeObject *n, PINode *link, const char *label, uint32 target_id);
+extern PONode *		nodedb_o_link_get_local(const NodeObject *n, const char *label, uint32 *target_id);
+extern PINode *		nodedb_o_link_get(const NodeObject *n, const char *label, uint32 *target_id);
 
 extern NdbOMethodGroup*	nodedb_o_method_group_lookup(NodeObject *n, const char *name);
 extern const NdbOMethod*nodedb_o_method_lookup(const NdbOMethodGroup *group, const char *name);

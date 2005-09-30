@@ -28,7 +28,7 @@ void nodedb_o_construct(NodeObject *n)
 {
 	n->pos[0] = n->pos[1] = n->pos[2] = 0.0;
 	n->rot[0] = n->rot[1] = n->rot[2] = 0.0;
-	n->rot[2] = 1.0;
+	n->rot[3] = 1.0;
 	n->scale[0] = n->scale[1] = n->scale[2] = 1.0;
 	n->light[0] = n->light[1] = n->light[2] = 0.0;
 	n->links	 = NULL;
@@ -198,30 +198,30 @@ void nodedb_o_link_set(NodeObject *n, uint16 link_id, VNodeID link, const char *
 	printf("link set %u->%u, ID %u, label '%s' target %u\n", n->node.id, link, link_id, label, target_id);
 }
 
-void nodedb_o_link_set_local(NodeObject *n, const PONode *link, const char *label, uint32 target_id)
+void nodedb_o_link_set_local(NodeObject *n, PINode *link, const char *label, uint32 target_id)
 {
 	NdbOLinkLocal	*l;
 
 	if(n == NULL || n->node.type != V_NT_OBJECT)
 		return;
 	/* Check if equivalent link already exists, and if so don't add it. Saves synchronizer some work. */
-/*	if(link->id != ~0)
+	if(link->id != ~0u)
 	{
 		unsigned int	i;
 		const NdbOLink	*l;
 
 		for(i = 0; (l = dynarr_index(n->links, i)) != NULL; i++)
 		{
-			printf(" checking, is %u == %u?\n", l->link, link->id);
+/*			printf(" checking, is %u == %u?\n", l->link, link->id);*/
 			if(l->link == link->id && l->target_id == target_id && strcmp(l->label, label) == 0)
 			{
-				printf("link is known on host side, ignoring\n");
+				printf("link from %u to %u is known on host side, ignoring\n", n->node.id, link->id);
 				return;
 			}
 		}
 	}
 	else
-*/	if(link->id == (VNodeID) ~0)	/* Don't duplicate local links. */
+	if(link->id == (VNodeID) ~0)	/* Don't duplicate local links. */
 	{
 		const List	*iter;
 
@@ -230,7 +230,10 @@ void nodedb_o_link_set_local(NodeObject *n, const PONode *link, const char *labe
 			const NdbOLinkLocal	*l = list_data(iter);
 
 			if(l->link == link && l->target_id == target_id && strcmp(l->label, label) == 0)
+			{
+				printf("local link to node %u already exists\n", link->id);
 				return;
+			}
 		}
 	}
 	l = mem_alloc(sizeof *l);
@@ -238,9 +241,10 @@ void nodedb_o_link_set_local(NodeObject *n, const PONode *link, const char *labe
 	stu_strncpy(l->label, sizeof l->label, label);
 	l->target_id = target_id;
 	n->links_local = list_prepend(n->links_local, l);
+	printf("'local' link set to node %u\n", link->id);
 }
 
-PONode * nodedb_o_link_get_local(const NodeObject *n, const char *label, uint32 target_id)
+PONode * nodedb_o_link_get_local(const NodeObject *n, const char *label, uint32 *target_id)
 {
 	const List	*iter;
 
@@ -250,21 +254,30 @@ PONode * nodedb_o_link_get_local(const NodeObject *n, const char *label, uint32 
 	{
 		NdbOLinkLocal	*l = list_data(iter);
 
-		if(l->target_id == target_id && strcmp(l->label, label) == 0)
+		if(strcmp(l->label, label) == 0)
+		{
+			if(target_id != NULL)
+				*target_id = l->target_id;
 			return l->link;
+		}
 	}
 	return NULL;
 }
 
-PINode * nodedb_o_link_get(const NodeObject *n, const char *label, uint32 target_id)
+PINode * nodedb_o_link_get(const NodeObject *n, const char *label, uint32 *target_id)
 {
 	const NdbOLink	*link;
 	unsigned int	i;
 
+	printf("looking up link \"%s\"\n", label);
 	for(i = 0; (link = dynarr_index(n->links, i)) != NULL; i++)
 	{
-		if(link->target_id == target_id && link->label != NULL && strcmp(link->label, label) == 0)
+		if(link->label != NULL && strcmp(link->label, label) == 0)
+		{
+			if(target_id != NULL)
+				*target_id = link->target_id;
 			return nodedb_lookup(link->link);
+		}
 	}
 	return NULL;
 }
