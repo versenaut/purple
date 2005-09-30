@@ -155,8 +155,9 @@ static int object_link_exists(const NodeObject *n, VNodeID link, const char *lab
 
 static int sync_object(NodeObject *n, const NodeObject *target)
 {
-	int	sync = 1;
+	int	sync = 1, i;
 	List	*iter, *next;
+	NdbOLink	*link;
 
 	/* Synchronize transform. Just basic "current value"-support, for now. */
 	if(memcmp(n->pos, target->pos, sizeof target->pos) != 0)
@@ -172,8 +173,6 @@ static int sync_object(NodeObject *n, const NodeObject *target)
 		rot.y = n->rot[1];
 		rot.z = n->rot[2];
 		rot.w = n->rot[3];
-		if(rot.x == 0.0 && rot.y == 0.0 && rot.z == 0.0)	/* Protect against weirdness. */
-			rot.z = 1.0;
 		verse_send_o_transform_rot_real64(target->node.id, 0u, 0u, &rot, NULL, NULL, NULL, 0.0);
 		sync = 0;
 	}
@@ -183,30 +182,35 @@ static int sync_object(NodeObject *n, const NodeObject *target)
 		verse_send_o_light_set(target->node.id, n->light[0], n->light[1], n->light[2]);
 		sync = 0;
 	}
+	/* Synchronize true links. */
+	for(i = 0; (link = dynarr_index(n->links, i)) != NULL; i++)
+	{
+		if(link->id == (uint16) ~0u)
+			continue;
+		if(!object_link_exists(target, link->link, link->label, link->target_id))
+		{
+			verse_send_o_link_set(target->node.id, ~0u, link->link, link->label, link->target_id);
+			sync = 0;
+		}
+	}
 	/* Look through local (non-synced) links. */
-/*	printf("syncing %u links in object %u\n", list_length(n->links_local), n->node.id);*/
 	for(iter = n->links_local; iter != NULL; iter = next)
 	{
 		NdbOLinkLocal	*link = list_data(iter);
 
 		next = list_next(iter);
-		if(link->link->id == (uint16) ~0)
-		{
-/*			printf("can't sync link '%s', target not known yet\n", link->label);*/
+		if(link->link->id == (uint16) ~0)	/* Can't sync until link target gets server-side ID. */
 			sync = 0;
-		}
 		else
 		{
-/*			printf("can sync link '%s', target is %u\n", link->label, link->link->id);*/
-			if(!object_link_exists(target, link->link->id, link->label, link->target_id))
+			if(!object_link_exists(target, link->link->id, link->label, link->target_id))	/* Only set if no equivalent link exists. */
 				verse_send_o_link_set(target->node.id, ~0, link->link->id, link->label, link->target_id);
-/*			else
-				printf("link exists, doing nothing\n");
-*/			n->links_local = list_unlink(n->links_local, iter);
+			n->links_local = list_unlink(n->links_local, iter);
 			mem_free(link);
 			list_destroy(iter);
 		}
 	}
+	/* FIXME: We should probably clean out any redundant (non-existant in local data) links, here. */
 	return sync;
 }
 
