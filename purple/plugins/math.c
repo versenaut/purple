@@ -169,10 +169,7 @@ static PComputeStatus compute_sub(PPInput *input, PPOutput output, void *state)
 	if(collect_inputs(input, &a, &b, &c, &d, V_NT_BITMAP))
 		return bitmap_sub(a, b, c, d, output);
 	else
-	{
-		printf("sub emitting %g - %g = %g\n", c, d, c - d);
 		p_output_real64(output, c - d);
-	}
 	return P_COMPUTE_DONE;
 }
 
