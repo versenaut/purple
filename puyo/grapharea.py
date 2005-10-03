@@ -215,6 +215,8 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 		self.graph = None
 		self.graphExtra = {}		# ((x,y), (w,h)) tuples keyed on module ID.
 
+		self.actiongroup = None
+
 		self.home = (0, 0)
 		self.homeActual = (0, 0)	# The one used in display (interpolated).
 		self.zoom = 1.0
@@ -225,6 +227,7 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 		self.drag_last   = None
 		self.drag_output = -1
 		self.drag_input  = (-1, -1)	# Module and input IDs of hovered-over input.
+		self.gesture_align = -1
 		self.selection   = []
 		self.sel_input   = (-1, -1)	# Module and input IDs of selected input.
 		self.purple = None
@@ -240,6 +243,9 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 
 	def set_purple(self, purple):
 		self.purple = purple
+
+	def set_action_group(self, ag):
+		self.action_group = ag
 
 	def refresh(self):
 		"Dead stupid refresh method, that simply queues a redraw. Handy when graph changes."
@@ -442,6 +448,11 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 		if evt.state & gtk.gdk.CONTROL_MASK:
 			if evt.button == 1:
 				self.drag = 1
+		elif evt.state & gtk.gdk.MOD1_MASK:
+			if evt.button == 1:
+				self.drag = 4
+				here.rx -= self.home[0]
+				here.ry -= self.home[1]
 		else:
 			m = int(self._module_hit(here.rx - self.home[0], here.ry - self.home[1]))
 			if m >= 0:
@@ -474,6 +485,11 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 		if self.drag == 3:	# Connect output-mode?
 			if self.drag_input[1] >= 0 and self.purple != None:
 				self.purple.mod_input_set_module(self.graph_id, self.drag_input[0], self.drag_input[1], self.drag_output)
+		elif self.drag == 4:	# Gesture align?
+			a = self.action_group.get_action("ModuleAlign" + [ "Left", "Right", "Top", "Bottom" ][self.gesture_align])
+			if a != None:
+				a.activate()
+			self.gesture_align = -1
 		self.drag = 0
 		self.drag_input = (-1, -1)
 		self.refresh()
@@ -503,6 +519,10 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 			if over >= 0:
 				indx = self._module_input_hit(self.drag_now.rx - self.home[0], self.drag_now.ry - self.home[1], over)
 			self.drag_input = (over, indx)
+		elif self.drag == 4:	# Alt-click:ed align gesture?
+			self.drag_now.rx -= self.home[0]
+			self.drag_now.ry -= self.home[1]
+			
 		self.refresh()
 		self.drag_last = self.drag_now.copy()
 
@@ -562,6 +582,21 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 			self._graph_paint()
 			if self.drag == 3:
 				self._output_connect_paint()
+			elif self.drag == 4:
+				dx = self.drag_anchor.rx - self.drag_now.rx
+				dy = self.drag_anchor.ry - self.drag_now.ry
+				if abs(dx) > abs(dy):
+					if dx < 0:	d = 1
+					else:		d = 0
+				else:
+					if dy < 0:	d = 2
+					else:		d = 3
+				self.gesture_align = d
+				glLineWidth(2.0)
+				glBegin(GL_LINES)
+				glVertex2d(self.drag_anchor.rx, self.drag_anchor.ry)
+				glVertex2d(self.drag_now.rx,    self.drag_now.ry)
+				glEnd()
 
 		if gldrawable.is_double_buffered():
 			gldrawable.swap_buffers()

@@ -331,6 +331,7 @@ class Puyo:
 		dlg.add_button(gtk.STOCK_CANCEL, 0)
 		dlg.set_default_response(1)
 		dlg.show_all()
+		entry.grab_focus()
 		r = dlg.run()
 		if r == 1:
 			ret = entry.get_text()
@@ -416,7 +417,7 @@ class Puyo:
 		return buffer
 
 	def evt_action_graph_create(self, action, user):
-		buf = self.pick_buffer(True)
+		buf = self.pick_buffer(True, help="Pick a text node and a buffer in\nwhich to create a new graph:")
 		if buf != None:
 			group, m = the_db.purple.get_graph_method("create")
 			if m != None:
@@ -649,8 +650,10 @@ class Puyo:
 
 		self.inputs = InputArea(the_purpleinfo)
 		self.area = GraphArea(glconfig, self.inputs, the_purpleinfo)
+		self.area.set_action_group(ag)
 
 		hbox.pack_start(self.area)
+		self.inputs.append_page(gtk.HScale(), gtk.Label("Page"))
 		hbox.pack_start(self.inputs, 0, 0, 0)
 		vbox.pack_start(hbox)
 		self.window.add(vbox)
