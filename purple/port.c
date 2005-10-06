@@ -35,6 +35,11 @@ boolean port_is_unset(const PPort *port)
 	return port->value.set == 0;
 }
 
+PValueType port_get_type(const PPort *port)
+{
+	return value_type(&port->value);
+}
+
 const char * port_get_type_name(const PPort *port)
 {
 	return value_type_name(&port->value);

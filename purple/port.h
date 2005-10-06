@@ -18,6 +18,7 @@ extern void		port_clear(PPort *port);
 
 extern boolean		port_is_unset(const PPort *port);
 extern boolean		port_peek_module(const PPort *port, uint32 *module_id);
+extern PValueType	port_get_type(const PPort *port);
 extern const char *	port_get_type_name(const PPort *port);
 
 extern void		port_append_value(const PPort *port, DynStr *d);
