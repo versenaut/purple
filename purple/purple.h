@@ -182,6 +182,9 @@ PURPLEAPI const real64 *	p_input_real64_mat16(PPInput input);
 PURPLEAPI const char *		p_input_string(PPInput input);
 PURPLEAPI PINode *		p_input_node(PPInput input);			/* Inputs the "first" node, somehow. */
 PURPLEAPI PINode *		p_input_node_nth(PPInput input, int index);	/* Input n:th node, or NULL. */
+PURPLEAPI PINode *		p_input_node_first_type(PPInput input, VNodeType type);
+
+PURPLEAPI PValueType		p_input_get_type(PPInput input);
 
 /* Node manipulation functions. Getters work on both input and output
  * nodes, setting requires output.
@@ -225,8 +228,8 @@ PURPLEAPI void			p_node_o_rot_get(PINode *node, real64 *rot);
 PURPLEAPI void			p_node_o_light_set(PONode *node, real64 red, real64 green, real64 blue);
 PURPLEAPI void			p_node_o_light_get(PINode *node, real64 *red, real64 *green, real64 *blue);
 
-PURPLEAPI void			p_node_o_link_set(PONode *node, const PONode *link, const char *label, uint32 target_id);
-PURPLEAPI PINode *		p_node_o_link_get(const PONode *node, const char *label, uint32 target_id);
+PURPLEAPI void			p_node_o_link_set(PONode *node, PINode *link, const char *label, uint32 target_id);
+PURPLEAPI PINode *		p_node_o_link_get(const PONode *node, const char *label, uint32 *target_id);
 
 /** An opaque data type that represents a geometry layer. Use API functions to manipulate. */
 typedef void	PNGLayer;
@@ -316,6 +319,8 @@ PURPLEAPI PNMFragment *		p_node_m_fragment_create_output(PONode *node, const cha
 /* Bitmap-node manipulation functions. */
 typedef void	PNBLayer;
 
+typedef enum { P_B_FILTER_NEAREST = 0 } PNBFilterMode;
+
 PURPLEAPI void			p_node_b_set_dimensions(PONode *node, uint16 width, uint16 height, uint16 depth);
 PURPLEAPI void			p_node_b_get_dimensions(PINode *node, uint16 *width, uint16 *height, uint16 *depth);
 PURPLEAPI unsigned int		p_node_b_layer_num(PINode *node);
@@ -325,6 +330,9 @@ PURPLEAPI const char *		p_node_b_layer_get_name(const PNBLayer *layer);
 PURPLEAPI VNBLayerType		p_node_b_layer_get_type(const PNBLayer *layer);
 
 PURPLEAPI PNBLayer *		p_node_b_layer_create(PONode *node, const char *name, VNBLayerType type);
+PURPLEAPI real64		p_node_b_layer_pixel_read(PINode *node, const PNBLayer *layer, real64 x, real64 y, real64 z);
+PURPLEAPI real64		p_node_b_layer_pixel_read_filtered(PINode *node, const PNBLayer *layer, PNBFilterMode mode, real64 x, real64 y, real64 z);
+PURPLEAPI void			p_node_b_layer_pixel_write(PONode *node, PNBLayer *layer, uint16 x, uint16 y, uint16 z, real64 pixel);
 PURPLEAPI void *		p_node_b_layer_access_begin(PONode *node, PNBLayer *layer);
 PURPLEAPI void			p_node_b_layer_access_end(PONode *node, PNBLayer *layer, void *framebuffer);
 PURPLEAPI const void *		p_node_b_layer_read_multi_begin(PINode *node, VNBLayerType format, ... /* Layer names ending with NULL. */);
