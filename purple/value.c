@@ -407,7 +407,6 @@ int value_set_from_default(PValue *v, const PValue *def)
 {
 	PValueType	t;
 
-	printf("now in value_set_from_default()\n");
 	if(v == NULL || def == NULL)
 		return 0;
 	if((t = value_type(def)) == P_VALUE_NONE)	/* Can't set if default is multi-valued. Real ones won't ever be. */
@@ -426,7 +425,6 @@ int value_set_from_default(PValue *v, const PValue *def)
 		char	buf[128];
 
 		value_as_string(v, buf, sizeof buf, NULL);
-		printf("set default, type %d, to '%s'\n", t, buf);
 	}
 	return 1;
 }
@@ -622,12 +620,111 @@ static boolean get_as_real64_vec2(const PValue *in, real64 out[])
 
 static boolean get_as_real64_vec3(const PValue *in, real64 out[])
 {
-	return FALSE;
+	if(in == NULL || out == NULL)
+		return FALSE;
+	if(in->set == 0)
+		return FALSE;
+	else IF_SET(in, REAL64_VEC4)
+	{
+		out[0] = in->v.vreal64_vec4[0];
+		out[1] = in->v.vreal64_vec4[1];
+		out[2] = in->v.vreal64_vec4[2];
+	}
+	else IF_SET(in, REAL64_VEC3)
+	{
+		out[0] = in->v.vreal64_vec3[0];
+		out[1] = in->v.vreal64_vec3[1];
+		out[2] = in->v.vreal64_vec3[2];
+		out[3] = 0.0;
+	}
+	else IF_SET(in, REAL64_VEC2)
+	{
+		out[0] = in->v.vreal64_vec2[0];
+		out[1] = in->v.vreal64_vec2[1];
+		out[2] = 0.0;
+	}
+	else IF_SET(in, REAL32_VEC4)
+	{
+		out[0] = in->v.vreal32_vec4[0];
+		out[1] = in->v.vreal32_vec4[1];
+		out[2] = in->v.vreal32_vec4[2];
+	}
+	else IF_SET(in, REAL32_VEC3)
+	{
+		out[0] = in->v.vreal32_vec3[0];
+		out[1] = in->v.vreal32_vec3[1];
+		out[2] = in->v.vreal32_vec3[2];
+	}
+	else IF_SET(in, REAL32_VEC2)
+	{
+		out[0] = in->v.vreal32_vec2[0];
+		out[1] = in->v.vreal32_vec2[1];
+		out[2] = 0.0;
+	}
+	else IF_SET(in, REAL64)
+		out[0] = out[1] = out[2] = in->v.vreal64;
+	else IF_SET(in, REAL32)
+		out[0] = out[1] = out[2] = in->v.vreal32;
+	else
+		return FALSE;
+	return TRUE;
 }
 
 static boolean get_as_real64_vec4(const PValue *in, real64 out[])
 {
-	return FALSE;
+	if(in == NULL || out == NULL)
+		return FALSE;
+	if(in->set == 0)
+		return FALSE;
+	else IF_SET(in, REAL64_VEC4)
+	{
+		out[0] = in->v.vreal64_vec4[0];
+		out[1] = in->v.vreal64_vec4[1];
+		out[2] = in->v.vreal64_vec4[2];
+		out[3] = in->v.vreal64_vec4[3];
+	}
+	else IF_SET(in, REAL64_VEC3)
+	{
+		out[0] = in->v.vreal64_vec3[0];
+		out[1] = in->v.vreal64_vec3[1];
+		out[2] = in->v.vreal64_vec3[2];
+		out[3] = 0.0;
+	}
+	else IF_SET(in, REAL64_VEC2)
+	{
+		out[0] = in->v.vreal64_vec2[0];
+		out[1] = in->v.vreal64_vec2[1];
+		out[2] = 0.0;
+		out[3] = 0.0;
+	}
+	else IF_SET(in, REAL32_VEC4)
+	{
+		out[0] = in->v.vreal32_vec4[0];
+		out[1] = in->v.vreal32_vec4[1];
+		out[2] = in->v.vreal32_vec4[2];
+		out[3] = in->v.vreal32_vec4[3];
+	}
+	else IF_SET(in, REAL32_VEC3)
+	{
+		out[0] = in->v.vreal32_vec3[0];
+		out[1] = in->v.vreal32_vec3[1];
+		out[2] = in->v.vreal32_vec3[2];
+		out[3] = 0.0;
+	}
+	else IF_SET(in, REAL32_VEC2)
+	{
+		out[0] = in->v.vreal32_vec2[0];
+		out[1] = in->v.vreal32_vec2[1];
+		out[2] = 0.0;
+		out[3] = 0.0;
+	}
+	else IF_SET(in, REAL64)	/* Scalars are "smeared" out (replicated) to create vector. */
+		out[0] = out[1] = out[2] = out[3] = in->v.vreal64;
+	else IF_SET(in, REAL32)
+		out[0] = out[1] = out[2] = out[3] = in->v.vreal32;
+	else
+		return FALSE;
+	return TRUE;
 }
 
 static boolean get_as_real64_mat16(const PValue *in, real64 out[])
@@ -635,7 +732,7 @@ static boolean get_as_real64_mat16(const PValue *in, real64 out[])
 	return FALSE;
 }
 
-/* A macro to avoid writing N very simliar functions. Should cut down on the number of
+/* A macro to avoid writing N very similiar functions. Should cut down on the number of
  * stupid errors.
 */
 #define	GETTER(n,f,t,pt)	\
