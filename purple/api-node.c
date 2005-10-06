@@ -542,7 +542,7 @@ PURPLEAPI PNGLayer * p_node_g_layer_nth(PINode *node	/** The node whose layers a
 PURPLEAPI PNGLayer * p_node_g_layer_find(PINode *node		/** The node whose layer is to be accessed. */,
 					 const char *name	/** The name of the layer to look access. */)
 {
-	if(node->type != V_NT_GEOMETRY)
+	if(node == NULL || node->type != V_NT_GEOMETRY)
 		return NULL;
 	return nodedb_g_layer_find((NodeGeometry *) node, name);
 }
@@ -1445,6 +1445,19 @@ PURPLEAPI real64 p_node_b_layer_pixel_read(PINode *node, const PNBLayer *layer,
 					   real64 z)
 {
 	return nodedb_b_layer_pixel_read((NodeBitmap *) node, layer, x, y, z);
+}
+
+PURPLEAPI real64 p_node_b_layer_pixel_read_filtered(PINode *node, const PNBLayer *layer, PNBFilterMode mode,
+					   real64 rel_x,
+					   real64 rel_y,
+					   real64 rel_z)
+{
+	return nodedb_b_layer_pixel_read_filtered((NodeBitmap *) node, layer, mode, rel_x, rel_y, rel_z);
+}
+
+PURPLEAPI void p_node_b_layer_pixel_write(PONode *node, PNBLayer *layer, uint16 x, uint16 y, uint16 z, real64 pixel)
+{
+	nodedb_b_layer_pixel_write((NodeBitmap *) node, layer, x, y, z, pixel);
 }
 
 /** \brief Gain access to layer pixels.
