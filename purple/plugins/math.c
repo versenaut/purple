@@ -139,7 +139,35 @@ static PComputeStatus bitmap_div(PINode *a, PINode *b, real64 c, real64 d, PPOut
 
 /* --------------------------------------------------------------------------------------------- */
 
-static PComputeStatus geometry_add(PINode *a, PINode *b, real64 c, real64 d, PPOutput output)
+static void do_g_add(real64 *a, const real64 *b)
+{
+	a[0] += b[0];
+	a[1] += b[1];
+	a[2] += b[2];
+}
+
+static void do_g_sub(real64 *a, const real64 *b)
+{
+	a[0] -= b[0];
+	a[1] -= b[1];
+	a[2] -= b[2];
+}
+
+static void do_g_mul(real64 *a, const real64 *b)
+{
+	a[0] *= b[0];
+	a[1] *= b[1];
+	a[2] *= b[2];
+}
+
+static void do_g_div(real64 *a, const real64 *b)
+{
+	a[0] /= b[0];
+	a[1] /= b[1];
+	a[2] /= b[2];
+}
+
+static PComputeStatus geometry_math(PINode *a, PINode *b, real64 c, real64 d, PPOutput output, void (*op)(real64 *a, const real64 *b), const char *opname)
 {
 	char		buf[32];
 	PINode		*ga, *gb;
@@ -172,11 +200,11 @@ static PComputeStatus geometry_add(PINode *a, PINode *b, real64 c, real64 d, PPO
 	obj = p_output_node_create(output, V_NT_OBJECT, 0);
 	/* Compute a pretty name for the result. */
 	if(a != NULL && b != NULL)
-		sprintf(buf, "%s+%s", p_node_get_name(a), p_node_get_name(b));
+		sprintf(buf, "%s%s%s", p_node_get_name(a), opname, p_node_get_name(b));
 	else if(a == NULL)
-		sprintf(buf, "%g+%s", c, p_node_get_name(b));
+		sprintf(buf, "%g%s%s", c, opname, p_node_get_name(b));
 	else if(b == NULL)
-		sprintf(buf, "%s+%g", p_node_get_name(a), d);
+		sprintf(buf, "%s%s%g", p_node_get_name(a), opname, d);
 	p_node_set_name(obj, buf);
 	geo = p_output_node_copy(output, ga != NULL ? ga : gb, 1);	/* Copy one of the nodes, doesn't matter which one. */
 	p_node_o_link_set(obj, geo, "geometry", 0u);
@@ -184,7 +212,7 @@ static PComputeStatus geometry_add(PINode *a, PINode *b, real64 c, real64 d, PPO
 	lay = p_node_g_layer_find(geo, "vertex");
 	for(i = 0; i < size; i++)
 	{
-		real64	xyza[3], xyzb[3];
+		real64	n[3], xyza[3], xyzb[3];
 
 		if(va != NULL)
 			p_node_g_vertex_get_xyz(va, i, xyza, xyza + 1, xyza + 2);
@@ -194,13 +222,34 @@ static PComputeStatus geometry_add(PINode *a, PINode *b, real64 c, real64 d, PPO
 			p_node_g_vertex_get_xyz(vb, i, xyzb, xyzb + 1, xyzb + 2);
 		else
 			xyzb[0] = xyzb[1] = xyzb[2] = d;
-		p_node_g_vertex_set_xyz(lay, i, xyza[0] + xyzb[0], xyza[1] + xyzb[1], xyza[2] + xyzb[2]);
+		op(xyza, xyzb);
+		p_node_g_vertex_set_xyz(lay, i, xyza[0], xyza[1], xyza[2]);
 		printf(" got (%g,%g,%g) and (%g,%g,%g)\n",
 		       xyza[0], xyza[1], xyza[2],
 		       xyzb[0], xyzb[1], xyzb[2]);
-		printf("  emitting vertex %u: (%g,%g,%g)\n", i, xyza[0] + xyzb[0], xyza[1] + xyzb[1], xyza[2] + xyzb[2]);
+		printf("  emitting vertex %u: (%g,%g,%g)\n", i, xyza[0], xyza[1], xyza[2]);
 	}
 	return P_COMPUTE_DONE;
+}
+
+static PComputeStatus geometry_add(PINode *a, PINode *b, real64 c, real64 d, PPOutput output)
+{
+	return geometry_math(a, b, c, d, output, do_g_add, "+");
+}
+
+static PComputeStatus geometry_sub(PINode *a, PINode *b, real64 c, real64 d, PPOutput output)
+{
+	return geometry_math(a, b, c, d, output, do_g_sub, "-");
+}
+
+static PComputeStatus geometry_mul(PINode *a, PINode *b, real64 c, real64 d, PPOutput output)
+{
+	return geometry_math(a, b, c, d, output, do_g_mul, "*");
+}
+
+static PComputeStatus geometry_div(PINode *a, PINode *b, real64 c, real64 d, PPOutput output)
+{
+	return geometry_math(a, b, c, d, output, do_g_div, "/");
 }
 
 /* --------------------------------------------------------------------------------------------- */
@@ -263,6 +312,8 @@ static PComputeStatus compute_sub(PPInput *input, PPOutput output, void *state)
 
 	if(collect_inputs(input, &a, &b, &c, &d, V_NT_BITMAP))
 		return bitmap_sub(a, b, c, d, output);
+	else if(collect_inputs(input, &a, &b, &c, &d, INPUT_OBJECT_WITH_GEOMETRY))
+		return geometry_sub(a, b, c, d, output);
 	else
 		p_output_real64(output, c - d);
 	return P_COMPUTE_DONE;
@@ -275,6 +326,8 @@ static PComputeStatus compute_mul(PPInput *input, PPOutput output, void *state)
 
 	if(collect_inputs(input, &a, &b, &c, &d, V_NT_BITMAP))
 		return bitmap_mul(a, b, c, d, output);
+	else if(collect_inputs(input, &a, &b, &c, &d, INPUT_OBJECT_WITH_GEOMETRY))
+		return geometry_mul(a, b, c, d, output);
 	else
 		p_output_real64(output, c * d);
 	return P_COMPUTE_DONE;
@@ -287,6 +340,8 @@ static PComputeStatus compute_div(PPInput *input, PPOutput output, void *state)
 
 	if(collect_inputs(input, &a, &b, &c, &d, V_NT_BITMAP))
 		return bitmap_div(a, b, c, d, output);
+	else if(collect_inputs(input, &a, &b, &c, &d, INPUT_OBJECT_WITH_GEOMETRY))
+		return geometry_div(a, b, c, d, output);
 	else
 		p_output_real64(output, c / d);
 	return P_COMPUTE_DONE;
