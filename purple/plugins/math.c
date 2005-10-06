@@ -4,6 +4,8 @@
 
 #include "purple.h"
 
+/* --------------------------------------------------------------------------------------------- */
+
 static PONode * bitmap_create(PINode *a, PINode *b, uint16 *dim, PPOutput output)
 {
 	uint16	dima[3], dimb[3];
@@ -135,11 +137,102 @@ static PComputeStatus bitmap_div(PINode *a, PINode *b, real64 c, real64 d, PPOut
 	return bitmap_math(a, b, c, d, output, do_b_div);
 }
 
-static int collect_inputs(PPInput *input, PINode **a, PINode **b, real64 *c, real64 *d, VNodeType type)
+/* --------------------------------------------------------------------------------------------- */
+
+static PComputeStatus geometry_add(PINode *a, PINode *b, real64 c, real64 d, PPOutput output)
+{
+	char		buf[32];
+	PINode		*ga, *gb;
+	PONode		*obj, *geo;
+	const PNGLayer	*va, *vb;
+	PNGLayer	*lay;
+	unsigned int	i, sa, sb, size;
+
+	ga = p_node_o_link_get(a, "geometry", NULL);
+	gb = p_node_o_link_get(b, "geometry", NULL);
+
+	printf("geometry add: nodes %p and %p\n", ga, gb);
+
+	/* Look up the vertex layers. */
+	va = p_node_g_layer_find(ga, "vertex");
+	vb = p_node_g_layer_find(gb, "vertex");
+
+	if(va == NULL && vb == NULL)
+		return P_COMPUTE_DONE;
+
+	sa = p_node_g_layer_get_size(va);
+	sb = p_node_g_layer_get_size(vb);
+
+	if(va != NULL && vb != NULL && sa != sb)
+		return P_COMPUTE_DONE;
+	size = va != NULL ? sa : sb;
+
+	printf(" sizes: %u and %u -> %u\n", sa, sb, size);
+
+	obj = p_output_node_create(output, V_NT_OBJECT, 0);
+	/* Compute a pretty name for the result. */
+	if(a != NULL && b != NULL)
+		sprintf(buf, "%s+%s", p_node_get_name(a), p_node_get_name(b));
+	else if(a == NULL)
+		sprintf(buf, "%g+%s", c, p_node_get_name(b));
+	else if(b == NULL)
+		sprintf(buf, "%s+%g", p_node_get_name(a), d);
+	p_node_set_name(obj, buf);
+	geo = p_output_node_copy(output, ga != NULL ? ga : gb, 1);	/* Copy one of the nodes, doesn't matter which one. */
+	p_node_o_link_set(obj, geo, "geometry", 0u);
+
+	lay = p_node_g_layer_find(geo, "vertex");
+	for(i = 0; i < size; i++)
+	{
+		real64	xyza[3], xyzb[3];
+
+		if(va != NULL)
+			p_node_g_vertex_get_xyz(va, i, xyza, xyza + 1, xyza + 2);
+		else
+			xyza[0] = xyza[1] = xyzb[2] = c;
+		if(vb != NULL)
+			p_node_g_vertex_get_xyz(vb, i, xyzb, xyzb + 1, xyzb + 2);
+		else
+			xyzb[0] = xyzb[1] = xyzb[2] = d;
+		p_node_g_vertex_set_xyz(lay, i, xyza[0] + xyzb[0], xyza[1] + xyzb[1], xyza[2] + xyzb[2]);
+		printf(" got (%g,%g,%g) and (%g,%g,%g)\n",
+		       xyza[0], xyza[1], xyza[2],
+		       xyzb[0], xyzb[1], xyzb[2]);
+		printf("  emitting vertex %u: (%g,%g,%g)\n", i, xyza[0] + xyzb[0], xyza[1] + xyzb[1], xyza[2] + xyzb[2]);
+	}
+	return P_COMPUTE_DONE;
+}
+
+/* --------------------------------------------------------------------------------------------- */
+
+typedef enum { INPUT_PLAIN_BITMAP = 0, INPUT_OBJECT_WITH_GEOMETRY = 32 } InputMode;
+
+/* Input a node, using the indicated mode. Modes are more or less hardcoded, for now. */
+static PINode * input_node(PPInput input, InputMode mode)
+{
+	if(mode == INPUT_PLAIN_BITMAP)
+		return p_input_node_first_type(input, V_NT_BITMAP);
+	else if(mode == INPUT_OBJECT_WITH_GEOMETRY)
+	{
+		unsigned int	i;
+		PINode		*obj;
+
+		for(i = 0; (obj = p_input_node_nth(input, i)) != NULL; i++)
+		{
+			if(p_node_get_type(obj) != V_NT_OBJECT)
+				continue;
+			if(p_node_o_link_get(obj, "geometry", NULL) != NULL)
+				return obj;
+		}
+	}
+	return NULL;
+}
+
+static int collect_inputs(PPInput *input, PINode **a, PINode **b, real64 *c, real64 *d, InputMode mode)
 {
 	/* Try to read out two nodes. */
-	*a = p_input_node_first_type(input[0], type);
-	*b = p_input_node_first_type(input[1], type);
+	*a = input_node(input[0], mode);
+	*b = input_node(input[1], mode);
 
 	/* If node reading failed, read real64s instead. */
 	if(*a == NULL)
@@ -154,8 +247,10 @@ static PComputeStatus compute_add(PPInput *input, PPOutput output, void *state)
 	PINode	*a, *b;
 	real64	c, d;
 
-	if(collect_inputs(input, &a, &b, &c, &d, V_NT_BITMAP))
+	if(collect_inputs(input, &a, &b, &c, &d, INPUT_PLAIN_BITMAP))
 		return bitmap_add(a, b, c, d, output);
+	else if(collect_inputs(input, &a, &b, &c, &d, INPUT_OBJECT_WITH_GEOMETRY))
+		return geometry_add(a, b, c, d, output);
 	else
 		p_output_real64(output, c + d);
 	return P_COMPUTE_DONE;
