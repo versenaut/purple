@@ -269,7 +269,6 @@ PINode * nodedb_o_link_get(const NodeObject *n, const char *label, uint32 *targe
 	const NdbOLink	*link;
 	unsigned int	i;
 
-	printf("looking up link \"%s\"\n", label);
 	for(i = 0; (link = dynarr_index(n->links, i)) != NULL; i++)
 	{
 		if(link->label != NULL && strcmp(link->label, label) == 0)

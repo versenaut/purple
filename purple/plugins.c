@@ -828,11 +828,11 @@ void plugins_libraries_init(void)
 	{
 		Library	*lib = list_data(iter);
 		size_t	num = plugins_amount();
-		LOG_MSG(("Initializing library \"%s\"", lib->name));
+/*		LOG_MSG(("Initializing library \"%s\"", lib->name));*/
 		api_init_begin(lib);
 		lib->init();
 		api_init_end();
-		LOG_MSG(("Done, that added %u plug-ins", plugins_amount() - num));
+/*		LOG_MSG(("Done, that added %u plug-ins", plugins_amount() - num));*/
 	}
 }
 
@@ -864,7 +864,7 @@ void plugins_register(Library *owner, Plugin *p)
 	p->library = owner;
 	p->id = idset_insert(plugins_info.plugins, p);
 	hash_insert(plugins_info.plugins_name, p->name, p);
-	LOG_MSG(("Registered plug-in \"%s\" with %u inputs", p->name, dynarr_size(p->input)));
+/*	LOG_MSG(("Registered plug-in \"%s\" with %u inputs", p->name, dynarr_size(p->input)));*/
 }
 
 size_t plugins_amount(void)
