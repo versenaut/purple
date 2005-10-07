@@ -44,5 +44,9 @@ PURPLE_PLUGIN void init(void)
 	p_init_input(1, P_VALUE_UINT32, "type", P_INPUT_REQUIRED,
 		     P_INPUT_DESC("This controls what type the output value will have."),
 		     P_INPUT_ENUM("0:String|1:Real64|2:UInt32"), P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("desc/purpose", "Output a constant value. The value is created by interpreting an input string according to the 'type' "
+		    "setting, and outputting the result. This is useful when the same value needs to be sent to several other plug-ins' "
+		    "inputs; an instance of constant can be used to 'buffer' the value and make it possible to change it in just one place.");
 	p_init_compute(compute);
 }
