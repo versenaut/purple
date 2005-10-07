@@ -38,13 +38,13 @@ static const char *font[] = {
 	"******.."
 	"........",
 	"C:"
-	".******."
-	"**....**"
+	".*****.."
+	"**...**."
 	"**......"
 	"**......"
 	"**......"
-	"**....**"
- 	".******."
+	"**...**."
+ 	".*****.."
 	"........",
 	"D:"
 	"******.."
@@ -74,13 +74,13 @@ static const char *font[] = {
  	"**......"
 	"........",
 	"G:"
-	".******."
+	".*****.."
+	"**...**."
 	"**......"
-	"**......"
-	"**..****"
-	"**....**"
-	"**....**"
- 	".******."
+	"**.****."
+	"**...**."
+	"**...**."
+ 	".*****.."
 	"........",
 	"H:"
 	"**...**."
@@ -252,6 +252,15 @@ static const char *font[] = {
 	".**....."
 	"**......"
  	"*******."
+	"........",
+	".:"
+	"........"
+	"........"
+	"........"
+	"........"
+	"........"
+	".**....."
+	".**....."
 	"........",
 	NULL
 };
@@ -433,6 +442,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	lines = text_split(text, line, sizeof line / sizeof *line, &longest);
 
 	node = p_output_node_create(output, V_NT_BITMAP, 0);
+	p_node_set_name(node, "text");
 	p_node_b_set_dimensions(node, longest * s->font->width, lines * s->font->height, 1);
 
 	for(i = 0; i < sizeof lname / sizeof *lname; i++)
@@ -452,8 +462,9 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 PURPLE_PLUGIN void init(void)
 {
 	p_init_create("bmtext");
-	p_init_input(0, P_VALUE_MODULE, "text", P_INPUT_REQUIRED, P_INPUT_DESC("The text to render is input here. You can embed newlines by using the "
-									       "C standard notation of \\n. Text will be flush to the left of each line."),
+	p_init_input(0, P_VALUE_STRING, "text", P_INPUT_REQUIRED, P_INPUT_DEFAULT_STR("FOO"),
+		     P_INPUT_DESC("The text to render is input here. You can embed newlines by using the "
+				  "C standard notation of \\n. Text will be flush to the left of each line."),
 		     P_INPUT_DONE);
 	p_init_meta("authors", "Emil Brink");
 	p_init_meta("copyright", "2005 PDC, KTH");
