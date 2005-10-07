@@ -553,7 +553,7 @@ List * filter_list(List *list, void **filter)
 		cmd = (int) *filter++;
 		switch(cmd)
 		{
-		case XMLNODE_DONE:
+		case XMLNODE_FILTER_ACCEPT:
 			return list;
 		case XMLNODE_AXIS_SELF:		/* Fall-through. */
 		case XMLNODE_AXIS_ANCESTOR:
