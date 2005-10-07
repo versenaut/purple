@@ -304,6 +304,40 @@ real64 nodedb_b_layer_pixel_read(const NodeBitmap *node, const NdbBLayer *layer,
 	return layer_get_pixel(node, layer, layer->framebuffer, ix, iy, iz);
 }
 
+real64 nodedb_b_layer_pixel_read_filtered(const NodeBitmap *node, const NdbBLayer *layer, NdbBFilterMode mode, real64 x, real64 y, real64 z)
+{
+	if(node == NULL || layer == NULL)
+		return 0.0;
+	x *= node->width;
+	y *= node->height;
+	z *= node->depth;
+	if(x < 0 || y < 0 || z < 0 || x >= node->width || y >= node->height || z >= node->depth)
+		return 0.0;
+	return layer_get_pixel(node, layer, layer->framebuffer, x, y, z);
+}
+
+void nodedb_b_layer_pixel_write(NodeBitmap *node, NdbBLayer *layer, uint16 x, uint16 y, uint16 z, real64 pixel)
+{
+	void	*fb;
+
+	if(node == NULL || layer == NULL || x >= node->width || y >= node->height || z >= node->depth)
+		return;
+	if((fb = nodedb_b_layer_access_begin(node, layer)) != NULL)
+	{
+		switch(layer->type)
+		{
+		case VN_B_LAYER_UINT8:
+			if(pixel < 0)		/* Clamp 8-bit pixels. */
+				pixel = 0.0;
+			else if(pixel > 1.0)
+				pixel = 1.0;
+			((uint8 *) fb)[z * node->width * node->height + y * node->width + x] = 255.0 * pixel;
+			break;
+		}
+		nodedb_b_layer_access_end(node, layer, fb);
+	}
+}
+
 void * nodedb_b_layer_access_begin(NodeBitmap *node, NdbBLayer *layer)
 {
 	if(node == NULL || layer == NULL)

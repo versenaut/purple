@@ -35,6 +35,10 @@ typedef struct
 	void		*framebuffer;
 } NdbBLayer;
 
+typedef enum {
+	NDB_B_FILTER_NEAREST = 0
+} NdbBFilterMode;
+
 typedef struct
 {
 	PNode	node;
@@ -57,6 +61,9 @@ extern NdbBLayer *	nodedb_b_layer_find(const NodeBitmap *node, const char *name)
 extern NdbBLayer *	nodedb_b_layer_create(NodeBitmap *node, VLayerID layer_id, const char *name, VNBLayerType type);
 
 extern real64		nodedb_b_layer_pixel_read(const NodeBitmap *node, const NdbBLayer *layer, real64 x, real64 y, real64 z);
+extern real64		nodedb_b_layer_pixel_read_filtered(const NodeBitmap *node, const NdbBLayer *layer, NdbBFilterMode mode, real64 x, real64 y, real64 z);
+
+extern void		nodedb_b_layer_pixel_write(NodeBitmap *node, NdbBLayer *layer, uint16 x, uint16 y, uint16 z, real64 pixel);
 
 extern void *		nodedb_b_layer_access_begin(NodeBitmap *node, NdbBLayer *layer);
 extern void		nodedb_b_layer_access_end(NodeBitmap *node, NdbBLayer *layer, void *framebuffer);
