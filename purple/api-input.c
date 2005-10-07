@@ -450,4 +450,31 @@ PURPLEAPI PINode * p_input_node_nth(PPInput input	/** The input to read from. */
 	return port_input_node_nth(input, index);
 }
 
+/** \brief Input the first node of a given type.
+ * 
+ * This function returns the first node available at the indicated input, that has the
+ * indicated type.
+ * 
+ * Internally, this is just a loop using \c p_input_node_nth(), but it saves some typing
+ * and makes plug-in code look cleaner, and might be implemented otherwise in the future.
+*/
+PURPLEAPI PINode * p_input_node_first_type(PPInput input,
+					   VNodeType type)
+{
+	int	i;
+	PINode	*node;
+
+	for(i = 0; (node = p_input_node_nth(input, i)) != NULL; i++)
+	{
+		if(p_node_get_type(node) == type)
+			return node;
+	}
+	return NULL;
+}
+
+PURPLEAPI PValueType p_input_get_type(PPInput input)
+{
+	return port_get_type(input);
+}
+
 /** @} */
