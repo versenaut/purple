@@ -41,9 +41,9 @@ static void polygon_normal(real64 *norm, const PNGLayer *vtx, uint32 v0, uint32 
 	/* Compute normalizing factor. */
 	f = 1.0 / sqrt(norm[0] * norm[0] + norm[1] * norm[1] + norm[2] * norm[2]);
 	/* And apply it. */
-	norm[0] /= f;
-	norm[1] /= f;
-	norm[2] /= f;
+	norm[0] *= f;
+	norm[1] *= f;
+	norm[2] *= f;
 }
 
 /* Create buffer holding the proper weighted normal for each vertex of <vertex>. */
