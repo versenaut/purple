@@ -255,7 +255,9 @@ void * idtree_set(IdTree *tree, unsigned int id, const void *el)
 		if(p->ptr[slot] == NULL)
 		{
 /*			printf("  next level page missing, adding at level %d\n", i - 1);*/
-			PAGE_SET(p, slot, page_alloc(tree, i - 1));
+			np = page_alloc(tree, i - 1);
+			PAGE_SET(p, slot, np);
+			np->parent = p;
 /*			p->ptr[slot] = page_alloc(tree, i - 1);
 			p->size++;
 */		}
@@ -306,7 +308,7 @@ void * idtree_get(const IdTree *tree, unsigned int id)
 			return NULL;
 		p = p->ptr[mask(id, i, tree->bits)];
 	}
-	return p->ptr[mask(id, 0, tree->bits)];
+	return p != NULL ? p->ptr[mask(id, 0, tree->bits)] : NULL;
 }
 
 void idtree_remove(IdTree *tree, unsigned int id)
