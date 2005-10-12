@@ -476,6 +476,24 @@ PURPLEAPI void p_node_o_link_set(PONode *node		/** The object node in which to s
 		nodedb_o_link_set_local((NodeObject *) node, link, label, target_id);
 }
 
+/** \brief Set a link from an object node to another node, replacing any link with the same label.
+ * 
+ * This function sets a link from an object node to some other node. It is similar to \c p_node_o_link_set() in
+ * this regard. The only difference is that this function makes sure that there is no other link with the
+ * same \c label, and that it doesn't let you control the \c target_id value of the link.
+ * 
+ * The intended use is for setting the (very common) link labelled \c "geometry", since you typically will
+ * want just a single such link. Normally in the Verse data model, the label part of a link is not unique;
+ * you can have (and sometimes need) multiple links with the same label. However, sometimes it's nice to
+ * just have a single one, and this function makes it easy to achieve that.
+*/
+PURPLEAPI void p_node_o_link_set_single(PONode *node,
+					const PONode *link,
+					const char *label)
+{
+	nodedb_o_link_set_local_single((NodeObject *) node, link, label);
+}
+
 /** \brief Follow a link to a node.
  * 
  * Retreive information about a link from an object node. Returns the link target, if present, or \c NULL If not.

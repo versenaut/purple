@@ -229,6 +229,7 @@ PURPLEAPI void			p_node_o_light_set(PONode *node, real64 red, real64 green, real
 PURPLEAPI void			p_node_o_light_get(PINode *node, real64 *red, real64 *green, real64 *blue);
 
 PURPLEAPI void			p_node_o_link_set(PONode *node, PINode *link, const char *label, uint32 target_id);
+PURPLEAPI void			p_node_o_link_set_single(PONode *node, PINode *link, const char *label);
 PURPLEAPI PINode *		p_node_o_link_get(const PONode *node, const char *label, uint32 *target_id);
 
 /** An opaque data type that represents a geometry layer. Use API functions to manipulate. */
