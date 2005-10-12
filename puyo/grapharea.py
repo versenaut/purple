@@ -217,9 +217,9 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 
 		self.actiongroup = None
 
-		self.home = (0, 0)
+		self.home = (-2.5, 1.0)
 		self.homeActual = (0, 0)	# The one used in display (interpolated).
-		self.zoom = 1.0
+		self.zoom = 0.35
 		self.zoomActual = 1.0		# The one used in display (interpolated).
 		self.drag        = 0
 		self.drag_anchor = None
@@ -578,6 +578,7 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 		# Use 'actual' forms of zoom and home, for interpolation (see below).
 		glScalef(self.zoomActual, self.zoomActual, self.zoomActual)
 		glTranslated(self.homeActual[0], self.homeActual[1], 0.0)
+
 		if self.graph != None:
 			self._graph_paint()
 			if self.drag == 3:
