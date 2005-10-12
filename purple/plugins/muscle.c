@@ -52,7 +52,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	outup = p_output_node_copy(output, upper, 0);
 	outug = p_output_node_copy(output, ug, 1);
 /*	printf("----------- about to set link to new geometry\n");*/
-	p_node_o_link_set_simple(outup, outug, "geometry");
+	p_node_o_link_set_single(outup, outug, "geometry");
 /*	printf("----------- done\n");*/
 
 	/* Shift the copy a bit to the right. */
