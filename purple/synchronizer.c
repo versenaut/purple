@@ -153,11 +153,29 @@ static int object_link_exists(const NodeObject *n, VNodeID link, const char *lab
 	return 0;
 }
 
+static uint16 object_link_find_same(const NodeObject *n, const char *label, uint32 target_id)
+{
+	unsigned int	i;
+	const NdbOLink	*l;
+
+	for(i = 0; (l = dynarr_index(n->links, i)) != NULL; i++)
+	{
+		if(l->label[0] == '\0')
+			continue;
+		if((target_id == ~0u || target_id == l->target_id) && strcmp(label, l->label) == 0)
+		{
+			printf("found equivalent link at ID %u\n", i);
+			return i;
+		}
+	}
+	return (uint16) ~0u;
+}
+
 static int sync_object(NodeObject *n, const NodeObject *target)
 {
-	int	sync = 1, i;
-	List	*iter, *next;
-	NdbOLink	*link;
+	int		sync = 1, i, j;
+	List		*iter, *next;
+	NdbOLink	*link, *tlink;
 
 	/* Synchronize transform. Just basic "current value"-support, for now. */
 	if(memcmp(n->pos, target->pos, sizeof target->pos) != 0)
@@ -187,9 +205,12 @@ static int sync_object(NodeObject *n, const NodeObject *target)
 	{
 		if(link->id == (uint16) ~0u)
 			continue;
+		if(link->deleted)	/* Don't send links that we know have been deleted, locally. */
+			continue;
 		if(!object_link_exists(target, link->link, link->label, link->target_id))
 		{
-			verse_send_o_link_set(target->node.id, ~0u, link->link, link->label, link->target_id);
+			printf("sending true link set, %u->%u\n", target->node.id, link->link);
+			verse_send_o_link_set(target->node.id, (uint16) ~0u, link->link, link->label, link->target_id);
 			sync = 0;
 		}
 	}
@@ -203,14 +224,47 @@ static int sync_object(NodeObject *n, const NodeObject *target)
 			sync = 0;
 		else
 		{
+			uint16	id;
+	
+			printf("local node has been resolved. now see if link it replaces anything\n");
+			if((id = object_link_find_same(target, link->label, link->target_id)) != (uint16) ~0u)
+			{
+				printf(" replacing link %u with the local one\n", id);
+				verse_send_o_link_set(target->node.id, id, link->link->id, link->label, link->target_id);
+				sync = 0;
+			}
 			if(!object_link_exists(target, link->link->id, link->label, link->target_id))	/* Only set if no equivalent link exists. */
 			{
+				printf(" sending local link set, %u->%u\n", target->node.id, link->link->id);
 				verse_send_o_link_set(target->node.id, ~0, link->link->id, link->label, link->target_id);
 				sync = 0;
 			}
 			n->links_local = list_unlink(n->links_local, iter);
 			mem_free(link);
 			list_destroy(iter);
+		}
+	}
+	/* Look for "real" links that have been marked 'deleted', and delete any link with the same label. */
+	for(i = 0; (link = dynarr_index(n->links, i)) != NULL; i++)
+	{
+		if(link->id == (uint16) ~0u)
+			continue;
+		if(link->deleted)
+		{
+			printf(" link %u with ID=%u is marked as deleted; this means any link with the same label in the target needs to go\n", i, link->id);
+			for(j = 0; (tlink = dynarr_index(target->links, j)) != NULL; j++)
+			{
+				if(tlink->id == (uint16) ~0u)
+					continue;
+				if(strcmp(tlink->label, link->label) == 0)
+				{
+					printf(" got match in link %u.%u, pointing at %u\n", target->node.id, tlink->id, tlink->link);
+					verse_send_o_link_destroy(target->node.id, tlink->id);
+					sync = 0;
+					printf("  delete sent\n");
+				}
+			}
+			link->id = (uint16) ~0u;	/* Then mark the link as gone, so we don't send destroys twice. */
 		}
 	}
 	/* FIXME: We should probably clean out any redundant (non-existant in local data) links, here. */
@@ -1103,7 +1157,7 @@ void sync_node_add(PNode *node)
 		return;
 	if(node->sync.busy)
 	{
-		printf("not adding node %u to synchronizer; it's already being synchronized\n", node->id);
+/*		printf("not adding node %u to synchronizer; it's already being synchronized\n", node->id);*/
 		return;
 	}
 	timeval_jurassic(&node->sync.last_send);
