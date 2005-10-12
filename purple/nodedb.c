@@ -225,14 +225,14 @@ static void cb_copy_tag_group(void *d, const void *s, void *user)
 
 static void copy_name(char *out, const char *in)
 {
-	unsigned int	n, len;
+/*	unsigned int	n, len;
 
 	if(strncmp(in, "copy of ", 8) == 0)
 		sprintf(out, "copy 2 of %s", in + 8);
 	else if(sscanf(in, "copy %d of %n", &n, &len) > 1)
 		sprintf(out, "copy %u of %s", n + 1, in + len);
 	else
-		sprintf(out, "copy of %s", in);
+*/		sprintf(out, "copy of %s", in);
 }
 
 PNode * nodedb_new_copy(const PNode *src)
