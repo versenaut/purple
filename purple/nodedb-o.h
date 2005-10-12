@@ -24,6 +24,7 @@ typedef struct
 	VNodeID	link;
 	char	label[16];
 	uint32	target_id;
+	boolean	deleted;		/* Set to TRUE when a delete is pending, by link_single(). */
 } NdbOLink;
 
 /* Used for local links, before syncing. */
@@ -65,6 +66,7 @@ extern void		nodedb_o_light_get(const NodeObject *n, real64 *red, real64 *green,
 
 extern void		nodedb_o_link_set(NodeObject *n, uint16 link_id, VNodeID link, const char *label, uint32 target_id);
 extern void		nodedb_o_link_set_local(NodeObject *n, PINode *link, const char *label, uint32 target_id);
+extern void		nodedb_o_link_set_local_single(NodeObject *n, PINode *link, const char *label);
 extern PONode *		nodedb_o_link_get_local(const NodeObject *n, const char *label, uint32 *target_id);
 extern PINode *		nodedb_o_link_get(const NodeObject *n, const char *label, uint32 *target_id);
 
