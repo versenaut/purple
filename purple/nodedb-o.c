@@ -181,21 +181,74 @@ void nodedb_o_light_get(const NodeObject *n, real64 *red, real64 *green, real64 
 		*blue = n->light[2];
 }
 
+#if 0
+static void link_dump(const NodeObject *n)
+{
+	unsigned int	i;
+	const NdbOLink	*rl;
+	const List	*iter;
+
+	printf("Links in node %u (\"%s\") (remote=%p):\n", n->node.id, n->node.name, n->node.creator.remote);
+	printf(" remote:\n");
+	for(i = 0; (rl = dynarr_index(n->links, i)) != NULL; i++)
+	{
+		if(rl->id == (uint16) ~0u)
+			continue;
+		printf("  id=%u node=%u label=\"%s\" target_id=%u deleted=%s\n", rl->id, rl->link, rl->label, rl->target_id, rl->deleted ? "TRUE" : "FALSE");
+	}
+	printf(" local:\n");
+	for(iter = n->links_local; iter != NULL; iter = list_next(iter))
+	{
+		const NdbOLinkLocal	*ll = list_data(iter);
+
+		printf("  node=\"%s\" label=\"%s\" target_id=%u\n", ll->link->name, ll->label, ll->target_id);
+	}
+}
+#endif
+
 void nodedb_o_link_set(NodeObject *n, uint16 link_id, VNodeID link, const char *label, uint32 target_id)
 {
 	NdbOLink	*l;
+	unsigned int	i;
 
 	if(n == NULL || n->node.type != V_NT_OBJECT)
 		return;
 	if(n->links == NULL)
 		n->links = dynarr_new(sizeof (NdbOLink), 1);
 
+	/* Look for existing link with the same label and target_id combo. */
+	for(i = 0; (l = dynarr_index(n->links, i)) != NULL; i++)
+	{
+		if(l->label[0] == '\0')
+			continue;
+		if(l->target_id == target_id && strcmp(l->label, label) == 0)
+		{
+			l->link = link;
+			return;
+		}
+	}
 	l = dynarr_set(n->links, link_id, NULL);
 	l->id = link_id;
 	l->link = link;
 	stu_strncpy(l->label, sizeof l->label, label);
 	l->target_id = target_id;
-	printf("link set %u->%u, ID %u, label '%s' target %u\n", n->node.id, link, link_id, label, target_id);
+	l->deleted = FALSE;
+	printf("stored link set %u->%u, ID %u, label '%s' target %u\n", n->node.id, link, link_id, label, target_id);
+}
+
+void nodedb_o_link_destroy(NodeObject *n, uint16 link_id)
+{
+	NdbOLink	*lnk;
+
+	if(n == NULL || n->node.type != V_NT_OBJECT)
+		return;
+
+	if((lnk = dynarr_index(n->links, link_id)) == NULL)
+		return;
+	lnk->id = (uint16) ~0u;	/* This marks the link as gone. */
+	lnk->link = ~0u;
+	lnk->label[0] = '\0';
+	printf("link %u.%u destroyed\n", n->node.id, link_id);
 }
 
 void nodedb_o_link_set_local(NodeObject *n, PINode *link, const char *label, uint32 target_id)
@@ -204,44 +257,88 @@ void nodedb_o_link_set_local(NodeObject *n, PINode *link, const char *label, uin
 
 	if(n == NULL || n->node.type != V_NT_OBJECT)
 		return;
+	printf("in link_set_local(), target=%p label=\"%s\" id=%u\n", link, label, target_id);
 	/* Check if equivalent link already exists, and if so don't add it. Saves synchronizer some work. */
 	if(link->id != ~0u)
 	{
 		unsigned int	i;
-		const NdbOLink	*l;
+		NdbOLink	*l;
 
 		for(i = 0; (l = dynarr_index(n->links, i)) != NULL; i++)
 		{
-/*			printf(" checking, is %u == %u?\n", l->link, link->id);*/
-			if(l->link == link->id && l->target_id == target_id && strcmp(l->label, label) == 0)
+			printf(" checking, is %u == %u?\n", l->link, link->id);
+			if(l->target_id == target_id && strcmp(l->label, label) == 0)
 			{
+				printf("link from %u to %u with label \"%s\" exists on host, setting to %u\n", n->node.id,
+				       l->link, label, link->id);
+				l->link = link->id;
 				printf("link from %u to %u is known on host side, ignoring\n", n->node.id, link->id);
 				return;
 			}
 		}
 	}
-	else
-	if(link->id == (VNodeID) ~0)	/* Don't duplicate local links. */
+	else if(link->id == (VNodeID) ~0)	/* Don't duplicate local links. */
 	{
 		const List	*iter;
 
 		for(iter = n->links_local; iter != NULL; iter = list_next(iter))
 		{
-			const NdbOLinkLocal	*l = list_data(iter);
+			NdbOLinkLocal	*l = list_data(iter);
 
-			if(l->link == link && l->target_id == target_id && strcmp(l->label, label) == 0)
+			if(l->target_id == target_id && strcmp(l->label, label) == 0)
 			{
-				printf("local link to node %u already exists\n", link->id);
+				printf("local link from %u to %u with label \"%s\" already exists, setting to %u\n", n->node.id,
+				       l->link->id, l->label, link->id);
+				l->link = (PONode *) link;
 				return;
 			}
 		}
 	}
+	printf("no existing link detected, creating new local\n");
 	l = mem_alloc(sizeof *l);
 	l->link = (PONode *) link;
 	stu_strncpy(l->label, sizeof l->label, label);
 	l->target_id = target_id;
 	n->links_local = list_prepend(n->links_local, l);
 	printf("'local' link set to node %u\n", link->id);
+}
+
+void nodedb_o_link_set_local_single(NodeObject *n, PINode *link, const char *label)
+{
+	unsigned int	i;
+	const List	*iter;
+	NdbOLink	*l;
+	NdbOLinkLocal	*lnk;
+
+	if(n == NULL || link == NULL || label == NULL || *label == '\0')
+		return;
+
+	/* Check if there already is a pending local link with the same label. */
+	for(iter = n->links_local; iter != NULL; iter = list_next(iter))
+	{
+		lnk = list_data(iter);
+		if(strcmp(lnk->label, label) == 0)
+		{
+/*			printf(" found local link with label \"%s\", replacing\n", label);*/
+			lnk->link = (PONode *) link;
+			return;
+		}
+	}
+	/* Check for existing "real" links. */
+	for(i = 0; (l = dynarr_index(n->links, i)) != NULL; i++)
+	{
+		if(l->label[0] == '\0')
+			continue;
+		if(strcmp(l->label, label) == 0)
+		{
+			l->deleted = TRUE;	/* Mark link as deleted, so synchronizer can do its thing. Then keep looking. */
+		}
+	}
+	lnk = mem_alloc(sizeof *l);
+	lnk->link = (PONode *) link;
+	stu_strncpy(lnk->label, sizeof l->label, label);
+	lnk->target_id = ~0u;
+	n->links_local = list_prepend(n->links_local, lnk);
 }
 
 PONode * nodedb_o_link_get_local(const NodeObject *n, const char *label, uint32 *target_id)
@@ -363,6 +460,17 @@ static void cb_o_link_set(void *user, VNodeID node_id, uint16 link_id, VNodeID l
 	}
 }
 
+static void cb_o_link_destroy(void *user, VNodeID node_id, uint16 link_id)
+{
+	NodeObject	*n;
+
+	if((n = nodedb_lookup_object(node_id)) != NULL)
+	{
+		nodedb_o_link_destroy(n, link_id);
+		NOTIFY(n, DATA);
+	}
+}
+
 static void cb_o_light_set(void *user, VNodeID node_id, real64 r, real64 g, real64 b)
 {
 	NodeObject	*n;
@@ -467,6 +575,7 @@ void nodedb_o_register_callbacks(void)
 	verse_callback_set(verse_send_o_transform_pos_real64,	cb_o_transform_pos_real64, NULL);
 	verse_callback_set(verse_send_o_transform_rot_real64,	cb_o_transform_rot_real64, NULL);
 	verse_callback_set(verse_send_o_link_set,		cb_o_link_set, NULL);
+	verse_callback_set(verse_send_o_link_destroy,		cb_o_link_destroy, NULL);
 	verse_callback_set(verse_send_o_light_set,		cb_o_light_set, NULL);
 	verse_callback_set(verse_send_o_method_group_create,	cb_o_method_group_create, NULL);
 	verse_callback_set(verse_send_o_method_group_destroy,	cb_o_method_group_destroy, NULL);
