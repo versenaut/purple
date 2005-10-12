@@ -163,10 +163,7 @@ static uint16 object_link_find_same(const NodeObject *n, const char *label, uint
 		if(l->label[0] == '\0')
 			continue;
 		if((target_id == ~0u || target_id == l->target_id) && strcmp(label, l->label) == 0)
-		{
-			printf("found equivalent link at ID %u\n", i);
 			return i;
-		}
 	}
 	return (uint16) ~0u;
 }
@@ -209,7 +206,7 @@ static int sync_object(NodeObject *n, const NodeObject *target)
 			continue;
 		if(!object_link_exists(target, link->link, link->label, link->target_id))
 		{
-			printf("sending true link set, %u->%u\n", target->node.id, link->link);
+/*			printf("sending true link set, %u->%u\n", target->node.id, link->link);*/
 			verse_send_o_link_set(target->node.id, (uint16) ~0u, link->link, link->label, link->target_id);
 			sync = 0;
 		}
@@ -226,16 +223,16 @@ static int sync_object(NodeObject *n, const NodeObject *target)
 		{
 			uint16	id;
 	
-			printf("local node has been resolved. now see if link it replaces anything\n");
+/*			printf("local node has been resolved. now see if link it replaces anything\n");*/
 			if((id = object_link_find_same(target, link->label, link->target_id)) != (uint16) ~0u)
 			{
-				printf(" replacing link %u with the local one\n", id);
+/*				printf(" replacing link %u with the local one\n", id);*/
 				verse_send_o_link_set(target->node.id, id, link->link->id, link->label, link->target_id);
 				sync = 0;
 			}
 			if(!object_link_exists(target, link->link->id, link->label, link->target_id))	/* Only set if no equivalent link exists. */
 			{
-				printf(" sending local link set, %u->%u\n", target->node.id, link->link->id);
+/*				printf(" sending local link set, %u->%u\n", target->node.id, link->link->id);*/
 				verse_send_o_link_set(target->node.id, ~0, link->link->id, link->label, link->target_id);
 				sync = 0;
 			}
@@ -251,17 +248,17 @@ static int sync_object(NodeObject *n, const NodeObject *target)
 			continue;
 		if(link->deleted)
 		{
-			printf(" link %u with ID=%u is marked as deleted; this means any link with the same label in the target needs to go\n", i, link->id);
+/*			printf(" link %u with ID=%u is marked as deleted; this means any link with the same label in the target needs to go\n", i, link->id);*/
 			for(j = 0; (tlink = dynarr_index(target->links, j)) != NULL; j++)
 			{
 				if(tlink->id == (uint16) ~0u)
 					continue;
 				if(strcmp(tlink->label, link->label) == 0)
 				{
-					printf(" got match in link %u.%u, pointing at %u\n", target->node.id, tlink->id, tlink->link);
+/*					printf(" got match in link %u.%u, pointing at %u\n", target->node.id, tlink->id, tlink->link);*/
 					verse_send_o_link_destroy(target->node.id, tlink->id);
 					sync = 0;
-					printf("  delete sent\n");
+/*					printf("  delete sent\n");*/
 				}
 			}
 			link->id = (uint16) ~0u;	/* Then mark the link as gone, so we don't send destroys twice. */
