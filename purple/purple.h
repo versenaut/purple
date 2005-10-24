@@ -37,6 +37,11 @@
 # define PURPLE_PLUGIN
 #endif		/* _WIN32 */
 
+/* Be nice and allow plug-ins to use some ... exotic (?) libc portably. */
+#if defined _WIN32
+# define snprintf	_snprintf
+#endif
+
 #include "verse.h"
 
 /** \brief General-purpose iterator structure.
