@@ -266,6 +266,8 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 		glColor3(0.0, 0.0, 0.0)
 		if self.zoom <= 0.5:	glLineWidth(1.0)
 		else:			glLineWidth(2.0)
+		glEnable(GL_LINE_SMOOTH)
+		glEnable(GL_BLEND)
 #		glRasterPos2d(pos[0], pos[1] - 6.0)
 		for ch in string:
 #			glutBitmapCharacter(GLUT_BITMAP_8_BY_13, ord(ch))
@@ -276,6 +278,8 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 		for ch in string:
 #			glutBitmapCharacter(GLUT_BITMAP_8_BY_13, ord(ch))
 			glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, ord(ch))
+		glDisable(GL_BLEND)
+		glDisable(GL_LINE_SMOOTH)
 		glLineWidth(1.0)
 		glPopMatrix()
 
@@ -287,6 +291,8 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 		return (x, y)
 
 	def _connector_paint(self, x1, y1, x2, y2, steps = 12):
+		glEnable(GL_LINE_SMOOTH)
+		glEnable(GL_BLEND);
 	    	glBegin(GL_LINE_STRIP)
 		glVertex2d(x1, y1)
 		steps = float(steps)
@@ -295,6 +301,8 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 			p = self._bezier((x1, y1), (x2, y1), (x1, y2), (x2, y2), t)
 			glVertex2d(p[0], p[1])
 		glEnd()
+		glDisable(GL_BLEND);
+		glDisable(GL_LINE_SMOOTH)
 
 	def _connections_paint(self, mid, xtra):
 		"""Paint lines from module outputs to inputs referencing them."""
