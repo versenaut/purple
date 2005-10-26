@@ -308,6 +308,9 @@ class InputArea(gtk.Notebook):
 			elif type == "real64_vec3":
 				w = InputArea.InputTable.InputRealVec(iid, rng, 3)
 				w._connect("value_changed", self._cb_change_real64_vec, w)
+			elif type == "real64_vec4":
+				w = InputArea.InputTable.InputRealVec(iid, rng, 4)
+				w._connect("value_changed", self._cb_change_real64_vec, w)
 			elif type == "module":
 				w = InputArea.InputTable.InputModule(iid)
 				w._connect("changed", self._cb_change_module, w)
