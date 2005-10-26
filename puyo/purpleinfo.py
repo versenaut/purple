@@ -65,7 +65,7 @@ class PurpleInfo:
 						rv = 0.0
 					elif cont == "true":
 						rv = 1.0
-					elif ctype == "real64_vec3":
+					elif ctype == "real32_vec3" or ctype == "real64_vec3":
 						t = eval("(" + string.replace(string.strip(cont, "[]"), " ", ",") + ")")	# Convert e.g. "[1 2 3]" to "(1, 2, 3)", and eval.
 						rv = (float(t[0]), float(t[1]), float(t[2]))
 					elif ctype == "string":
