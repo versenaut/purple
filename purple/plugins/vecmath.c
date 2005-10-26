@@ -41,19 +41,39 @@ static PComputeStatus compute_vec_sub(PPInput *input, PPOutput output, void *sta
 	return P_COMPUTE_DONE;
 }
 
+/* Compute vector multiplied by either a scalar (real number) or a matrix. For matrices, the
+ * matrix must be the first input, since Purple vectors are columns. For the vector vs
+ * scalar case, the vector should be the last input, too.
+*/
 static PComputeStatus compute_vec_multiply(PPInput *input, PPOutput output, void *state)
 {
-	const real64	*x, y = p_input_real64(input[1]);
+	real64		x;
+	const real64	*y;
 	real64		r[4];
+	PValueType	xt;
+	int		i, j;
 
-	if((x = p_input_real64_vec4(input[0])) != NULL)
+	if((y = p_input_real64_vec4(input[1])) == NULL)
+		return P_COMPUTE_DONE;
+
+	xt = p_input_get_type(input[0]);
+	if(xt == P_VALUE_REAL32_MAT16 || xt == P_VALUE_REAL64_MAT16)
 	{
-		int	i;
+		const real64	*x = p_input_real64_mat16(input[0]);
 
 		for(i = 0; i < 4; i++)
-			r[i] = x[i] * y;
-		p_output_real64_vec4(output, r);
+		{
+			r[i] = 0.0;
+			for(j = 0; j < 4; j++)
+				r[i] += x[i * 4 + j] * y[j];
+		}
+		return P_COMPUTE_DONE;
 	}
+
+	x = p_input_real64(input[0]);
+	for(i = 0; i < 4; i++)
+		r[i] = x * y[i];
+	p_output_real64_vec4(output, r);
 	return P_COMPUTE_DONE;
 }
 
@@ -78,6 +98,7 @@ static PComputeStatus compute_vec_cross(PPInput *input, PPOutput output, void *s
 	const real64	*x, *y;
 	real64		r[3];
 
+	/* Happily ignore 4D vectors, since they're not very interesting, after all. :) */
 	if((x = p_input_real64_vec3(input[0])) != NULL && (y = p_input_real64_vec3(input[1])) != NULL)
 	{
 		r[0] = x[1] * y[2] - x[2] * y[1];
@@ -148,8 +169,8 @@ PURPLE_PLUGIN void init(void)
 	p_init_compute(compute_vec_add);
 
 	p_init_create("vec-multiply");
-	p_init_input(0, P_VALUE_REAL64_VEC4, "x", P_INPUT_DESC("A vector will be parsed from this input, and multiplied by the other input's value."), P_INPUT_REQUIRED, P_INPUT_DONE);
-	p_init_input(1, P_VALUE_REAL64, "y", P_INPUT_DESC("A real number is read here, and used to scale the vector."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_REAL64, "x", P_INPUT_DESC("A real number or matrix is read here, and used to scale the vector."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(1, P_VALUE_REAL64_VEC4, "y", P_INPUT_DESC("A vector will be parsed from this input, and multiplied by the other input's value."), P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_compute(compute_vec_multiply);
 
 	p_init_create("vec-divide");
@@ -158,8 +179,8 @@ PURPLE_PLUGIN void init(void)
 	p_init_compute(compute_vec_divide);
 
 	p_init_create("vec-cross");
-	p_init_input(0, P_VALUE_REAL64_VEC4, "x", P_INPUT_DESC("A 3D vector will be read here, and used as one part of the cross product computation."), P_INPUT_REQUIRED, P_INPUT_DONE);
-	p_init_input(1, P_VALUE_REAL64_VEC4, "y", P_INPUT_DESC("A 3D vector will be read here, and used as one part of the cross product computation."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_REAL64_VEC3, "x", P_INPUT_DESC("A 3D vector will be read here, and used as one part of the cross product computation."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(1, P_VALUE_REAL64_VEC3, "y", P_INPUT_DESC("A 3D vector will be read here, and used as one part of the cross product computation."), P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_compute(compute_vec_cross);
 	
 	p_init_create("vec-scalar");
