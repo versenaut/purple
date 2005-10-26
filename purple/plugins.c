@@ -827,7 +827,7 @@ void plugins_libraries_init(void)
 	for(iter = plugins_info.libraries; iter != NULL; iter = list_next(iter))
 	{
 		Library	*lib = list_data(iter);
-		size_t	num = plugins_amount();
+/*		size_t	num = plugins_amount();*/
 /*		LOG_MSG(("Initializing library \"%s\"", lib->name));*/
 		api_init_begin(lib);
 		lib->init();
