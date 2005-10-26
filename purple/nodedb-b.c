@@ -319,6 +319,7 @@ real64 nodedb_b_layer_pixel_read_filtered(const NodeBitmap *node, const NdbBLaye
 void nodedb_b_layer_pixel_write(NodeBitmap *node, NdbBLayer *layer, uint16 x, uint16 y, uint16 z, real64 pixel)
 {
 	void	*fb;
+	uint32	rw;
 
 	if(node == NULL || layer == NULL || x >= node->width || y >= node->height || z >= node->depth)
 		return;
@@ -326,12 +327,32 @@ void nodedb_b_layer_pixel_write(NodeBitmap *node, NdbBLayer *layer, uint16 x, ui
 	{
 		switch(layer->type)
 		{
+		case VN_B_LAYER_UINT1:
+			rw = ((node->width + 7) / 8);
+			if(pixel <= 0)
+				((uint8 *) fb)[z * rw * node->height + y * rw + x / 8] &= ~(1 << (7 - (x % 8)));
+			else
+				((uint8 *) fb)[z * rw * node->height + y * rw + x / 8] |= 1 << (7 - (x % 8));
+			break;
 		case VN_B_LAYER_UINT8:
 			if(pixel < 0)		/* Clamp 8-bit pixels. */
 				pixel = 0.0;
 			else if(pixel > 1.0)
 				pixel = 1.0;
 			((uint8 *) fb)[z * node->width * node->height + y * node->width + x] = 255.0 * pixel;
+			break;
+		case VN_B_LAYER_UINT16:
+			if(pixel < 0)		/* Clamp 16-bit pixels. */
+				pixel = 0.0;
+			else if(pixel > 1.0)
+				pixel = 1.0;
+			((uint16 *) fb)[z * node->width * node->height + y * node->width + x] = 65535.0 * pixel;
+			break;
+		case VN_B_LAYER_REAL32:
+			((real32 *) fb)[z * node->width * node->height + y * node->width + x] = pixel;
+			break;
+		case VN_B_LAYER_REAL64:
+			((real64 *) fb)[z * node->width * node->height + y * node->width + x] = pixel;
 			break;
 		}
 		nodedb_b_layer_access_end(node, layer, fb);
