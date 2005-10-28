@@ -721,6 +721,10 @@ void nodedb_b_tile_describe(const NodeBitmap *node, const NdbBLayer *layer, NdbB
 	desc->out.mod_row  = layer_modulo(node, layer);
 	desc->out.mod_tile = tile_modulo(node, layer);
 	desc->out.width    = MIN(VN_B_TILE_SIZE, node->width - desc->in.x * VN_B_TILE_SIZE);
+	if(layer->type == VN_B_LAYER_UINT1)
+		desc->out.width_bytes = (desc->out.width + 7) / 8;
+	else
+		desc->out.width_bytes = (desc->out.width * pixel_size(layer->type)) / 8;
 	desc->out.height   = (desc->in.y * VN_B_TILE_SIZE + 7 >= node->height) ?
 				node->height % VN_B_TILE_SIZE : VN_B_TILE_SIZE;
 	desc->out.ptr = nodedb_b_layer_tile_find(node, layer, desc->in.x, desc->in.y, desc->in.z);
