@@ -267,7 +267,6 @@ static void layer_resize(BitmapLayer *layer,
 	aw = (layer->type == VN_B_LAYER_UINT1) ? (width + 7) / 8 : width;
 	layer->size = aw * height * depth;
 	nd = g_malloc(layer->size);
-	printf("allocated %u bytes for a type %d layer\n", layer->size, layer->type);
 	if(nd != NULL)
 	{
 		if(depth != 1 || old_depth != 1)
