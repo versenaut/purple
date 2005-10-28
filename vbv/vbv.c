@@ -188,6 +188,16 @@ static void put_layer(GdkPixbuf *dst, const BitmapLayer *layer, const NodeBitmap
 				*put = *get++;
 		}
 	}
+	else if(layer->type == VN_B_LAYER_UINT16)
+	{
+		uint16	*get16 = layer->data;
+		for(y = 0; y < node->height; y++)
+		{
+			put = pix + y * stride + c;
+			for(x = 0; x < node->width; x++, put += 3)
+				*put = (*get16++) >> 8;		/* Just keep the most significant byte. */
+		}
+	}
 }
 
 static void set_image(GtkWidget *image, const GdkPixbuf *src, gdouble zoom, size_t w, size_t h)
@@ -259,13 +269,16 @@ static void layer_resize(BitmapLayer *layer,
 			 uint16 width, uint16 height, uint16 depth,
 			 uint16 old_width, uint16 old_height, uint16 old_depth)
 {
-	size_t	aw;
 	void	*nd;
 
 	if(layer->data != NULL)
 		;
-	aw = (layer->type == VN_B_LAYER_UINT1) ? (width + 7) / 8 : width;
-	layer->size = aw * height * depth;
+	if(layer->type == VN_B_LAYER_UINT1)
+	{
+		layer->size = ((width + 7) / 8) * height * depth;
+	}
+	layer->size = (width * height * depth * type_bits(layer->type)) / 8;
+	printf("allocating %u bytes for %ux%ux%u type %d layer\n", layer->size, width, height, depth, layer->type);
 	nd = g_malloc(layer->size);
 	if(nd != NULL)
 	{
@@ -607,8 +620,19 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 			}
 		}
 		break;
+	case VN_B_LAYER_UINT16:
+		{
+			uint16	*put = (uint16 *) layer->data + tile_z * sheet + tile_y * VN_B_TILE_SIZE * node->width + tile_x * VN_B_TILE_SIZE;
+
+			for(y = 0; y < th; y++, put += node->width)
+			{
+				for(x = 0; x < tw; x++)
+					put[x] = tile->vuint16[y * VN_B_TILE_SIZE + x];
+			}
+		}
+		break;
 	default:
-		fprintf(stderr, "vbv: Layer type %d (not uint8) not yet supported\n", layer->type);
+		fprintf(stderr, "vbv: Layer type %d (not uint) not yet supported\n", layer->type);
 		return;
 	}
 	node->tile_count++;
