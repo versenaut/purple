@@ -706,6 +706,7 @@ int main(int argc, char *argv[])
 
 	min.session = verse_send_connect("vbv", "secret", ip, NULL);
 	gtk_main();
+	verse_send_connect_terminate(ip, "User quit");	
 
 	return 0;
 }
