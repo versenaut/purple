@@ -259,12 +259,13 @@ static void layer_resize(BitmapLayer *layer,
 			 uint16 width, uint16 height, uint16 depth,
 			 uint16 old_width, uint16 old_height, uint16 old_depth)
 {
+	size_t	aw;
 	void	*nd;
 
-	/* FIXME: This code isn't too smart when dealing with 1 bpp images. */
 	if(layer->data != NULL)
 		;
-	layer->size = ((type_bits(layer->type) * (width + 7)) / 8) * height * depth + 7;
+	aw = (layer->type == VN_B_LAYER_UINT1) ? (width + 7) / 8 : width;
+	layer->size = aw * height * depth;
 	nd = g_malloc(layer->size);
 	printf("allocated %u bytes for a type %d layer\n", layer->size, layer->type);
 	if(nd != NULL)
