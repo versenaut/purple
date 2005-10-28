@@ -138,7 +138,6 @@ static void put_layer(GdkPixbuf *dst, const BitmapLayer *layer, const NodeBitmap
 	stride = gdk_pixbuf_get_rowstride(dst);
 	pix = gdk_pixbuf_get_pixels(dst);
 	get = layer->data;
-/*	printf("putting layer '%s.%s'\n", node->name, layer->name);*/
 	if(strcmp(layer->name, "col_r") == 0)
 		c = 0;
 	else if(strcmp(layer->name, "col_g") == 0)
@@ -165,12 +164,29 @@ static void put_layer(GdkPixbuf *dst, const BitmapLayer *layer, const NodeBitmap
 		}
 		return;
 	}
-/*	printf(" in channel %d\n", c);*/
-	for(y = 0; y < node->height; y++)
+	if(layer->type == VN_B_LAYER_UINT1)	/* One-bit per pixel requires unpacking the bits. */
 	{
-		put = pix + y * stride + c;
-		for(x = 0; x < node->width; x++, put += 3)
-			*put = *get++;
+		for(y = 0; y < node->height; y++)
+		{
+			uint8	v, b;
+
+			put = pix + y * stride + c;
+			for(x = 0; x < node->width;)
+			{
+				v = *get++;
+				for(b = 0; b < 8 && x < node->width; b++, x++, put += 3)
+					*put = (v & (1 << (7 - b))) ? 0xff : 0x00;
+			}
+		}
+	}
+	else if(layer->type == VN_B_LAYER_UINT8)	/* 8bpp images can just be copied, but layers make it tricky. */
+	{
+		for(y = 0; y < node->height; y++)
+		{
+			put = pix + y * stride + c;
+			for(x = 0; x < node->width; x++, put += 3)
+				*put = *get++;
+		}
 	}
 }
 
@@ -179,7 +195,7 @@ static void set_image(GtkWidget *image, const GdkPixbuf *src, gdouble zoom, size
 	GdkPixbuf	*scaled;
 
 	scaled = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8, zoom * w, zoom * h);
-	gdk_pixbuf_scale(src, scaled, 0, 0, zoom * w, zoom * h, 0.0, 0.0, zoom, zoom, GDK_INTERP_BILINEAR);
+	gdk_pixbuf_scale(src, scaled, 0, 0, zoom * w, zoom * h, 0.0, 0.0, zoom, zoom, GDK_INTERP_NEAREST);
 	gtk_image_set_from_pixbuf(GTK_IMAGE(image), scaled);
 	g_object_unref(scaled);	/* Drop the reference, we're done with the scaled image. */
 }
@@ -248,8 +264,9 @@ static void layer_resize(BitmapLayer *layer,
 	/* FIXME: This code isn't too smart when dealing with 1 bpp images. */
 	if(layer->data != NULL)
 		;
-	layer->size = (type_bits(layer->type) * width * height * depth + 7) / 8;
+	layer->size = ((type_bits(layer->type) * (width + 7)) / 8) * height * depth + 7;
 	nd = g_malloc(layer->size);
+	printf("allocated %u bytes for a type %d layer\n", layer->size, layer->type);
 	if(nd != NULL)
 	{
 		if(depth != 1 || old_depth != 1)
@@ -562,7 +579,6 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 		return;
 	if((layer = layer_lookup(user, node_id, layer_id)) == NULL)
 		return;
-/*	printf("setting tile at (%u,%u,%u) in %s (%u)\n", tile_x, tile_y, tile_z, layer->name, layer->id);*/
 	wt = (node->width  + VN_B_TILE_SIZE - 1) / VN_B_TILE_SIZE;
 	ht = (node->height + VN_B_TILE_SIZE - 1) / VN_B_TILE_SIZE;
 	tw = (tile_x == wt - 1) && (node->width  % VN_B_TILE_SIZE) != 0 ? node->width  % VN_B_TILE_SIZE : VN_B_TILE_SIZE;
@@ -570,6 +586,16 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 	sheet = (type_bits(layer->type) * node->width * node->height + 7) / 8;
 	switch(layer->type)
 	{
+	case VN_B_LAYER_UINT1:
+		{
+			size_t	rs = (node->width + 7) / 8;
+			uint8	*put;
+
+			put = layer->data + tile_z * node->height * rs + tile_y * VN_B_TILE_SIZE * rs + tile_x;
+			for(y = 0; y < th; y++, put += (node->width + 7) / 8)
+				*put = tile->vuint1[y];
+		}
+		break;
 	case VN_B_LAYER_UINT8:
 		{
 			uint8	*put = layer->data + tile_z * sheet + tile_y * VN_B_TILE_SIZE * node->width + tile_x * VN_B_TILE_SIZE;
