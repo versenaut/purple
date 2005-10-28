@@ -7,13 +7,11 @@
 typedef enum { TOP, BOTTOM, FRONT, BACK, LEFT, RIGHT } Face;
 
 /* Compute a vertex on a tesselated cube's surface. */
-static void cube_vertex_compute(real64 *vtx, real32 size, uint32 splits, uint32 x, uint32 y, uint32 z)
+static void cube_vertex_compute(real64 *vtx, const real64 *size, uint32 splits, uint32 x, uint32 y, uint32 z)
 {
-	real32	d = size / splits, half = 0.5 * size;
-
-	vtx[0] = -half + x * d;
-	vtx[1] =  /*half*/size - y * d;
-	vtx[2] = -half + z * d;
+	vtx[0] = -0.5 * size[0] + x * (size[0] / splits);
+	vtx[1] =  /*half*/size[1] - y * (size[1] / splits);
+	vtx[2] = -0.5 * size[2] + z * (size[2] / splits);
 
 	printf("XYZ for (%u,%u,%u): (%g,%g,%g)\n", x, y, z, vtx[0], vtx[1], vtx[2]);
 }
@@ -59,7 +57,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
 	enum { MY_OBJECT, MY_GEOMETRY };			/* Node labels. */
 	PONode		*obj, *geo;
-	real32		size = p_input_real32(input[0]);	/* Read out the size. */
+	const real64	*size = p_input_real64_vec3(input[0]);	/* Read out the size. */
 	uint32		splits = p_input_uint32(input[1]);	/* And the tesselation level. */
 	boolean		uv_map = p_input_boolean(input[2]);	/* And whether an UV map should be created. */
 	real64		vtx[3];
@@ -335,8 +333,8 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 PURPLE_PLUGIN void init(void)
 {
 	p_init_create("cube");
-	p_init_input(0, P_VALUE_REAL32, "size", P_INPUT_REQUIRED, P_INPUT_MIN(0.1), P_INPUT_MAX(200.0), P_INPUT_DEFAULT(1.0),
-		     P_INPUT_DESC("The side length of the cube."), P_INPUT_DONE);
+	p_init_input(0, P_VALUE_REAL64_VEC3, "size", P_INPUT_REQUIRED, P_INPUT_MIN_VEC3(0.1, 0.1, 0.1), P_INPUT_MAX_VEC3(10.0, 10.0, 10.0), P_INPUT_DEFAULT_VEC3(1.0, 1.0, 1.0),
+		     P_INPUT_DESC("The side lengths of the cube, in all three dimensions."), P_INPUT_DONE);
 	p_init_input(1, P_VALUE_UINT32, "splits", P_INPUT_REQUIRED, P_INPUT_MIN(1), P_INPUT_MAX(100), P_INPUT_DEFAULT(1),
 		     P_INPUT_DESC("The number of splits to do along each axis."), P_INPUT_DONE);
 	p_init_input(2, P_VALUE_BOOLEAN, "uv-map", P_INPUT_DEFAULT(0),
