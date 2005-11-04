@@ -32,6 +32,7 @@ static MemChunk	*the_chunk_bone = NULL;
 
 void nodedb_g_construct(NodeGeometry *n)
 {
+	n->num_vertex = n->num_polygon = 0;
 	n->layers = NULL;
 	n->bones  = NULL;
 	n->crease_vertex.layer[0] = '\0';
@@ -49,16 +50,19 @@ static void cb_copy_layer(void *d, const void *s, void *user)
 	strcpy(dst->name, src->name);
 	dst->type = src->type;
 	dst->data = dynarr_new_copy(src->data, NULL, NULL);
-	dst->def_uint = src->def_uint;
-	dst->def_real = src->def_real;
+	dst->def  = src->def;
+	dynarr_set_default(dst->data, &dst->def);
+	dst->node = user;
 }
 
 void nodedb_g_copy(NodeGeometry *n, const NodeGeometry *src)
 {
+	n->num_vertex  = src->num_vertex;
+	n->num_polygon = src->num_polygon;
 	if(src->layers != NULL)
-		n->layers = dynarr_new_copy(src->layers, cb_copy_layer, NULL);
+		n->layers = dynarr_new_copy(src->layers, cb_copy_layer, n);
 	if(src->bones != NULL)
-		n->bones = dynarr_new_copy(src->bones, NULL, NULL);	/* Self-contained. */
+		n->bones = idtree_new_copy(src->bones, NULL, NULL);
 	n->crease_vertex = src->crease_vertex;
 	n->crease_edge   = src->crease_edge;
 }
@@ -88,7 +92,7 @@ void nodedb_g_destruct(NodeGeometry *n)
 	}
 	if(n->bones != NULL)
 	{
-		dynarr_destroy(n->bones);	/* Bones contain no pointers. */
+		idtree_destroy(n->bones);	/* Bones contain no pointers. */
 		n->bones = NULL;
 	}
 }
@@ -157,6 +161,71 @@ const char * nodedb_g_layer_get_name(const NdbGLayer *layer)
 	return NULL;
 }
 
+static size_t layer_element_size(VNGLayerType type)
+{
+	switch(type)
+	{
+	case VN_G_LAYER_VERTEX_XYZ:		return 3 * sizeof (real64);
+	case VN_G_LAYER_VERTEX_UINT32:		return sizeof (uint32);
+	case VN_G_LAYER_VERTEX_REAL:		return sizeof (real64);
+	case VN_G_LAYER_POLYGON_CORNER_UINT32:	return 4 * sizeof (uint32);
+	case VN_G_LAYER_POLYGON_CORNER_REAL:	return 4 * sizeof (real64);
+	case VN_G_LAYER_POLYGON_FACE_UINT8:	return sizeof (uint8);
+	case VN_G_LAYER_POLYGON_FACE_UINT32:	return sizeof (uint32);
+	case VN_G_LAYER_POLYGON_FACE_REAL:	return sizeof (real64);
+	}
+	return 0;
+}
+
+#define	VERTEX_LAYER(l)		((l)->type >= VN_G_LAYER_VERTEX_XYZ && ((l)->type < VN_G_LAYER_POLYGON_CORNER_UINT32))
+#define	POLYGON_LAYER(l)	((l)->type >= VN_G_LAYER_POLYGON_CORNER_UINT32 && ((l)->type <= VN_G_LAYER_POLYGON_FACE_REAL))
+
+static void nodedb_g_layer_allocate(NodeGeometry *node, NdbGLayer *layer)
+{
+	if(node == NULL || layer == NULL || layer->data != NULL)
+		return;
+	layer->data = dynarr_new(layer_element_size(layer->type), 16);
+	dynarr_set_default(layer->data, &layer->def);
+
+	if(VERTEX_LAYER(layer) && node->num_vertex > 0)
+		dynarr_grow(layer->data, node->num_vertex - 1, 1);
+	else if(POLYGON_LAYER(layer) && node->num_polygon > 0)
+		dynarr_grow(layer->data, node->num_polygon - 1, 1);
+}
+
+void nodedb_g_layer_set_default(NdbGLayer *layer, uint32 def_uint, real64 def_real)
+{
+	switch(layer->type)
+	{
+	case VN_G_LAYER_VERTEX_XYZ:
+		layer->def.v_xyz[0] = layer->def.v_xyz[1] = layer->def.v_xyz[2] = def_real;
+		break;
+	case VN_G_LAYER_VERTEX_UINT32:
+		layer->def.v_uint32 = def_uint;
+		break;
+	case VN_G_LAYER_VERTEX_REAL:
+		layer->def.v_real = def_real;
+		break;
+	case VN_G_LAYER_POLYGON_CORNER_UINT32:
+		layer->def.p_corner_uint32[0] = layer->def.p_corner_uint32[1] = layer->def.p_corner_uint32[2] = layer->def.p_corner_uint32[3] = def_uint;
+		break;
+	case VN_G_LAYER_POLYGON_CORNER_REAL:
+		layer->def.p_corner_real[0] = layer->def.p_corner_real[1] = layer->def.p_corner_real[2] = layer->def.p_corner_real[3] = def_real;
+		break;
+	case VN_G_LAYER_POLYGON_FACE_UINT8:
+		layer->def.p_face_uint8 = def_uint;
+		break;
+	case VN_G_LAYER_POLYGON_FACE_UINT32:
+		layer->def.p_face_uint32 = def_uint;
+		break;
+	case VN_G_LAYER_POLYGON_FACE_REAL:
+		layer->def.p_face_real = def_real;
+		break;
+	}
+	layer->def_uint = def_uint;
+	layer->def_real = def_real;
+}
+
 static void cb_def_layer(unsigned int index, void *element, void *user)
 {
 	NdbGLayer	*layer = element;
@@ -165,7 +234,7 @@ static void cb_def_layer(unsigned int index, void *element, void *user)
 	layer->data = NULL;
 }
 
-NdbGLayer * nodedb_g_layer_create(NodeGeometry *node, VLayerID layer_id, const char *name, VNGLayerType type)
+NdbGLayer * nodedb_g_layer_create(NodeGeometry *node, VLayerID layer_id, const char *name, VNGLayerType type, uint32 def_uint, real64 def_real)
 {
 	NdbGLayer	*layer;
 
@@ -180,7 +249,8 @@ NdbGLayer * nodedb_g_layer_create(NodeGeometry *node, VLayerID layer_id, const c
 		layer = dynarr_append(node->layers, NULL, NULL);
 	else
 	{
-		if((layer = dynarr_set(node->layers, layer_id, NULL)) != NULL)
+		printf("creating layer %u (\"%s\") in node %u, type %u, def_uint=%u def_real=%g\n", layer_id, name, node->node.id, type, def_uint, def_real);
+		if((layer = dynarr_index(node->layers, layer_id)) != NULL)
 		{
 			if(layer->name[0] != '\0')
 			{
@@ -191,13 +261,15 @@ NdbGLayer * nodedb_g_layer_create(NodeGeometry *node, VLayerID layer_id, const c
 				}
 			}
 		}
+		layer = dynarr_set(node->layers, layer_id, NULL);
 	}
 	layer->id = layer_id;
 	stu_strncpy(layer->name, sizeof layer->name, name);
 	layer->type = type;
-	layer->data = NULL;
-	layer->def_uint = 0;
-	layer->def_real = 0.0;
+	layer->node = node;
+	nodedb_g_layer_set_default(layer, def_uint, def_real);
+	nodedb_g_layer_allocate(node, layer);
+	printf("done, layer %s created\n", name);
 
 	return layer;
 }
@@ -233,23 +305,20 @@ static void cb_g_layer_create(void *user, VNodeID node_id, VLayerID layer_id, co
 		if(layer->type == type)
 		{
 			layer->id = layer_id;
-			layer->def_uint = def_uint;
-			layer->def_real = def_real;
+			nodedb_g_layer_set_default(layer, def_uint, def_real);
 		}
 		else
 			fprintf(stderr, "Missing code here, geo layer needs to be reborn\n");	/* FIXME */
 	}
 	else
 	{	
-		nodedb_g_layer_create(node, layer_id, name, type);
+		nodedb_g_layer_create(node, layer_id, name, type, def_uint, def_real);
 		if((layer = nodedb_g_layer_find(node, name)) != NULL)
 		{
 			layer->id = layer_id;
 			stu_strncpy(layer->name, sizeof layer->name, name);
 			layer->type = type;
 			layer->data = NULL;
-			layer->def_uint = def_uint;
-			layer->def_real = def_real;
 			NOTIFY(node, STRUCTURE);
 			verse_send_g_layer_subscribe(node_id, layer_id, VN_FORMAT_REAL64);
 		}
@@ -271,11 +340,61 @@ static void cb_g_layer_destroy(void *user, VNodeID node_id, VLayerID layer_id)
 	NOTIFY(node, STRUCTURE);
 }
 
+/* ----------------------------------------------------------------------------------------- */
+
+void nodedb_g_vertex_set_selected(NodeGeometry *node, uint32 vertex_id, real64 selection)
+{
+	NdbGLayer	*sel;
+
+	if(node == NULL)
+		return;
+	if((sel = nodedb_g_layer_find(node, "selection")) == NULL)
+	{
+		sel = nodedb_g_layer_create(node, (uint16) ~0u, "selection", VN_G_LAYER_VERTEX_REAL, 0u, 47.11);
+	}
+	nodedb_g_vertex_set_real(sel, vertex_id, selection);
+	printf("set selection of vertex %u.%u to %g\n", node->node.id, vertex_id, selection);
+}
+
+real64 nodedb_g_vertex_get_selected(const NodeGeometry *node, uint32 vertex_id)
+{
+	NdbGLayer	*sel;
+
+	if(node == NULL)
+		return 0.0;
+	if((sel = nodedb_g_layer_find(node, "selection")) == NULL)
+		return 0.0;
+	return nodedb_g_vertex_get_real(sel, vertex_id);
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
+static void resize_vertex(NodeGeometry *node, uint32 size)
+{
+	unsigned int	i;
+	NdbGLayer	*layer;
+
+	for(i = 2; (layer = dynarr_index(node->layers, i)) != NULL; i++)
+	{
+		if(layer->name[0] == '\0')
+			continue;
+		if(layer->type >= VN_G_LAYER_POLYGON_CORNER_UINT32)	/* Really skip polygon layers. */
+			continue;
+		if(layer->data == NULL)
+			layer->data = dynarr_new(layer_element_size(layer->type), 16);
+		if(dynarr_size(layer->data) < size)
+			dynarr_grow(layer->data, size - 1, 1);
+	}
+	node->num_vertex = size;
+}
+
 void nodedb_g_vertex_set_xyz(NdbGLayer *layer, uint32 vertex_id, real64 x, real64 y, real64 z)
 {
 	real64	*vtx;
 
 	if(layer == NULL)
+		return;
+	if(layer->id != 0 && vertex_id >= layer->node->num_vertex)
 		return;
 	if(layer->data == NULL)
 		layer->data = dynarr_new(3 * sizeof *vtx, 16);	/* FIXME: Should care about defaults. */\
@@ -284,7 +403,8 @@ void nodedb_g_vertex_set_xyz(NdbGLayer *layer, uint32 vertex_id, real64 x, real6
 		vtx[0] = x;
 		vtx[1] = y;
 		vtx[2] = z;
-/*		printf(" vertex set to (%g,%g,%g)\n", x, y, z);*/
+		if(vertex_id >= layer->node->num_vertex)
+			resize_vertex(layer->node, vertex_id + 1);
 	}
 }
 
@@ -307,7 +427,7 @@ void nodedb_g_vertex_get_xyz(const NdbGLayer *layer, uint32 vertex_id, real64 *x
 {
 	real64	*vtx;
 
-	if(layer == NULL || layer->type != VN_G_LAYER_VERTEX_XYZ || layer->data == NULL)
+	if(layer == NULL || layer->type != VN_G_LAYER_VERTEX_XYZ || layer->data == NULL || vertex_id >= layer->node->num_vertex)
 		return;
 	if((vtx = dynarr_index(layer->data, vertex_id)) != NULL)
 	{
@@ -315,14 +435,14 @@ void nodedb_g_vertex_get_xyz(const NdbGLayer *layer, uint32 vertex_id, real64 *x
 		*y = vtx[1];
 		*z = vtx[2];
 	}
+	else
+		*x = *y = *z = 0.0;
 }
 
 void nodedb_g_vertex_set_uint32(NdbGLayer *layer, uint32 vertex_id, uint32 value)
 {
 	if(layer == NULL)
 		return;
-	if(layer->data == NULL)
-		layer->data = dynarr_new(sizeof value, 16);
 	dynarr_set(layer->data, vertex_id, &value);
 }
 
@@ -331,8 +451,22 @@ uint32 nodedb_g_vertex_get_uint32(const NdbGLayer *layer, uint32 vertex_id)
 	if(layer == NULL)
 		return 0u;
 	if(layer->data == NULL)
-		return layer->def_uint;
+		return 0;
 	return *(uint32 *) dynarr_index(layer->data, vertex_id);
+}
+
+void nodedb_g_vertex_set_real(NdbGLayer *layer, uint32 vertex_id, real64 value)
+{
+	if(layer == NULL || layer->type != VN_G_LAYER_VERTEX_REAL)
+		return;
+	dynarr_set(layer->data, vertex_id, &value);
+}
+
+real64 nodedb_g_vertex_get_real(const NdbGLayer *layer, uint32 vertex_id)
+{
+	if(layer == NULL || layer->data == NULL)
+		return 0.0;
+	return *(real64 *) dynarr_index(layer->data, vertex_id);
 }
 
 /* Macro to define a vertex XYZ handler function. */
@@ -347,15 +481,8 @@ uint32 nodedb_g_vertex_get_uint32(const NdbGLayer *layer, uint32 vertex_id)
 			return;\
 		if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL || layer->name[0] == '\0')\
 			return;\
-		if(layer->data == NULL)\
-			layer->data = dynarr_new(3 * sizeof *vtx, 16);	/* FIXME: Should care about defaults. */\
-		if((vtx = dynarr_set(layer->data, vertex_id, NULL)) != NULL)\
-		{\
-			vtx[0] = x;\
-			vtx[1] = y;\
-			vtx[2] = z;\
-			NOTIFY(node, DATA);\
-		}\
+		nodedb_g_vertex_set_xyz(layer, vertex_id, x, y, z);\
+		NOTIFY(node, DATA);\
 	}
 
 /* Use macro to define the needed real32 and real64 varieties. */
@@ -374,18 +501,37 @@ VERTEX_XYZ(real64)
 			return;\
 		if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL || layer->name[0] == '\0')\
 			return;\
-		if(layer->data == NULL)\
-			layer->data = dynarr_new(sizeof *v, 16);	/* FIXME: Should care about defaults. */\
-		if((v = dynarr_set(layer->data, vertex_id, NULL)) != NULL)\
-		{\
-			*v = value;\
-			NOTIFY(node, DATA);\
-		}\
+		nodedb_g_vertex_set_ ##t(layer, vertex_id, value);\
+		NOTIFY(node, DATA);\
 	}
 
 VERTEX_SCALAR(uint32)
-VERTEX_SCALAR(real32)
-VERTEX_SCALAR(real64)
+
+static void cb_g_vertex_set_real32(void *user, VNodeID node_id, VLayerID layer_id, uint32 vertex_id, real32 value)
+{
+	NodeGeometry	*node;
+	NdbGLayer	*layer;
+	
+	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
+		return;
+	if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL || layer->name[0] == '0')
+		return;
+	nodedb_g_vertex_set_real(layer, vertex_id, value);
+	NOTIFY(node, DATA);
+}
+
+static void cb_g_vertex_set_real64(void *user, VNodeID node_id, VLayerID layer_id, uint32 vertex_id, real64 value)
+{
+	NodeGeometry	*node;
+	NdbGLayer	*layer;
+	
+	if((node = (NodeGeometry *) nodedb_lookup_with_type(node_id, V_NT_GEOMETRY)) == NULL)
+		return;
+	if((layer = nodedb_g_layer_lookup_id(node, layer_id)) == NULL || layer->name[0] == '0')
+		return;
+	nodedb_g_vertex_set_real(layer, vertex_id, value);
+	NOTIFY(node, DATA);
+}
 
 /* Macro to define polygon corner value handler functions (api set/get, and callback set). */
 #define POLYGON_CORNER(t)	\
@@ -529,23 +675,15 @@ static void cb_g_vertex_delete(void *user, VNodeID node_id, uint32 vertex_id)
 
 unsigned int nodedb_g_bone_num(const NodeGeometry *node)
 {
-	unsigned int	i, num;
-	NdbGBone	*bone;
-
 	if(node == NULL)
 		return 0;
-	for(i = num = 0; (bone = dynarr_index(node->bones, i)) != NULL; i++)
-	{
-		if(bone->id == (uint16) ~0u)
-			continue;
-		num++;
-	}
-	return num;
+	return idtree_size(node->bones);
 }
 
 NdbGBone * nodedb_g_bone_nth(const NodeGeometry *node, unsigned int n)
 {
-	unsigned int	i;
+	return NULL;
+/*	unsigned int	i;
 	NdbGBone	*bone;
 
 	if(node == NULL)
@@ -558,7 +696,7 @@ NdbGBone * nodedb_g_bone_nth(const NodeGeometry *node, unsigned int n)
 			return bone;
 	}
 	return NULL;
-}
+*/}
 
 void nodedb_g_bone_iter(const NodeGeometry *node, PIter *iter)
 {
@@ -571,12 +709,7 @@ NdbGBone * nodedb_g_bone_lookup(const NodeGeometry *node, uint16 id)
 
 	if(node == NULL || id == (uint16) ~0u)
 		return NULL;
-	if((bone = dynarr_index(node->bones, id)) != NULL)
-	{
-		if(bone->id == id)
-			return bone;
-	}
-	return NULL;
+	return idtree_get(node->bones, id);
 }
 
 static int bones_equal(const NodeGeometry *node, const NdbGBone *a,
