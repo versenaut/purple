@@ -12,7 +12,7 @@ else
  SHARED=-shared
 endif
 
-CFLAGS=-I.. -I../../verse/ $(SHARED) -fPIC -Wstrict-prototypes -Wmissing-prototypes
+CFLAGS=-g -I.. -I../../verse/ $(SHARED) -fPIC -Wstrict-prototypes -Wmissing-prototypes -Wimplicit
 
 ALL:	$(patsubst %.c,lib%.so,$(wildcard *.c))
 
