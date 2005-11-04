@@ -158,7 +158,7 @@ NdbTBuffer * nodedb_t_buffer_create(NodeText *node, VLayerID buffer_id, const ch
 		buffer = dynarr_append(node->buffers, NULL, NULL);
 	else
 	{
-		if((buffer = dynarr_set(node->buffers, buffer_id, NULL)) != NULL)
+		if((buffer = dynarr_index(node->buffers, buffer_id)) != NULL)
 		{
 			if(buffer->name[0] != '\0')
 			{
@@ -169,6 +169,7 @@ NdbTBuffer * nodedb_t_buffer_create(NodeText *node, VLayerID buffer_id, const ch
 				}
 			}
 		}
+		buffer = dynarr_set(node->buffers, buffer_id, NULL);
 	}
 	buffer->id = buffer_id;
 	stu_strncpy(buffer->name, sizeof buffer->name, name);
