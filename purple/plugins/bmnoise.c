@@ -5,6 +5,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#include <stdio.h>
+
 #include "purple.h"
 
 static real32 noise1(uint32 x, uint32 y, uint32 seed)

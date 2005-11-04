@@ -2,6 +2,9 @@
  * This plug-in computes the bounding box of input geometry.
 */
 
+#include <math.h>
+#include <stdio.h>
+
 #include "purple.h"
 
 static int vertex_deleted(const real64 *vtx)

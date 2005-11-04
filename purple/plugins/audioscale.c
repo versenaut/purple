@@ -3,6 +3,8 @@
  * attenuates the signal.
 */
 
+#include <stdio.h>
+
 #include "purple.h"
 
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)

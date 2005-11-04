@@ -2,6 +2,8 @@
  * A bunch of Purple plug-ins that create new nodes.
 */
 
+#include <stdio.h>
+
 #include "purple.h"
 
 /* ----------------------------------------------------------------------------------------- */

@@ -2,6 +2,8 @@
  * This plug-in creates a two-node plane, using an input to set side length.
 */
 
+#include <stdio.h>
+
 #include "purple.h"
 
 /* This gets called whenever the input, the size, changes. Create a cube with the given side length. */

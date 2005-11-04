@@ -13,6 +13,8 @@
  * way to indicate which bone/pair of points are to affect the deformation.
 */
 
+#include <stdio.h>
+
 #include "purple.h"
 
 static void planar_scale(PONode *geo, real64 factor)

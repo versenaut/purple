@@ -2,6 +2,9 @@
  * A bitmap Purple plug-in that applies an "oilify" filter to incoming image data. 
 */
 
+#include <stdio.h>
+#include <string.h>
+
 #include "purple.h"
 
 /* Clamp an integer value into the [mi,ma) range. */

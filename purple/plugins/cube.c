@@ -2,6 +2,8 @@
  * This plug-in creates a two-node box, using inputs to set side length and tesselation.
 */
 
+#include <stdio.h>
+
 #include "purple.h"
 
 typedef enum { TOP, BOTTOM, FRONT, BACK, LEFT, RIGHT } Face;
@@ -13,7 +15,7 @@ static void cube_vertex_compute(real64 *vtx, const real64 *size, uint32 splits, 
 	vtx[1] =  /*half*/size[1] - y * (size[1] / splits);
 	vtx[2] = -0.5 * size[2] + z * (size[2] / splits);
 
-	printf("XYZ for (%u,%u,%u): (%g,%g,%g)\n", x, y, z, vtx[0], vtx[1], vtx[2]);
+	printf("cube XYZ for (%u,%u,%u): (%g,%g,%g)\n", x, y, z, vtx[0], vtx[1], vtx[2]);
 }
 
 static void cube_uvmap_compute(uint32 poly, PNGLayer *ulay, PNGLayer *vlay, Face face, uint32 splits, uint32 x, uint32 y)

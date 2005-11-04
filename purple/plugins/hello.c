@@ -2,6 +2,8 @@
  * 
 */
 
+#include <stdio.h>
+
 #include "purple.h"
 
 /* It's more fun to compute. */

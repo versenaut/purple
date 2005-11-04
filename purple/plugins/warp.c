@@ -5,6 +5,9 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#include <stdio.h>
+#include <string.h>
+
 #include "purple.h"
 
 #define	DEG2RAD(a)	(((a) * M_PI) / 180.0)

@@ -2,6 +2,9 @@
  * Some basic string operations.
 */
 
+#include <stdio.h>
+#include <string.h>
+
 #include "purple.h"
 
 static PComputeStatus strlength_compute(PPInput *input, PPOutput output, void *state)
@@ -22,6 +25,8 @@ static PComputeStatus strjoin_compute(PPInput *input, PPOutput output, void *sta
 	{
 		size_t	l1 = strlen(str1), l2 = strlen(str2);
 		char	*buf;
+
+		printf("strjoin on '%s' and '%s'\n", str1, str2);
 		/* Actual joining needs to use a temporary buffer, that is then copied into another
 		 * dynamically allocated buffer by the Purple core. Not... optimal, I guess. :/
 		 */
@@ -29,6 +34,7 @@ static PComputeStatus strjoin_compute(PPInput *input, PPOutput output, void *sta
 		strcpy(buf, str1);
 		strcpy(buf + l1, str2);
 		p_output_string(output, buf);
+		printf(" done, output '%s'\n", buf);
 		free(buf);
 	}
 	return P_COMPUTE_DONE;

@@ -2,6 +2,8 @@
  * Purple plug-in template. Does nothing, in an informative way.
 */
 
+#include <stdio.h>
+
 #include "purple.h"
 
 typedef struct

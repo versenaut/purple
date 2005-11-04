@@ -2,6 +2,8 @@
  * Basic vector maths.
 */
 
+#include <math.h>
+
 #include "purple.h"
 
 /* Vector addition. This works at the maximum size of vectors that Purple supports, i.e. 4D.

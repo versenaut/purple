@@ -2,6 +2,9 @@
  * Basic math functions.
 */
 
+#include <stdio.h>
+#include <string.h>
+
 #include "purple.h"
 
 /* --------------------------------------------------------------------------------------------- */
@@ -179,7 +182,7 @@ static PComputeStatus geometry_math(PINode *a, PINode *b, real64 c, real64 d, PP
 	ga = p_node_o_link_get(a, "geometry", NULL);
 	gb = p_node_o_link_get(b, "geometry", NULL);
 
-	printf("geometry add: nodes %p and %p\n", ga, gb);
+	printf("geometry math: nodes %p and %p\n", ga, gb);
 
 	/* Look up the vertex layers. */
 	va = p_node_g_layer_find(ga, "vertex");

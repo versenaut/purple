@@ -2,6 +2,8 @@
  * A bitmap Purple plug-in that blends two bitmap nodes together, using standard alpha-blending.
 */
 
+#include <stdio.h>
+
 #include "purple.h"
 
 #define	MIN(a, b)	(((a) < (b)) ? (a) : (b))

@@ -3,6 +3,8 @@
 */
 
 #include <ctype.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "purple.h"
 
@@ -388,7 +390,7 @@ static Font * font_new(const char *def[])
 		else if(sscanf(def[i], "dot %c", &dot) == 1)
 			;
 		else
-			fprintf("Unknown font header line '%s'", def[i]);
+			printf("Unknown font header line '%s'", def[i]);
 	}
 /*	printf("font: def len=%u head len=%u, size=%ux%u dot='%c'\n", dl, hl, gw, gh, dot);*/
 	f = malloc(sizeof *f);

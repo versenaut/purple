@@ -2,6 +2,8 @@
  * A bitmap Purple plug-in that averages the contents of a bitmap, thus graying it out.
 */
 
+#include <stdio.h>
+
 #include "purple.h"
 
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)

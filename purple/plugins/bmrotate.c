@@ -7,6 +7,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#include <stdio.h>
+
 #include "purple.h"
 
 /* Macro to boundary-check and then sample a single pixel. Adds color to 'p' while increasing 'c'. */

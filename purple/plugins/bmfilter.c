@@ -5,6 +5,8 @@
  * Thanks to <http://www.pegtop.net/delphi/blendmodes/> for the list of modes.
 */
 
+#include <stdio.h>
+
 #include "purple.h"
 
 #define	MAX(a, b)	(((a) > (b)) ? (a) : (b))

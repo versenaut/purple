@@ -2,6 +2,8 @@
  * A simple Purple plug-in, that will "crowd" an object with clones of it, in a surrounding pattern.
 */
 
+#include <stdio.h>
+
 #include "purple.h"
 
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
