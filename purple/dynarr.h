@@ -48,6 +48,14 @@ extern void	dynarr_set_default_func(DynArr *da, void (*set)(unsigned int index, 
 */
 extern void *	dynarr_index(const DynArr *da, unsigned index);
 
+/* Grow the given array to end with the <index>. This will set any newly allocated elements
+ * to the default value (if one exists). If <default_at_index> is 0, the indicated index
+ * will not be initialized to the default. This limiting *ONLY* affects "simple" arrays,
+ * i.e. arrays that do not use a a defaulting function. Defaulting functions are always
+ * called as new elements are allocated, regardless of the <default_at_index> value.
+*/
+extern void	dynarr_grow(DynArr *da, unsigned int index, int default_at_index);
+
 /* Set the given index to the given content. Causes the array to re-allocate itself if
  * the indicated position is outside its current bounds. Returns pointer to element in
  * array. The initializer <element> may be NULL to do allocation only.
