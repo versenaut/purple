@@ -1,7 +1,7 @@
 /*
  * purple.h
  * 
- * Copyright (C) 2004 PDC, KTH. See COPYING for license details.
+ * Copyright (C) 2004 PDC, KTH. See COPING for license details.
  * 
  * Header file for the "Purple API", i.e. the API to use when writing
  * plug-ins for the Purple system.
@@ -93,7 +93,7 @@ typedef enum
 	P_VALUE_REAL32_VEC2,
 	P_VALUE_REAL32_VEC3,
 	P_VALUE_REAL32_VEC4,
-	P_VALUE_REAL32_MAT16,
+	P_VALUE_REAL32_MAT16,		/* Represented in row-major form as array of 16 real64s. */
 	P_VALUE_REAL64,
 	P_VALUE_REAL64_VEC2,
 	P_VALUE_REAL64_VEC3,
@@ -252,6 +252,10 @@ PURPLEAPI VNGLayerType		p_node_g_layer_get_type(const PNGLayer *layer);
 PURPLEAPI PNGLayer *		p_node_g_layer_create(PONode *node, const char *name, VNGLayerType type,
 						      uint32 def_int, real64 def_real);
 PURPLEAPI void			p_node_g_layer_destroy(PONode *node, PNGLayer *layer);
+
+PURPLEAPI void			p_node_g_vertex_set_selected(PONode *node, uint32 vertex_id, real64 value);
+PURPLEAPI real64		p_node_g_vertex_get_selected(PONode *node, uint32 vertex_id);
+
 PURPLEAPI void			p_node_g_vertex_set_xyz(PNGLayer *layer, uint32 id, real64 x, real64 y, real64 z);
 PURPLEAPI void			p_node_g_vertex_get_xyz(const PNGLayer *layer, uint32 id, real64 *x, real64 *y, real64 *z);
 PURPLEAPI void			p_node_g_vertex_set_uint32(PNGLayer *layer, uint32 id, uint32 value);
