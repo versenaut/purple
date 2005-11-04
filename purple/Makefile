@@ -23,7 +23,7 @@ endif
 purple:		purple.c \
 		api-init.o api-input.o api-iter.o api-node.o api-output.o \
 		bintree.o client.o cron.o diff.o dynarr.o dynlib.o dynstr.o graph.o \
-		filelist.o hash.o idlist.o idset.o list.o log.o mem.o memchunk.o \
+		filelist.o hash.o idlist.o idset.o idtree.o list.o log.o mem.o memchunk.o \
 		nodedb.o nodedb-a.o nodedb-b.o nodedb-c.o nodedb-g.o nodedb-m.o nodedb-o.o nodedb-t.o \
 		nodeset.o plugins.o plugin-input.o plugin-output.o \
 		port.o resume.o scheduler.o strutil.o synchronizer.o textbuf.o timeval.o \
@@ -64,6 +64,8 @@ hash.o:		hash.c hash.h
 idlist.o:	idlist.c idlist.h
 
 idset.o:	idset.c idset.h
+
+idtree.o:	idtree.c idtree.h
 
 list.o:		list.c list.h
 
