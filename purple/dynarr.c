@@ -103,6 +103,7 @@ void dynarr_set_default_func(DynArr *da, void (*func)(unsigned int, void *elemen
 	{
 		da->def_func = func;
 		da->def_func_user = user;
+		da->def = NULL;
 	}
 }
 
@@ -115,50 +116,53 @@ void * dynarr_index(const DynArr *da, unsigned index)
 	return NULL;
 }
 
+void dynarr_grow(DynArr *da, unsigned int index, int default_at_index)
+{
+	size_t	size;
+	void	*nd;
+
+	/* Compute new size, might grow more than one page. */
+	size = da->page_size * ((da->alloc + index + 1 + da->page_size - 1) / da->page_size);
+	nd = mem_realloc(da->data, size * da->elem_size);
+
+	if(nd != NULL)
+	{
+		unsigned int	i;
+
+/*		LOG_MSG(("Dynarr: Grew array to %u elements of size %u", size, da->elem_size));*/
+		if(da->def != NULL)
+		{
+			if(default_at_index)
+			{
+				for(i = da->alloc; i < size; i++)
+					memcpy((char *) nd + i * da->elem_size, da->def, da->elem_size);
+			}
+			else
+			{
+				for(i = da->alloc; i < size; i++)
+				{
+					if(i == index)
+						continue;
+					memcpy((char *) nd + i * da->elem_size, da->def, da->elem_size);
+				}
+			}
+		}
+		else if(da->def_func != NULL)	/* FIXME: The semantics here are a bit odd, ignore index_at_default. Entrenched assumption. :/ */
+		{
+			for(i = da->alloc; i < size; i++)
+				da->def_func(i, (char *) nd + i * da->elem_size, da->def_func_user);
+		}
+		da->data  = nd;
+		da->alloc = size;
+	}
+}
+
 void * dynarr_set(DynArr *da, unsigned int index, const void *element)
 {
 	if(da == NULL)
 		return NULL;
 	if(index >= da->alloc)
-	{
-		size_t	size;
-		void	*nd;
-
-		/* Compute new size, might grow more than one page. */
-		size = da->page_size * ((da->alloc + index + 1 + da->page_size - 1) / da->page_size);
-		nd = mem_realloc(da->data, size * da->elem_size);
-
-		if(nd != NULL)
-		{
-/*			LOG_MSG(("Dynarr: Grew array to %u elements of size %u", size, da->elem_size));*/
-			if(da->def != NULL)
-			{
-				unsigned int	i;
-
-				for(i = da->alloc; i < size; i++)
-				{
-					if(i == index)	/* Don't initialize the element we're about to set. */
-						continue;
-					memcpy((char *) nd + i * da->elem_size, da->def, da->elem_size);
-				}
-			}
-			else if(da->def_func != NULL)
-			{
-				unsigned int	i;
-
-				for(i = da->alloc; i < size; i++)
-				{
-					if(i == index && element != NULL)
-						continue;
-					da->def_func(i, (char *) nd + i * da->elem_size, da->def_func_user);
-				}
-			}
-			da->data  = nd;
-			da->alloc = size;
-		}
-		else
-			LOG_ERR(("Dynamic array couldn't grow to %u elements; realloc() failed", da->alloc + da->page_size));
-	}
+		dynarr_grow(da, index, 0);
 	if(element != NULL)
 		memcpy((char *) da->data + index * da->elem_size, element, da->elem_size);
 	if(index >= da->next)
