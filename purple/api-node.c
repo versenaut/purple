@@ -518,6 +518,7 @@ PURPLEAPI PINode * p_node_o_link_get(const PONode *node	/** The object node whos
 /* ----------------------------------------------------------------------------------------- */
 
 /** \defgroup api_node_geometry Geometry Node Functions
+ * \ingroup api_node
  * 
  * These are functions for working with geometry nodes. Geometry is stored in layers, which are
  * typed. Each layerb consists of a number of "slots" where the data is stored. The number of
@@ -606,8 +607,7 @@ PURPLEAPI PNGLayer * p_node_g_layer_create(PONode *node		/** The node in which t
 {
 	NdbGLayer	*l;
 
-	l = nodedb_g_layer_create((NodeGeometry *) node, (VLayerID) ~0u, name, type);
-	/* FIXME: Ignores default values. */
+	l = nodedb_g_layer_create((NodeGeometry *) node, (VLayerID) ~0u, name, type, def_int, def_real);
 	return l;
 }
 
@@ -620,6 +620,37 @@ PURPLEAPI void p_node_g_layer_destroy(PONode *node	/** The node in which a layer
 				      PNGLayer *layer	/** The layer to be destroyed. */)
 {
 	nodedb_g_layer_destroy((NodeGeometry *) node, layer);
+}
+
+/** \brief Select a vertex.
+ * 
+ * This function selects a vertex, by a given amount. The selection is part of the globally shared state
+ * of the node (in fact, it's stored in a standard layer), so will be visible by other clients that view
+ * the same node data.
+ * 
+ * Selections are "soft", meaning that a vertex is not limited to being either selected or not; it can be
+ * for instance 50% selected. Just specify the required amount as the value parameter, where 0.0 means
+ * "not selected" and 1.0 is "full selection". These values are not clamped by Purple.
+ * 
+ * Use \c p_node_g_vertex_get_selected() to query the selection state of a vertex.
+*/
+PURPLEAPI void p_node_g_vertex_set_selected(PONode *node		/** The node in which a vertex is to have its selection state changed. */,
+					  uint32 vertex_id	/** The ID of the vertex. */,
+					  real64 value		/** The new selection state value to set for the vertex. */)
+{
+	nodedb_g_vertex_set_selected((NodeGeometry *) node, vertex_id, value);
+}
+
+/** \brief Get selection state for a vertex.
+ * 
+ * This function is used to check if a vertex is currently selected, and how much. Vertex selection
+ * is "soft", so the actual value is a floating point number rather than just an on/off boolean.
+ * 
+ * Use \c p_node_g_vertex_set_selected() to change the selection state of a vertex.
+*/
+PURPLEAPI real64 p_node_g_vertex_get_selected(PONode *node, uint32 vertex_id)
+{
+	return nodedb_g_vertex_get_selected((NodeGeometry *) node, vertex_id);
 }
 
 /**
@@ -653,7 +684,7 @@ PURPLEAPI void p_node_g_vertex_get_xyz(const PNGLayer *layer	/** The layer in wh
 }
 
 /**
- * \breif Set value of a uint32 vertex slot.
+ * \brief Set value of a uint32 vertex slot.
  * 
  * This function sets the value of a uint32-type vertex layer. Each such slot holds a single
  * 32-bit unsigned integer number. They are often used to represent vertex creasing, but can
