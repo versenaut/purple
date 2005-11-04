@@ -7,6 +7,7 @@
 */
 
 #include "dynarr.h"
+#include "idtree.h"
 #include "list.h"
 #include "timeval.h"
 
