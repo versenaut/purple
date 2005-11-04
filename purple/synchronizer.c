@@ -288,13 +288,14 @@ static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 	int		send = 0;
 
 /*	printf("synchronizing geometry layer '%s' against '%s'\n", layer->name, tlayer->name);*/
+
 	/* Basically break the dynarr abstraction, for speed. */
 	esize = dynarr_get_elem_size(layer->data);
 	size  = dynarr_size(layer->data);
 	tsize = dynarr_size(tlayer->data);
 	data  = dynarr_index(layer->data, 0);
 	tdata = dynarr_index(tlayer->data, 0);
-/*	printf(" local geometry size: %u, remote is %u\n", size, tsize);*/
+/*	printf(" local geometry size: %u at %p, remote is %u at %p\n", size, data, tsize, tdata);*/
 	for(i = 0; i < size; i++)
 	{
 		if(i >= tsize)					/* If data is not even in target, we must send it. */
@@ -390,7 +391,6 @@ static int sync_geometry_layer(const NodeGeometry *node, const NdbGLayer *layer,
 				verse_send_g_polygon_delete(target->node.id, i);
 		}
 	}
-/*	printf("done, returning %d\n", send);*/
 	return send;
 }
 
