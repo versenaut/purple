@@ -94,6 +94,7 @@ PURPLE_PLUGIN void init(void)
 	p_init_input(2, P_VALUE_UINT32, "side splits",   P_INPUT_REQUIRED, P_INPUT_MIN(1),   P_INPUT_MAX(128),   P_INPUT_DEFAULT(1),
 		     P_INPUT_DESC("Number of splits along the main axis of the cone."), P_INPUT_DONE);
 	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
 	p_init_meta("desc/purpose", "Creates a cone primitive. The user can control the height of the cone, which is the distance between "
 				    "the base plane to the apex, as well as the number of subdivisions along both major axis.");
 	p_init_compute(compute);

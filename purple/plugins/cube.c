@@ -346,6 +346,7 @@ PURPLE_PLUGIN void init(void)
 		     P_INPUT_DESC("Controls the creasing set for this cube. Without crease information, subdiving "
 				  "renderers will make the cube very round."), P_INPUT_DONE);
 	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
 	p_init_meta("desc/purpose", "Creates a cube object.");
 	p_init_compute(compute);
 }

@@ -27,5 +27,8 @@ PURPLE_PLUGIN void init(void)
 	p_init_create("getvertex");
 	p_init_input(0, P_VALUE_MODULE, "node", P_INPUT_REQUIRED, P_INPUT_DESC("The first geometry node found in the input will have a vertex extracted."), P_INPUT_DONE);
 	p_init_input(1, P_VALUE_UINT32, "index", P_INPUT_REQUIRED, P_INPUT_DEFAULT(0), P_INPUT_DESC("The integer index of the vertex to output, counting from 0."), P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
+	p_init_meta("desc/purpose", "Retreives the 3D coordinates of an indexed vertex of a the first geometry node found in the input.");
 	p_init_compute(compute);
 }

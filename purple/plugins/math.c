@@ -353,22 +353,34 @@ static PComputeStatus compute_div(PPInput *input, PPOutput output, void *state)
 PURPLE_PLUGIN void init(void)
 {
 	p_init_create("add");
-	p_init_input(0, P_VALUE_MODULE, "a", P_INPUT_REQUIRED, P_INPUT_DONE);
-	p_init_input(1, P_VALUE_MODULE, "b", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_MODULE, "a", P_INPUT_DESC("First term in addition."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(1, P_VALUE_MODULE, "b", P_INPUT_DESC("Second term in addition."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
+	p_init_meta("desc/purpose", "Computes addition of two terms. The terms can be either real numbers, bitmaps, or object nodes with geometry links.");
 	p_init_compute(compute_add);
 
 	p_init_create("sub");
-	p_init_input(0, P_VALUE_MODULE, "a", P_INPUT_REQUIRED, P_INPUT_DONE);
-	p_init_input(1, P_VALUE_MODULE, "b", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_MODULE, "a", P_INPUT_DESC("The first term in the subtraction."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(1, P_VALUE_MODULE, "b", P_INPUT_DESC("THe second term in the subtraction."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
+	p_init_meta("desc/purpose", "Computes difference of two terms. The terms can be either real numbers, bitmaps, or object nodes with geometry links.");
 	p_init_compute(compute_sub);
 
 	p_init_create("mul");
-	p_init_input(0, P_VALUE_MODULE, "a", P_INPUT_REQUIRED, P_INPUT_DONE);
-	p_init_input(1, P_VALUE_MODULE, "b", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_MODULE, "a", P_INPUT_DESC("The first factor in the multiplication."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(1, P_VALUE_MODULE, "b", P_INPUT_DESC("The second factor in the multiplication."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
+	p_init_meta("desc/purpose", "Computes product of two factors. The factors can be either real numbers, bitmaps, or object nodes with geometry links.");
 	p_init_compute(compute_mul);
 
 	p_init_create("div");
-	p_init_input(0, P_VALUE_MODULE, "a", P_INPUT_REQUIRED, P_INPUT_DONE);
-	p_init_input(1, P_VALUE_MODULE, "b", P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_MODULE, "a", P_INPUT_DESC("The nominator in the division."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(1, P_VALUE_MODULE, "b", P_INPUT_DESC("The denominator in the division."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
+	p_init_meta("desc/purpose", "Computes quotient of nominator and denominators. These can be either real numbers, bitmaps, or object nodes with geometry links.");
 	p_init_compute(compute_div);
 }

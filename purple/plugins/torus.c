@@ -111,6 +111,7 @@ PURPLE_PLUGIN void init(void)
 	p_init_input(3, P_VALUE_UINT32, "ring splits",   P_INPUT_REQUIRED, P_INPUT_MIN(3), P_INPUT_MAX(128), P_INPUT_DEFAULT(5), P_INPUT_DONE);
 	p_init_input(4, P_VALUE_BOOLEAN, "uv map",       P_INPUT_REQUIRED, P_INPUT_DEFAULT(0), P_INPUT_DONE);
 	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
 	p_init_meta("desc/purpose", "This plug-in generates a torus shape with the given parameters.");
 	p_init_compute(compute);
 }

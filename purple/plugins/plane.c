@@ -80,6 +80,7 @@ PURPLE_PLUGIN void init(void)
 	p_init_input(2, P_VALUE_BOOLEAN, "uv-map", P_INPUT_DEFAULT(0),
 		     P_INPUT_DESC("Controls whether or not UV mapping data is created."), P_INPUT_DONE);
 	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
 	p_init_meta("desc/purpose", "Create a simple polygonal plane, consisting of many quadrilaterals.");
 	p_init_compute(compute);
 }

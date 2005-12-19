@@ -45,5 +45,8 @@ PURPLE_PLUGIN void init(void)
 	p_init_input(2, P_VALUE_BOOLEAN,     "red",   P_INPUT_DESC("Include red color component in the result?"),   P_INPUT_DEFAULT(1), P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_input(3, P_VALUE_BOOLEAN,     "green", P_INPUT_DESC("Include green color component in the result?"), P_INPUT_DEFAULT(1), P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_input(4, P_VALUE_BOOLEAN,     "blue",  P_INPUT_DESC("Include blue color component in the result?"),  P_INPUT_DEFAULT(1), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
+	p_init_meta("desc/purpose", "Retrieves the color of a given pixel in a bitmap, and outputs it as a 3D vector. Inputs control which color channel(s) are to be included.");
 	p_init_compute(compute);
 }
