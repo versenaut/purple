@@ -368,9 +368,31 @@ void plugin_describe_append(const Plugin *p, DynStr *d)
 				dynstr_append(d, "   </range>\n");
 				if(in->spec.enums != NULL)
 				{
-					dynstr_append(d, "   <enums>");
-					xml_dynstr_append(d, dynstr_string(in->spec.enums));
-					dynstr_append(d, "</enums>\n");
+					const char	*def;
+
+					dynstr_append(d, "   <enums>\n");
+					/* Split single string into multiple nice XML value/name pairs. */
+					for(def = dynstr_string(in->spec.enums); *def != '\0';)
+					{
+						char	temp[64], *put, *name;
+
+						for(put = temp; *def != '\0' && *def != '|' && put < (temp + sizeof temp - 1);)
+						{
+							if(*def == ':')
+							{
+								def++;
+								*put++ = '\0';		/* Terminate value part. */
+								name = put;
+							}
+							else
+								*put++ = *def++;
+						}
+						*put = '\0';
+						dynstr_append_printf(d, "    <enum value=\"%s\">%s</enum>\n", temp, name);
+						if(*def == '|')
+							def++;
+					}
+					dynstr_append(d, "   </enums>\n");
 				}
 			}
 			if(in->desc != NULL)
