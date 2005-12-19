@@ -168,35 +168,64 @@ PURPLE_PLUGIN void init(void)
 	p_init_create("vec-add");
 	p_init_input(0, P_VALUE_REAL64_VEC4, "x", P_INPUT_DESC("A vector will be parsed from this input, to serve as one of the terms of the addition."), P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_input(1, P_VALUE_REAL64_VEC4, "y", P_INPUT_DESC("A vector will be parsed from this input, to serve as the other term of the addition."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
+	p_init_meta("desc/purpose", "Computes sum of inputs, taken as 4D vectors.");
 	p_init_compute(compute_vec_add);
 
-	p_init_create("vec-multiply");
+	p_init_create("vec-sub");
+	p_init_input(0, P_VALUE_REAL64_VEC4, "x", P_INPUT_DESC("A vector will be parsed from this input, to serve as one of the terms of the subtraction."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(1, P_VALUE_REAL64_VEC4, "y", P_INPUT_DESC("A vector will be parsed from this input, to serve as the other term of the subtraction."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
+	p_init_meta("desc/purpose", "Computes difference of inputs, taken as 4D vectors.");
+	p_init_compute(compute_vec_add);
+
+	p_init_create("vec-mul");
 	p_init_input(0, P_VALUE_REAL64, "x", P_INPUT_DESC("A real number or matrix is read here, and used to scale the vector."), P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_input(1, P_VALUE_REAL64_VEC4, "y", P_INPUT_DESC("A vector will be parsed from this input, and multiplied by the other input's value."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
+	p_init_meta("desc/purpose", "Computes product of either a real number or a matrix, and a 4D vector.");
 	p_init_compute(compute_vec_multiply);
 
-	p_init_create("vec-divide");
+	p_init_create("vec-div");
 	p_init_input(0, P_VALUE_REAL64_VEC4, "x", P_INPUT_DESC("A vector will be parsed from this input, and divided by the other input's value."), P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_input(1, P_VALUE_REAL64, "y", P_INPUT_DESC("A real number is read here, and used to scale the vector."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
+	p_init_meta("desc/purpose", "Computes division of a vector and a real number.");
 	p_init_compute(compute_vec_divide);
 
 	p_init_create("vec-cross");
 	p_init_input(0, P_VALUE_REAL64_VEC3, "x", P_INPUT_DESC("A 3D vector will be read here, and used as one part of the cross product computation."), P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_input(1, P_VALUE_REAL64_VEC3, "y", P_INPUT_DESC("A 3D vector will be read here, and used as one part of the cross product computation."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
+	p_init_meta("desc/purpose", "Computes cross product of two 3D vectors. Note that this operator does not work on 4D vectors; they will be re-interpreted to 3D.");
 	p_init_compute(compute_vec_cross);
 	
 	p_init_create("vec-scalar");
-	p_init_input(0, P_VALUE_REAL64_VEC4, "x", P_INPUT_DESC("A 3D vector will be read here, and used as one part of the scalar product computation."), P_INPUT_REQUIRED, P_INPUT_DONE);
-	p_init_input(1, P_VALUE_REAL64_VEC4, "y", P_INPUT_DESC("A 3D vector will be read here, and used as one part of the scalar product computation."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(0, P_VALUE_REAL64_VEC4, "x", P_INPUT_DESC("A 4D vector will be read here, and used as one part of the scalar product computation."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_input(1, P_VALUE_REAL64_VEC4, "y", P_INPUT_DESC("A 4D vector will be read here, and used as one part of the scalar product computation."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
+	p_init_meta("desc/purpose", "Computes scalar (\"inner\") product of two 4D vectors.");
 	p_init_compute(compute_vec_scalar);
 
 	p_init_create("vec-length");
 	p_init_input(0, P_VALUE_REAL64_VEC4, "x", P_INPUT_DESC("A vector will be parsed from this input, and the length will be computed and output."), P_INPUT_REQUIRED, P_INPUT_DONE);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
+	p_init_meta("desc/purpose", "Computes the Euclidian length of a vector, i.e. the square root of the sum of the squares of the vector's components.");
 	p_init_compute(compute_vec_length);
 
 	p_init_create("vec-swizzle");
 	p_init_input(0, P_VALUE_REAL64_VEC4, "x", P_INPUT_DESC("A vector to swizzle."), P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_input(1, P_VALUE_STRING, "pattern", P_INPUT_DESC("Pattern to control swizzling. Use 'x', 'y', 'z' and 'w' to refer to the input vector's "
 								"components. E.g. \"xyzw\" is the identity transform."), P_INPUT_REQUIRED);
+	p_init_meta("authors", "Emil Brink");
+	p_init_meta("copyright", "2005 PDC, KTH");
+	p_init_meta("desc/purpose", "Creates a \"swizzled\" version of an input 4D vector, controlled by a pattern string.");
 	p_init_compute(compute_vec_swizzle);
 }
