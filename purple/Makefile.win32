@@ -14,7 +14,7 @@ CFLAGS=/nologo /I$(VERSE)\include
 purple.exe:	purple.c\
 		api-init.obj api-input.obj api-iter.obj api-node.obj api-output.obj \
 		bintree.obj client.obj cron.obj diff.obj dynarr.obj dynlib.obj dynstr.obj graph.obj \
-		filelist.obj hash.obj idlist.obj idset.obj list.obj log.obj mem.obj memchunk.obj \
+		filelist.obj hash.obj idlist.obj idset.obj idtree.obj list.obj log.obj mem.obj memchunk.obj \
 		nodedb.obj nodedb-a.obj nodedb-b.obj nodedb-c.obj nodedb-g.obj nodedb-m.obj nodedb-o.obj nodedb-t.obj \
 		nodeset.obj plugins.obj plugin-input.obj plugin-output.obj \
 		port.obj resume.obj scheduler.obj strutil.obj synchronizer.obj textbuf.obj timeval.obj \
@@ -54,6 +54,8 @@ hash.obj:	hash.c hash.h
 idlist.obj:	idlist.c idlist.h
 
 idset.obj:	idset.c idset.h
+
+idtree.obj:	idtree.c idtree.h
 
 list.obj:	list.c list.h
 
@@ -117,10 +119,10 @@ all-plugins:
 # ---------------------------------------------------------
 
 clean:	clean-plugins
-	rm -f *.obj *.so $(TARGETS)
+	del /f *.obj *.dll $(TARGETS)
 
 clean-plugins:
-	cd plugins && $(MAKE) clean
+	cd plugins && $(MAKE) /f makefile.win32 clean
 
 # This assumes that %DATE% generates date part in ISO 8501 format.
 # I don't know of a way to actually specify the format, so if the

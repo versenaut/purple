@@ -7,11 +7,11 @@ VERSE=c:\projects\verse-sdk
 CFLAGS=/nologo /I.. /I$(VERSE)/include /LD ../purple.lib
 
 ALL:	audioecho.dll audioscale.dll audiotone.dll bbox.dll bmaverage.dll bmblend.dll bmchecker.dll \
-	bmoilify.dll bmtext.dll bulge.dll cone.dll cube.dll curvetest.dll cylinder.dll factors.dll \
-	hello.dll math.dll mattest.dll measure.dll new-node.dll plane.dll scale.dll sphere.dll stringop.dll \
-	tagtest.dll template.dll textnum.dll warp.dll
-
-cube.dll:	cube.c
+	bmfilter.dll bmnoise.dll bmoilify.dll bmrotate.dll bmtext.dll bulge.dll cone.dll constant.dll \
+	crowder.dll cube.dll curvetest.dll cylinder.dll displace.dll factors.dll getpixel.dll \
+	getvertex.dll hello.dll math.dll mattest.dll measure.dll muscle.dll new-node.dll plane.dll \
+	scale.dll sphere.dll stringop.dll tagtest.dll template.dll textnum.dll torus.dll vecmath.dll \
+	warp.dll
 
 .c.dll:
 	$(CC) $(CFLAGS) $**
@@ -19,4 +19,5 @@ cube.dll:	cube.c
 # ---------------------------------------------------------
 
 clean:
-	rm -f *.dll *.o
+	del /f *.dll *.obj *.exp *.lib *.so
+

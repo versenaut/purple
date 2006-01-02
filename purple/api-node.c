@@ -2037,7 +2037,7 @@ PURPLEAPI void p_node_t_buffer_insert(PNTBuffer *buffer	/** The buffer in which 
 				      size_t pos	/** The position at which insertion will start. */,
 				      const char *text	/** The text to be inserted. */)
 {
-	return nodedb_t_buffer_insert(buffer, pos, text);
+	nodedb_t_buffer_insert(buffer, pos, text);
 }
 
 /** \brief Delete text from a text buffer.
@@ -2050,7 +2050,7 @@ PURPLEAPI void p_node_t_buffer_insert(PNTBuffer *buffer	/** The buffer in which 
 */
 PURPLEAPI void p_node_t_buffer_delete(PNTBuffer *buffer, size_t pos, size_t length)
 {
-	return nodedb_t_buffer_delete(buffer, pos, length);
+	nodedb_t_buffer_delete(buffer, pos, length);
 }
 
 /** \brief Append text to a text buffer.
@@ -2066,7 +2066,7 @@ PURPLEAPI void p_node_t_buffer_delete(PNTBuffer *buffer, size_t pos, size_t leng
 PURPLEAPI void p_node_t_buffer_append(PNTBuffer *buffer	/** Buffer to which text is to be appended. */,
 				      const char *text	/** The text to append. */)
 {
-	return nodedb_t_buffer_append(buffer, text);
+	nodedb_t_buffer_append(buffer, text);
 }
 
 /** @} */
