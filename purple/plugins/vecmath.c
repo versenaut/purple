@@ -223,7 +223,7 @@ PURPLE_PLUGIN void init(void)
 	p_init_create("vec-swizzle");
 	p_init_input(0, P_VALUE_REAL64_VEC4, "x", P_INPUT_DESC("A vector to swizzle."), P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_input(1, P_VALUE_STRING, "pattern", P_INPUT_DESC("Pattern to control swizzling. Use 'x', 'y', 'z' and 'w' to refer to the input vector's "
-								"components. E.g. \"xyzw\" is the identity transform."), P_INPUT_REQUIRED);
+								"components. E.g. \"xyzw\" is the identity transform."), P_INPUT_REQUIRED, P_INPUT_DONE);
 	p_init_meta("authors", "Emil Brink");
 	p_init_meta("copyright", "2005 PDC, KTH");
 	p_init_meta("desc/purpose", "Creates a \"swizzled\" version of an input 4D vector, controlled by a pattern string.");

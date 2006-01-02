@@ -96,7 +96,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 PURPLE_PLUGIN void init(void)
 {
 	p_init_create("muscle");
-	p_init_input(0, P_VALUE_MODULE, "upper", P_INPUT_REQUIRED, 0);
-	p_init_input(1, P_VALUE_MODULE, "lower", P_INPUT_REQUIRED, 1);
+	p_init_input(0, P_VALUE_MODULE, "upper", P_INPUT_REQUIRED, 0, P_INPUT_DONE);
+	p_init_input(1, P_VALUE_MODULE, "lower", P_INPUT_REQUIRED, 1, P_INPUT_DONE);
 	p_init_compute(compute);
 }
