@@ -25,7 +25,7 @@ purple:		purple.c \
 		bintree.o client.o cron.o diff.o dynarr.o dynlib.o dynstr.o graph.o \
 		filelist.o hash.o idlist.o idset.o idtree.o list.o log.o mem.o memchunk.o \
 		nodedb.o nodedb-a.o nodedb-b.o nodedb-c.o nodedb-g.o nodedb-m.o nodedb-o.o nodedb-t.o \
-		nodeset.o plugins.o plugin-input.o plugin-output.o \
+		nodeset.o plugins.o plugin-clock.o plugin-input.o plugin-output.o \
 		port.o resume.o scheduler.o strutil.o synchronizer.o textbuf.o timeval.o \
 		value.o vecutil.o xmlnode.o xmlutil.o \
 		$(VERSE)/libverse.a
