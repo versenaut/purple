@@ -51,6 +51,8 @@ static void cb_copy_layer(void *d, const void *s, void *user)
 	dst->type = src->type;
 	dst->data = dynarr_new_copy(src->data, NULL, NULL);
 	dst->def  = src->def;
+	dst->def_uint = src->def_uint;
+	dst->def_real = src->def_real;
 	dynarr_set_default(dst->data, &dst->def);
 	dst->node = user;
 }
