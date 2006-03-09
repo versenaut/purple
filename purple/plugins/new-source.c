@@ -1,6 +1,7 @@
 /*
- * Sketch of a plug-in to create a new audio source. This is going to have to be
- * updated once I learn more about how the audio system expects a source to look.
+ * This creates a new sound source, as defined by the UVAS Uni-Verse audio
+ * simulation system. This plug-in uses the URL-only method for pointing
+ * out the sound source.
 */
 
 #include "purple.h"
@@ -11,7 +12,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	PONode		*object, *audio;
 
 	audio = p_output_node_create(output, V_NT_AUDIO, 0);
-	p_node_tag_create_path(audio, "source/url", VN_TAG_STRING, url);
+	p_node_tag_create_path(audio, "uvas/url", VN_TAG_STRING, url);
 
 	object = p_output_node_create(output, V_NT_OBJECT, 1);
 	p_node_o_link_set(object, audio, "source", ~0);
