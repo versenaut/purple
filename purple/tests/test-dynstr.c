@@ -71,6 +71,18 @@ int main(void)
 	}
 	test_end();
 
+	test_begin("append_len()");
+	{
+		a = dynstr_new_sized(32);
+
+		dynstr_append_len(a, "foobar", 3);
+		dynstr_append_len(a, "barbaz", 3);
+		dynstr_append_len(a, "bazfoo", 3);
+		test_result(strcmp(dynstr_string(a), "foobarbaz") == 0);
+		dynstr_destroy(a, 1);
+	}
+	test_end();
+
 	test_begin("append_c()");
 	{
 		a = dynstr_new_sized(16);
