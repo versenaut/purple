@@ -1637,7 +1637,7 @@ PURPLEAPI void p_node_b_layer_read_multi_end(PINode *node, const void *framebuff
  * uint8  *pixels;
  * 
  * p_node_b_get_dimensions(node, &width, &height, &depth);
- * pixels = p_node_b_layer_write_multi_begin(node, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL);
+ * pixels = p_node_b_layer_write_multi_begin(node, VN_B_LAYER_UINT8, "color_r", "color_g", "color_b", NULL);
  * memset(pixels, 255, width * height * depth);
  * p_node_b_layer_write_multi_end(pixels);
  * \endcode
