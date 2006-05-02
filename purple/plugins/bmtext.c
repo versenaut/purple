@@ -522,7 +522,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
 	State		*s = state;
 	const char	*text = p_input_string(input[0]);
-	const char	*lname[] = { "col_r", "col_g", "col_b" };
+	const char	*lname[] = { "color_r", "color_g", "color_b" };
 	size_t		len, i, j, longest, lines;
 	PONode		*node;
 	PNBLayer	*layer;

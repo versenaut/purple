@@ -19,7 +19,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	bitmap = p_output_node_copy(output, inbmp, 0);
 
 /*	{
-		PNBLayer	*lay = p_node_b_layer_lookup(bitmap, "col_r");
+		PNBLayer	*lay = p_node_b_layer_lookup(bitmap, "color_r");
 
 		if((fb8 = p_node_b_layer_access_begin(bitmap, lay)) != NULL)
 		{
@@ -39,7 +39,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		}
 	}
 */
-	if((fb = p_node_b_layer_write_multi_begin(bitmap, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL)
+	if((fb = p_node_b_layer_write_multi_begin(bitmap, VN_B_LAYER_UINT8, "color_r", "color_g", "color_b", NULL)) != NULL)
 	{
 		uint16	w, h, d, x, y, here;
 		uint8	*get;
@@ -62,7 +62,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	}
 
 	{
-		PNBLayer	*lay = p_node_b_layer_find(bitmap, "col_r");
+		PNBLayer	*lay = p_node_b_layer_find(bitmap, "color_r");
 
 		if((fb8 = p_node_b_layer_access_begin(bitmap, lay)) != NULL)
 		{

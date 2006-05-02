@@ -178,7 +178,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 /*	printf("displace: projected geometry range is (%g,%g)-(%g,%g) -> xr=%g yr=%g\n", min[0], min[1], max[0], max[1], xr, yr);*/
 
 	/* Compute new vertex positions for all vertices, and set in output. */
-	if((pixel = p_node_b_layer_read_multi_begin(inbm, VN_B_LAYER_UINT8, "col_r", NULL)) != NULL)
+	if((pixel = p_node_b_layer_read_multi_begin(inbm, VN_B_LAYER_UINT8, "color_r", NULL)) != NULL)
 	{
 		real64	*norm;
 

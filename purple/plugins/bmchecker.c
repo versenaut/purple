@@ -15,7 +15,7 @@ static real64 cb_check(uint32 x, uint32 y, uint32 z, void *user)
 
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
-	const char	*lname[] = { "col_r", "col_g", "col_b" };
+	const char	*lname[] = { "color_r", "color_g", "color_b" };
 	PONode		*node;
 	PNBLayer	*layer;
 	uint32		side = p_input_uint32(input[0]), size = p_input_uint32(input[1]), i;

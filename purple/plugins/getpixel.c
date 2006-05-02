@@ -10,7 +10,7 @@
 static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 {
 	PINode		*bitmap;
-	const char	*ln[] = { "col_r", "col_g", "col_b" };
+	const char	*ln[] = { "color_r", "color_g", "color_b" };
 	const real64	*xyz;
 	real64		out[3];
 	int		i;

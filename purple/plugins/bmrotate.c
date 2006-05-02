@@ -59,13 +59,13 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	snprintf(nbuf, sizeof nbuf, "rotated %s", p_node_get_name(in));
 	p_node_set_name(out, nbuf);
 	p_node_b_set_dimensions(out, width, height, depth);
-	p_node_b_layer_create(out, "col_r", VN_B_LAYER_UINT8);
-	p_node_b_layer_create(out, "col_g", VN_B_LAYER_UINT8);
-	p_node_b_layer_create(out, "col_b", VN_B_LAYER_UINT8);
+	p_node_b_layer_create(out, "color_r", VN_B_LAYER_UINT8);
+	p_node_b_layer_create(out, "color_g", VN_B_LAYER_UINT8);
+	p_node_b_layer_create(out, "color_b", VN_B_LAYER_UINT8);
 
 	/* Begin access to RGB layers in sources and destination. */
-	if((fb = p_node_b_layer_read_multi_begin((PONode *) in, VN_B_LAYER_REAL32, "col_r", "col_g", "col_b", NULL)) != NULL &&
-	   (fbout = p_node_b_layer_write_multi_begin(out, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL)
+	if((fb = p_node_b_layer_read_multi_begin((PONode *) in, VN_B_LAYER_REAL32, "color_r", "color_g", "color_b", NULL)) != NULL &&
+	   (fbout = p_node_b_layer_write_multi_begin(out, VN_B_LAYER_UINT8, "color_r", "color_g", "color_b", NULL)) != NULL)
 	{
 		int	x, y, cx = width / 2, cy = height / 2, j, cnt;
 		real32	dx, dy, rx, ry, sx, sy, pix;

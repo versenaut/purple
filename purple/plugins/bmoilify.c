@@ -80,8 +80,8 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 		if(p_node_get_type(node) != V_NT_BITMAP)
 			continue;
 		out = p_output_node_copy(output, node, 0);
-		if((read  = p_node_b_layer_read_multi_begin(out,  VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL &&
-		   (write = p_node_b_layer_write_multi_begin(out, VN_B_LAYER_UINT8, "col_r", "col_g", "col_b", NULL)) != NULL)
+		if((read  = p_node_b_layer_read_multi_begin(out,  VN_B_LAYER_UINT8, "color_r", "color_g", "color_b", NULL)) != NULL &&
+		   (write = p_node_b_layer_write_multi_begin(out, VN_B_LAYER_UINT8, "color_r", "color_g", "color_b", NULL)) != NULL)
 		{
 			p_node_b_get_dimensions(out, &w, &h, NULL);
 			do_oilify(write, read, w, h, size);

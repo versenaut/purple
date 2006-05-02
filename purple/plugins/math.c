@@ -55,7 +55,7 @@ static real64 do_b_div(real64 a, real64 b)
 /* Perform binary operation involving (one or two) bitmaps. */
 static PComputeStatus bitmap_math(PINode *a, PINode *b, real64 c, real64 d, PPOutput output, real64 (*op)(real64 a, real64 b))
 {
-	const char	*ln[] = { "col_r", "col_g", "col_b" };
+	const char	*ln[] = { "color_r", "color_g", "color_b" };
 	uint16		dim[3], x, y, z;
 	real64		fx, fy, fz;
 	PONode		*out;
