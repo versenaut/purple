@@ -8,6 +8,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 #define	GTK_DISABLE_DEPRECATED	1
 
@@ -138,11 +140,11 @@ static void put_layer(GdkPixbuf *dst, const BitmapLayer *layer, const NodeBitmap
 	stride = gdk_pixbuf_get_rowstride(dst);
 	pix = gdk_pixbuf_get_pixels(dst);
 	get = layer->data;
-	if(strcmp(layer->name, "col_r") == 0)
+	if(strcmp(layer->name, "color_r") == 0)
 		c = 0;
-	else if(strcmp(layer->name, "col_g") == 0)
+	else if(strcmp(layer->name, "color_g") == 0)
 		c = 1;
-	else if(strcmp(layer->name, "col_b") == 0)
+	else if(strcmp(layer->name, "color_b") == 0)
 		c = 2;
 	else if(strcmp(layer->name, "alpha") == 0)	/* Software-blend using alpha against checkered background. Nice. */
 	{
@@ -230,7 +232,7 @@ static gboolean cb_refresh_timeout(gpointer user)
 		for(iter = l; iter != NULL; iter = g_list_next(iter))
 			put_layer(node->pix, iter->data, node);
 		g_list_free(l);
-		set_image(node->image, node->pix, node->zoom, node->width, node->height);
+/*		set_image(node->image, node->pix, node->zoom, node->width, node->height);*/
 	}
 	node->evt_refresh = 0u;
 	return FALSE;
@@ -239,7 +241,7 @@ static gboolean cb_refresh_timeout(gpointer user)
 static void node_bitmap_queue_refresh(NodeBitmap *node)
 {
 	if(node->evt_refresh == 0)
-		node->evt_refresh = g_timeout_add(100, cb_refresh_timeout, node);
+		node->evt_refresh = g_timeout_add(10, cb_refresh_timeout, node);
 }
 
 static void node_name_set(MainInfo *min, VNodeID node_id, const char *name)
@@ -580,6 +582,17 @@ static void evt_subscribe_clicked(GtkWidget *wid, gpointer user)
 	}
 }
 
+static struct {
+	int		count;
+	struct timeval	first, last;
+	double		dt;
+} bench;
+
+static double time_between(const struct timeval *t1, const struct timeval *t2)
+{
+	return t2->tv_sec - t1->tv_sec + 1E-6 * (t2->tv_usec - t1->tv_usec);
+}
+
 static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16 tile_x, uint16 tile_y, uint16 tile_z, VNBLayerType type, const VNBTile *tile)
 {
 	NodeBitmap	*node;
@@ -592,6 +605,7 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 		return;
 	if((layer = layer_lookup(user, node_id, layer_id)) == NULL)
 		return;
+
 	wt = (node->width  + VN_B_TILE_SIZE - 1) / VN_B_TILE_SIZE;
 	ht = (node->height + VN_B_TILE_SIZE - 1) / VN_B_TILE_SIZE;
 	tw = (tile_x == wt - 1) && (node->width  % VN_B_TILE_SIZE) != 0 ? node->width  % VN_B_TILE_SIZE : VN_B_TILE_SIZE;
@@ -637,6 +651,16 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 	}
 	node->tile_count++;
 	tnum = g_list_length(node->layers) * wt * ht * node->depth;
+
+	if(bench.count == 0)
+	{
+		gettimeofday(&bench.first, NULL);
+	}
+	bench.count++;
+	gettimeofday(&bench.last, NULL);
+	bench.dt = time_between(&bench.first, &bench.last);
+	printf("count=%d, dt=%g -> %.1f tiles/second, %d tiles total\n", bench.count, bench.dt, bench.count / bench.dt, tnum);
+
 	if(node->tile_count <= tnum)
 		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(node->pbar), (gdouble) node->tile_count / tnum);
 	else
@@ -728,9 +752,11 @@ int main(int argc, char *argv[])
 			ip = argv[i] + 4;
 	}
 
+	bench.count = 0;
+
 	min.session = verse_send_connect("vbv", "secret", ip, NULL);
 	gtk_main();
-	verse_send_connect_terminate(ip, "User quit");	
+	verse_send_connect_terminate(ip, "User quit");
 
 	return 0;
 }
