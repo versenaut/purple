@@ -54,6 +54,8 @@ static const unsigned int the_primes[] = {
     739,    743,    751,    757,    761,    769,    773,    787,    797,    809, 
     811,    821,    823,    827,    829,    839,    853,    857,    859,    863, 
     877,    881,    883,    887,    907,    911,    919,    929,    937,    941,
+   1069,   1223,   1373,   1511,   2053,   2531,   2903,   3511,   4297,   5179,
+   5521,   6571,   7561,   7919
 };
 
 /* ----------------------------------------------------------------------------------------- */
@@ -76,7 +78,7 @@ static unsigned int get_prime(unsigned int x)
 /* This is (allegedly) the "djb2" string hashing function. Copied
  * (after some Googling) from <http://www.cs.yorku.ca/~oz/hash.html>.
 */
-static unsigned int string_hash(const void *key)
+unsigned int hash_hash_string(const void *key)
 {
 	const char	*str = key;
 	unsigned int	hash = 5381;
@@ -121,7 +123,7 @@ Hash * hash_new(HashFunc hfunc, HashKeyEqFunc kefunc)
 
 Hash * hash_new_string(void)
 {
-	return hash_new(string_hash, string_key_eq);
+	return hash_new(hash_hash_string, string_key_eq);
 }
 
 static void resize(Hash *hash)
@@ -135,7 +137,7 @@ static void resize(Hash *hash)
 	{
 		for(i = 0; i < new_len; i++)
 			nv[i] = NULL;
-		LOG_MSG(("Growing from %u to %u elements", hash->length, new_len));
+/*		LOG_MSG(("Growing from %u to %u elements", hash->length, new_len));*/
 		for(i = 0; i < hash->length; i++)
 		{
 			for(iter = hash->vector[i]; iter != NULL; iter = next)
@@ -226,7 +228,7 @@ size_t hash_size(const Hash *hash)
 	return 0;
 }
 
-void hash_foreach(const Hash *hash, int (*func)(const void *data, void *user), void *user)
+void hash_foreach(const Hash *hash, int (*func)(void *data, void *user), void *user)
 {
 	unsigned int	i;
 
