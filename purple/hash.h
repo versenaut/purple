@@ -11,6 +11,9 @@ typedef struct Hash	Hash;
 typedef unsigned int (*HashFunc)(const void *key);
 typedef int	     (*HashKeyEqFunc)(const void *key1, const void *key2);
 
+/* Hashing function for ordinary nul-terminated C string keys. */
+extern unsigned int	hash_hash_string(const void *key);
+
 extern void	hash_init(void);
 
 /* Create a new hash table. The <hfunc> should take a "key" and return an unsigned integer with
@@ -27,6 +30,6 @@ extern void	hash_remove(Hash *hash, const void *key);
 
 extern size_t	hash_size(const Hash *hash);
 
-extern void	hash_foreach(const Hash *hash, int (*func)(const void *data, void *user), void *user);
+extern void	hash_foreach(const Hash *hash, int (*func)(void *data, void *user), void *user);
 
 extern void	hash_destroy(Hash *hash);
