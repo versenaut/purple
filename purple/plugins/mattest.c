@@ -24,7 +24,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	mat = p_output_node_create(output, V_NT_MATERIAL, 0);
 	p_node_set_name(mat, "mattest");
 	geometry = p_node_m_fragment_create_geometry(mat, "map_u", "map_v", NULL);
-	texture  = p_node_m_fragment_create_texture(mat, outbit, "color_r", "color_g", "color_b", geometry);
+	texture  = p_node_m_fragment_create_texture(mat, outbit, "color_r", "color_g", "color_b", TRUE, geometry);
 	if(bw > 16)
 	{
 		printf("bitmap is big, better light it\n");

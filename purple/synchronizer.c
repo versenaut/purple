@@ -523,7 +523,7 @@ static int sync_geometry(const NodeGeometry *n, const NodeGeometry *target)
 		else
 		{
 			verse_send_g_layer_create(target->node.id, ~0, layer->name, layer->type, layer->def_uint, layer->def_real);
-			printf(" sync sending create of layer %s in %u\n", layer->name, target->node.id);
+/*			printf(" no, sync sending create of layer %s in %u\n", layer->name, target->node.id);*/
 			sync = 0;
 		}
 	}
@@ -660,14 +660,14 @@ static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 				send = 1;
 				break;
 			case VN_M_FT_VOLUME:
-				if(nodedb_m_fragment_resolve(&tmp.volume.color, target, n, f->frag.volume.color))
-				{
-					tmp.volume.diffusion = f->frag.volume.diffusion;
-					tmp.volume.col_r = f->frag.volume.col_r;
-					tmp.volume.col_g = f->frag.volume.col_g;
-					tmp.volume.col_b = f->frag.volume.col_b;
-					send = 1;
-				}
+				tmp.volume.diffusion = f->frag.volume.diffusion;
+				tmp.volume.col_r = f->frag.volume.col_r;
+				tmp.volume.col_g = f->frag.volume.col_g;
+				tmp.volume.col_b = f->frag.volume.col_b;
+				send = 1;
+				break;
+			case VN_M_FT_VIEW:
+				send = 1;
 				break;
 			case VN_M_FT_GEOMETRY:
 				tmp.geometry = f->frag.geometry;
@@ -699,6 +699,16 @@ static int sync_material(const NodeMaterial *n, const NodeMaterial *target)
 				   && nodedb_m_fragment_resolve(&tmp.blender.control, target, n, f->frag.blender.control))
 				{
 					tmp.blender.type = f->frag.blender.type;
+					send = 1;
+				}
+				break;
+			case VN_M_FT_CLAMP:
+				if(nodedb_m_fragment_resolve(&tmp.clamp.data, target, n, f->frag.clamp.data))
+				{
+					tmp.clamp.min   = f->frag.clamp.min;
+					tmp.clamp.red   = f->frag.clamp.red;
+					tmp.clamp.green = f->frag.clamp.green;
+					tmp.clamp.blue  = f->frag.clamp.blue;
 					send = 1;
 				}
 				break;
