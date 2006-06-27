@@ -237,6 +237,9 @@ PURPLEAPI void			p_node_o_link_set(PONode *node, PINode *link, const char *label
 PURPLEAPI void			p_node_o_link_set_single(PONode *node, PINode *link, const char *label);
 PURPLEAPI PINode *		p_node_o_link_get(const PONode *node, const char *label, uint32 *target_id);
 
+PURPLEAPI void			p_node_o_hide_set(PONode *node, boolean hidden);
+PURPLEAPI boolean		p_node_o_hide_get(PINode *node);
+
 /** An opaque data type that represents a geometry layer. Use API functions to manipulate. */
 typedef void	PNGLayer;
 /** An opaque data type that represents a bone. Use API functions to manipulate. */
@@ -307,16 +310,19 @@ PURPLEAPI PNMFragment *		p_node_m_fragment_create_light(PONode *node, VNMLightTy
 							       const char *brdf_red, const char *brdf_green, const char *brdf_blue);
 PURPLEAPI PNMFragment *		p_node_m_fragment_create_reflection(PONode *node, real64 normal_falloff);
 PURPLEAPI PNMFragment *		p_node_m_fragment_create_transparency(PONode *node, real64 normal_fallof, real64 refract);
-PURPLEAPI PNMFragment *		p_node_m_fragment_create_volume(PONode *node, real64 diffusion, real64 col_r, real64 col_g, real64 col_b,
-								const PNMFragment *color);
+PURPLEAPI PNMFragment *		p_node_m_fragment_create_volume(PONode *node, real64 diffusion, real64 col_r, real64 col_g, real64 col_b);
+PURPLEAPI PNMFragment *		p_node_m_fragment_create_view(PONode *node);
 PURPLEAPI PNMFragment *		p_node_m_fragment_create_geometry(PONode *node,
 								  const char *layer_r, const char *layer_g, const char *layer_b);
 PURPLEAPI PNMFragment *		p_node_m_fragment_create_texture(PONode *node, PINode *bitmap,
 								 const char *layer_r, const char *layer_g, const char *layer_b,
+								 boolean filtered,
 								 const PNMFragment *mapping);
 PURPLEAPI PNMFragment *		p_node_m_fragment_create_noise(PONode *node, VNMNoiseType type, const PNMFragment *mapping);
 PURPLEAPI PNMFragment *		p_node_m_fragment_create_blender(PONode *node, VNMBlendType type,
 								 const PNMFragment *data_a, const PNMFragment *data_b, const PNMFragment *ctrl);
+PURPLEAPI PNMFragment *		p_node_m_fragment_create_clamp(PONode *node, boolean min, real64 red, real64 green, real64 blue,
+							       const PNMFragment *data);
 PURPLEAPI PNMFragment *		p_node_m_fragment_create_matrix(PONode *node, const real64 *matrix, const PNMFragment *data);
 PURPLEAPI PNMFragment *		p_node_m_fragment_create_ramp(PONode *node, VNMRampType type, uint8 channel,
 							      const PNMFragment *mapping, uint8 point_count,

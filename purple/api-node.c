@@ -513,6 +513,26 @@ PURPLEAPI PINode * p_node_o_link_get(const PONode *node	/** The object node whos
 	return NULL;
 }
 
+/** \brief Set the hide status of an object node.
+ * 
+ * This function is used to make an object node hidden. Hidden objects are not to be drawn
+ * by rendering clients.
+*/
+PURPLEAPI void p_node_o_hide_set(PONode *node	/** The node whose hidden status is to be set. */,
+				 boolean hidden	/** The new hidden status of the object. */)
+{
+	nodedb_o_hide_set((NodeObject *) node, hidden);
+}
+
+/** \brief Get the hide status of an object node.
+ *
+ * This function returns the state of the hidden flag of the given object node.
+ */
+PURPLEAPI boolean p_node_o_hide_get(PINode *node	/** The object node whose hidden status is to be retreived. */)
+{
+	return nodedb_o_hide_get((NodeObject *) node);
+}
+
 /** @} */
 
 /* ----------------------------------------------------------------------------------------- */
@@ -1221,10 +1241,18 @@ PURPLEAPI PNMFragment * p_node_m_fragment_create_transparency(PONode *node		/** 
  * 
  * Create a new fragment of type volume in a material node.
 */
-PURPLEAPI PNMFragment * p_node_m_fragment_create_volume(PONode *node, real64 diffusion, real64 col_r, real64 col_g, real64 col_b,
-							const PNMFragment *color)
+PURPLEAPI PNMFragment * p_node_m_fragment_create_volume(PONode *node, real64 diffusion, real64 col_r, real64 col_g, real64 col_b)
 {
-	return nodedb_m_fragment_create_volume((NodeMaterial *) node, diffusion, col_r, col_g, col_b, color);
+	return nodedb_m_fragment_create_volume((NodeMaterial *) node, diffusion, col_r, col_g, col_b);
+}
+
+/** \brief Create a new view fragment.
+ * 
+ * Create a new fragment of type view in a material node.
+*/
+PURPLEAPI PNMFragment * p_node_m_fragment_create_view(PONode *node)
+{
+	return nodedb_m_fragment_create_view((NodeMaterial *) node);
 }
 
 /** \brief Create a new geometry fragment.
@@ -1251,9 +1279,10 @@ PURPLEAPI PNMFragment * p_node_m_fragment_create_texture(PONode *node		/** The n
 							 const char *layer_r	/** Name of layer to read 'red' data from. */,
 							 const char *layer_g	/** Name of layer to read 'green' data from. */,
 							 const char *layer_b	/** Name of layer to read 'blue' data from. */,
+							 boolean filtered	/** Is the texture to be filtered when magnified? */,
 							 const PNMFragment *mapping	/** Fragment to use for mapping current point on surface into a point on the bitmap. See \c p_node_m_fragment_create_geometry(). */)
 {
-	return nodedb_m_fragment_create_texture((NodeMaterial *) node, bitmap, layer_r, layer_g, layer_b, mapping);
+	return nodedb_m_fragment_create_texture((NodeMaterial *) node, bitmap, layer_r, layer_g, layer_b, filtered, mapping);
 }
 
 /** \brief Create a new noise fragment.
@@ -1282,6 +1311,21 @@ PURPLEAPI PNMFragment * p_node_m_fragment_create_blender(PONode *node		/** The n
 							 const PNMFragment *ctrl	/** Fragment that controls the operation. Often left unconnected, depending on the operation performed. */)
 {
 	return nodedb_m_fragment_create_blender((NodeMaterial *) node, type, data_a, data_b, ctrl);
+}
+
+/** \brief Create a new clamp fragment.
+ * 
+ * Create a new fragment of type clamp in a material node. Clamp fragments are used to compute
+ * either the min() or the max() function of a constant color and the value of a fragment.
+*/
+PURPLEAPI PNMFragment * p_node_m_fragment_create_clamp(PONode *node,
+						       boolean min		/** If true, fragment computes min(). Else it computes max(). */,
+						       real64 red		/** Red part of constant input. */,
+						       real64 green		/** Green part of constant input. */,
+						       real64 blue		/** Blue part of constant input. */,
+						       const PNMFragment *data	/** Fragment that defines the variable input. */)
+{
+	return nodedb_m_fragment_create_clamp((NodeMaterial *) node, min, red, green, blue, data);
 }
 
 /** \brief Create a new matrix fragment.

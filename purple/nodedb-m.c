@@ -173,18 +173,20 @@ static int fragments_equal(const NodeMaterial *node, const NdbMFragment *a,
 		return a->frag.transparency.normal_falloff == b->frag.transparency.normal_falloff &&
 			a->frag.transparency.refraction_index == b->frag.transparency.refraction_index;
 	case VN_M_FT_VOLUME:
-		if(a->frag.volume.diffusion == b->frag.volume.diffusion &&
+		return a->frag.volume.diffusion == b->frag.volume.diffusion &&
 		   a->frag.volume.col_r == b->frag.volume.col_r &&
 		   a->frag.volume.col_g == b->frag.volume.col_g &&
-		   a->frag.volume.col_b == b->frag.volume.col_b)
-			return fragment_refs_equal(node, a->frag.volume.color, target, b->frag.volume.color);
+		   a->frag.volume.col_b == b->frag.volume.col_b;
 		return 0;
+	case VN_M_FT_VIEW:
+		return TRUE;	/* View fragments have no parameters, so they're easy to compare. */
 	case VN_M_FT_GEOMETRY:
 		return strcmp(a->frag.geometry.layer_r, b->frag.geometry.layer_r) == 0 &&
 		       strcmp(a->frag.geometry.layer_g, b->frag.geometry.layer_g) == 0 &&
 		       strcmp(a->frag.geometry.layer_b, b->frag.geometry.layer_b) == 0;
 	case VN_M_FT_TEXTURE:
-		if(fragment_refs_equal(node, a->frag.texture.mapping, target, b->frag.texture.mapping))
+		if(a->frag.texture.filtered == b->frag.texture.filtered &&
+		   fragment_refs_equal(node, a->frag.texture.mapping, target, b->frag.texture.mapping))
 		{
 			return node_ref_equal(a, b, offsetof(VMatFrag, texture.bitmap)) &&
 				strcmp(a->frag.texture.layer_r, b->frag.texture.layer_r) == 0 &&
@@ -200,6 +202,13 @@ static int fragments_equal(const NodeMaterial *node, const NdbMFragment *a,
 			fragment_refs_equal(node, a->frag.blender.data_a, target, b->frag.blender.data_a) &&
 			fragment_refs_equal(node, a->frag.blender.data_b, target, b->frag.blender.data_b) &&
 			fragment_refs_equal(node, a->frag.blender.control, target, b->frag.blender.control);
+	case VN_M_FT_CLAMP:
+		return a->frag.clamp.min == b->frag.clamp.min &&
+			a->frag.clamp.red == b->frag.clamp.red &&
+			a->frag.clamp.green == b->frag.clamp.green &&
+			a->frag.clamp.blue == b->frag.clamp.blue &&
+			fragment_refs_equal(node, a->frag.clamp.data, target, b->frag.clamp.data);
+		break;
 	case VN_M_FT_MATRIX:
 		return memcmp(a->frag.matrix.matrix, b->frag.matrix.matrix, sizeof a->frag.matrix.matrix) == 0 &&
 			fragment_refs_equal(node, a->frag.matrix.data, target, b->frag.matrix.data);
@@ -369,7 +378,7 @@ NdbMFragment * nodedb_m_fragment_create_transparency(NodeMaterial *node, real64 
 }
 
 NdbMFragment * nodedb_m_fragment_create_volume(NodeMaterial *node, real64 diffusion,
-					       real64 col_r, real64 col_g, real64 col_b, const NdbMFragment *color)
+					       real64 col_r, real64 col_g, real64 col_b)
 {
 	VMatFrag	frag;
 
@@ -379,8 +388,16 @@ NdbMFragment * nodedb_m_fragment_create_volume(NodeMaterial *node, real64 diffus
 	frag.volume.col_r = col_r;
 	frag.volume.col_g = col_g;
 	frag.volume.col_b = col_b;
-	link_set(&frag.volume.color, color);
 	return nodedb_m_fragment_create(node, ~0, VN_M_FT_VOLUME, &frag);
+}
+
+NdbMFragment * nodedb_m_fragment_create_view(NodeMaterial *node)
+{
+	VMatFrag	frag;	/* Dummy, just to suit the API. */
+
+	if(node == NULL)
+		return NULL;
+	return nodedb_m_fragment_create(node, ~0, VN_M_FT_VIEW, &frag);
 }
 
 NdbMFragment * nodedb_m_fragment_create_geometry(NodeMaterial *node, const char *layer_r, const char *layer_g,
@@ -398,6 +415,7 @@ NdbMFragment * nodedb_m_fragment_create_geometry(NodeMaterial *node, const char 
 
 NdbMFragment * nodedb_m_fragment_create_texture(NodeMaterial *node, const PNode *bitmap,
 							 const char *layer_r, const char *layer_g, const char *layer_b,
+							 boolean filtered,
 							 const NdbMFragment *mapping)
 {
 	VMatFrag	frag;
@@ -410,6 +428,7 @@ NdbMFragment * nodedb_m_fragment_create_texture(NodeMaterial *node, const PNode 
 	stu_strncpy_accept_null(frag.texture.layer_r, sizeof frag.texture.layer_r, layer_r);
 	stu_strncpy_accept_null(frag.texture.layer_g, sizeof frag.texture.layer_g, layer_g);
 	stu_strncpy_accept_null(frag.texture.layer_b, sizeof frag.texture.layer_b, layer_b);
+	frag.texture.filtered = filtered;
 	link_set(&frag.texture.mapping, mapping);
 	f = nodedb_m_fragment_create(node, ~0, VN_M_FT_TEXTURE, &frag);
 	node_ref_set(f, offsetof(VMatFrag, texture.bitmap), bitmap);
@@ -439,6 +458,20 @@ NdbMFragment * nodedb_m_fragment_create_blender(NodeMaterial *node, VNMBlendType
 	link_set(&frag.blender.data_b, data_b);
 	link_set(&frag.blender.control, ctrl);
 	return nodedb_m_fragment_create(node, ~0, VN_M_FT_BLENDER, &frag);
+}
+
+NdbMFragment * nodedb_m_fragment_create_clamp(NodeMaterial *node, boolean min, real64 red, real64 green, real64 blue, const NdbMFragment *data)
+{
+	VMatFrag	frag;
+
+	if(node == NULL)
+		return NULL;
+	frag.clamp.min = min;
+	frag.clamp.red = red;
+	frag.clamp.green = green;
+	frag.clamp.blue = blue;
+	link_set(&frag.clamp.data, data);
+	return nodedb_m_fragment_create(node, ~0, VN_M_FT_CLAMP, &frag);
 }
 
 NdbMFragment * nodedb_m_fragment_create_matrix(NodeMaterial *node, const real64 *matrix, const PNMFragment *data)

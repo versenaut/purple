@@ -16,6 +16,7 @@ typedef struct
 	DynArr	*links;
 	List	*links_local;
 	DynArr	*method_groups;
+	boolean	hidden;
 } NodeObject;
 
 typedef struct
@@ -73,5 +74,8 @@ extern PINode *		nodedb_o_link_get(const NodeObject *n, const char *label, uint3
 extern NdbOMethodGroup*	nodedb_o_method_group_lookup(NodeObject *n, const char *name);
 extern const NdbOMethod*nodedb_o_method_lookup(const NdbOMethodGroup *group, const char *name);
 extern const NdbOMethod*nodedb_o_method_lookup_id(const NdbOMethodGroup *group, uint8 id);
+
+extern void		nodedb_o_hide_set(NodeObject *n, boolean hidden);
+extern boolean		nodedb_o_hide_get(const NodeObject *n);
 
 extern void		nodedb_o_register_callbacks(void);

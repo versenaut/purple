@@ -570,6 +570,20 @@ static void cb_o_method_create(void *user, VNodeID node_id, uint16 group_id, uin
 
 /* ----------------------------------------------------------------------------------------- */
 
+void nodedb_o_hide_set(NodeObject *n, boolean hidden)
+{
+	if(n == NULL)
+		return;
+	n->hidden = hidden;
+}
+
+boolean nodedb_o_hide_get(const NodeObject *n)
+{
+	return n != NULL ? n->hidden : FALSE;
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
 void nodedb_o_register_callbacks(void)
 {
 	verse_callback_set(verse_send_o_transform_pos_real64,	cb_o_transform_pos_real64, NULL);
