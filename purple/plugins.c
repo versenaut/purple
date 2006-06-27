@@ -166,10 +166,11 @@ void plugin_set_input(Plugin *p, int index, PValueType type, const char *name, v
 		value_init(&i.spec.min_val);
 		value_init(&i.spec.max_val);
 		value_init(&i.spec.def_val);
+		
 		for(;;)
 		{
 			int	tag = va_arg(taglist, int);
-
+	
 			if(tag == P_INPUT_TAG_DONE)
 				break;
 			else if(tag < P_INPUT_TAG_DONE || tag > P_INPUT_TAG_DESC)	/* Generous. */
@@ -846,6 +847,8 @@ void plugins_libraries_init(void)
 	/* Initialize "built-in" plug-ins. */
 	plugin_input_init();
 	plugin_output_init();
+	plugin_clock_init();
+	/* Then the ones read from disk. */
 	for(iter = plugins_info.libraries; iter != NULL; iter = list_next(iter))
 	{
 		Library	*lib = list_data(iter);
