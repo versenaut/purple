@@ -8,8 +8,7 @@
  * and it will alter its output periodically until stopped.
  * 
  * The value that is output is the time passed since the clock was started (or its
- * period last changed), delivered as a real32_vec2, with seconds in the first
- * field and microseconds in the second.
+ * period last changed), delivered as a real64 (in seconds).
  * 
  * Precision of this clock will vary with the overall load of the Purple engine;
  * remember that it's all a big cooperative system.
@@ -43,16 +42,9 @@ typedef struct {
 static int cb_cron(void *data)
 {
 	State		*state = data;
-	double		el;
-	real32		t[2];
-
-	/* Compute time value to output, and format it as 2D float vector of [seconds, microseconds]. */
-	el = timeval_elapsed(&state->start, NULL);
-	t[0] = (int) el;
-	t[1] = (int) 1E6 * (el - (int) el);
 
 	graph_port_output_begin(state->output);
-	p_output_real32_vec2(state->output, t);
+	p_output_real64(state->output, timeval_elapsed(&state->start, NULL));
 	graph_port_output_end(state->output);
 
 	return 1;
