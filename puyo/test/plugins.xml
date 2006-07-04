@@ -31,7 +31,31 @@
  </meta>
 </plug-in>
 
-<plug-in id="3" name="audioecho">
+<plug-in id="3" name="clock">
+ <inputs>
+  <input type="real32">
+   <name>period</name>
+   <flag name="required" value="true"/>
+   <range>
+    <min>0.05</min>
+   </range>
+   <desc>Period of the clock, in seconds.</desc>
+  </input>
+  <input type="boolean">
+   <name>enabled</name>
+   <range>
+    <def>true</def>
+   </range>
+   <desc>Whether or not this clock is enabled.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">Built-in plug-in, creates a spontaneously changing &quot;clock&quot; signal</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="4" name="audioecho">
  <inputs>
   <input type="module">
    <name>node</name>
@@ -44,7 +68,7 @@
  </inputs>
 </plug-in>
 
-<plug-in id="4" name="audioscale">
+<plug-in id="5" name="audioscale">
  <inputs>
   <input type="module">
    <name>node</name>
@@ -57,7 +81,7 @@
  </inputs>
 </plug-in>
 
-<plug-in id="5" name="audiotone">
+<plug-in id="6" name="audiotone">
  <inputs>
   <input type="real32">
    <name>frequency</name>
@@ -82,7 +106,7 @@
  </inputs>
 </plug-in>
 
-<plug-in id="6" name="bbox">
+<plug-in id="7" name="bbox">
  <inputs>
   <input type="module">
    <name>data</name>
@@ -96,7 +120,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="7" name="bmaverage">
+<plug-in id="8" name="bmaverage">
  <inputs>
   <input type="module">
    <name>bitmap</name>
@@ -105,7 +129,7 @@
  </inputs>
 </plug-in>
 
-<plug-in id="8" name="bmblend">
+<plug-in id="9" name="bmblend">
  <inputs>
   <input type="module">
    <name>bitmap1</name>
@@ -133,7 +157,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="9" name="bmchecker">
+<plug-in id="10" name="bmchecker">
  <inputs>
   <input type="uint32">
    <name>side</name>
@@ -158,7 +182,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="10" name="bmdisc">
+<plug-in id="11" name="bmdisc">
  <inputs>
   <input type="uint32">
    <name>size</name>
@@ -195,7 +219,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="11" name="bmfilter">
+<plug-in id="12" name="bmfilter">
  <inputs>
   <input type="module">
    <name>bitmap1</name>
@@ -213,7 +237,21 @@
    <range>
     <def>0</def>
    </range>
-   <enums>0:Normal|1:Average|2:Multiply|3:Screen|4:Darken|5:Lighten|6:Difference|7:Negation|8:Exclusion|9:Overlay</enums>
+   <enums>
+    <enum value="0">Normal</enum>
+    <enum value="1">Average</enum>
+    <enum value="2">Multiply</enum>
+    <enum value="3">Screen</enum>
+    <enum value="4">Darken</enum>
+    <enum value="5">Lighten</enum>
+    <enum value="6">Difference</enum>
+    <enum value="7">Negation</enum>
+    <enum value="8">Exclusion</enum>
+    <enum value="9">Overlay</enum>
+    <enum value="10">Hard Light</enum>
+    <enum value="11">Hard Light2</enum>
+    <enum value="12">Color Dodge</enum>
+   </enums>
   </input>
  </inputs>
  <meta>
@@ -222,7 +260,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="12" name="bmnoise">
+<plug-in id="13" name="bmnoise">
  <inputs>
   <input type="uint32">
    <name>width</name>
@@ -258,7 +296,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="13" name="bmoilify">
+<plug-in id="14" name="bmoilify">
  <inputs>
   <input type="module">
    <name>bitmap</name>
@@ -282,7 +320,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="14" name="bmrotate">
+<plug-in id="15" name="bmrotate">
  <inputs>
   <input type="module">
    <name>bitmap</name>
@@ -306,7 +344,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="15" name="bmtext">
+<plug-in id="16" name="bmtext">
  <inputs>
   <input type="string">
    <name>text</name>
@@ -324,7 +362,29 @@
  </meta>
 </plug-in>
 
-<plug-in id="16" name="bulge">
+<plug-in id="17" name="bonetest">
+ <inputs>
+  <input type="boolean">
+   <name>hands</name>
+   <range>
+    <def>false</def>
+   </range>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="18" name="bonetest-hanim">
+ <inputs>
+  <input type="boolean">
+   <name>hands</name>
+   <range>
+    <def>false</def>
+   </range>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="19" name="bulge">
  <inputs>
   <input type="module">
    <name>data</name>
@@ -357,7 +417,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="17" name="cone">
+<plug-in id="20" name="cone">
  <inputs>
   <input type="real32">
    <name>height</name>
@@ -392,11 +452,12 @@
  </inputs>
  <meta>
   <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
   <entry category="desc/purpose">Creates a cone primitive. The user can control the height of the cone, which is the distance between the base plane to the apex, as well as the number of subdivisions along both major axis.</entry>
  </meta>
 </plug-in>
 
-<plug-in id="18" name="constant">
+<plug-in id="21" name="constant">
  <inputs>
   <input type="string">
    <name>value</name>
@@ -408,23 +469,70 @@
    <flag name="required" value="true"/>
    <range>
    </range>
-   <enums>0:String|1:Real64|2:UInt32</enums>
+   <enums>
+    <enum value="0">String</enum>
+    <enum value="1">Real64</enum>
+    <enum value="2">UInt32</enum>
+    <enum value="3">Real64_Vector</enum>
+    <enum value="4">Real64_Matrix</enum>
+   </enums>
    <desc>This controls what type the output value will have.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="desc/purpose">Output a constant value. The value is created by interpreting an input string according to the 'type' setting, and outputting the result. This is useful when the same value needs to be sent to several other plug-ins' inputs; an instance of constant can be used to 'buffer' the value and make it possible to change it in just one place.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="22" name="crowder">
+ <inputs>
+  <input type="module">
+   <name>object</name>
+   <flag name="required" value="true"/>
+  </input>
+  <input type="uint32">
+   <name>width</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>3</def>
+   </range>
+  </input>
+  <input type="uint32">
+   <name>height</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>3</def>
+   </range>
+  </input>
+  <input type="uint32">
+   <name>x</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>1</def>
+   </range>
+  </input>
+  <input type="uint32">
+   <name>y</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>1</def>
+   </range>
   </input>
  </inputs>
 </plug-in>
 
-<plug-in id="19" name="cube">
+<plug-in id="23" name="cube">
  <inputs>
-  <input type="real32">
+  <input type="real64_vec3">
    <name>size</name>
    <flag name="required" value="true"/>
    <range>
-    <def>1</def>
-    <min>0.1</min>
-    <max>200</max>
+    <def>[1 1 1]</def>
+    <min>[0.1 0.1 0.1]</min>
+    <max>[10 10 10]</max>
    </range>
-   <desc>The side length of the cube.</desc>
+   <desc>The side lengths of the cube, in all three dimensions.</desc>
   </input>
   <input type="uint32">
    <name>splits</name>
@@ -448,17 +556,22 @@
    <range>
     <def>0</def>
    </range>
-   <enums>0:None|1:Defaults|2:Full Layers</enums>
+   <enums>
+    <enum value="0">None</enum>
+    <enum value="1">Defaults</enum>
+    <enum value="2">Full Layers</enum>
+   </enums>
    <desc>Controls the creasing set for this cube. Without crease information, subdiving renderers will make the cube very round.</desc>
   </input>
  </inputs>
  <meta>
   <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
   <entry category="desc/purpose">Creates a cube object.</entry>
  </meta>
 </plug-in>
 
-<plug-in id="20" name="curvetest">
+<plug-in id="24" name="curvetest">
  <inputs>
   <input type="real64">
    <name>v</name>
@@ -467,7 +580,7 @@
  </inputs>
 </plug-in>
 
-<plug-in id="21" name="cylinder">
+<plug-in id="25" name="cylinder">
  <inputs>
   <input type="real32">
    <name>height</name>
@@ -502,11 +615,12 @@
  </inputs>
  <meta>
   <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
   <entry category="desc/purpose">Creates a cylinder object with matching geometry.</entry>
  </meta>
 </plug-in>
 
-<plug-in id="22" name="displace">
+<plug-in id="26" name="displace">
  <inputs>
   <input type="module">
    <name>object</name>
@@ -534,10 +648,20 @@
  </meta>
 </plug-in>
 
-<plug-in id="23" name="add">
+<plug-in id="27" name="add-integers">
+ <inputs>
+  <input type="int32">
+   <name>a</name>
+   <flag name="required" value="true"/>
+  </input>
+  <input type="int32">
+   <name>b</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
 </plug-in>
 
-<plug-in id="24" name="factors">
+<plug-in id="28" name="factors">
  <inputs>
   <input type="uint32">
    <name>n</name>
@@ -546,7 +670,72 @@
  </inputs>
 </plug-in>
 
-<plug-in id="25" name="hello">
+<plug-in id="29" name="getpixel">
+ <inputs>
+  <input type="module">
+   <name>bitmap</name>
+   <desc>The first bitmap found in the input set of nodes will be accessed.</desc>
+  </input>
+  <input type="real64_vec3">
+   <name>position</name>
+   <desc>The (x,y,z) position in the bitmap to access. Coordinates are rounded to integer before the access.</desc>
+  </input>
+  <input type="boolean">
+   <name>red</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>true</def>
+   </range>
+   <desc>Include red color component in the result?</desc>
+  </input>
+  <input type="boolean">
+   <name>green</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>true</def>
+   </range>
+   <desc>Include green color component in the result?</desc>
+  </input>
+  <input type="boolean">
+   <name>blue</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>true</def>
+   </range>
+   <desc>Include blue color component in the result?</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Retrieves the color of a given pixel in a bitmap, and outputs it as a 3D vector. Inputs control which color channel(s) are to be included.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="30" name="getvertex">
+ <inputs>
+  <input type="module">
+   <name>node</name>
+   <flag name="required" value="true"/>
+   <desc>The first geometry node found in the input will have a vertex extracted.</desc>
+  </input>
+  <input type="uint32">
+   <name>index</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>0</def>
+   </range>
+   <desc>The integer index of the vertex to output, counting from 0.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Retreives the 3D coordinates of an indexed vertex of a the first geometry node found in the input.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="31" name="hello">
  <inputs>
   <input type="int32">
    <name>mode</name>
@@ -570,58 +759,87 @@
  </meta>
 </plug-in>
 
-<plug-in id="26" name="power_of_two">
+<plug-in id="32" name="add">
  <inputs>
-  <input type="uint32">
-   <name>x</name>
-  </input>
- </inputs>
-</plug-in>
-
-<plug-in id="27" name="fact">
- <inputs>
-  <input type="uint32">
-   <name>n</name>
-   <flag name="required" value="true"/>
-  </input>
- </inputs>
-</plug-in>
-
-<plug-in id="28" name="add_r32">
- <inputs>
-  <input type="real32">
+  <input type="module">
    <name>a</name>
    <flag name="required" value="true"/>
+   <desc>First term in addition.</desc>
   </input>
-  <input type="real32">
+  <input type="module">
    <name>b</name>
    <flag name="required" value="true"/>
+   <desc>Second term in addition.</desc>
   </input>
  </inputs>
  <meta>
   <entry category="authors">Emil Brink</entry>
-  <entry category="desc/purpose">Adds two real32 numbers together</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Computes addition of two terms. The terms can be either real numbers, bitmaps, or object nodes with geometry links.</entry>
  </meta>
 </plug-in>
 
-<plug-in id="29" name="sub_r32">
+<plug-in id="33" name="sub">
  <inputs>
-  <input type="real32">
+  <input type="module">
    <name>a</name>
    <flag name="required" value="true"/>
+   <desc>The first term in the subtraction.</desc>
   </input>
-  <input type="real32">
+  <input type="module">
    <name>b</name>
    <flag name="required" value="true"/>
+   <desc>THe second term in the subtraction.</desc>
   </input>
  </inputs>
  <meta>
   <entry category="authors">Emil Brink</entry>
-  <entry category="desc/purpose">Computes difference of two real32 numbers</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Computes difference of two terms. The terms can be either real numbers, bitmaps, or object nodes with geometry links.</entry>
  </meta>
 </plug-in>
 
-<plug-in id="30" name="mattest">
+<plug-in id="34" name="mul">
+ <inputs>
+  <input type="module">
+   <name>a</name>
+   <flag name="required" value="true"/>
+   <desc>The first factor in the multiplication.</desc>
+  </input>
+  <input type="module">
+   <name>b</name>
+   <flag name="required" value="true"/>
+   <desc>The second factor in the multiplication.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Computes product of two factors. The factors can be either real numbers, bitmaps, or object nodes with geometry links.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="35" name="div">
+ <inputs>
+  <input type="module">
+   <name>a</name>
+   <flag name="required" value="true"/>
+   <desc>The nominator in the division.</desc>
+  </input>
+  <input type="module">
+   <name>b</name>
+   <flag name="required" value="true"/>
+   <desc>The denominator in the division.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Computes quotient of nominator and denominators. These can be either real numbers, bitmaps, or object nodes with geometry links.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="36" name="mattest">
  <inputs>
   <input type="module">
    <name>texture</name>
@@ -630,7 +848,7 @@
  </inputs>
 </plug-in>
 
-<plug-in id="31" name="measure">
+<plug-in id="37" name="measure">
  <inputs>
   <input type="module">
    <name>data</name>
@@ -639,7 +857,7 @@
  </inputs>
 </plug-in>
 
-<plug-in id="32" name="mtexture">
+<plug-in id="38" name="mtexture">
  <inputs>
   <input type="module">
    <name>object</name>
@@ -656,7 +874,20 @@
  </inputs>
 </plug-in>
 
-<plug-in id="33" name="new-audio">
+<plug-in id="39" name="muscle">
+ <inputs>
+  <input type="module">
+   <name>upper</name>
+   <flag name="required" value="true"/>
+  </input>
+  <input type="module">
+   <name>lower</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="40" name="new-audio">
  <inputs>
   <input type="string">
    <name>name</name>
@@ -672,7 +903,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="34" name="new-bitmap">
+<plug-in id="41" name="new-bitmap">
  <inputs>
   <input type="string">
    <name>name</name>
@@ -688,7 +919,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="35" name="new-curve">
+<plug-in id="42" name="new-curve">
  <inputs>
   <input type="string">
    <name>name</name>
@@ -704,7 +935,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="36" name="new-geometry">
+<plug-in id="43" name="new-geometry">
  <inputs>
   <input type="string">
    <name>name</name>
@@ -720,7 +951,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="37" name="new-material">
+<plug-in id="44" name="new-material">
  <inputs>
   <input type="string">
    <name>name</name>
@@ -736,7 +967,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="38" name="new-object">
+<plug-in id="45" name="new-object">
  <inputs>
   <input type="string">
    <name>name</name>
@@ -752,7 +983,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="39" name="new-text">
+<plug-in id="46" name="new-text">
  <inputs>
   <input type="string">
    <name>name</name>
@@ -768,7 +999,69 @@
  </meta>
 </plug-in>
 
-<plug-in id="40" name="plane">
+<plug-in id="47" name="new-source">
+ <inputs>
+  <input type="string">
+   <name>URL</name>
+   <flag name="required" value="true"/>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="48" name="orbiter">
+ <inputs>
+  <input type="real64">
+   <name>time</name>
+   <range>
+    <def>0</def>
+   </range>
+  </input>
+  <input type="real32">
+   <name>speed</name>
+   <range>
+    <def>1</def>
+   </range>
+   <desc>Angular velocity, in degrees per second.</desc>
+  </input>
+  <input type="real32">
+   <name>radius-x</name>
+   <range>
+    <def>1</def>
+   </range>
+   <desc>X-radius for the orbit.</desc>
+  </input>
+  <input type="real32">
+   <name>radius-z</name>
+   <range>
+    <def>1</def>
+   </range>
+   <desc>Z-radius for the orbit.</desc>
+  </input>
+  <input type="uint32">
+   <name>n</name>
+   <range>
+    <def>1</def>
+    <min>1</min>
+    <max>16</max>
+   </range>
+   <desc>Number of clones to orbit.</desc>
+  </input>
+  <input type="module">
+   <name>object</name>
+   <flag name="required" value="true"/>
+   <desc>First object found here will be cloned and made to orbit.</desc>
+  </input>
+  <input type="real32_vec3">
+   <name>origin</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>[0 0 0]</def>
+   </range>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="49" name="plane">
  <inputs>
   <input type="real32">
    <name>size</name>
@@ -786,14 +1079,22 @@
    </range>
    <desc>Number of times to split each side.</desc>
   </input>
+  <input type="boolean">
+   <name>uv-map</name>
+   <range>
+    <def>false</def>
+   </range>
+   <desc>Controls whether or not UV mapping data is created.</desc>
+  </input>
  </inputs>
  <meta>
   <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
   <entry category="desc/purpose">Create a simple polygonal plane, consisting of many quadrilaterals.</entry>
  </meta>
 </plug-in>
 
-<plug-in id="41" name="scale">
+<plug-in id="50" name="scale">
  <inputs>
   <input type="module">
    <name>data</name>
@@ -806,13 +1107,38 @@
  </inputs>
 </plug-in>
 
-<plug-in id="42" name="sphere">
+<plug-in id="51" name="select-vertex">
+ <inputs>
+  <input type="module">
+   <name>node</name>
+   <flag name="required" value="true"/>
+  </input>
+  <input type="uint32">
+   <name>index</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>0</def>
+   </range>
+  </input>
+  <input type="real64">
+   <name>selection</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>1</def>
+    <min>0</min>
+    <max>1</max>
+   </range>
+  </input>
+ </inputs>
+</plug-in>
+
+<plug-in id="52" name="sphere">
  <inputs>
   <input type="real32">
    <name>radius</name>
    <flag name="required" value="true"/>
    <range>
-    <def>10</def>
+    <def>1</def>
     <min>0.1</min>
     <max>200</max>
    </range>
@@ -826,17 +1152,24 @@
     <min>3</min>
     <max>128</max>
    </range>
-   <desc>The number of splits around the north/south axis of the sphere.</desc>
+   <desc>The number of polygons sitting side-to-side around the north/south axis of the sphere.</desc>
   </input>
   <input type="uint32">
    <name>side splits</name>
    <flag name="required" value="true"/>
    <range>
-    <def>1</def>
-    <min>1</min>
+    <def>3</def>
+    <min>2</min>
     <max>128</max>
    </range>
-   <desc>The number of splits along the north/south axis of the sphere.</desc>
+   <desc>The number of polygons stacked on top of each other, along the north/south axis of the sphere.</desc>
+  </input>
+  <input type="boolean">
+   <name>uv map</name>
+   <range>
+    <def>false</def>
+   </range>
+   <desc>If true, UV mapping layers will be added. Currently only naive mapping is supported, the texture should have width:height aspect of 2:1, and quite a bit of it will be wasted.</desc>
   </input>
  </inputs>
  <meta>
@@ -845,7 +1178,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="43" name="str-length">
+<plug-in id="53" name="str-length">
  <inputs>
   <input type="string">
    <name>str</name>
@@ -857,7 +1190,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="44" name="str-join">
+<plug-in id="54" name="str-join">
  <inputs>
   <input type="string">
    <name>str1</name>
@@ -872,7 +1205,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="45" name="str-cut">
+<plug-in id="55" name="str-cut">
  <inputs>
   <input type="string">
    <name>str</name>
@@ -897,7 +1230,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="46" name="tagtest">
+<plug-in id="56" name="tagtest">
  <inputs>
   <input type="uint32">
    <name>mode</name>
@@ -906,7 +1239,7 @@
  </inputs>
 </plug-in>
 
-<plug-in id="47" name="template">
+<plug-in id="57" name="template">
  <inputs>
   <input type="real32">
    <name>x</name>
@@ -919,7 +1252,7 @@
  </meta>
 </plug-in>
 
-<plug-in id="48" name="textnum">
+<plug-in id="58" name="textnum">
  <inputs>
   <input type="int32">
    <name>number</name>
@@ -928,7 +1261,213 @@
  </inputs>
 </plug-in>
 
-<plug-in id="49" name="warp">
+<plug-in id="59" name="torus">
+ <inputs>
+  <input type="real32">
+   <name>radius, inner</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>0.5</def>
+    <min>0.1</min>
+   </range>
+  </input>
+  <input type="real32">
+   <name>radius, outer</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>1</def>
+    <min>0.2</min>
+   </range>
+  </input>
+  <input type="uint32">
+   <name>tube splits</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>8</def>
+    <min>3</min>
+    <max>128</max>
+   </range>
+  </input>
+  <input type="uint32">
+   <name>ring splits</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>5</def>
+    <min>3</min>
+    <max>128</max>
+   </range>
+  </input>
+  <input type="boolean">
+   <name>uv map</name>
+   <flag name="required" value="true"/>
+   <range>
+    <def>false</def>
+   </range>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">This plug-in generates a torus shape with the given parameters.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="60" name="vec-add">
+ <inputs>
+  <input type="real64_vec4">
+   <name>x</name>
+   <flag name="required" value="true"/>
+   <desc>A vector will be parsed from this input, to serve as one of the terms of the addition.</desc>
+  </input>
+  <input type="real64_vec4">
+   <name>y</name>
+   <flag name="required" value="true"/>
+   <desc>A vector will be parsed from this input, to serve as the other term of the addition.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Computes sum of inputs, taken as 4D vectors.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="61" name="vec-sub">
+ <inputs>
+  <input type="real64_vec4">
+   <name>x</name>
+   <flag name="required" value="true"/>
+   <desc>A vector will be parsed from this input, to serve as one of the terms of the subtraction.</desc>
+  </input>
+  <input type="real64_vec4">
+   <name>y</name>
+   <flag name="required" value="true"/>
+   <desc>A vector will be parsed from this input, to serve as the other term of the subtraction.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Computes difference of inputs, taken as 4D vectors.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="62" name="vec-mul">
+ <inputs>
+  <input type="real64">
+   <name>x</name>
+   <flag name="required" value="true"/>
+   <desc>A real number or matrix is read here, and used to scale the vector.</desc>
+  </input>
+  <input type="real64_vec4">
+   <name>y</name>
+   <flag name="required" value="true"/>
+   <desc>A vector will be parsed from this input, and multiplied by the other input's value.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Computes product of either a real number or a matrix, and a 4D vector.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="63" name="vec-div">
+ <inputs>
+  <input type="real64_vec4">
+   <name>x</name>
+   <flag name="required" value="true"/>
+   <desc>A vector will be parsed from this input, and divided by the other input's value.</desc>
+  </input>
+  <input type="real64">
+   <name>y</name>
+   <flag name="required" value="true"/>
+   <desc>A real number is read here, and used to scale the vector.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Computes division of a vector and a real number.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="64" name="vec-cross">
+ <inputs>
+  <input type="real64_vec3">
+   <name>x</name>
+   <flag name="required" value="true"/>
+   <desc>A 3D vector will be read here, and used as one part of the cross product computation.</desc>
+  </input>
+  <input type="real64_vec3">
+   <name>y</name>
+   <flag name="required" value="true"/>
+   <desc>A 3D vector will be read here, and used as one part of the cross product computation.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Computes cross product of two 3D vectors. Note that this operator does not work on 4D vectors; they will be re-interpreted to 3D.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="65" name="vec-scalar">
+ <inputs>
+  <input type="real64_vec4">
+   <name>x</name>
+   <flag name="required" value="true"/>
+   <desc>A 4D vector will be read here, and used as one part of the scalar product computation.</desc>
+  </input>
+  <input type="real64_vec4">
+   <name>y</name>
+   <flag name="required" value="true"/>
+   <desc>A 4D vector will be read here, and used as one part of the scalar product computation.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Computes scalar (&quot;inner&quot;) product of two 4D vectors.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="66" name="vec-length">
+ <inputs>
+  <input type="real64_vec4">
+   <name>x</name>
+   <flag name="required" value="true"/>
+   <desc>A vector will be parsed from this input, and the length will be computed and output.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Computes the Euclidian length of a vector, i.e. the square root of the sum of the squares of the vector's components.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="67" name="vec-swizzle">
+ <inputs>
+  <input type="real64_vec4">
+   <name>x</name>
+   <flag name="required" value="true"/>
+   <desc>A vector to swizzle.</desc>
+  </input>
+  <input type="string">
+   <name>pattern</name>
+   <flag name="required" value="true"/>
+   <desc>Pattern to control swizzling. Use 'x', 'y', 'z' and 'w' to refer to the input vector's components. E.g. &quot;xyzw&quot; is the identity transform.</desc>
+  </input>
+ </inputs>
+ <meta>
+  <entry category="authors">Emil Brink</entry>
+  <entry category="copyright">2005 PDC, KTH</entry>
+  <entry category="desc/purpose">Creates a &quot;swizzled&quot; version of an input 4D vector, controlled by a pattern string.</entry>
+ </meta>
+</plug-in>
+
+<plug-in id="68" name="warp">
  <inputs>
   <input type="module">
    <name>data</name>
