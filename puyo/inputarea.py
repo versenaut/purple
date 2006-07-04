@@ -22,6 +22,7 @@ class InputArea(gtk.Notebook):
 		self.graph = None
 		self.graph_id = None
 		self.current_module = -1
+		self.current_sequence = None
 
     	def set_purple(self, purple):
 		self.purple = purple
@@ -403,6 +404,7 @@ class InputArea(gtk.Notebook):
 			cv = self._get_input_set(mid, i)
 			enums = self.purpleinfo.plugin_get_input_enums(pid, i)
 #			print "range=", rng
+#			print label, "has enums", enums
 			table.add((mid, i), label, itype, cv, rng, enums)
 		page.pack_start(table, 0, 0, 0)
 		page.show_all()
@@ -410,10 +412,13 @@ class InputArea(gtk.Notebook):
 #		print "built page number", pnr, "for module", mid, type(mid)
 		self.pages[mid] = (pnr, table)
 		self.current_module = mid
+		self.current_sequence = int(m.xpathEval("@seq")[0].content)
+#		print "**current sequence: ", self.current_sequence
 		return pnr
 
 	def set_focus(self, mid):
 		"Set focus, i.e. the displayed inputs, to module with ID <mid>."
+#		print "focusing module %d" % mid
 		if mid == -1:
 			if self.current_module >= 0:
 				try:	p = self.pages[self.current_module]
@@ -421,6 +426,7 @@ class InputArea(gtk.Notebook):
 				if p != None:
 					del self.pages[self.current_module]
 					self.remove_page(p[0])
+#					print "something was deleted"
 			self.current_module = -1
 			return
 		try:	p = self.pages[mid]
@@ -428,11 +434,14 @@ class InputArea(gtk.Notebook):
 		if p == None:
 			k = self._build_page(mid)
 			p = self.pages[mid]
-		m = self.graph.xpathEval("graph/module[@id='%u']/@plug-in" % mid)
-		if len(m) == 0:
+		modxml = self.graph.xpathEval("graph/module[@id='%u']" % mid)
+		if len(modxml) == 0:
 			self.set_focus(-1)
 			return
-		cpid = int(m[0].content)
+		cpid = int(modxml[0].xpathEval("@plug-in")[0].content)
+		mseq = int(modxml[0].xpathEval("@seq")[0].content)
+#		print "focusing on plug-in %u, was %u" % (cpid, p[1].pid), "sequence is", mseq
+
 		# If plug-in has changed, trash and rebuild the module.
 		if cpid != p[1].pid:
 			self.remove_page(p[0])
