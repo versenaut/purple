@@ -135,6 +135,12 @@ class PurpleAvatar(NodeObject):
 	def mod_input_set_real32(self, graph, module, input, value):
 		self._send_mod_input_set("real32", graph, module, input, value)
 
+	def mod_input_set_real32_vec(self, graph, module, input, value):
+		if len(value) == 3:
+			self._send_mod_input_set("r32v3", graph, module, input, value)
+		else:
+			print "missing %u-dimension real32 vector setting" % len(value)
+
 	def mod_input_set_real64(self, graph, module, input, value):
 		self._send_mod_input_set("real64", graph, module, input, value)
 
@@ -739,7 +745,8 @@ def cb_t_set_language(node_id, language):
 	n.language_set(language)
 
 def cb_o_link_set(node_id, link_id, link, label, target_id):
-	print "Link from " + str(node_id) + "->" + str(link)
+#	print "Link from " + str(node_id) + "->" + str(link)
+	pass
 
 def cb_o_method_create(node_id, group_id, method_id, name, args):
 	n = the_db.get(node_id)
