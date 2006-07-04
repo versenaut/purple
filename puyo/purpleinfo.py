@@ -79,11 +79,13 @@ class PurpleInfo:
 
 	def plugin_get_input_enums(self, pid, index):
 		"""Return list of enum tuples, of the form (value,label). If there are no enums, None is returned."""
-		q = "purple-plugins/plug-in[@id='%d']/inputs/input[%d]/enums" % (int(pid), int(index) + 1)
+		q = "purple-plugins/plug-in[@id='%d']/inputs/input[%d]/enums/enum" % (int(pid), int(index) + 1)
 		r = self.doc.xpathEval(q)
-		try:
-			es = r[0].content
-			es = es.strip("|").split("|")	# Split into list of "value:label" strings.
-			enums = [(int(x.split(":")[0]),x.split(":")[1]) for x in es]	# Comprehend that.
-		except:	enums = None
+		if len(r) > 0:
+			enums = []
+			for e in r:
+				v = int(e.xpathEval("@value")[0].content)
+				enums += [(v, e.content)]
+		else:
+			enums = None
 		return enums
