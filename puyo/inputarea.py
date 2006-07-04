@@ -30,10 +30,11 @@ class InputArea(gtk.Notebook):
 	class InputTable(gtk.Table):
 		"A table of input widgets. Knows which widget maps to which input index."
 
-		def __init__(self, area, pid, height):
+		def __init__(self, area, pid, seq, height):
 			gtk.Table.__init__(self, height, 2)
 			self.area = area
 			self.pid  = pid
+			self.seq  = seq
 			self.height = height
 			self.inputs = {}
 			self.set_size_request(200, -1)
@@ -391,12 +392,13 @@ class InputArea(gtk.Notebook):
 			print "failed to extract XML for module", mid, "in graph", self.graph_id
 			return
 		pid = int(m.xpathEval("@plug-in")[0].content)
+		seq = int(m.xpathEval("@seq")[0].content)
 		label = gtk.Label("<b>%s</b> (%u)" % (self.purpleinfo.plugin_get_name(pid), mid))
 		label.set_use_markup(1)
 		page.pack_start(label, 0, 0, 0)
 		nid = self.purpleinfo.plugin_get_input_num(pid)
 		page.pack_start(gtk.HSeparator(), 0, 0, 0)
-		table = InputArea.InputTable(self, pid, nid)
+		table = InputArea.InputTable(self, pid, seq, nid)
 		for i in range(nid):
 			itype = self.purpleinfo.plugin_get_input_type(pid, i)
 			label = self.purpleinfo.plugin_get_input_name(pid, i)
@@ -409,7 +411,7 @@ class InputArea(gtk.Notebook):
 		page.pack_start(table, 0, 0, 0)
 		page.show_all()
 		pnr = self.append_page(page)
-#		print "built page number", pnr, "for module", mid, type(mid)
+		print "built page number", pnr, "for module", mid, type(mid), "sequence", table.seq
 		self.pages[mid] = (pnr, table)
 		self.current_module = mid
 		self.current_sequence = int(m.xpathEval("@seq")[0].content)
@@ -442,8 +444,9 @@ class InputArea(gtk.Notebook):
 		mseq = int(modxml[0].xpathEval("@seq")[0].content)
 #		print "focusing on plug-in %u, was %u" % (cpid, p[1].pid), "sequence is", mseq
 
-		# If plug-in has changed, trash and rebuild the module.
-		if cpid != p[1].pid:
+		# If plug-in or sequence has changed, trash and rebuild the module.
+		if cpid != p[1].pid or mseq != p[1].seq:
+			print "pid/seq mismatch, forcing ui page rebuild"
 			self.remove_page(p[0])
 			self._build_page(mid)
 
