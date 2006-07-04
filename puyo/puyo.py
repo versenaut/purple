@@ -11,6 +11,7 @@ import gobject
 import gtk
 import gtk.gtkgl
 import string
+import sys
 
 import verse as v
 
@@ -65,6 +66,7 @@ class NodeObject(Node):
 		self.method_groups = {}
 
 	def method_group_create(self, mid, name):
+#		print "creating group", mid, name, "in", self
 		self.method_groups[mid] = MethodGroup(mid, name)
 
 	def method_group_get(self, mid):
@@ -72,15 +74,22 @@ class NodeObject(Node):
 			if g.id == mid:
 				return g
 		return None
+
 	def method_group_get_named(self, name):
+#		print "getting method group named", name, "in", self.method_groups
 		for g in self.method_groups.values():
 			if g.name == name:
 				return g
 		return None
 
 class PurpleAvatar(NodeObject):
-	def __self__(id):
-		NodeObject.__init__(self, id)
+#	def __self__(id):
+#		NodeObject.__init__(self, id)
+
+	def __init__(self, node):
+		print "initializing purpleavatar, copying", node
+		Node.__init__(self, node.id, v.OBJECT)
+		self.method_groups = node.method_groups
 
 	def get_graph_method(self, name):
 		g = self.method_group_get_named("PurpleGraph")
@@ -209,7 +218,7 @@ class NodeText(Node):
 			return b
 		b = TextBuffer(self, buf_id, name)
 		self.buffers[buf_id] = b
-		print "added buffer", b
+		print "added buffer", buf_id, ",", name, "in", self.id
 		return b
 
 	def text_set(self, buffer_id, pos, length, text):
@@ -354,7 +363,7 @@ class Puyo:
 				n = string.strip(n)
 				if len(n) > 0:
 					the_db.send_create_named(v.TEXT, n)
-			cdlg.destroy()
+#			cdlg.destroy()
 
 		def _create_buffer(*args):
 			b = _get_buffer()
@@ -370,7 +379,7 @@ class Puyo:
 					n = string.strip(n)
 					if len(n) > 0:
 						v.send_t_buffer_create(node.id, ~0, n)
-				cdlg.destroy()
+#				cdlg.destroy()
 
 		def _refresh(*args):
 			model = gtk.TreeStore(gobject.TYPE_PYOBJECT, gobject.TYPE_STRING)
@@ -386,6 +395,7 @@ class Puyo:
 						model.set_value(chiter, 1, b.name)
 			nview.set_model(model)
 			nview.expand_all()
+
 		nview = gtk.TreeView()
 		renderer = gtk.CellRendererText()
 		column = gtk.TreeViewColumn("Text Nodes", renderer, text = 1)
@@ -483,8 +493,12 @@ class Puyo:
 		dlg.destroy()
 		return g
 
+	def switch_to_graph(self, g):
+		print "graph:", g
+
 	def evt_action_graph_edit(self, action, user):
 		g = self.pick_graph("Pick graph to edit:")
+		self.switch_to_graph(g)
 		if g == None:
 			return
 		what = self.graph_find(g[1])
@@ -503,6 +517,8 @@ class Puyo:
 			self.currentGraph = (what, n, buf.xml_notify_add(self.cb_current_graph_update, None))
 			self.inputs.set_graph(what[0], buf.xml)
 			self.area.set_graph(what[0], buf.xml)
+		else:
+			print "*** Couldn't set current graph, no node named", what[1], "found"
 
 	def evt_action_graph_destroy(self, action, user):
 		group, m = the_db.purple.get_graph_method("destroy")
@@ -600,13 +616,21 @@ class Puyo:
 		ui = """
 <ui>
   <menubar name="MainBar">
+<!--
+    <menu name="Server" action="GraphMenu">
+     <menuitem name="Connect..." action="GraphCreate"/>
+     <menuitem name="Disconnect" action="GraphCreate"/>
+     <separator/>
+     <menuitem name="Quit" action="GraphQuit"/>
+    </menu>
+-->
     <menu name="GraphMenu" action="GraphMenu">
      <menuitem name="Create"  action="GraphCreate"/>
      <separator/>
      <menuitem name="Edit"    action="GraphEdit"/>
      <menuitem name="Destroy" action="GraphDestroy"/>
      <separator/>
-     <menuitem name="Quit"    action="GraphQuit"/>
+<!--     <menuitem name="Quit"    action="GraphQuit"/>-->
     </menu>
     <menu name="ModuleMenu" action="ModuleMenu">
      <menu name="ModuleCreateMenu" action="ModuleCreateMenu">
@@ -653,7 +677,7 @@ class Puyo:
 		self.area.set_action_group(ag)
 
 		hbox.pack_start(self.area)
-		self.inputs.append_page(gtk.HScale(), gtk.Label("Page"))
+#		self.inputs.append_page(gtk.HScale(), gtk.Label("Page"))	# Dummy widget to make notebook wake up. Not needed?
 		hbox.pack_start(self.inputs, 0, 0, 0)
 		vbox.pack_start(hbox)
 		self.window.add(vbox)
@@ -669,6 +693,7 @@ class Puyo:
 
 	def evt_module_create(self, *args):
     		if the_db.purple == None: return
+		print "current graph:", self.currentGraph
 		the_db.purple.mod_create(self.currentGraph[0][0], int(args[1]))
 
 	def evt_module_destroy(self, *args):
@@ -686,6 +711,9 @@ class Puyo:
 			i.connect("activate", self.evt_module_create, p[1])
 			pos += 1
 		self.menu_tools.show_all()
+		# Hide the dummy Quit entry that is in the menu to make it non-empty.
+		cq = self.ui.get_widget("/MainBar/ModuleMenu/ModuleCreateMenu/Foo")
+		cq.hide()
 
 	def main(self):
 		gtk.main()
@@ -719,18 +747,26 @@ def cb_o_method_create(node_id, group_id, method_id, name, args):
 		g = n.method_group_get(group_id)
 		if g != None:
 			g.method_create(method_id, name, args)
+		else:
+			print " but group", group_id, "not found in node :/"
+	else:
+		print " but node not found in database"
 			
 
 def cb_o_method_group_create(node_id, group_id, name):
-	if node_id != the_db.purple.id:
-		print node_id, " is not purple (", the_db.purple, "), aborting"
-		return
+#	if the_db.purple == None:
+#		print "Purple server not found ... weird"
+#		return
+#	if node_id != the_db.purple.id:
+#		print node_id, " is not purple (", the_db.purple, "), aborting method create"
+#		return
 	print "method group: ", node_id, group_id, name
 	if name == "PurpleGraph":
-		p = the_db.get(node_id)
-		if p != None:
-			p.method_group_create(group_id, name)
+		n = the_db.get(node_id)
+		if n != None:
+			n.method_group_create(group_id, name)
 			v.send_o_method_group_subscribe(node_id, group_id)
+			print " subscribed to method group"
 
 def cb_node_name_set(node_id, name):
 	print "Node " + str(node_id) + " is named " + name
@@ -738,9 +774,10 @@ def cb_node_name_set(node_id, name):
 	if n != None:
 		n.name_set(name)
 		if name == "PurpleEngine":
-			the_db.purple = PurpleAvatar(node_id)
+			the_db.purple = PurpleAvatar(n)
 			the_puyo.area.set_purple(the_db.purple)
 			the_puyo.inputs.set_purple(the_db.purple)
+			print "found Purple engine avatar"
 
 def cb_node_create(node_id, type, owner):
 	node_get(node_id, type, owner)
@@ -757,6 +794,21 @@ def evt_timeout():
 	return 1
 
 if __name__ == "__main__":
+	server = "localhost"
+
+	for a in sys.argv[1:]:
+		if a.startswith("-ip="):
+			server = a[4:]
+		elif a.startswith("-help"):
+			print "Usage: puyo [-ip=SERVER[:HOST]]"
+			print "Puyo is a graphical Verse client, that acts as an interface to"
+			print "a Purple engine running on the same server. For more information,"
+			print "please see <http://www.uni-verse.org/>, <http://verse.blender.org/>,"
+			print "and <http://purple.blender.org/>."
+			sys.exit(0)
+		else:
+			print "Unknown option", a
+
 	the_purpleinfo = PurpleInfo()
 	the_puyo = Puyo()
 	the_db = Db()
@@ -774,9 +826,9 @@ if __name__ == "__main__":
 	v.callback_set(v.SEND_T_BUFFER_CREATE,		cb_t_buffer_create)
 	v.callback_set(v.SEND_T_TEXT_SET,		cb_t_text_set)
 
-	v.send_connect("puyo", "<secret>", "localhost", 0)
+	v.send_connect("puyo", "<secret>", server, 0)
    
 	the_puyo.main()
 
-	v.send_connect_terminate("localhost", "User quitting")
+	v.send_connect_terminate(server, "User quitting")
 	while v.session_get_size() > 10: pass
