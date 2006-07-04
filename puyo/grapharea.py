@@ -327,14 +327,16 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 		for m in modules:
 			mid = int(m.xpathEval("@id")[0].content)
 			mpi = m.xpathEval("@plug-in")[0].content
+			mseq = int(m.xpathEval("@seq")[0].content)
 			n = self.purpleinfo.plugin_get_name(mpi)
 			if n != None:
 				inps = self.purpleinfo.plugin_get_input_num(mpi)
 				h = gth + inps * INPUT_HEIGHT
 				try:	xtra = self.graphExtra[mid]
 				except:	xtra = None
-				if xtra == None:
-					xtra = ((x,y), (gw, h))
+				# If no xtra, or sequence number mismatch, create a new one.
+				if xtra == None or xtra[2] != mseq:
+					xtra = ((x,y), (gw, h), mseq)
 					self.graphExtra[mid] = xtra
 				else:
 					x = xtra[0][0]
@@ -417,10 +419,8 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 		modules = self.graph.xpathEval("graph/module[@id and @plug-in]")
 		for m in modules:
 			mid = int(m.xpathEval("@id")[0].content)
-			try:
-				xtra = self.graphExtra[mid]
-			except:
-				continue
+			try:	xtra = self.graphExtra[mid]
+			except:	continue
 			if x > xtra[0][0] and x < xtra[0][0] + xtra[1][0] and \
 			   y < xtra[0][1] and y > xtra[0][1] - xtra[1][1]:
 				return mid
@@ -520,7 +520,7 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 				try:
 					xtra = self.graphExtra[m]
 				except: continue
-				self.graphExtra[m] = ((xtra[0][0] + dx, xtra[0][1] + dy), xtra[1])
+				self.graphExtra[m] = ((xtra[0][0] + dx, xtra[0][1] + dy), xtra[1], xtra[2])
 		elif self.drag == 3:	# Connect output?
 			over = self._module_hit(self.drag_now.rx - self.home[0], self.drag_now.ry - self.home[1])
 			indx = -1
@@ -639,10 +639,10 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 		root = self.graphExtra[self.selection[0]]
 		for m in self.selection[1:]:
 			xtra = self.graphExtra[m]
-			if corner == gtk.ARROW_LEFT:	xtra = ((root[0][0], xtra[0][1]), xtra[1])
-			elif corner == gtk.ARROW_RIGHT:	xtra = ((root[0][0] + root[1][0] - xtra[1][0], xtra[0][1]), xtra[1])
-			elif corner == gtk.ARROW_UP:	xtra = ((xtra[0][0], root[0][1]), xtra[1])
-			elif corner == gtk.ARROW_DOWN:	xtra = ((xtra[0][0], root[0][1] - root[1][1] + xtra[1][1]), xtra[1])
+			if corner == gtk.ARROW_LEFT:	xtra = ((root[0][0], xtra[0][1]), xtra[1], xtra[2])
+			elif corner == gtk.ARROW_RIGHT:	xtra = ((root[0][0] + root[1][0] - xtra[1][0], xtra[0][1]), xtra[1], xtra[2])
+			elif corner == gtk.ARROW_UP:	xtra = ((xtra[0][0], root[0][1]), xtra[1], xtra[2])
+			elif corner == gtk.ARROW_DOWN:	xtra = ((xtra[0][0], root[0][1] - root[1][1] + xtra[1][1]), xtra[1], xtra[2])
 			self.graphExtra[m] = xtra
 		self.refresh()
 
@@ -671,7 +671,7 @@ class GraphArea(gtk.DrawingArea, gtk.gtkgl.Widget):
 			x = self.graphExtra[m]
 			x0 = list(x[0])			# Trick around since we can't modify tuple.
 			x0[d] = p
-			x = (tuple(x0), x[1])
+			x = (tuple(x0), x[1], x[2])
 			self.graphExtra[m] = x
 			p += s * ( x[1][d] + margin)	# Step to next suitable location.
 		self.refresh()
