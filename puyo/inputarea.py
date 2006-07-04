@@ -51,6 +51,9 @@ class InputArea(gtk.Notebook):
 		def _cb_change_real32(self, adj, inp):
 			self.area.purple.mod_input_set_real32(self.area.graph_id, inp.iid[0], inp.iid[1], adj.get_value())
 
+		def _cb_change_real32_vec(self, adj, inp):
+			self.area.purple.mod_input_set_real32_vec(self.area.graph_id, inp.iid[0], inp.iid[1], inp.get_vector())
+
 		def _cb_change_real64(self, adj, inp):
 			self.area.purple.mod_input_set_real64(self.area.graph_id, inp.iid[0], inp.iid[1], adj.get_value())
 
@@ -304,21 +307,27 @@ class InputArea(gtk.Notebook):
 			elif type == "real32":
 				w = InputArea.InputTable.InputReal(iid, rng)
 				w._connect("value_changed", self._cb_change_real32, w)
+			elif type == "real32_vec3":
+				w = InputArea.InputTable.InputRealVec(iid, rng, 3)
+				w._connect("value_changed", self._cb_change_real32_vec, w)
 			elif type == "real64":
 				w = InputArea.InputTable.InputReal(iid, rng)
 				w._connect("value_changed", self._cb_change_real64, w)
+			elif type == "real64_vec2":
+				w = InputArea.InputTable.InputRealVec(iid, rng, 2)
+				w._connect("value_changed", self._cb_change_real64_vec, w)
 			elif type == "real64_vec3":
 				w = InputArea.InputTable.InputRealVec(iid, rng, 3)
 				w._connect("value_changed", self._cb_change_real64_vec, w)
 			elif type == "real64_vec4":
 				w = InputArea.InputTable.InputRealVec(iid, rng, 4)
 				w._connect("value_changed", self._cb_change_real64_vec, w)
-			elif type == "module":
-				w = InputArea.InputTable.InputModule(iid)
-				w._connect("changed", self._cb_change_module, w)
 			elif type == "string":
 				w = InputArea.InputTable.InputString(iid)
 				w._connect("activate", self._cb_activate_string, w)
+			elif type == "module":
+				w = InputArea.InputTable.InputModule(iid)
+				w._connect("changed", self._cb_change_module, w)
 			else:
 				w = gtk.Label(type)
 			if cv == None:
