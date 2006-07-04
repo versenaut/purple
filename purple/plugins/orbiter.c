@@ -61,7 +61,7 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 PURPLE_PLUGIN void init(void)
 {
 	p_init_create("orbiter");
-	p_init_input(0, P_VALUE_REAL64, "time",		P_INPUT_DEFAULT_REAL64(0.0f), P_INPUT_DONE);
+	p_init_input(0, P_VALUE_REAL64, "time",		P_INPUT_DEFAULT(0.0f), P_INPUT_DONE);
 	p_init_input(1, P_VALUE_REAL32, "speed",	P_INPUT_DEFAULT(1.0f), P_INPUT_DESC("Angular velocity, in degrees per second."), P_INPUT_DONE);
 	p_init_input(2, P_VALUE_REAL32, "radius-x",	P_INPUT_DEFAULT(1.0), P_INPUT_DESC("X-radius for the orbit."), P_INPUT_DONE);
 	p_init_input(3, P_VALUE_REAL32, "radius-z",	P_INPUT_DEFAULT(1.0), P_INPUT_DESC("Z-radius for the orbit."), P_INPUT_DONE);
