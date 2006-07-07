@@ -1,0 +1,626 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+"/usr/share/sgml/docbook/xml-dtd-4.3/docbookx.dtd" [
+ <!ENTITY Bez           "B&eacute;zier">
+
+ <!ENTITY Types         SYSTEM "protocol/types.snip">
+ <!ENTITY Commands      SYSTEM "protocol/cmd.snip">
+ <!ENTITY Command-Index SYSTEM "protocol/cmd-indx.snip">
+ <!ENTITY API           SYSTEM "protocol/api.snip">
+ <!ENTITY GNUFDL        SYSTEM "fdl.xml">
+ <!ENTITY time_s	"<varname>time_s</varname>">
+ <!ENTITY time_f	"<varname>time_f</varname>">
+]>
+
+<book lang="en">
+
+<bookinfo>
+ <title>Puyo User's Guide</title>
+ <subtitle>A User Interface Client for Purple</subtitle>
+ <author><firstname>Emil</firstname> <surname>Brink</surname></author>
+ <copyright><year>2006</year><holder>PDC, KTH</holder></copyright>
+</bookinfo>
+
+<chapter id='introduction'>
+<title>Introduction</title>
+<sect1 id='intro-whatis'>
+<title>What is Puyo?</title>
+<para>
+Puyo is a user interface client for <ulink url="http://purple.blender.org">Purple</ulink>.
+Purple, in turn, is a plug-in based computational engine for <ulink url="http://verse.blender.org/">Verse</ulink>.
+</para>
+<para>
+The purpose of Puyo is to provide a graphical way to interact with a Purple engine,
+which in turn makes it far easier to use the capabilities presented by the engine.
+Also, it has been instrumental during development and demonstrations of the Purple
+system, since it makes what is going on far easier to grasp.
+</para>
+</sect1>
+</chapter>
+
+<chapter id='installation'>
+<title>Installation</title>
+<para>
+This chapter describes how to install, or at least prepare, Puyo on your system.
+</para>
+<sect1 id='inst-python'>
+<title>Python</title>
+<para>
+Puyo is written in the <ulink url='http://www.pyhon.org/'>Python</ulink> programming
+language. This means that you will need an installed and working Python run-time
+environment in order to run it.
+</para>
+<para>
+Puyo uses a number of third-party components and libraries, which means that you need
+to install these in your Python environment, too.
+</para>
+</sect1>
+<sect1 id='inst-deps'>
+<title>Dependencies</title>
+<para>
+This section describes the <quote>external</quote> dependencies that Puyo as. These
+are simply software packages that provide capabilities needed by the Puyo code. 
+</para>
+<para>
+These are the general packages that you need on your system:
+<variablelist>
+<varlistentry><term><ulink url='http://verse.blender.org/'>Verse</ulink></term>
+<listitem>
+<para>
+Perhaps not surprisingly, you need the Verse client library. This is most easily
+obtained from the <ulink url='http://www.uni-verse.org/'>Uni-Verse</ulink> (Verse's
+current sponsor) project site's download page, here: <ulink url='http://www.uni-verse.org/Downloads.58.0.html'>Uni-Verse Downloads</ulink>.
+
+</para>
+</listitem>
+</varlistentry>
+
+<varlistentry><term><ulink url='http://www.gtk.org/'>GTK+</ulink></term>
+<listitem>
+<para>
+You will need the GTK+ user interface toolkit, as the main part of Puyo's interface
+(windows, dialogs, menus, buttons and so on) are all done using it. If you are running
+a Linux system, chances are you already have GTK+ installed.
+</para>
+</listitem>
+</varlistentry>
+
+<varlistentry><term><ulink url='http://www.k-3d.org/gtkglext/Main_Page'>GtkGLExt</ulink></term>
+<listitem>
+<para>
+GtkGLExt is an extension to GTK+ that provides OpenGL 3D graphics capabilities. Puyo
+uses OpenGL for its graph display (although only in 2D). Make sure you also get the
+PyGTKGLExt Python wrapper for it.
+</para>
+</listitem>
+</varlistentry>
+
+<varlistentry><term><ulink url='http://xmlsoft.org/'>libxml2</ulink></term>
+<listitem>
+<para>
+libxml2 is a XML parser, which Puyo uses to parse the XML output by the Purple engine.
+</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</para>
+
+<para>
+Once the above general packages are installed, you need to make sure that they are
+usable from programs written in the Python language. This done by installing
+Python modules that <quote>wrap</quote> the provided functionality so that it becomes
+available to Python programs. These are the required Python modules:
+<variablelist>
+<varlistentry><term><ulink url='http://users.pandora.be/blendix/verse/'>PyVerse</ulink></term>
+<listitem>
+<para>
+This is a module that provides Python bindings for the Verse API. It was written
+by Brecht van Lommel, and is available from the page linked to above. Download
+the proper package for your platform, see the instructions on the page.
+</para>
+</listitem>
+</varlistentry>
+
+<varlistentry><term><ulink url='http://www.pygtk.org/'>pygtk</ulink></term>
+<listitem>
+<para>
+This provides a Python wrapper for the GTK+ user interface toolkit. Available from the
+project's home page, linked to above.
+</para>
+</listitem>
+</varlistentry>
+
+<varlistentry><term><ulink url='http://xmlsoft.org/'>libxml2</ulink></term>
+<listitem>
+<para>
+Information about Python (and other language bindings) for the libxml2 XML parser.
+</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</para>
+</sect1>
+
+<sect1 id='inst-inst'>
+<title>Actual Installation</title>
+<para>
+Actually <quote>installing</quote> Puyo so that it becomes available to all users of
+a computer is not well-supported at the moment. Just run it from wherever you have
+unpacked the source files, please.
+</para>
+</sect1>
+</chapter>
+
+<chapter id='running'>
+<title>Running Puyo</title>
+<para>
+This chapter talks about the basics of running Puyo. How to start the program, connect to
+a Verse server, and so on.
+</para>
+<sect1 id='run-start'>
+<title>Starting Puyo</title>
+<para>
+Starting Puyo is most easily done from a command terminal, like so:
+<screen>
+~> ./puyo.py
+</screen>
+<note>
+<para>
+The exact syntax to use might differ between operating systems. The above should work on
+a Linux (or other Unix-like) system.
+</para>
+</note>
+This will, eventually, pop up the Puyo main window.
+</para>
+</sect1>
+<sect1 id='run-connect'>
+<title>Connecting to a Verse Server</title>
+<para>
+Immediately after starting, Puyo will automatically create to a Verse server running on
+the local computer (the <literal>localhost</literal> IP address). To change it, you must
+run Puyo from a command line, and specify a new address like so:
+<screen>~> ./puyo.py -ip=verse.example.com:1212</screen>
+The above example would try to connect to a Verse server running at <literal>verse.example.com</literal>,
+and use port number <literal>1212</literal>. If you want to use the default Verse port number,
+omit the part starting with the colon.
+</para>
+<para>
+If Puyo was a bit more mature as an application, it would probably have a dialog window
+when you connect, that allowed you to enter the server address. Sorry for any inconvenience.
+</para>
+</sect1>
+<sect1 id='run-connect-purple'>
+<title>Connecting to a Purple Engine</title>
+<para>
+You do not need to explicitly connect to a Purple engine. Puyo will query the Verse
+server it connects against, and look for something that looks like a Purple engine.
+Once one is found, it will be used for the remainder of the session.
+</para>
+<para>
+The Purple engine is currently located simply based on its node name, which is expected
+to be <quote><literal>PurpleEngine</literal></quote> (and the node must be an object).
+</para>
+</sect1>
+<sect1 id='purple-control'>
+<title>How Puyo Controls Purple</title>
+<para>
+Puyo relies on two very separate channels in its communication with the Purple engine. Both
+are part of the core design of Purple:
+<itemizedlist>
+<listitem>
+<para>XML text buffers. This is how Puyo learns about Purple's internal state, like
+the list of available plug-ins to instantiate, which graphs are available to edit,
+and the exact state of each graph. This is further described in the <link linkend='graphs-whatare'>
+What Are Graphs?</link> section in the next chapter.</para>
+</listitem>
+<listitem>
+<para>Object method calls. This is how Puyo sends requests to the Purple engine, to make
+it do something. Purple exports about 20 method calls, the majority of which deal with
+assigning values to a module's inputs. The method interface is not further described in
+this document.</para>
+</listitem>
+</itemizedlist>
+</para>
+</sect1>
+</chapter>
+
+<chapter id='graphs'>
+<title>Working with Graphs</title>
+<para>
+This chapter contains the main content of this document. It details how you go
+about working with Purple graphs in Puyo. The graph is the main kind of <quote>document</quote>
+handled by Purple.
+</para>
+<sect1 id='graphs-whatare'>
+<title>What Are Graphs?</title>
+<para>
+Puyo tries to present a fairly ordinary document-centric interface that should be familiar to
+most computer users. The graph is the main type of document handled by Purple; it is the equivalent
+of a textual document in a word processor. Users of Purple spend their time creating, destroying,
+and editing the contents of graphs.
+</para>
+<note>
+<para>
+Now, it gets rather technical.
+</para>
+</note>
+<para>
+To observers outside the Purple engine itself, a graph is represented as an XML document that
+in turn is stored inside a Verse text buffer. This buffer contains XML elements that describe
+the graph, by listing all instantiated plug-ins, their input values, and any connections between
+them.
+</para>
+<para>
+Below is an example of how the contents of such a buffer might look, just to illustrate this
+point further:
+<screen>&lt;graph>
+ &lt;module id="0" plug-in="14">
+  &lt;set input="1" type="real32"/>
+ &lt;/module>
+&lt;/graph>
+</screen>
+</para>
+<para>
+This XML is parsed by Puyo, and turned into a graphical representation consisting of (as we
+will see later on) boxes connected with lines. The numerical reference (<quote><literal>14</literal></quote>
+to <emphasis>which</emphasis> plug-in is being instantiated as module 0 is resolved by
+parsing a different piece of XML, which is not shown.
+</para>
+<para>
+It is important to realize that XML such as the one above is all that Puyo has to go on,
+when it tries to create the user interface. Purple does not contain any special code
+to accomodate Puyo; the client was written as much to test Purple's support for external
+control, as to provide an actual interface.
+</para>
+</sect1>
+
+<sect1 id='graph-create'>
+<title>Creating a Graph</title>
+<para>
+Creating a graph is necessary if you have just connected to a fresh Purple engine, since
+otherwise there is no graph in which to work. Also, it can be useful if you simply want
+a new work space. Creating a new graph in Puyo is a bit complex, since it involves quite
+a few steps. This is mainly because the application is not very <quote>polished</quote>;
+it's mainly been used during development, so far. Sorry for any inconvenience caused by
+this.
+</para>
+<para>
+The steps to follow to create a new graph are:
+<orderedlist>
+<listitem>
+<para>
+Select the <guimenu>Graphs</guimenu>/<guimenuitem>Create...</guimenuitem> menu command. This
+pops up the dialog window shown in <xref linkend='fig-graph-create'/>, below:
+<figure id='fig-graph-create'>
+<title>Graph Create Dialog</title>
+<mediaobject>
+<imageobject>
+<imagedata fileref='media/graphcreate-window.png' format='PNG'/>
+</imageobject>
+</mediaobject>
+</figure>
+</para>
+</listitem>
+
+<listitem>
+<para>
+Select the text node in which you want the XML buffer that holds the representation of
+the new graph to be created. See <xref linkend='graphs-whatare'/> for more details on
+how graphs are stored. If a suitable text node does not exist, click the button labelled
+<guibutton>Create Node</guibutton> to create a new one. This pops up a new little sub-dialog,
+which asks you for a node name. Enter one, and click <guibutton>OK</guibutton>. Then, in
+the original dialog, click the <guibutton>Refresh</guibutton> button to refresh the list view.
+</para>
+</listitem>
+
+<listitem>
+<para>
+Once you have selected a suitable text node, it's time to pick the buffer inside the
+node where the graph is going to be stored. Again, if no suitable buffer exists (as
+will be the case for a freshly created node), select the node and can click the
+<guibutton>Create Buffer</guibutton> button to create a new one. This pops up a little
+sub-dialog, which asks you for a buffer name. Enter one, and click <guibutton>OK</guibutton>.
+Then click the <guibutton>Refresh</guibutton> button in the origian dialog to refresh the
+list.
+</para>
+</listitem>
+
+<listitem>
+<para>
+Once you have selected the buffer, click the <guibutton>OK</guibutton> button to close
+the dialog. This pops up another, smaller, dialog window, which asks you for the name
+of the new graph. Enter a name, and press <keycap>Return</keycap>.
+</para>
+</listitem>
+
+</orderedlist>
+</para>
+<para>
+If all went well, the new graph will be created. Unfortunately, Puyo is not smart enough
+to automatically switch to the new graph; you have to do that manually. Please continue
+on to <xref linkend='graph-pick'/> to read how.
+</para>
+</sect1>
+
+<sect1 id='graph-pick'>
+<title>Picking a Graph to Edit</title>
+<para>
+Before Puyo can do its job, presenting the user with a graphical view of a Purple graph,
+you must tell it <emphasis>which</emphasis> graph to work with. This graph becomes
+the current graph, and is the one shown in the main part of the window. Puyo can only
+interact with one graph at a time.
+</para>
+<para>
+To pick a new graph to edit, select the <guimenu>Graphs</guimenu>/<guimenuitem>Edit ...</guimenuitem>
+menu item. This pops up the dialog shown in <xref linkend='fig-graph-edit'/>, below.
+<figure id='fig-graph-edit'>
+<title>Graph Create Dialog</title>
+<mediaobject>
+<imageobject>
+<imagedata fileref='media/graphedit-window.png' format='PNG'/>
+</imageobject>
+</mediaobject>
+</figure>
+</para>
+<para>
+Each row in the list represents an individual graph. Click the desired row, then the
+<guibutton>OK</guibutton> button. This closes the dialog, and causes Puyo to switch
+to editing the indicated graph. The previous graph will be cleared away from the
+editing area, and replaced by the new one.
+</para>
+</sect1>
+
+<sect1 id='graph-destroy'>
+<title>Destroying a Graph</title>
+<para>
+</para>
+</sect1>
+
+<sect1 id='graph-edit'>
+<title>Editing a Graph</title>
+<para>
+This section describes how Puyo is used to visualize and edit the contents of a Purple graph.
+</para>
+<sect2>
+<title>The Main Window</title>
+<para>
+Puyo's main window consists of tree areas: at the top is a standard menu bar, containing the
+various commands that are available. The area below the menu bar is split into two, with the
+main, left, part devoted to displaying the current graph. The graph is displayed as a network
+of little boxes, each representing a module, connected with lines. The state of the current
+module's inputs, if any, is shown in the right part of the window. The part showing the graph
+is called the <quote>graph area</quote>, while the part showing module inputs is known as the
+<quote>module area</quote>. These terms will be used in the following, when needed.
+</para>
+<para>
+The figure below shows a screen capture of the main Puyo window. The menu bar, graph area
+and the module area are all clearly visible.
+</para>
+<figure>
+<title>Main Puyo Window</title>
+<mediaobject>
+<imageobject>
+<imagedata fileref='media/main-window.png' format='PNG'/>
+</imageobject>
+</mediaobject>
+</figure>
+</sect2>
+
+<sect2>
+<title>The Graph Area</title>
+<sect3>
+<title>Navigation</title>
+<para>
+You can use the following mouse commands to control the view in the graph area:
+<itemizedlist>
+<listitem>
+<para>Left-click the mouse with the pointer hovering over a module to select that module.
+The module's inputs, if any, will be displayed as GUI controls in the right part of the screen.
+The last module to be selected in this manner is called the <emphasis>current</emphasis> module.
+If you drag the mouse after clicking, you can move the module around. Click with a <keycap>Shift</keycap>
+key held down to extend the selection; otherwise the selection will be replaced. Click on the background
+to clear the selection.
+</para>
+</listitem>
+<listitem>
+<para>Press and hold the <keycap>Ctrl</keycap> and click and drag with the left mouse button
+while hovering over the graph background, to pan the display.
+</para>
+</listitem>
+<listitem>
+<para>Use the mouse scroll wheel to zoom the graph area in or out.</para>
+</listitem>
+</itemizedlist>
+</para>
+<para>
+The following commands from the <guimenu>View</guimenu> menu affect the graph area:
+<itemizedlist>
+<listitem>
+<para><guimenuitem>Zoom In</guimenuitem> - Zooms in, so that each module occupies more screen space.</para>
+</listitem>
+<listitem>
+<para><guimenuitem>Zoom Out</guimenuitem> - Zooms out, causing each module to occopy less screen space.</para>
+</listitem>
+<listitem>
+<para><guimenuitem>Normal Size</guimenuitem> - Resets the zoom level to the default, initial, setting.</para>
+</listitem>
+<listitem>
+<para><guimenuitem>Best Fit</guimenuitem> - Pans and zooms the view so that all selected modules fit on-screen.</para>
+</listitem>
+
+</itemizedlist>
+</para>
+</sect3>
+
+<sect3>
+<title>Creating a New Module</title>
+<para>
+When initially created, a graph is empty. This means it does not contain any plug-in instances (modules).
+To begin populating the graph, modules need to be created.
+</para>
+<para>
+To create a new module, use the <guimenu>Module</guimenu> menu. This menu begins with a submenu called
+<guisubmenu>Create</guisubmenu>, which in turn contains a list of available plug-ins. Simply selecting
+one of these names will send a request to the Purple engine that it create a new instance of that module.
+</para>
+<para>
+If the request is granted by the engine, the underlying graph XML will change to reflect the presence
+of a new plug-in instance, and Puyo will update the graphical view with a new box.
+</para>
+<para>
+Sinc the Purple engine is not aware of the 2D layout of modules done by Puyo (it's done locally for
+the convenience of the user), the engine does not help Puyo with the layout of the modules in the graph.
+Puyo solves this by automatically assigning each new module a location to the right of the previously
+created module, starting at the origin of the graph's coordinate system. This might mean that sometimes,
+the newly created module is not visible. You can use the <guimenu>View</guimenu>/<guimenuitem>Best Fit</guimenuitem>
+menu command to make sure all modules are visible.
+</para>
+</sect3>
+
+<sect3>
+<title>Destroying a Module</title>
+<para>
+To destroy a module, first make it current by clicking it. Then select the <guimenu>Module</guimenu>/
+<guimenuitem>Destroy</guimenuitem> menu command. This will send a request to the Purple engine that
+the indicated module be destroyed. If the engine validates the request, it will update the underlying
+XML description of the graph. Puyo will pick up these changes, and remove the module from the view.
+</para>
+</sect3>
+
+<sect3>
+<title>Connecting Modules Together</title>
+<para>
+Graphs are built by connecting modules together. This is done graphically and directly
+in Puyo, like so:
+<orderedlist>
+<listitem>
+<para>Start by deciding which module's value you would like to use. Position the mouse
+over the output arrow in the module box.
+</para>
+</listitem>
+<listitem>
+<para>
+Click and hold the left mouse button.
+</para>
+</listitem>
+<listitem>
+<para>
+Move the mouse so the pointer hovers above an input in a different module, and release
+the button.
+</para>
+</listitem>
+</orderedlist>
+Puyo will detect the release of the button, and send a command to the Purple engine to connect
+the given input to to the indicated output. If the engine validates the connection, it will
+be performed, and the underlying XML that describes the graph will be updated to reflect the
+connection. The change in the XML will be detected by Puyo, which will re-parse it all, and
+update its view of the graph.
+</para>
+<para>
+It is not possible to directly manipulate the line connecting an output to an input. To remove
+a connection once it has been created, do XXXXX. <!-- FIXME! -->
+</para>
+</sect3>
+</sect2>
+
+<sect2>
+<title>The Module Area</title>
+<para>
+The module area (the rightmost part of the main window) displays information about the current
+module, if any. At the top of the area is the name and numerical ID of the module. The ID is
+used when talking to the Purple engine about this module, it is not something that a human
+user really needs to know. The rest of the area is filled with user interface controls that
+both display, and allow you to change, the values of the module's inputs.
+</para>
+<para>
+Most such controls such should be self-explanatory or known from experience, so they will not
+be described in detail here.
+</para>
+<para>
+Whenever such an input control is manipulated, the new value is sent to the Purple engine,
+which will try to set the relevant input to the desired value. Any results, on geometry or
+other data in the scene, should be immediately visible to subscribing clients.
+</para>
+</sect2>
+
+</sect1>
+
+</chapter>
+
+<chapter id='plugins'>
+<title>Handy Plug-Ins</title>
+<para>
+This chapter is pretty pointless.
+</para>
+<sect1 id='plugins-builtin'>
+<title>Built-Ins</title>
+<para>
+There are currently three built-in plug-ins in Purple. The phrase <quote>built-in</quote>
+here signifies that they are always available, being part of the engine core, not loaded
+from disk. The three are:
+<itemizedlist>
+<listitem>
+<para>
+<symbol>node-input</symbol>
+</para>
+</listitem>
+
+<listitem>
+<para>
+<symbol>node-output</symbol>
+</para>
+</listitem>
+
+<listitem>
+<para>
+<symbol>clock</symbol>
+</para>
+</listitem>
+</itemizedlist>
+It is probably best to just refer to the <ulink url='http://www.blender.org/modules/verse/purple-api/model.html'>Purple User's Guide</ulink>
+for descriptions of these three. They are very important, so that's useful reading.
+</para>
+</sect1>
+
+<sect1 id='plugins-standard'>
+<title>Standard Plug-Ins</title>
+<para>
+There's a fairly large set of standard plug-ins, that should always be available with Purple. There is an overview on
+<ulink url='http://purple.blender.org/cms/Plug-in_Library.679.0.html'>this web page</ulink>. A detailed description
+of each of these plug-ins is outside the scope of this document.
+</para>
+</sect1>
+</chapter>
+
+</book>
+
+<!--
+
+1. Introduction
+
+2. Requirements
+
+2.1 Python, lots of modules, OpenGL
+
+Puyo uses OpenGL for its main graph display, so having hardware-accelerated
+OpenGL will give smoother interaction. The rendering is simple and 2D only
+though, so there should be no need for a cutting-edge graphics adapter.
+
+3. Starting Puyo
+
+3.1 Connecting to a Verse server
+
+4. Creating a new Graph
+
+5. Working with Graphs
+
+5.1 Navigation
+
+5.2 Adding/Deleting Modules
+
+5.3 Connecting Modules Together
+
+6. Handy plug-ins
+
+-->
