@@ -522,6 +522,85 @@ It is not possible to directly manipulate the line connecting an output to an in
 a connection once it has been created, do XXXXX. <!-- FIXME! -->
 </para>
 </sect3>
+
+<sect3>
+<title>Layout Commands</title>
+<para>
+There are some commands in Puyo to help you align and position the modules nicely. It is the author's
+opinion that a nice layout makes a graph more pleasing to look at, and that it also easier to verify
+that it indeed has the desired connections if the layout is <quote>clean</quote>.
+</para>
+<para>
+There are two kinds of layout commands, currently: align and spread.
+</para>
+<sect4>
+<title>Align</title>
+<para>
+The align commands, which all live under the <guimenu>Module</guimenu>/<guisubmenu>Align</guisubmenu>
+submenu, move modules around so that their edges line up. There are four different variants of the
+command; each aligns on a different edge of the modules.
+</para>
+<para>
+To use an align command, select the desired modules, taking care to start by selecting the module
+that you want the others to line up with. Then, pick the command menu item, and Puyo moves the
+selected modules so the indicated edge aligns with the first selected module.
+</para>
+<para>
+The following two images illustrate the <guimenuitem>Top</guimenuitem> align command:
+<figure id='fig-align1'>
+<title>Before Align; Select Lead Module</title>
+<mediaobject>
+<imageobject>
+<imagedata fileref='media/align1.png' format='PNG'/>
+</imageobject>
+</mediaobject>
+</figure>
+<figure id='fig-align2'>
+<title>Before Align; After Top Align</title>
+<mediaobject>
+<imageobject>
+<imagedata fileref='media/align2.png' format='PNG'/>
+</imageobject>
+</mediaobject>
+</figure>
+</para>
+</sect4>
+
+<sect4>
+<title>Spread</title>
+<para>
+The spread commands, found under the <guimenu>Module</guimenu>/<guisubmenu>Spread</guisubmenu>
+submenu, move modules around so that the space between them is evenly distributed. There are
+to variants; one that spreads modules horizontally, and one that spreads vertically.
+</para>
+<para>
+You need to select the modules such that the first and last selections made are at the extremes
+of the final layout. This means that for a horizontal spread, select the leftmost module first,
+then any intermediate modules, and finally the rightmost one. Puyo uses the seletion order to
+decide how to do the layout.
+</para>
+<para>
+The following two images illustrate the <guimenuitem>Horizontal</guimenuitem> spread command:
+<figure id='fig-spread1'>
+<title>Before Spread; Select Modules, Left-to-Right</title>
+<mediaobject>
+<imageobject>
+<imagedata fileref='media/spread1.png' format='PNG'/>
+</imageobject>
+</mediaobject>
+</figure>
+<figure id='fig-spread2'>
+<title>After Horizontal Spread</title>
+<mediaobject>
+<imageobject>
+<imagedata fileref='media/spread2.png' format='PNG'/>
+</imageobject>
+</mediaobject>
+</figure>
+</para>
+</sect4>
+</sect3>
+
 </sect2>
 
 <sect2>
