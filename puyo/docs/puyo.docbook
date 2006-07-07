@@ -168,10 +168,19 @@ Starting Puyo is most easily done from a command terminal, like so:
 <note>
 <para>
 The exact syntax to use might differ between operating systems. The above should work on
-a Linux (or other Unix-like) system.
+a Linux (or other Unix-like) system, assuming the proper protection bits have been set on
+the file.
 </para>
 </note>
-This will, eventually, pop up the Puyo main window.
+This will, eventually, pop up the Puyo main window (pictured below).
+<figure id='fig-main'>
+<title>Empty Main Puyo Window</title>
+<mediaobject>
+<imageobject>
+<imagedata fileref='media/main-window-empty.png' format='PNG'/>
+</imageobject>
+</mediaobject>
+</figure>
 </para>
 </sect1>
 <sect1 id='run-connect'>
