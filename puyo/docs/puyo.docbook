@@ -673,33 +673,3 @@ of each of these plug-ins is outside the scope of this document.
 </chapter>
 
 </book>
-
-<!--
-
-1. Introduction
-
-2. Requirements
-
-2.1 Python, lots of modules, OpenGL
-
-Puyo uses OpenGL for its main graph display, so having hardware-accelerated
-OpenGL will give smoother interaction. The rendering is simple and 2D only
-though, so there should be no need for a cutting-edge graphics adapter.
-
-3. Starting Puyo
-
-3.1 Connecting to a Verse server
-
-4. Creating a new Graph
-
-5. Working with Graphs
-
-5.1 Navigation
-
-5.2 Adding/Deleting Modules
-
-5.3 Connecting Modules Together
-
-6. Handy plug-ins
-
--->
