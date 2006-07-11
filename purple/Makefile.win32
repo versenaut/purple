@@ -9,7 +9,7 @@ TARGETS=purple.exe
 
 ALL:		$(TARGETS)
 
-CFLAGS=/nologo /I$(VERSE)\include
+CFLAGS=/nologo /I$(VERSE)
 
 purple.exe:	purple.c\
 		api-init.obj api-input.obj api-iter.obj api-node.obj api-output.obj \
