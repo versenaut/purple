@@ -2,7 +2,7 @@
 # A simple Makefile for building Purple plug-ins.
 #
 
-VERSE=c:\projects\verse-sdk
+VERSE=..\..\verse
 
 CFLAGS=/nologo /I.. /I$(VERSE)/include /LD ../purple.lib
 

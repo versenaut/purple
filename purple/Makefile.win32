@@ -3,7 +3,7 @@
 #
 
 # Location of a (compiled) Verse core directory. Must contain verse.h and libverse.a.
-VERSE=C:\projects\verse-sdk
+VERSE=..\verse
 
 TARGETS=purple.exe
 
@@ -19,7 +19,7 @@ purple.exe:	purple.c\
 		nodeset.obj plugins.obj plugin-input.obj plugin-output.obj \
 		port.obj resume.obj scheduler.obj strutil.obj synchronizer.obj textbuf.obj timeval.obj \
 		value.obj vecutil.obj xmlnode.obj xmlutil.obj
-		$(CC) $(CFLAGS) $** $(VERSE)/lib/verse.lib wsock32.lib shlwapi.lib
+		$(CC) $(CFLAGS) $** $(VERSE)\verse.lib wsock32.lib shlwapi.lib
 
 api-iter.obj:	api-iter.c purple.h
 
