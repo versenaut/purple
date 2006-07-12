@@ -1090,7 +1090,7 @@ static DynStr * module_build_desc(const Module *m)
 	uint32	i;
 
 	d = dynstr_new_sized(256);
-	dynstr_append_printf(d, " <module id=\"%u\" plug-in=\"%u\">\n", m->id, plugin_id(m->plugin));
+	dynstr_append_printf(d, " <module id=\"%u\" plug-in=\"%u\" seq=\"%u\">\n", m->id, plugin_id(m->plugin), m->instance.sequence);
 	plugin_portset_describe(m->instance.inputs, d);
 	for(i = 0; i < m->out.nodes.next; i++)
 	{

@@ -118,6 +118,16 @@
  * Through this plug-in, data processed (or generated) with-in Purple is exported "out"
  * to a Verse host, where it appears like any other. It is therefore sharable, and viewable
  * with standard Verse tools.
+ * 
+ * \subsection builtinclock Clock
+ * Since Purple is a data-dependency system, all actions are triggered by the change in
+ * a module plug-in. This makes it hard to create actions that happen "all the time", since
+ * generally there is no input to trigger on, then. The built-in plug-in \c clock addresses
+ * this. It has two inputs: called \c period and \c enabled. \c Period lets you specify the
+ * time between each tick of the clock. Then, as long as \c enabled is \c true, the clock will
+ * generate a change of its input once every \c period seconds. The output will also contain
+ * the current time, as a real64 number giving the number of elapsed seconds since the clock
+ * was last started.
  *
  * \section synchronizing The Synchronizer
  * Purple contains an "intelligent node comparator", called \e the \e synchronizer, whose job

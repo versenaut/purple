@@ -27,6 +27,7 @@ typedef struct
 	void		*state;
 	PPOutput	(*resolver)(uint32 module_id, void *data);
 	void		*resolver_data;
+	uint32		sequence;		/* Helps UIs de-alias across create/destroy/create. */
 } PInstance;
 
 /* ----------------------------------------------------------------------------------------- */
