@@ -109,6 +109,8 @@ static struct
 
 	IdSet		*plugins;
 	Hash		*plugins_name;		/* All currently loaded, available plugins. */
+
+	uint32		sequence_next;		/* Index of next instance. Helps UI-clients de-alias across create-delete-create. */
 } plugins_info = { NULL };
 
 /* ----------------------------------------------------------------------------------------- */
@@ -196,7 +198,6 @@ void plugin_set_input(Plugin *p, int index, PValueType type, const char *name, v
 				if(st != NULL && *st != '\0' && st[strlen(st) - 1] != '|')	/* Make sure there are separators. */
 					dynstr_append_c(i.spec.enums, '|');
 				dynstr_append(i.spec.enums, va_arg(taglist, char *));
-				printf("input enums: '%s'\n", dynstr_string(i.spec.enums));
 			}
 			else if(tag == P_INPUT_TAG_DESC)
 				i.desc = va_arg(taglist, char *);
@@ -630,6 +631,8 @@ int plugin_instance_init(Plugin *p, PInstance *inst)
 		LOG_WARN(("Couldn't get portset for instance of %s", plugin_name(p)));
 		return 0;
 	}
+	inst->sequence = plugins_info.sequence_next++;
+	printf("instance has sequence ID %u\n", inst->sequence);
 	if(p->state != NULL)
 	{
 		if((inst->state = memchunk_alloc(p->state)) != NULL)
@@ -804,7 +807,7 @@ static void library_new(const char *name)
 		lib->initialized = 0;
 
 		plugins_info.libraries = list_append(plugins_info.libraries, lib);
-		LOG_MSG(("Loaded and stored library from \"%s\"", name));
+/*		LOG_MSG(("Loaded and stored library from \"%s\"", name));*/
 	}
 }
 
