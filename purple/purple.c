@@ -55,7 +55,7 @@
 #endif
 
 #define	PURPLE_CONSOLE
-#undef	PURPLE_CONSOLE
+/*#undef	PURPLE_CONSOLE*/
 
 #if defined PURPLE_CONSOLE
 
@@ -76,6 +76,7 @@
 #include "hash.h"
 #include "idlist.h"
 #include "idset.h"
+#include "idtree.h"
 #include "log.h"
 #include "mem.h"
 #include "memchunk.h"
@@ -287,19 +288,23 @@ static int console_script(char *line, size_t line_size)
 	"tbc 2 purpletest\n"
 	"gc 2 0 graph0\n"
 
-	"mc 1 36\n"
-	"mc 1 11\n"
-	"mc 1 19\n"
+	"mc 1 3\n"		/* Clock. */
+	"mc 1 23\n"		/* Cube. */
+	"mc 1 48\n"		/* Orbiter. */
+	"mc 1 2\n"		/* Output. */
 
+	"misr 1 2 1 : 0.1\n"
+	"misr 1 2 2 : 20\n"
+	"misr 1 2 3 : 20\n"
+	"misu 1 2 4 : 1\n"	/* n */
+	"mism 1 2 5 : 1\n"
 	"mism 1 2 0 : 0\n"
-	"mism 1 2 1 : 1\n"
 
-	"misr 1 0 0 : 1\n"
-	"misr 1 0 1 : 32\n"
+	"misr 1 0 0 : .5\n"
 
-	"misu 1 1 0 : 32\n"
-	"misu 1 1 1 : 32\n"
-	"misu 1 1 2 : 0\n";
+	"mism 1 3 0 : 2\n"
+	;
+
 	static int	next_line = 0;
 
 	if(strcmp(line, ".") == 0)
@@ -502,6 +507,14 @@ static int goto_home_dir(const char *argv0)
 	return 1;
 }
 
+#if 0
+static void elc(void *dst, unsigned int id, const void *src, void *user)
+{
+	printf("copying element %x, '%s'\n", id, src);
+	strcpy(dst, src);
+}
+#endif
+
 int main(int argc, char *argv[])
 {
 	const char	*server = "localhost";
@@ -514,8 +527,27 @@ int main(int argc, char *argv[])
 	dynarr_init();
 	hash_init();
 	list_init();
-	plugins_init("plugins");
 
+/*	{
+		IdTree	*t;
+		void	*e;
+		unsigned int	id;
+
+		t = idtree_new(32, 8, 8);
+		idtree_set(t, 0x0, "flaska");
+		idtree_set(t, 0x1337b055, "boss");
+		idtree_set(t, 0xfffffffe, "f00f!");
+		idtree_set(t, 0xf00dfade, "fabe");
+		for(id = idtree_foreach_first(t); (e = idtree_get(t, id)) != NULL; id = idtree_foreach_next(t, id))
+		{
+			printf(" foreach at %x -> '%s'\n", id, e);
+		}
+		idtree_destroy(t);
+
+		return EXIT_SUCCESS;
+	}
+*/
+	plugins_init("plugins");
 	graph_init();
 	
 	plugins_libraries_load();
@@ -536,7 +568,6 @@ int main(int argc, char *argv[])
 	printf("Connecting to Verse server at %s\n", server);
 	if(client_connect(server))
 	{
-		LOG_MSG(("------------------------------------------------------------------------"));
 		LOG_MSG(("Purple running on Verse r%up%u%s", V_RELEASE_NUMBER, V_RELEASE_PATCH, V_RELEASE_LABEL));
 		LOG_MSG(("Entering main loop"));
 		for(;;)
