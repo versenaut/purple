@@ -5,18 +5,38 @@
 # Copyright (C) 2004-2005 PDC, KTH. See COPYING for license details.
 #
 
-import pygtk
-pygtk.require("2.0")	# Silly.
-import gobject
-import gtk
-import gtk.gtkgl
-import string
+# Import core Python modules; should never fail.
 import sys
+import string
 
-import verse as v
+def import_or_die(module, as = None, req = None):
+	"""A simple function to do a 'safe' import, with error reporting."""
+	if as == None:
+		s = "global %s" % module
+	else:
+		s = "global %s" % as
+	s += " ; import %s" % module
+	if as != None:	s += " as %s" % as
+	if req != None:	s += " ; %s.require(\"%s\")" % (module, req)
+	print s
+	try:
+		exec(s)
+	except:
+		print "Couldn't import Python module '%s', which is required for Puyo to" % module
+		print "run properly. Please see documentation for more information. Press"
+		print "return to exit."
+		raw_input()
+		sys.exit(1)
 
-import libxml2
+import_or_die("pygtk", req = "2.0")
+import_or_die("gobject")
+import_or_die("gtk")
 
+import_or_die("verse", as = "v")
+
+import_or_die("libxml2")
+
+# These are our own code, not real external modules. So no need to wrap them.
 from grapharea  import GraphArea
 from inputarea  import InputArea
 from purpleinfo import PurpleInfo
