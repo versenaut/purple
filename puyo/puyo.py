@@ -18,7 +18,6 @@ def import_or_die(module, as = None, req = None):
 	s += " ; import %s" % module
 	if as != None:	s += " as %s" % as
 	if req != None:	s += " ; %s.require(\"%s\")" % (module, req)
-	print s
 	try:
 		exec(s)
 	except:
