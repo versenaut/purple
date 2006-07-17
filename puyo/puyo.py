@@ -552,6 +552,9 @@ class Puyo:
 			if g != None:
 				v.send_o_method_call(the_db.purple.id, group.id, m[0], 0, (g[0], ))
 
+	def evt_action_graph_quit(self, action, user):
+		gtk.main_quit()
+
 	def evt_action_module_align_left(self, action, user):
 		self.area.module_align(gtk.ARROW_LEFT)
 
@@ -596,7 +599,10 @@ class Puyo:
 		self.actionGraphDestroy = gtk.Action("GraphDestroy", "Destroy...", "Destroy an existing graph", gtk.STOCK_DELETE)
 		self.actionGraphDestroy.connect("activate", self.evt_action_graph_destroy, self)
 		ag.add_action(self.actionGraphDestroy)
-		ag.add_action_with_accel(gtk.Action("GraphQuit", "Quit", "Quit the application", gtk.STOCK_QUIT), None)
+		self.actionGraphQuit = gtk.Action("GraphQuit", "Quit", "Quit the application", gtk.STOCK_QUIT)
+		self.actionGraphQuit.connect("activate", self.evt_action_graph_quit, self)
+		ag.add_action_with_accel(self.actionGraphQuit, None)
+		
 
 		ag.add_action(gtk.Action("ModuleMenu", "Module", "Module commands", None))
 		self.actionModuleCreate = gtk.Action("ModuleCreateMenu",  "Create", "Create a new module in current graph", None)
@@ -655,7 +661,7 @@ class Puyo:
      <menuitem name="Edit"    action="GraphEdit"/>
      <menuitem name="Destroy" action="GraphDestroy"/>
      <separator/>
-<!--     <menuitem name="Quit"    action="GraphQuit"/>-->
+     <menuitem name="Quit"    action="GraphQuit"/>
     </menu>
     <menu name="ModuleMenu" action="ModuleMenu">
      <menu name="ModuleCreateMenu" action="ModuleCreateMenu">
