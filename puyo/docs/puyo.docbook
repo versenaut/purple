@@ -130,6 +130,14 @@ project's home page, linked to above.
 </listitem>
 </varlistentry>
 
+<varlistentry><term><ulink url='http://pyopengl.sourceforge.net/'>PyOpenGL</ulink></term>
+<listitem>
+<para>
+A Python binding for the <ulink url='http://www.opengl.org/'>OpenGL</ulink> (and related) API.
+</para>
+</listitem>
+</varlistentry>
+
 <varlistentry><term><ulink url='http://xmlsoft.org/'>libxml2</ulink></term>
 <listitem>
 <para>
@@ -140,6 +148,84 @@ Information about Python (and other language bindings) for the libxml2 XML parse
 
 </variablelist>
 </para>
+
+<sect2 id='inst-dep-win32'>
+<title>Downloads for Windows</title>
+<para>
+This list re-states the above, with concrete download links for the <ulink url='http://www.microsoft.com/windows/default.mspx'>Microsoft Windows</ulink>
+family of operating systems.
+</para>
+<note>
+<para>Some of the recommnded downloads are only available for recent Windows versions. In particular, if you are still using Windows 9x, you
+should seriously consider upgrading.
+</para>
+</note>
+<para>
+With that out of the way, here is the list:
+</para>
+<variablelist>
+<varlistentry>
+<term><ulink url='http://www.python.org/download/'>Python</ulink>.</term>
+<listitem>
+<para>Pick the <quote>Windows Installer</quote> file for whatever Python version is current. At the time of writing, the current
+is 2.4.3.
+</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term><ulink url='http://gladewin32.sourceforge.net/modules/wfdownloads/viewcat.php?cid=12'>GTK+ 2 Runtime Environment</ulink></term>
+<listitem>
+<para>
+A pre-packaged version of GTK+ ready to install. Courtesey of the <ulink url='http://gladewin32.sourceforge.net/'>GLADE for Windows</ulink> project.
+Pick the latest version, that suits your type of Windows. At the time of writing, the current is 2.8.18. This package must be used, not the one
+from e.g. <ulink url='http://gimp-win.sourceforge.net/'>The GIMP for Windows</ulink> project, since it contains the required GTKGLExt libraries, too.
+</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term><ulink url='http://www.stephanebrunet.net/gtkglext/'>PyGTKGLExt</ulink></term>
+<listitem>
+<para>
+Pre-compiled (binary) version of GTKGLExt, with Python binding too. Slightly dated, but should work.
+</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term><ulink url='http://users.pandora.be/blendix/verse/release/pyverse-r6p0.win32-py2.4.exe'>PyVerse</ulink></term>
+<listitem>
+<para>
+Just a direct link to a file on the page mentioned above. This link might go stale, as PyVerse will need to be updated
+by its author as newer Verse releases become available.
+</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term><ulink url='http://users.skynet.be/sbi/libxml-python/'>Libxml Python Bindings</ulink></term>
+<listitem>
+<para>
+Pick the latest, for the version of Python you selected. At the time of writing, Python 2.4 and libxml2-python 2.6.22.
+</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term><ulink url='http://prdownloads.sourceforge.net/pyopengl/PyOpenGL-2.0.2.01.py2.4-numpy23.exe?download'>PyOpenGL 2.0.2.01</ulink></term>
+<listitem>
+<para>
+A direct link to the latest PyOpenGL installer for Windows.
+</para>
+</listitem>
+</varlistentry>
+
+
+</variablelist>
+
+</sect2>
+
 </sect1>
 
 <sect1 id='inst-inst'>
