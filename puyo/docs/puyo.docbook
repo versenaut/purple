@@ -75,6 +75,16 @@ current sponsor) project site's download page, here: <ulink url='http://www.uni-
 </listitem>
 </varlistentry>
 
+<varlistentry><term><ulink url='http://www.opengl.org/'>OpenGL</ulink> and <ulink url='http://opengl.org/resources/libraries/glut/'>GLUT</ulink></term>
+<listitem>
+<para>
+OpenGL is used to render the 2D view of the graphs. GLUT is a standard companion library for OpenGL, that handles the
+system-depedendant things like opening a window, reading mouse and keyboard input, and so on. Although GLUT is not
+used directly by Puyo, the PyOpenGL wrapper (below) depends on it.
+</para>
+</listitem>
+</varlistentry>
+
 <varlistentry><term><ulink url='http://www.gtk.org/'>GTK+</ulink></term>
 <listitem>
 <para>
@@ -180,6 +190,35 @@ is 2.4.3.
 A pre-packaged version of GTK+ ready to install. Courtesey of the <ulink url='http://gladewin32.sourceforge.net/'>GLADE for Windows</ulink> project.
 Pick the latest version, that suits your type of Windows. At the time of writing, the current is 2.8.18. This package must be used, not the one
 from e.g. <ulink url='http://gimp-win.sourceforge.net/'>The GIMP for Windows</ulink> project, since it contains the required GTKGLExt libraries, too.
+</para>
+<para>
+If you see an error dialog saying Windows can't locate <filename class='libraryfile'>libglib-2.0.0.dll</filename> or similar when trying to run
+Puyo (having completed the remainder of this list first), here is the suggested fix:
+</para>
+<itemizedlist>
+<listitem>
+<para>Using the built-in Windows Search tool (found in the Start menu), run a search for the missing name. Optionally, simplify the name
+to just <filename class='libraryfile'>libglib*.dll</filename> or so. Take note of the directory where the file is found (it should be
+named <filename class='directory'>GTK</filename>, as the GTK+ package is the one that installs this library file.
+</para>
+</listitem>
+<listitem>
+<para>Make sure your <varname>PATH</varname> environment variable contains the name of the <emphasis>directory</emphasis> contains the
+directory found above. See <ulink url='http://www.sgr.nada.kth.se/win/win2k/docs/environment.html.en'>this page</ulink> for instructions
+on how to set an environment variable (permanently).
+</para>
+</listitem>
+</itemizedlist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term><ulink url='http://opengl.org/resources/libraries/glut/glut_downloads.php#windows'>GLUT for Windows</ulink></term>
+<listitem>
+<para>
+This page has a number of GLUT archives for Windows. There doesn't seem to be an executable installer, just Zip archives.
+You will need a <ulink url='http://www.7-zip.org/'>compatible archiving tool</ulink> to extract the files. Put the DLLs in
+your Windows system directory, typically <filename class='directory'>c:\winnt\system32\</filename>.
 </para>
 </listitem>
 </varlistentry>
