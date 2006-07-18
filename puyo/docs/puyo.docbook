@@ -185,6 +185,16 @@ from e.g. <ulink url='http://gimp-win.sourceforge.net/'>The GIMP for Windows</ul
 </varlistentry>
 
 <varlistentry>
+<term><ulink url='http://www.pcpm.ucl.ac.be/~gustin/win32_ports/'>PyGTK for Win32</ulink></term>
+<listitem>
+<para>
+PyGTK for Windows. You need both the main pygtk <ulink url='http://www.gtk.org/'>GTK+ wrapper</ulink> as well as the pycairo
+<ulink url='http://cairographics.org/'>Cairo</ulink> wrapper.
+</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
 <term><ulink url='http://www.stephanebrunet.net/gtkglext/'>PyGTKGLExt</ulink></term>
 <listitem>
 <para>
