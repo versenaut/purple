@@ -397,14 +397,6 @@ static int console_update(void)
 				if(sscanf(line, "mic %u %u %u", &g, &m, &i) == 3)
 					graph_method_send_call_mod_input_clear(g, m, i);
 			}
-			else if(strncmp(line, "ml", 2) == 0)
-			{
-				unsigned int	i;
-				Plugin		*p;
-
-				for(i = 1; (p = plugin_lookup(i)) != NULL; i++)
-					printf("%2d: %s\n", i, plugin_name(p));
-			}
 			else if(strncmp(line, "nc ", 3) == 0)
 			{
 				if(strcmp(line + 3, "text") == 0)
@@ -426,6 +418,14 @@ static int console_update(void)
 
 				if(sscanf(line, "nns %u %s", &node, name) == 2)
 					verse_send_node_name_set(node, name);
+			}
+			else if(strncmp(line, "pl", 2) == 0)
+			{
+				unsigned int	i;
+				Plugin		*p;
+
+				for(i = 1; (p = plugin_lookup(i)) != NULL; i++)
+					printf("%2d: %s\n", i, plugin_name(p));
 			}
 			else if(strncmp(line, "tbc ", 4) == 0)
 			{
