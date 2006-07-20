@@ -862,6 +862,7 @@ void plugins_libraries_init(void)
 		api_init_end();
 /*		LOG_MSG(("Done, that added %u plug-ins", plugins_amount() - num));*/
 	}
+	LOG_MSG(("Initialized %u plug-ins, from %u on-disk libraries (%s-files)", idset_size(plugins_info.plugins), list_length(plugins_info.libraries), SUFFIX));
 }
 
 /* Register a new plugin. This is rather picky. */
