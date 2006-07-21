@@ -4,7 +4,7 @@
 
 ALL:		purple.res
 
-purple.res:	purple.ico
+purple.res:	purple.rc
 
 
 clean:
