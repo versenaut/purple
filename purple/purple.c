@@ -55,7 +55,7 @@
 #endif
 
 #define	PURPLE_CONSOLE
-/*#undef	PURPLE_CONSOLE*/
+#undef	PURPLE_CONSOLE
 
 #if defined PURPLE_CONSOLE
 
