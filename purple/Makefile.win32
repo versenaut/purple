@@ -18,7 +18,8 @@ purple.exe:	purple.c\
 		nodedb.obj nodedb-a.obj nodedb-b.obj nodedb-c.obj nodedb-g.obj nodedb-m.obj nodedb-o.obj nodedb-t.obj \
 		nodeset.obj plugins.obj plugin-clock.obj plugin-input.obj plugin-output.obj \
 		port.obj resume.obj scheduler.obj strutil.obj synchronizer.obj textbuf.obj timeval.obj \
-		value.obj vecutil.obj xmlnode.obj xmlutil.obj
+		value.obj vecutil.obj xmlnode.obj xmlutil.obj \
+		resources/purple.res
 		$(CC) $(CFLAGS) $** $(VERSE)\verse.lib wsock32.lib shlwapi.lib
 
 api-iter.obj:	api-iter.c purple.h
