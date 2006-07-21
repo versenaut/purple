@@ -1,0 +1,11 @@
+#
+# This builds a resource file for the Purple engine, for the icon.
+#
+
+ALL:		purple.res
+
+purple.res:	purple.ico
+
+
+clean:
+		del *.res
