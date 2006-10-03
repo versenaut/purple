@@ -279,7 +279,7 @@ void nodedb_t_buffer_clear(NdbTBuffer *buffer)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_t_set_language(void *user, VNodeID node_id, const char *language)
+static void cb_t_language_set(void *user, VNodeID node_id, const char *language)
 {
 	NodeText	*n;
 
@@ -364,7 +364,7 @@ static void cb_t_text_set(void *user, VNodeID node_id, uint16 buffer_id, uint32 
 
 void nodedb_t_register_callbacks(void)
 {
-	verse_callback_set(verse_send_t_set_language,	cb_t_set_language, NULL);
+	verse_callback_set(verse_send_t_language_set,	cb_t_language_set, NULL);
 	verse_callback_set(verse_send_t_buffer_create,	cb_t_buffer_create, NULL);
 	verse_callback_set(verse_send_t_buffer_destroy,	cb_t_buffer_destroy, NULL);
 	verse_callback_set(verse_send_t_text_set,	cb_t_text_set, NULL);

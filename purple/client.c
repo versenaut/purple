@@ -55,7 +55,7 @@ static void notify_mine_create(PNode *node)
 		printf("It's the meta text node!\n");
 		client_info.meta = node->id;
 		verse_send_node_name_set(node->id, "PurpleMeta");
-		verse_send_t_set_language(node->id, "xml/purple/meta");
+		verse_send_t_language_set(node->id, "xml/purple/meta");
 		verse_send_t_buffer_create(node->id, ~0, "plugins");
 		verse_send_t_buffer_create(node->id, ~0, "graphs");
 		verse_send_node_subscribe(node->id);
@@ -64,7 +64,7 @@ static void notify_mine_create(PNode *node)
 	else if(node->type == V_NT_TEXT)
 	{
 		printf("Purple-created text node found, assuming it's graph storage (setting language)\n");
-		verse_send_t_set_language(node->id, "xml/purple/graph");
+		verse_send_t_language_set(node->id, "xml/purple/graph");
 	}
 }
 
