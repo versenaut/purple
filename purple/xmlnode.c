@@ -394,12 +394,12 @@ static void node_child_add(XmlNode *parent, XmlNode *child)
 }
 
 /* Add <text> content to a <parent> node. This is a bit weird, since text is not totally symmetrically
- * handled: the first text child of a node is stored directly in the node, while any additional text
- * children will be linked as individual XmlNodes.
+ * handled: the first text child of a node is stored directly in the node, unless there are already
+ * children added. Otherwise the text will be added as individual XmlNodes.
 */
 static void node_text_add(XmlNode *parent, DynStr *text)
 {
-	if(parent->text == NULL)
+	if(parent->text == NULL && parent->children == NULL)
 		parent->text = dynstr_destroy(text, 0);
 	else
 	{
