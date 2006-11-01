@@ -251,7 +251,7 @@ static Attrib * attribs_build(const char *token, size_t *attrib_num)
 			break;
 		if(isalpha(*src))
 		{
-			while(isalpha(*src) || *src == '-' || *src == '_')
+			while(isalpha(*src) || *src == '-' || *src == '_' || *src == ':')
 			{
 				name_size++;
 				src++;
@@ -311,7 +311,7 @@ static Attrib * attribs_build(const char *token, size_t *attrib_num)
 				if(isalpha(*src))
 				{
 					attr[index].name = put;
-					while(isalpha(*src) || *src == '-' || *src == '_')
+					while(isalpha(*src) || *src == '-' || *src == '_' || *src == ':')
 						*put++ = tolower(*src++);
 					*put++ = '\0';
 					if(*src == '=')
@@ -473,15 +473,35 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer, int *complete)
 				}
 				else
 				{
-					XmlNode	*child = node_new(tag), *subtree;
+					XmlNode	*child, *subtree = NULL;
+
+					child = node_new(tag);
 					dynstr_destroy(token, 1);
 					token = NULL;
 
+					if(st == TAGEMPTY && strcmp(xmlnode_get_name(child), "xi:include") == 0)	/* Use of xi:include? */
+					{
+						const char	*href = xmlnode_attrib_get_value(child, "href");
+						DynStr		*ds;
+
+						if(href != NULL)
+						{
+							if((ds = dynstr_new_from_file(href)) != NULL)
+							{
+								child = xmlnode_new(dynstr_string(ds));	/* Major recursion, signing in for duty. */
+								dynstr_destroy(ds, 1);
+							}
+							else
+								LOG_ERR(("Unable to execute xi:include, referenced file '%s' not found--aborting", href));
+						}
+						else
+							LOG_ERR(("Broken xi:include element, missing 'href' attribute--aborting"));
+					}
 					if(st != TAGEMPTY)
 						subtree = build_tree(child, buffer, complete);
 					else
 						subtree = child;
-					if(parent != NULL)
+					if(parent != NULL && subtree != NULL)
 						node_child_add(parent, subtree);
 					else
 						parent = child;
@@ -493,7 +513,10 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer, int *complete)
 				if(dynstr_length(token) > 0)
 				{
 					if(parent != NULL)
+					{
+						printf("adding text to '%s'\n", parent->element);
 						node_text_add(parent, token);
+					}
 					else
 					{
 						LOG_WARN(("Ignoring top-level text"));
@@ -849,3 +872,33 @@ void xmlnode_destroy(XmlNode *root)
 	mem_free(root->attrib);
 	mem_free(root);
 }
+
+#if defined STANDALONE
+
+int main(int argc, char *argv[])
+{
+	int	i;
+
+	list_init();
+
+	for(i = 1; i < argc; i++)
+	{
+		DynStr	*ds;
+
+		if((ds = dynstr_new_from_file(argv[i])) != NULL)
+		{
+			XmlNode	*xn;
+
+			if((xn = xmlnode_new(dynstr_string(ds))) != NULL)
+			{
+				xmlnode_print_outline(xn);
+				xmlnode_destroy(xn);
+			}
+		}
+		else
+			printf("read error\n");
+	}
+	return 0;
+}
+
+#endif
