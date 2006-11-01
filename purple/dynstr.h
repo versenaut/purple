@@ -19,6 +19,9 @@ extern DynStr *	dynstr_new(const char *text);
 /* Create a new, empty string, ready to hold <size> characters. */
 extern DynStr *	dynstr_new_sized(size_t size);
 
+/* Create a new string, with contents from the named file. */
+extern DynStr *	dynstr_new_from_file(const char *filename);
+
 /* Set the string <str> to <text>. */
 extern void	dynstr_assign(DynStr *str, const char *text);
 
