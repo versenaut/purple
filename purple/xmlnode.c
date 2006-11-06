@@ -513,10 +513,7 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer, int *complete)
 				if(dynstr_length(token) > 0)
 				{
 					if(parent != NULL)
-					{
-						printf("adding text to '%s'\n", parent->element);
 						node_text_add(parent, token);
-					}
 					else
 					{
 						LOG_WARN(("Ignoring top-level text"));
