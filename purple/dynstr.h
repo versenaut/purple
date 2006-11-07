@@ -19,7 +19,9 @@ extern DynStr *	dynstr_new(const char *text);
 /* Create a new, empty string, ready to hold <size> characters. */
 extern DynStr *	dynstr_new_sized(size_t size);
 
-/* Create a new string, with contents from the named file. */
+/* Create a new string, with contents from the named file. The file is
+ * read in binary mode, but must not contain any null bytes.
+*/
 extern DynStr *	dynstr_new_from_file(const char *filename);
 
 /* Set the string <str> to <text>. */
