@@ -81,7 +81,7 @@ DynStr * dynstr_new_from_file(const char *filename)
 
 	if(filename == NULL)
 		return NULL;
-	if((in = fopen(filename, "r")) != NULL)
+	if((in = fopen(filename, "rb")) != NULL)
 	{
 		if(fseek(in, 0, SEEK_END) == 0)
 		{
@@ -93,7 +93,7 @@ DynStr * dynstr_new_from_file(const char *filename)
 				ds = dynstr_new_sized(size);
 				if(ds != NULL)
 				{
-					if(fread(ds->str, 1, size, in) == 1)
+					if(fread(ds->str, size, 1, in) == 1)
 					{
 						ds->len = size;
 						ds->str[size] = '\0';
