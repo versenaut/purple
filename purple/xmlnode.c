@@ -430,6 +430,20 @@ static int node_closes(const XmlNode *parent, const char *tag)
 	return *src == *tag;
 }
 
+/* Recursively reverse all child lists, since we use prepend() when
+ * constructing the tree. Should be quicker. Done in-place.
+*/
+static void tree_reverse_children(XmlNode *root)
+{
+	const List	*iter;
+
+	if(root == NULL)
+		return;
+	root->children = list_reverse(root->children);
+	for(iter = root->children; iter != NULL; iter = list_next(iter))
+		tree_reverse_children(list_data(iter));
+}
+
 /* Traverse <buffer>, extracting tokens. Build nodes from tokens, and add to <parent> as fit. Recurse. */
 static XmlNode * build_tree(XmlNode *parent, const char **buffer, int *complete)
 {
@@ -489,7 +503,9 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer, int *complete)
 							if((ds = dynstr_new_from_file(href)) != NULL)
 							{
 								child = xmlnode_new(dynstr_string(ds));	/* Major recursion, signing in for duty. */
+								tree_reverse_children(child);		/* Reversal done twice is no reversal. */
 								dynstr_destroy(ds, 1);
+/*								xmlnode_print_outline(child);*/
 							}
 							else
 								LOG_ERR(("Unable to execute xi:include, referenced file '%s' not found--aborting", href));
@@ -532,20 +548,6 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer, int *complete)
 			break;
 	}
 	return parent;
-}
-
-/* Recursively reverse all child lists, since we use prepend() when
- * constructing the tree. Should be quicker. Done in-place.
-*/
-static void tree_reverse_children(XmlNode *root)
-{
-	const List	*iter;
-
-	if(root == NULL)
-		return;
-	root->children = list_reverse(root->children);
-	for(iter = root->children; iter != NULL; iter = list_next(iter))
-		tree_reverse_children(list_data(iter));
 }
 
 XmlNode * xmlnode_new(const char *buffer)
