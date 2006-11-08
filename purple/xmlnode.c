@@ -445,7 +445,7 @@ static void tree_reverse_children(XmlNode *root)
 }
 
 /* Traverse <buffer>, extracting tokens. Build nodes from tokens, and add to <parent> as fit. Recurse. */
-static XmlNode * build_tree(XmlNode *parent, const char **buffer, int *complete)
+static XmlNode * tree_build(XmlNode *parent, const char **buffer, int *complete)
 {
 	DynStr	*token = NULL;
 
@@ -514,7 +514,7 @@ static XmlNode * build_tree(XmlNode *parent, const char **buffer, int *complete)
 							LOG_ERR(("Broken xi:include element, missing 'href' attribute--aborting"));
 					}
 					if(st != TAGEMPTY)
-						subtree = build_tree(child, buffer, complete);
+						subtree = tree_build(child, buffer, complete);
 					else
 						subtree = child;
 					if(parent != NULL && subtree != NULL)
@@ -557,7 +557,7 @@ XmlNode * xmlnode_new(const char *buffer)
 
 	if(buffer == NULL)
 		return NULL;
-	root = build_tree(NULL, &buffer, &complete);
+	root = tree_build(NULL, &buffer, &complete);
 	if(!complete)
 	{
 		xmlnode_destroy(root);
