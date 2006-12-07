@@ -389,7 +389,7 @@ typedef struct
 	size_t		   param_count;
 	const VNOParamType param_type[4];	/* Wastes a bit, but simplifies code. */
 	const char	   *param_name[4];
-	uint8		   id;			/* Filled-in once created. */ 
+	uint16		   id;			/* Filled-in once created. */ 
 } MethodInfo;
 
 /* Enumeration to allow simple IDs for methods. */
@@ -472,7 +472,7 @@ void graph_init(void)
 	graph_info.chunk_module = memchunk_new("graph/module", sizeof (Module), 8);
 
 	for(i = 0; i < sizeof method_info / sizeof *method_info; i++)
-		method_info[i].id = (uint8) ~0u;
+		method_info[i].id = (uint16) ~0u;
 }
 
 void graph_method_send_creates(uint32 avatar, uint8 group_id)
@@ -481,7 +481,8 @@ void graph_method_send_creates(uint32 avatar, uint8 group_id)
 
 	for(i = 0; i < sizeof method_info / sizeof *method_info; i++)
 	{
-		verse_send_o_method_create(avatar, group_id, (uint8) ~0u, method_info[i].name,
+		printf("sending method %u  (%s)\n", i, method_info[i].name);
+		verse_send_o_method_create(avatar, group_id, (uint16) ~0u, method_info[i].name,
 					   method_info[i].param_count,
 					   (VNOParamType *) method_info[i].param_type,
 					   (const char **) method_info[i].param_name);
@@ -499,12 +500,14 @@ void graph_method_check_created(NodeObject *obj)
 		return;
 	if((g = nodedb_o_method_group_lookup(obj, "PurpleGraph")) == NULL)
 		return;
+	if(dynarr_size(g->methods) == 0)	/* Don't check if none received, yet. Should be API? */
+		return;
 
 	for(i = 0; i < sizeof method_info / sizeof *method_info; i++)
 	{
 		const NdbOMethod	*m;
 
-		if(method_info[i].id == (uint8) ~0u && (m = nodedb_o_method_lookup(g, method_info[i].name)) != NULL)
+		if(method_info[i].id == (uint16) ~0u && (m = nodedb_o_method_lookup(g, method_info[i].name)) != NULL)
 		{
 			method_info[i].id = m->id;
 			graph_info.to_register--;
@@ -513,7 +516,7 @@ void graph_method_check_created(NodeObject *obj)
 			return;
 		}
 	}
-	LOG_WARN(("Received unknown (non graph-related?) method creation"));
+	LOG_WARN(("Received unknown (non graph-related?) method creation (%u still to register)", graph_info.to_register));
 }
 
 /* ----------------------------------------------------------------------------------------- */
@@ -1402,7 +1405,7 @@ void send_method_call(int method, const VNOParam *param)
 	if(method < 0 || (size_t) method >= sizeof method_info / sizeof *method_info)
 		return;
 	mi = method_info + method;
-	if(mi->id == (uint8) ~0u)
+	if(mi->id == (uint16) ~0u)
 	{
 		LOG_WARN(("Can't send call to method %s(), not created yet", mi->name));
 		return;
@@ -1569,7 +1572,7 @@ void graph_method_send_call_mod_input_clear(uint32 graph_id, uint32 module_id, u
 	send_method_call(MOD_INPUT_CLEAR, param);
 }
 
-void graph_method_receive_call(uint8 id, const VNOPackedParams *param)
+void graph_method_receive_call(uint16 id, const VNOPackedParams *param)
 {
 	VNOParam	arg[8];
 	unsigned int	i;
