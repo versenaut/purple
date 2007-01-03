@@ -4,7 +4,7 @@
 
 VERSE=..\..\verse
 
-CFLAGS=/nologo /I.. /I$(VERSE) /LD ../purple.lib
+CFLAGS=/nologo /D_CRT_SECURE_NO_DEPRECATE /I.. /I$(VERSE) /LD ../purple.lib
 
 ALL:	audioecho.dll audioscale.dll audiotone.dll bbox.dll bmaverage.dll bmblend.dll bmchecker.dll \
 	bmfilter.dll bmnoise.dll bmoilify.dll bmrotate.dll bmtext.dll bulge.dll cone.dll constant.dll \
