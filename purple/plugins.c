@@ -26,6 +26,7 @@
 #include "value.h"
 #include "nodeset.h"
 #include "strutil.h"
+#include "plugin-clock.h"
 #include "plugin-input.h"
 #include "plugin-output.h"
 #include "port.h"
@@ -111,7 +112,7 @@ static struct
 	Hash		*plugins_name;		/* All currently loaded, available plugins. */
 
 	uint32		sequence_next;		/* Index of next instance. Helps UI-clients de-alias across create-delete-create. */
-} plugins_info = { NULL };
+} plugins_info;
 
 /* ----------------------------------------------------------------------------------------- */
 
@@ -292,7 +293,7 @@ int plugin_has_default_inputs(const Plugin *p)
 	return 0;
 }
 
-static int cb_describe_meta(const void *data, void *user)
+static int cb_describe_meta(void *data, void *user)
 {
 	const MetaEntry	*m = data;
 
