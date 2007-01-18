@@ -179,7 +179,7 @@ static size_t layer_element_size(VNGLayerType type)
 	return 0;
 }
 
-#define	VERTEX_LAYER(l)		((l)->type >= VN_G_LAYER_VERTEX_XYZ && ((l)->type < VN_G_LAYER_POLYGON_CORNER_UINT32))
+#define	VERTEX_LAYER(l)		(((l)->type < VN_G_LAYER_POLYGON_CORNER_UINT32))	/* Assumes these start at 0. */
 #define	POLYGON_LAYER(l)	((l)->type >= VN_G_LAYER_POLYGON_CORNER_UINT32 && ((l)->type <= VN_G_LAYER_POLYGON_FACE_REAL))
 
 static void nodedb_g_layer_allocate(NodeGeometry *node, NdbGLayer *layer)
@@ -702,7 +702,8 @@ NdbGBone * nodedb_g_bone_nth(const NodeGeometry *node, unsigned int n)
 
 void nodedb_g_bone_iter(const NodeGeometry *node, PIter *iter)
 {
-	iter_init_dynarr_uint16_ffff(iter, ((NodeGeometry *) node)->bones, offsetof(NdbGBone, id));
+/*	iter_init_dynarr_uint16_ffff(iter, ((NodeGeometry *) node)->bones, offsetof(NdbGBone, id));*/
+	fprintf(stderr, "**nodedb_g_bone_iter() is missing\n");
 }
 
 NdbGBone * nodedb_g_bone_lookup(const NodeGeometry *node, uint16 id)
@@ -762,12 +763,14 @@ static int bones_equal(const NodeGeometry *node, const NdbGBone *a,
 	return bone_refs_equal(node, a->parent, target, b->parent);
 }
 
+/*
 static void cb_bone_default(unsigned int index, void *element, void *user)
 {
 	NdbGBone	*bone = element;
 
 	bone->id = ~0;
 }
+*/
 
 /* Find pointer to bone in <n> that is equal to <bone> in <source>. */
 const NdbGBone * nodedb_g_bone_find_equal(const NodeGeometry *n, const NodeGeometry *source, const NdbGBone *bone)
@@ -775,7 +778,7 @@ const NdbGBone * nodedb_g_bone_find_equal(const NodeGeometry *n, const NodeGeome
 	unsigned int	i;
 	const NdbGBone	*there;
 
-	for(i = 0; (there = dynarr_index(n->bones, i)) != NULL; i++)
+	for(i = idtree_foreach_first(n->bones); (there = idtree_get(n->bones, i)) != NULL; i = idtree_foreach_next(n->bones, i))
 	{
 		if(there->id == (uint16) ~0u)
 			continue;
@@ -818,18 +821,18 @@ NdbGBone * nodedb_g_bone_create(NodeGeometry *n, uint16 id, const char *weight, 
 		return NULL;
 	if(n->bones == NULL)
 	{
-		n->bones = dynarr_new(sizeof (NdbGBone), 128);	/* FIXME: This will break if realloc() causes bones to move! */
-		dynarr_set_default_func(n->bones, cb_bone_default, NULL);
+		n->bones = idtree_new(sizeof (NdbGBone), 128, 4);	/* FIXME: This will break if realloc() causes bones to move! */
+/*		dynarr_set_default_func(n->bones, cb_bone_default, NULL);*/
 	}
 	if(id == (uint16) ~0)
 	{
 		unsigned int	index;
 
-		bone = dynarr_append(n->bones, NULL, &index);
-		id = index;
+		bone = idtree_append(n->bones, NULL, &index);
+		id = (uint16) index;
 	}
 	else
-		bone = dynarr_set(n->bones, id, NULL);
+		bone = idtree_set(n->bones, id, NULL);
 	if(bone != NULL)
 	{
 		bone->id     = id;
