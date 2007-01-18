@@ -24,6 +24,7 @@
 #include "plugins.h"
 #include "textbuf.h"
 #include "nodedb.h"
+#include "graph.h"
 
 #include "api-init.h"
 
