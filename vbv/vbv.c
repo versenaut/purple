@@ -170,24 +170,26 @@ static void put_layer(GdkPixbuf *dst, const BitmapLayer *layer, const NodeBitmap
 	{
 		for(y = 0; y < node->height; y++)
 		{
-			uint8	v, b;
+			uint8	v, b, m;
 
 			put = pix + y * stride + c;
 			for(x = 0; x < node->width;)
 			{
 				v = *get++;
-				for(b = 0; b < 8 && x < node->width; b++, x++, put += 3)
-					*put = (v & (1 << (7 - b))) ? 0xff : 0x00;
+				for(b = 0, m = 0x80; b < 8 && x < node->width; b++, x++, put += 3, m >>= 1)
+					*put = (v & m) ? 0xff : 0x00;
 			}
 		}
 	}
 	else if(layer->type == VN_B_LAYER_UINT8)	/* 8bpp images can just be copied, but layers make it tricky. */
 	{
+		uint8	*get8 = layer->data;
+
 		for(y = 0; y < node->height; y++)
 		{
 			put = pix + y * stride + c;
 			for(x = 0; x < node->width; x++, put += 3)
-				*put = *get++;
+				*put = *get8++;
 		}
 	}
 	else if(layer->type == VN_B_LAYER_UINT16)
@@ -202,6 +204,7 @@ static void put_layer(GdkPixbuf *dst, const BitmapLayer *layer, const NodeBitmap
 	}
 }
 
+/* Set the visible image, by scaling from source pixbuf into a new one, which is then set on the image widget. */
 static void set_image(GtkWidget *image, const GdkPixbuf *src, gdouble zoom, size_t w, size_t h)
 {
 	GdkPixbuf	*scaled;
@@ -232,7 +235,7 @@ static gboolean cb_refresh_timeout(gpointer user)
 		for(iter = l; iter != NULL; iter = g_list_next(iter))
 			put_layer(node->pix, iter->data, node);
 		g_list_free(l);
-/*		set_image(node->image, node->pix, node->zoom, node->width, node->height);*/
+		set_image(node->image, node->pix, node->zoom, node->width, node->height);
 	}
 	node->evt_refresh = 0u;
 	return FALSE;
@@ -241,7 +244,7 @@ static gboolean cb_refresh_timeout(gpointer user)
 static void node_bitmap_queue_refresh(NodeBitmap *node)
 {
 	if(node->evt_refresh == 0)
-		node->evt_refresh = g_timeout_add(10, cb_refresh_timeout, node);
+		node->evt_refresh = g_timeout_add(500, cb_refresh_timeout, node);
 }
 
 static void node_name_set(MainInfo *min, VNodeID node_id, const char *name)
@@ -273,8 +276,6 @@ static void layer_resize(BitmapLayer *layer,
 {
 	void	*nd;
 
-	if(layer->data != NULL)
-		;
 	if(layer->type == VN_B_LAYER_UINT1)
 	{
 		layer->size = ((width + 7) / 8) * height * depth;
@@ -659,13 +660,21 @@ static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16
 	bench.count++;
 	gettimeofday(&bench.last, NULL);
 	bench.dt = time_between(&bench.first, &bench.last);
-	printf("count=%d, dt=%g -> %.1f tiles/second, %d tiles total\n", bench.count, bench.dt, bench.count / bench.dt, tnum);
+/*	printf("count=%d, dt=%g -> %.1f tiles/second, %d tiles total\n", bench.count, bench.dt, bench.count / bench.dt, tnum);*/
+
+	if(node->tile_count == tnum)
+	{
+		printf("Image complete, got %u tiles in %g seconds, %.3g MB/s\n",
+		       node->tile_count, bench.dt, (node->tile_count * VN_B_TILE_SIZE * VN_B_TILE_SIZE) / (1024.0 * 1024.0 * bench.dt));
+		node_bitmap_queue_refresh(node);
+		bench.count = 0;
+	}
 
 	if(node->tile_count <= tnum)
 		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(node->pbar), (gdouble) node->tile_count / tnum);
 	else
 		gtk_progress_bar_pulse(GTK_PROGRESS_BAR(node->pbar));
-	node_bitmap_queue_refresh(node);
+/*	node_bitmap_queue_refresh(node);*/
 }
 
 static gboolean evt_window_keypress(GtkWidget *win, GdkEventKey *evt, gpointer user)
@@ -735,7 +744,7 @@ int main(int argc, char *argv[])
 
 	gtk_widget_show_all(min.window);
 
-	g_timeout_add(50, (GSourceFunc) evt_timeout, &min);
+	g_timeout_add(20, (GSourceFunc) evt_timeout, &min);
 
 	verse_callback_set(verse_send_connect_accept,	cb_connect_accept, &min);
 	verse_callback_set(verse_send_node_create,	cb_node_create,	&min);
