@@ -34,7 +34,7 @@
 
 #define METHOD_GROUP_CONTROL_NAME	"PurpleGraph"
 
-ClientInfo	client_info = { 0 };
+ClientInfo	client_info;
 
 /* ----------------------------------------------------------------------------------------- */
 

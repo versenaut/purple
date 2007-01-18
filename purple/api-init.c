@@ -292,7 +292,7 @@ static struct
 {
 	Library	*owner;
 	Plugin	*plugin;
-} init_info = { NULL };
+} init_info;
 
 /* ----------------------------------------------------------------------------------------- */
 

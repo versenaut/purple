@@ -31,7 +31,7 @@ static struct
 {
 	int	enabled;		/* Set to 1 in init(), queried by resume_enabled(). */
 	char	meta[32];
-} resume_info = { 0 };
+} resume_info;
 
 static int 	resume_update(void *data);
 

@@ -44,7 +44,7 @@ static struct
 
 	List		*notify_mine;
 	MemChunk	*chunk_notify;			/* For allocating NotifyInfos. */
-} nodedb_info = { 0 };
+} nodedb_info;
 
 /* ----------------------------------------------------------------------------------------- */
 
@@ -67,7 +67,7 @@ PNode * nodedb_lookup_with_type(VNodeID node_id, VNodeType type)
 	return NULL;
 }
 
-static int cb_lookup_name(const void *data, void *user)
+static int cb_lookup_name(void *data, void *user)
 {
 	if(strcmp(((const PNode *) data)->name, ((void **) user)[0]) == 0)
 	{
