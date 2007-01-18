@@ -36,7 +36,7 @@ static struct
 	MemChunk	*chunk_task;
 	List		*ready;
 	List		*ready_iter;	/* Remembers position in ready-list between update()s. */
-} sched_info = { NULL };
+} sched_info;
 
 /* ----------------------------------------------------------------------------------------- */
 
