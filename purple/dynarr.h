@@ -71,10 +71,10 @@ extern size_t	dynarr_size(const DynArr *da);
 /* Sort the array. The comparison function is defined as for qsort(). */
 extern void	dynarr_sort(DynArr *da, int (*cmp)(const void *el1, const void *el2));
 
-/* Clear an existing dynamic array, making the next append have index 0. */
+/* Clear an existing dynamic array, freeing all the stored data, making append start at 0. */
 extern void	dynarr_clear(DynArr *da);
 
-/* Destroy an array an all the elements held in it. */
+/* Destroy an array and all the elements held in it. */
 extern void	dynarr_destroy(DynArr *da);
 
 #endif		/* DYNARR_H */
