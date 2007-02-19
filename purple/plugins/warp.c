@@ -49,6 +49,9 @@ static PComputeStatus compute(PPInput *input, PPOutput output, void *state)
 	min   = p_input_real64_vec4(input[1]);
 	twist = DEG2RAD(p_input_real64(input[2]));
 	ytot  = max[1] - min[1];
+	if(fabs(ytot) < 1e-10)		/* Abort if total height is very small. */
+		return P_COMPUTE_DONE;
+
 	printf("warp: max=(%g,%g,%g), min=(%g,%g,%g), twist=%g\n", max[0], max[1], max[2], min[0], min[1], min[2], twist);
 
 	for(i = 0; (in = p_input_node_nth(input[0], i)) != NULL; i++)
