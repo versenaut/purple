@@ -717,6 +717,11 @@ PURPLEAPI void p_node_g_vertex_set_uint32(PNGLayer *layer	/** The layer in which
 	nodedb_g_vertex_set_uint32(layer, id, value);
 }
 
+/**
+ * \brief Retreive value of a uint32 vertex slot.
+ * 
+ * This function reads the value of a slot in a vertex integer-type layer.
+*/
 PURPLEAPI uint32 p_node_g_vertex_get_uint32(PNGLayer *layer	/** The layer in which a slot is to be queried. */,
 					    uint32 id		/** The ID or index of the vertex slot to query. */)
 {
