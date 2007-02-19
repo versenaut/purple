@@ -328,7 +328,7 @@ void api_init_end(void)
  * 
  * Functions in this group are used to initialize a plug-in. They are always used exclusively from
  * a library's \c init() function, and never from the \c compute() callback. There are five functions,
- * three of which are optional.
+ * two of which are mandatory to use in each plug-in.
  * 
  * The most important functions are \c p_init_create() and \c p_init_compute(), they must be used
  * in every library's \c init() function. Any plug-in that needs inputs to function, which will be
@@ -366,9 +366,9 @@ void api_init_end(void)
  * - A new plug-in is created by each call to the \c p_init_create() function.
  * - The \c compute() callback is set by \c p_init_compute().
  * - A plug-in does \b not "inherit" any initialization from the previous one.
- * - The \c compute() function does not need to be seen from the outside, it can
- * be defined as \c static. This is true for \b all functions a library might
- * contain, except \c init().
+ * - The \c compute() function does not need to be referenced directly from the outside, so it
+ * can (and should) be defined as \c static. This is true for \b all functions a library might
+ * contain, \b except \c init().
  * - The init() function needs to be "prefixed" with the PURPLE_PLUGIN macro to
  * work properly on Windows platforms.
  * @{
