@@ -265,9 +265,8 @@
  *     -# Purple appends a \c graph element to the \c graphs XML buffer in PurpleMeta.
  *     -# Purple clears the user-supplied text buffer, and fills in a barebones \c graph element there.
  *     .
- *    So, to learn which numerical identifier got assigned to the newly created graph, a client must parse the changes in the XML and extract
- *    the information.
- *    .
+ *     So, to learn which numerical identifier got assigned to the newly created graph, a client must parse the changes in the XML and extract
+ *     the information.
  * -# The second pair of methods, \c mod_create() and \c mod_destroy(), are used to create and destroy modules inside a graph. They require the numerical
  *    ID of the graph in which to operate as their first parameter. The \c mod_create() method also needs the numerical ID of the plug-in to be instantiated,
  *    this comes from the "plugins" XML buffer described above. When received by the Purple engine, the following happens:
