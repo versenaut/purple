@@ -28,7 +28,7 @@ void nodedb_c_construct(NodeCurve *n)
 	n->curves = NULL;
 }
 
-static void cb_key_default(unsigned int index, void *element, void *user)
+static void cb_key_default(UNUSED(unsigned int index), void *element, UNUSED(void *user))
 {
 	NdbCKey	*key = element;
 
@@ -52,7 +52,7 @@ static int cb_key_compare_find(const void *listdata, const void *data)
 	return k->pos < pos ? -1 : k->pos > pos;
 }
 
-static void cb_copy_curve(void *d, const void *s, void *user)
+static void cb_copy_curve(void *d, const void *s, UNUSED(void *user))
 {
 	const NdbCCurve	*src = s;
 	NdbCCurve	*dst = d;
@@ -152,7 +152,7 @@ NdbCCurve * nodedb_c_curve_find(const NodeCurve *node, const char *name)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_curve_default(unsigned int indec, void *element, void *user)
+static void cb_curve_default(UNUSED(unsigned int index), void *element, UNUSED(void *user))
 {
 	NdbCCurve	*curve = element;
 
@@ -344,7 +344,7 @@ void nodedb_c_curve_destroy(NodeCurve *node, NdbCCurve *curve)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_c_curve_create(void *user, VNodeID node_id, VLayerID curve_id, const char *name, uint8 dimensions)
+static void cb_c_curve_create(UNUSED(void *user), VNodeID node_id, VLayerID curve_id, const char *name, uint8 dimensions)
 {
 	NodeCurve	*node;
 
@@ -367,7 +367,7 @@ static void cb_c_curve_create(void *user, VNodeID node_id, VLayerID curve_id, co
 		LOG_WARN(("Can't create curve in unknown curve node %u", node_id));
 }
 
-static void cb_c_curve_destroy(void *user, VNodeID node_id, VLayerID curve_id)
+static void cb_c_curve_destroy(UNUSED(void *user), VNodeID node_id, VLayerID curve_id)
 {
 	NodeCurve	*n;
 
@@ -383,7 +383,7 @@ static void cb_c_curve_destroy(void *user, VNodeID node_id, VLayerID curve_id)
 	}
 }
 
-static void cb_c_key_set(void *user, VNodeID node_id, VLayerID curve_id, uint32 key_id, uint8 dimensions,
+static void cb_c_key_set(UNUSED(void *user), VNodeID node_id, VLayerID curve_id, uint32 key_id, uint8 dimensions,
 			 real64 *pre_value, uint32 *pre_pos, real64 *value, real64 pos, real64 *post_value, uint32 *post_pos)
 {
 	NodeCurve	*n;
@@ -407,7 +407,7 @@ static void cb_c_key_set(void *user, VNodeID node_id, VLayerID curve_id, uint32 
 	}
 }
 
-static void cb_c_key_destroy(void *user, VNodeID node_id, VLayerID curve_id, uint32 key_id)
+static void cb_c_key_destroy(UNUSED(void *user), VNodeID node_id, VLayerID curve_id, uint32 key_id)
 {
 	NodeCurve	*n;
 

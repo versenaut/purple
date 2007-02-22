@@ -228,7 +228,7 @@ void nodedb_g_layer_set_default(NdbGLayer *layer, uint32 def_uint, real64 def_re
 	layer->def_real = def_real;
 }
 
-static void cb_def_layer(unsigned int index, void *element, void *user)
+static void cb_def_layer(UNUSED(unsigned int index), void *element, UNUSED(void *user))
 {
 	NdbGLayer	*layer = element;
 
@@ -294,7 +294,7 @@ NdbGLayer * nodedb_g_layer_lookup_id(const NodeGeometry *node, VLayerID layer_id
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_g_layer_create(void *user, VNodeID node_id, VLayerID layer_id, const char *name,
+static void cb_g_layer_create(UNUSED(void *user), VNodeID node_id, VLayerID layer_id, const char *name,
 			      VNGLayerType type, uint32 def_uint, real64 def_real)
 {
 	NodeGeometry	*node;
@@ -329,7 +329,7 @@ static void cb_g_layer_create(void *user, VNodeID node_id, VLayerID layer_id, co
 		node->layers = dynarr_new(sizeof *layer, 2);
 }
 
-static void cb_g_layer_destroy(void *user, VNodeID node_id, VLayerID layer_id)
+static void cb_g_layer_destroy(UNUSED(void *user), VNodeID node_id, VLayerID layer_id)
 {
 	NodeGeometry	*node;
 	NdbGLayer	*layer;
@@ -473,7 +473,7 @@ real64 nodedb_g_vertex_get_real(const NdbGLayer *layer, uint32 vertex_id)
 
 /* Macro to define a vertex XYZ handler function. */
 #define	VERTEX_XYZ(t)	\
-	static void cb_g_vertex_set_xyz_ ##t(void *user, VNodeID node_id, VLayerID layer_id, uint32 vertex_id,\
+	static void cb_g_vertex_set_xyz_ ##t(UNUSED(void *user), VNodeID node_id, VLayerID layer_id, uint32 vertex_id,\
 						       t x, t y, t z)\
 	{\
 		NodeGeometry	*node;\
@@ -493,7 +493,7 @@ VERTEX_XYZ(real64)
 
 /* Macro to define a vertex scalar handler function. */
 #define	VERTEX_SCALAR(t)	\
-	static void cb_g_vertex_set_ ##t(void *user, VNodeID node_id, VLayerID layer_id, uint32 vertex_id, t value)\
+	static void cb_g_vertex_set_ ##t(UNUSED(void *user), VNodeID node_id, VLayerID layer_id, uint32 vertex_id, t value)\
 	{\
 		NodeGeometry	*node;\
 		NdbGLayer	*layer;\
@@ -509,7 +509,7 @@ VERTEX_XYZ(real64)
 
 VERTEX_SCALAR(uint32)
 
-static void cb_g_vertex_set_real32(void *user, VNodeID node_id, VLayerID layer_id, uint32 vertex_id, real32 value)
+static void cb_g_vertex_set_real32(UNUSED(void *user), VNodeID node_id, VLayerID layer_id, uint32 vertex_id, real32 value)
 {
 	NodeGeometry	*node;
 	NdbGLayer	*layer;
@@ -522,7 +522,7 @@ static void cb_g_vertex_set_real32(void *user, VNodeID node_id, VLayerID layer_i
 	NOTIFY(node, DATA);
 }
 
-static void cb_g_vertex_set_real64(void *user, VNodeID node_id, VLayerID layer_id, uint32 vertex_id, real64 value)
+static void cb_g_vertex_set_real64(UNUSED(void *user), VNodeID node_id, VLayerID layer_id, uint32 vertex_id, real64 value)
 {
 	NodeGeometry	*node;
 	NdbGLayer	*layer;
@@ -571,7 +571,7 @@ static void cb_g_vertex_set_real64(void *user, VNodeID node_id, VLayerID layer_i
 		}\
 	}\
 	\
-	static void cb_g_polygon_set_corner_ ##t(void *user, VNodeID node_id, VLayerID layer_id, uint32 polygon_id,\
+	static void cb_g_polygon_set_corner_ ##t(UNUSED(void *user), VNodeID node_id, VLayerID layer_id, uint32 polygon_id,\
 							 t v0, t v1, t v2, t v3)\
 	{\
 		NodeGeometry	*node;\
@@ -598,7 +598,7 @@ POLYGON_CORNER(uint32)
 POLYGON_CORNER(real32)
 POLYGON_CORNER(real64)
 
-static void cb_g_polygon_delete(void *user, VNodeID node_id, uint32 polygon_id)
+static void cb_g_polygon_delete(UNUSED(void *user), VNodeID node_id, uint32 polygon_id)
 {
 	NodeGeometry	*node;
 	NdbGLayer	*layer;
@@ -637,7 +637,7 @@ static void cb_g_polygon_delete(void *user, VNodeID node_id, uint32 polygon_id)
 		return 0;\
 	}\
 	\
-	static void cb_g_polygon_set_face_ ##t(void *user, VNodeID node_id, VLayerID layer_id, uint32 polygon_id, t value)\
+	static void cb_g_polygon_set_face_ ##t(UNUSED(void *user), VNodeID node_id, VLayerID layer_id, uint32 polygon_id, t value)\
 	{\
 		NodeGeometry	*node;\
 		NdbGLayer	*layer;\
@@ -661,7 +661,7 @@ POLYGON_FACE(uint32)
 POLYGON_FACE(real32)
 POLYGON_FACE(real64)
 
-static void cb_g_vertex_delete(void *user, VNodeID node_id, uint32 vertex_id)
+static void cb_g_vertex_delete(UNUSED(void *user), VNodeID node_id, uint32 vertex_id)
 {
 	NodeGeometry	*node;
 	NdbGLayer	*layer;
@@ -682,7 +682,7 @@ unsigned int nodedb_g_bone_num(const NodeGeometry *node)
 	return idtree_size(node->bones);
 }
 
-NdbGBone * nodedb_g_bone_nth(const NodeGeometry *node, unsigned int n)
+NdbGBone * nodedb_g_bone_nth(UNUSED(const NodeGeometry *node), UNUSED(unsigned int n))
 {
 	return NULL;
 /*	unsigned int	i;
@@ -700,7 +700,7 @@ NdbGBone * nodedb_g_bone_nth(const NodeGeometry *node, unsigned int n)
 	return NULL;
 */}
 
-void nodedb_g_bone_iter(const NodeGeometry *node, PIter *iter)
+void nodedb_g_bone_iter(UNUSED(const NodeGeometry *node), UNUSED(PIter *iter))
 {
 /*	iter_init_dynarr_uint16_ffff(iter, ((NodeGeometry *) node)->bones, offsetof(NdbGBone, id));*/
 	fprintf(stderr, "**nodedb_g_bone_iter() is missing\n");
@@ -708,8 +708,6 @@ void nodedb_g_bone_iter(const NodeGeometry *node, PIter *iter)
 
 NdbGBone * nodedb_g_bone_lookup(const NodeGeometry *node, uint16 id)
 {
-	NdbGBone	*bone;
-
 	if(node == NULL || id == (uint16) ~0u)
 		return NULL;
 	return idtree_get(node->bones, id);
@@ -949,7 +947,7 @@ void nodedb_g_crease_set_edge(NodeGeometry *n, const char *layer, uint32 def)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_g_bone_create(void *user, VNodeID node_id, uint16 bone_id, const char *weight, const char *reference,
+static void cb_g_bone_create(UNUSED(void *user), VNodeID node_id, uint16 bone_id, const char *weight, const char *reference,
 			     uint32 parent_id, real64 pos_x, real64 pos_y, real64 pos_z, const char *pos_curve,
 			     const VNQuat64 *rot, const char *rot_curve)
 {
@@ -966,7 +964,7 @@ static void cb_g_bone_create(void *user, VNodeID node_id, uint16 bone_id, const 
 		NOTIFY(node, STRUCTURE);
 }
 
-static void cb_g_bone_destroy(void *user, VNodeID node_id, uint16 bone_id)
+static void cb_g_bone_destroy(UNUSED(void *user), VNodeID node_id, uint16 bone_id)
 {
 	NodeGeometry	*node;
 
@@ -984,7 +982,7 @@ static void cb_g_bone_destroy(void *user, VNodeID node_id, uint16 bone_id)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_g_crease_set_vertex(void *user, VNodeID node_id, const char *layer, uint32 def_crease)
+static void cb_g_crease_set_vertex(UNUSED(void *user), VNodeID node_id, const char *layer, uint32 def_crease)
 {
 	NodeGeometry	*node;
 
@@ -995,7 +993,7 @@ static void cb_g_crease_set_vertex(void *user, VNodeID node_id, const char *laye
 	NOTIFY(node, DATA);
 }
 
-static void cb_g_crease_set_edge(void *user, VNodeID node_id, const char *layer, uint32 def_crease)
+static void cb_g_crease_set_edge(UNUSED(void *user), VNodeID node_id, const char *layer, uint32 def_crease)
 {
 	NodeGeometry	*node;
 

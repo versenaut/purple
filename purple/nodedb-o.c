@@ -65,7 +65,7 @@ static void method_set(NdbOMethod *m, uint16 method_id, const char *name, uint8 
 }
 
 /* Copy a method. Simple, just set the fresh memory using the old one for parameters. */
-static void cb_copy_method(void *d, const void *s, void *user)
+static void cb_copy_method(void *d, const void *s, UNUSED(void *user))
 {
 	const NdbOMethod	*src = s;
 
@@ -73,7 +73,7 @@ static void cb_copy_method(void *d, const void *s, void *user)
 }
 
 /* Copy a method group, including (of course) all its methods. */
-static void cb_copy_method_group(void *d, const void *s, void *user)
+static void cb_copy_method_group(void *d, const void *s, UNUSED(void *user))
 {
 	const NdbOMethodGroup	*src = s;
 	NdbOMethodGroup		*dst = d;
@@ -421,7 +421,9 @@ const NdbOMethod * nodedb_o_method_lookup_id(const NdbOMethodGroup *group, uint8
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_o_transform_rot_real64(void *user, VNodeID node_id, uint32 time_s, uint32 time_f, const VNQuat64 *rot, const VNQuat64 *speed, const VNQuat64 *accelerate, const VNQuat64 *drag_normal, real64 drag)
+static void cb_o_transform_rot_real64(UNUSED(void *user), VNodeID node_id, UNUSED(uint32 time_s), UNUSED(uint32 time_f),
+				      const VNQuat64 *rot, UNUSED(const VNQuat64 *speed), UNUSED(const VNQuat64 *accelerate),
+				      UNUSED(const VNQuat64 *drag_normal), UNUSED(real64 drag))
 {
 	NodeObject	*n;
 
@@ -438,7 +440,9 @@ static void cb_o_transform_rot_real64(void *user, VNodeID node_id, uint32 time_s
 	}
 }
 
-static void cb_o_transform_pos_real64(void *user, VNodeID node_id, uint32 time_s, uint32 time_f, const real64 *pos, const real64 *speed, const real64 *accelerate, const real64 *drag_normal, real64 drag)
+static void cb_o_transform_pos_real64(UNUSED(void *user), VNodeID node_id, UNUSED(uint32 time_s), UNUSED(uint32 time_f),
+				      const real64 *pos, UNUSED(const real64 *speed), UNUSED(const real64 *accelerate),
+				      UNUSED(const real64 *drag_normal), UNUSED(real64 drag))
 {
 	NodeObject	*n;
 
@@ -449,7 +453,7 @@ static void cb_o_transform_pos_real64(void *user, VNodeID node_id, uint32 time_s
 	}
 }
 
-static void cb_o_link_set(void *user, VNodeID node_id, uint16 link_id, VNodeID link, const char *label, uint32 target_id)
+static void cb_o_link_set(UNUSED(void *user), VNodeID node_id, uint16 link_id, VNodeID link, const char *label, uint32 target_id)
 {
 	NodeObject	*n;
 
@@ -460,7 +464,7 @@ static void cb_o_link_set(void *user, VNodeID node_id, uint16 link_id, VNodeID l
 	}
 }
 
-static void cb_o_link_destroy(void *user, VNodeID node_id, uint16 link_id)
+static void cb_o_link_destroy(UNUSED(void *user), VNodeID node_id, uint16 link_id)
 {
 	NodeObject	*n;
 
@@ -471,7 +475,7 @@ static void cb_o_link_destroy(void *user, VNodeID node_id, uint16 link_id)
 	}
 }
 
-static void cb_o_light_set(void *user, VNodeID node_id, real64 r, real64 g, real64 b)
+static void cb_o_light_set(UNUSED(void *user), VNodeID node_id, real64 r, real64 g, real64 b)
 {
 	NodeObject	*n;
 
@@ -484,7 +488,7 @@ static void cb_o_light_set(void *user, VNodeID node_id, real64 r, real64 g, real
 	}
 }
 
-static void cb_o_method_group_create(void *user, VNodeID node_id, uint16 group_id, const char *name)
+static void cb_o_method_group_create(UNUSED(void *user), VNodeID node_id, uint16 group_id, const char *name)
 {
 	NodeObject	*n;
 
@@ -507,7 +511,7 @@ static void cb_o_method_group_create(void *user, VNodeID node_id, uint16 group_i
 	}
 }
 
-static void cb_o_method_group_destroy(void *user, VNodeID node_id, uint16 group_id, const char *name)
+static void cb_o_method_group_destroy(UNUSED(void *user), VNodeID node_id, uint16 group_id, UNUSED(const char *name))
 {
 	NodeObject	*n;
 
@@ -534,14 +538,14 @@ static void cb_o_method_group_destroy(void *user, VNodeID node_id, uint16 group_
 	}
 }
 
-static void cb_method_default(unsigned int index, void *element, void *user)
+static void cb_method_default(UNUSED(unsigned int index), void *element, UNUSED(void *user))
 {
 	NdbOMethod	*m = element;
 
 	m->name[0] = '\0';
 }
 
-static void cb_o_method_create(void *user, VNodeID node_id, uint16 group_id, uint8 method_id, const char *name,
+static void cb_o_method_create(UNUSED(void *user), VNodeID node_id, uint16 group_id, uint8 method_id, const char *name,
 			       uint8 param_count, const VNOParamType *param_type, const char *param_name[])
 {
 	NodeObject	*n;

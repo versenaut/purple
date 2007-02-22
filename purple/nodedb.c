@@ -189,7 +189,7 @@ PNode * nodedb_new(VNodeType type)
 	return NULL;
 }
 
-static void cb_copy_tag(void *d, const void *s, void *user)
+static void cb_copy_tag(void *d, const void *s, UNUSED(void *user))
 {
 	const NdbTag	*src = s;
 	NdbTag		*dst = d;
@@ -214,7 +214,7 @@ static void cb_copy_tag(void *d, const void *s, void *user)
 	}
 }
 
-static void cb_copy_tag_group(void *d, const void *s, void *user)
+static void cb_copy_tag_group(void *d, const void *s, UNUSED(void *user))
 {
 	const NdbTagGroup	*src = s;
 	NdbTagGroup		*dst = d;
@@ -407,7 +407,7 @@ VNodeType nodedb_type_get(const PNode *node)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_default_tag_group(unsigned int index, void *element, void *user)
+static void cb_default_tag_group(UNUSED(unsigned int index), void *element, UNUSED(void *user))
 {
 	NdbTagGroup	*g = element;
 
@@ -500,7 +500,7 @@ void nodedb_tag_group_destroy(NdbTagGroup *group)
 	group->id = -1;
 }
 
-static void cb_default_tag(unsigned int index, void *element, void *user)
+static void cb_default_tag(UNUSED(unsigned int index), void *element, UNUSED(void *user))
 {
 	NdbTag	*tag = element;
 
@@ -694,7 +694,7 @@ int nodedb_tag_values_equal(const NdbTag *t1, const NdbTag *t2)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeOwner ownership)
+static void cb_node_create(UNUSED(void *user), VNodeID node_id, VNodeType type, VNodeOwner ownership)
 {
 	PNode	*n;
 
@@ -718,7 +718,7 @@ static void cb_node_create(void *user, VNodeID node_id, VNodeType type, VNodeOwn
 		LOG_WARN(("Can't handle creation of node type %d--not implemented", type));
 }
 
-static void cb_node_name_set(void *user, VNodeID node_id, const char *name)
+static void cb_node_name_set(UNUSED(void *user), VNodeID node_id, const char *name)
 {
 	PNode	*n;
 
@@ -734,7 +734,7 @@ static void cb_node_name_set(void *user, VNodeID node_id, const char *name)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_tag_group_create(void *user, VNodeID node_id, uint16 group_id, const char *name)
+static void cb_tag_group_create(UNUSED(void *user), VNodeID node_id, uint16 group_id, const char *name)
 {
 	PNode	*n;
 
@@ -748,7 +748,7 @@ static void cb_tag_group_create(void *user, VNodeID node_id, uint16 group_id, co
 	}
 }
 
-static void cb_tag_group_destroy(void *user, VNodeID node_id, uint16 group_id)
+static void cb_tag_group_destroy(UNUSED(void *user), VNodeID node_id, uint16 group_id)
 {
 	PNode	*n;
 
@@ -766,7 +766,7 @@ static void cb_tag_group_destroy(void *user, VNodeID node_id, uint16 group_id)
 	}
 }
 
-static void cb_tag_create(void *user, VNodeID node_id, uint16 group_id, uint16 tag_id, const char *name, VNTagType type, const VNTag *value)
+static void cb_tag_create(UNUSED(void *user), VNodeID node_id, uint16 group_id, uint16 tag_id, const char *name, VNTagType type, const VNTag *value)
 {
 	PNode		*n;
 	NdbTagGroup	*tg;
@@ -779,7 +779,7 @@ static void cb_tag_create(void *user, VNodeID node_id, uint16 group_id, uint16 t
 	NOTIFY(n, DATA);
 }
 
-static void cb_tag_destroy(void *user, VNodeID node_id, uint16 group_id, uint16 tag_id)
+static void cb_tag_destroy(UNUSED(void *user), VNodeID node_id, uint16 group_id, uint16 tag_id)
 {
 	PNode		*n;
 	NdbTagGroup	*tg;

@@ -280,7 +280,7 @@ int nodedb_m_fragment_resolve(VNMFragmentID *id, const NodeMaterial *node,
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_fragment_default(unsigned int indec, void *element, void *user)
+static void cb_fragment_default(UNUSED(unsigned int index), void *element, UNUSED(void *user))
 {
 	NdbMFragment	*frag = element;
 
@@ -537,7 +537,7 @@ NdbMFragment * nodedb_m_fragment_create_output(NodeMaterial *node, const char *l
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_m_fragment_create(void *user, VNodeID node_id, VNMFragmentID fragment_id, VNMFragmentType type, VMatFrag *fragment)
+static void cb_m_fragment_create(UNUSED(void *user), VNodeID node_id, VNMFragmentID fragment_id, VNMFragmentType type, VMatFrag *fragment)
 {
 	NodeMaterial	*node;
 
@@ -558,7 +558,7 @@ static void cb_m_fragment_create(void *user, VNodeID node_id, VNMFragmentID frag
 	}
 }
 
-static void cb_m_fragment_destroy(void *user, VNodeID node_id, VNMFragmentID fragment_id)
+static void cb_m_fragment_destroy(UNUSED(void *user), VNodeID node_id, VNMFragmentID fragment_id)
 {
 	NodeMaterial	*node;
 

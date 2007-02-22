@@ -55,7 +55,7 @@ static size_t pixel_size(VNBLayerType type)
 	return 0;
 }
 
-static size_t tile_modulo(const NodeBitmap *node, const NdbBLayer *layer)
+static size_t tile_modulo(UNUSED(const NodeBitmap *node), const NdbBLayer *layer)
 {
 	static const size_t	mod[] = { 1, VN_B_TILE_SIZE, 2 * VN_B_TILE_SIZE, 4 * VN_B_TILE_SIZE, 8 * VN_B_TILE_SIZE };
 
@@ -263,7 +263,7 @@ NdbBLayer * nodedb_b_layer_find(const NodeBitmap *node, const char *name)
 	return NULL;
 }
 
-static void cb_def_layer(unsigned int index, void *element, void *user)
+static void cb_def_layer(UNUSED(unsigned int index), void *element, UNUSED(void *user))
 {
 	NdbBLayer	*layer = element;
 
@@ -304,7 +304,7 @@ real64 nodedb_b_layer_pixel_read(const NodeBitmap *node, const NdbBLayer *layer,
 	return layer_get_pixel(node, layer, layer->framebuffer, ix, iy, iz);
 }
 
-real64 nodedb_b_layer_pixel_read_filtered(const NodeBitmap *node, const NdbBLayer *layer, NdbBFilterMode mode, real64 x, real64 y, real64 z)
+real64 nodedb_b_layer_pixel_read_filtered(const NodeBitmap *node, const NdbBLayer *layer, UNUSED(NdbBFilterMode mode), real64 x, real64 y, real64 z)
 {
 	if(node == NULL || layer == NULL)
 		return 0.0;
@@ -374,7 +374,7 @@ void * nodedb_b_layer_access_begin(NodeBitmap *node, NdbBLayer *layer)
 	return layer->framebuffer;
 }
 
-void nodedb_b_layer_access_end(NodeBitmap *node, NdbBLayer *layer, void *framebuffer)
+void nodedb_b_layer_access_end(UNUSED(NodeBitmap *node), UNUSED(NdbBLayer *layer), UNUSED(void *framebuffer))
 {
 	/* Nothing much to do, here. */
 }
@@ -732,7 +732,7 @@ void nodedb_b_tile_describe(const NodeBitmap *node, const NdbBLayer *layer, NdbB
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_b_dimensions_set(void *user, VNodeID node_id, uint16 width, uint16 height, uint16 depth)
+static void cb_b_dimensions_set(UNUSED(void *user), VNodeID node_id, uint16 width, uint16 height, uint16 depth)
 {
 	NodeBitmap	*node;
 
@@ -742,7 +742,7 @@ static void cb_b_dimensions_set(void *user, VNodeID node_id, uint16 width, uint1
 		NOTIFY(node, STRUCTURE);
 }
 
-static void cb_b_layer_create(void *user, VNodeID node_id, VLayerID layer_id, const char *name, VNBLayerType type)
+static void cb_b_layer_create(UNUSED(void *user), VNodeID node_id, VLayerID layer_id, const char *name, VNBLayerType type)
 {
 	NodeBitmap	*node;
 	NdbBLayer	*layer;
@@ -761,7 +761,7 @@ static void cb_b_layer_create(void *user, VNodeID node_id, VLayerID layer_id, co
 	}	
 }
 
-static void cb_b_layer_destroy(void *user, VNodeID node_id, VLayerID layer_id)
+static void cb_b_layer_destroy(UNUSED(void *user), VNodeID node_id, VLayerID layer_id)
 {
 	NodeBitmap	*node;
 	NdbBLayer	*layer;
@@ -776,7 +776,7 @@ static void cb_b_layer_destroy(void *user, VNodeID node_id, VLayerID layer_id)
 	NOTIFY(node, STRUCTURE);
 }
 
-static void cb_b_tile_set(void *user, VNodeID node_id, VLayerID layer_id, uint16 tile_x, uint16 tile_y, uint16 tile_z,
+static void cb_b_tile_set(UNUSED(void *user), VNodeID node_id, VLayerID layer_id, uint16 tile_x, uint16 tile_y, uint16 tile_z,
 			  VNBLayerType type, const VNBTile *tile)
 {
 	NodeBitmap	*node;

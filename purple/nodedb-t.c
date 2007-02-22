@@ -29,7 +29,7 @@ void nodedb_t_construct(NodeText *n)
 	n->buffers = NULL;
 }
 
-static void cb_copy_buffer(void *d, const void *s, void *user)
+static void cb_copy_buffer(void *d, const void *s, UNUSED(void *user))
 {
 	const NdbTBuffer	*src = s;
 	NdbTBuffer		*dst = d;
@@ -135,7 +135,7 @@ NdbTBuffer * nodedb_t_buffer_find(const NodeText *node, const char *name)
 	return NULL;
 }
 
-static void cb_def_buffer(unsigned int index, void *element, void *user)
+static void cb_def_buffer(UNUSED(unsigned int index), void *element, UNUSED(void *user))
 {
 	NdbTBuffer	*buffer = element;
 
@@ -198,7 +198,7 @@ const char * nodedb_t_buffer_read_begin(NdbTBuffer *buffer)
 	return NULL;
 }
 
-void nodedb_t_buffer_read_end(NdbTBuffer *buffer)
+void nodedb_t_buffer_read_end(UNUSED(NdbTBuffer *buffer))
 {
 	/* Not much to do, here. */
 }
@@ -279,7 +279,7 @@ void nodedb_t_buffer_clear(NdbTBuffer *buffer)
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_t_language_set(void *user, VNodeID node_id, const char *language)
+static void cb_t_language_set(UNUSED(void *user), VNodeID node_id, const char *language)
 {
 	NodeText	*n;
 
@@ -290,7 +290,7 @@ static void cb_t_language_set(void *user, VNodeID node_id, const char *language)
 	}
 }
 
-static void cb_t_buffer_create(void *user, VNodeID node_id, uint16 buffer_id, const char *name)
+static void cb_t_buffer_create(UNUSED(void *user), VNodeID node_id, uint16 buffer_id, const char *name)
 {
 	NodeText	*n;
 	NdbTBuffer	*buffer;
@@ -326,7 +326,7 @@ static void cb_t_buffer_create(void *user, VNodeID node_id, uint16 buffer_id, co
 */
 }
 
-static void cb_t_buffer_destroy(void *user, VNodeID node_id, uint16 buffer_id, uint16 index, const char *name)
+static void cb_t_buffer_destroy(UNUSED(void *user), VNodeID node_id, uint16 buffer_id)
 {
 	NodeText	*n;
 
@@ -342,7 +342,7 @@ static void cb_t_buffer_destroy(void *user, VNodeID node_id, uint16 buffer_id, u
 	}
 }
 
-static void cb_t_text_set(void *user, VNodeID node_id, uint16 buffer_id, uint32 pos, uint32 len, const char *text)
+static void cb_t_text_set(UNUSED(void *user), VNodeID node_id, uint16 buffer_id, uint32 pos, uint32 len, const char *text)
 {
 	NodeText	*n;
 

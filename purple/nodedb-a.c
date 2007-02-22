@@ -74,7 +74,7 @@ static NdbABlk * block_new(const NdbABuffer *buffer)
 	return blk;
 }
 
-static void * block_copy(const void *key, const void *element, void *user)
+static void * block_copy(UNUSED(const void *key), const void *element, void *user)
 {
 	const NdbABuffer	*ref = (NdbABuffer *) user;
 	NdbABlk		*blk;
@@ -90,7 +90,7 @@ static void block_destroy(NdbABlk *blk)
 	mem_free(blk);
 }
 
-static void cb_copy_buffer(void *d, const void *s, void *user)
+static void cb_copy_buffer(void *d, const void *s, UNUSED(void *user))
 {
 	const NdbABuffer	*src = s;
 	NdbABuffer	*dst = d;
@@ -115,7 +115,7 @@ void nodedb_a_set(NodeAudio *n, const NodeAudio *src)
 	nodedb_a_copy(n, src);
 }
 
-static void cb_block_destroy(const void *key, void *element)
+static void cb_block_destroy(UNUSED(const void *key), void *element)
 {
 	block_destroy(element);
 }
@@ -187,7 +187,7 @@ NdbABuffer * nodedb_a_buffer_find(const NodeAudio *node, const char *name)
 	return NULL;
 }
 
-static void cb_def_buffer(unsigned int index, void *element, void *user)
+static void cb_def_buffer(UNUSED(unsigned int index), void *element, UNUSED(void *user))
 {
 	NdbABuffer	*la = element;
 
@@ -387,7 +387,7 @@ void nodedb_a_buffer_write_samples(NdbABuffer *buffer, unsigned int start, const
 
 /* ----------------------------------------------------------------------------------------- */
 
-static void cb_a_buffer_create(void *user, VNodeID node_id, VBufferID buffer_id, const char *name,
+static void cb_a_buffer_create(UNUSED(void *user), VNodeID node_id, VBufferID buffer_id, const char *name,
 			      VNABlockType type, real64 frequency)
 {
 	NodeAudio	*n;
@@ -410,7 +410,7 @@ static void cb_a_buffer_create(void *user, VNodeID node_id, VBufferID buffer_id,
 	}
 }
 
-static void cb_a_buffer_destroy(void *user, VNodeID node_id, VBufferID buffer_id)
+static void cb_a_buffer_destroy(UNUSED(void *user), VNodeID node_id, VBufferID buffer_id)
 {
 	NodeAudio	*n;
 
@@ -427,7 +427,7 @@ static void cb_a_buffer_destroy(void *user, VNodeID node_id, VBufferID buffer_id
 	}
 }
 
-static void cb_a_block_set(void *user, VNodeID node_id, VBufferID buffer_id, uint32 block_index,
+static void cb_a_block_set(UNUSED(void *user), VNodeID node_id, VBufferID buffer_id, uint32 block_index,
 			   VNABlockType type, const VNABlock *data)
 {
 	NodeAudio	*n;
@@ -464,7 +464,7 @@ static void cb_a_block_set(void *user, VNodeID node_id, VBufferID buffer_id, uin
 	}
 }
 
-static void cb_a_block_clear(void *user, VNodeID node_id, VBufferID buffer_id, uint32 block_index)
+static void cb_a_block_clear(UNUSED(void *user), VNodeID node_id, VBufferID buffer_id, uint32 block_index)
 {
 	NodeAudio	*n;
 
