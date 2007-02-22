@@ -14,3 +14,7 @@
 
 extern void	nodedb_internal_notify_mine_check(PNode *n, NodeNotifyEvent ev);
 extern void	nodedb_internal_notify_node_check(PNode *n, NodeNotifyEvent ev);
+
+#if defined __GNUC__
+#define	UNUSED(a)	__attribute__((unused)) a
+#endif
